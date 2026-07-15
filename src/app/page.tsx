@@ -1,10 +1,10 @@
 import { AppShell } from "@/components/layout/AppShell";
-import { DashboardPage } from "@/features/dashboard/DashboardPage";
+import { AnalysisWorkspace } from "@/features/analysis/AnalysisWorkspace";
 
 export default function Home() {
   return (
     <AppShell>
-      <DashboardPage />
+      <AnalysisWorkspace />
     </AppShell>
   );
 }
