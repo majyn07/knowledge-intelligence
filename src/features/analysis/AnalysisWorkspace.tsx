@@ -1,48 +1,67 @@
+import { useState } from "react";
+
+import { tickets } from "./mock/tickets";
+
+import { TicketList } from "./components/TicketList";
+import { TicketDetails } from "./components/TicketDetails";
+import { AnalysisPanel } from "./components/AnalysisPanel";
+
+type AnalysisResult = {
+  classification: "strong" | "partial" | "none";
+  relatedArticles: number;
+  updates: number;
+};
+
 export function AnalysisWorkspace() {
+  const [selectedTicketId, setSelectedTicketId] = useState(tickets[0].id);
+
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+
+  const [analysisResult, setAnalysisResult] =
+    useState<AnalysisResult | null>(null);
+
+  const selectedTicket =
+    tickets.find((ticket) => ticket.id === selectedTicketId)!;
+
+  async function handleAnalyze() {
+    setIsAnalyzing(true);
+
+    setAnalysisResult(null);
+
+    await new Promise((resolve) => setTimeout(resolve, 2000));
+
+    setAnalysisResult({
+      classification: "partial",
+      relatedArticles: 2,
+      updates: 1,
+    });
+
+    setIsAnalyzing(false);
+  }
+
+  function handleSelectTicket(id: string) {
+    setSelectedTicketId(id);
+    setAnalysisResult(null);
+  }
+
   return (
     <div className="flex h-full gap-6">
 
-      {/* Coluna esquerda */}
+      <TicketList
+        tickets={tickets}
+        selectedTicketId={selectedTicketId}
+        onSelectTicket={handleSelectTicket}
+      />
 
-      <aside className="w-80 rounded-xl border bg-card p-5">
+      <TicketDetails
+        ticket={selectedTicket}
+        isAnalyzing={isAnalyzing}
+        onAnalyze={handleAnalyze}
+      />
 
-        <h2 className="text-lg font-semibold">
-          Análises
-        </h2>
-
-        <p className="mt-1 text-sm text-muted-foreground">
-          Pesquisa, filtros e lista de atendimentos.
-        </p>
-
-      </aside>
-
-      {/* Área central */}
-
-      <main className="flex-1 rounded-xl border bg-card p-6">
-
-        <h2 className="text-xl font-semibold">
-          Atendimento
-        </h2>
-
-        <p className="mt-2 text-muted-foreground">
-          A conversa selecionada será exibida aqui.
-        </p>
-
-      </main>
-
-      {/* Painel direito */}
-
-      <aside className="w-96 rounded-xl border bg-card p-5">
-
-        <h2 className="text-lg font-semibold">
-          Contexto
-        </h2>
-
-        <p className="mt-1 text-sm text-muted-foreground">
-          Informações auxiliares da análise.
-        </p>
-
-      </aside>
+      <AnalysisPanel
+        analysisResult={analysisResult}
+      />
 
     </div>
   );
