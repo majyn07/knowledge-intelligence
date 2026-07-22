@@ -1,10 +1,13 @@
 "use client";
 
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 import {
-  FolderOpen,
-  BookOpen,
   BarChart3,
   Bell,
+  BookOpen,
+  FileSearch,
+  FolderOpen,
   Settings,
 } from "lucide-react";
 
@@ -12,43 +15,66 @@ import {
   Sidebar,
   SidebarContent,
   SidebarFooter,
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarGroupLabel,
   SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
 
-const items = [
+const workspaceItems = [
+  {
+    title: "Dashboard",
+    icon: BarChart3,
+    href: "/",
+  },
+  {
+    title: "Análises",
+    icon: FileSearch,
+    href: "/analysis",
+  },
   {
     title: "Projetos",
     icon: FolderOpen,
+    href: "/projects",
   },
   {
     title: "Biblioteca",
     icon: BookOpen,
+    href: "/library",
   },
+];
+
+const managementItems = [
   {
     title: "Indicadores",
     icon: BarChart3,
+    href: "/indicators",
   },
   {
     title: "Atividades",
     icon: Bell,
+    href: "/activities",
   },
+];
+
+const systemItems = [
   {
     title: "Configurações",
     icon: Settings,
+    href: "/settings",
   },
 ];
 
 export function AppSidebar() {
+  const pathname = usePathname();
+
   return (
     <Sidebar variant="sidebar" collapsible="icon">
-
       <SidebarHeader className="py-6">
-
         <div className="px-2">
-
           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-sidebar-foreground/60">
             AltoQi
           </p>
@@ -60,41 +86,85 @@ export function AppSidebar() {
           <p className="text-sm text-sidebar-foreground/70">
             Intelligence
           </p>
-
         </div>
-
       </SidebarHeader>
 
       <SidebarContent>
+        <SidebarGroup>
+          <SidebarGroupLabel>Workspace</SidebarGroupLabel>
 
-        <SidebarMenu>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {workspaceItems.map((item) => (
+                <SidebarMenuItem key={item.title}>
+                  <SidebarMenuButton
+                    render={
+                      <Link href={item.href} />
+                    }
+                    isActive={pathname === item.href}
+                    tooltip={item.title}
+                  >
+                    <item.icon />
+                    <span>{item.title}</span>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
 
-          {items.map((item) => (
-            <SidebarMenuItem key={item.title}>
+        <SidebarGroup>
+          <SidebarGroupLabel>Gestão</SidebarGroupLabel>
 
-              <SidebarMenuButton tooltip={item.title}>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {managementItems.map((item) => (
+                <SidebarMenuItem key={item.title}>
+                  <SidebarMenuButton
+                    render={
+                      <Link href={item.href} />
+                    }
+                    isActive={pathname === item.href}
+                    tooltip={item.title}
+                  >
+                    <item.icon />
+                    <span>{item.title}</span>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
 
-                <item.icon />
+        <SidebarGroup>
+          <SidebarGroupLabel>Sistema</SidebarGroupLabel>
 
-                <span>{item.title}</span>
-
-              </SidebarMenuButton>
-
-            </SidebarMenuItem>
-          ))}
-
-        </SidebarMenu>
-
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {systemItems.map((item) => (
+                <SidebarMenuItem key={item.title}>
+                  <SidebarMenuButton
+                    render={
+                      <Link href={item.href} />
+                    }
+                    isActive={pathname === item.href}
+                    tooltip={item.title}
+                  >
+                    <item.icon />
+                    <span>{item.title}</span>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
       </SidebarContent>
 
       <SidebarFooter>
-
         <div className="px-2 py-2 text-xs text-sidebar-foreground/60">
           v0.1.0
         </div>
-
       </SidebarFooter>
-
     </Sidebar>
   );
 }

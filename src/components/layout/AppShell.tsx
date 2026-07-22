@@ -19,15 +19,15 @@ interface AppShellProps {
 export function AppShell({ children }: AppShellProps) {
   return (
     <SidebarProvider>
-
       <AppSidebar />
 
       <SidebarInset>
-
-        <AppHeader />
+        <AppHeader
+          title="Workspace"
+          description="Visus Knowledge Intelligence"
+        />
 
         <main className="flex-1 overflow-auto p-8">
-
           <SidebarTrigger className="mb-6" />
 
           <div className="mb-6">
@@ -35,11 +35,8 @@ export function AppShell({ children }: AppShellProps) {
           </div>
 
           {children}
-
         </main>
-
       </SidebarInset>
-
     </SidebarProvider>
   );
 }

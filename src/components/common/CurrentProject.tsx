@@ -1,5 +1,11 @@
 "use client";
 
+import {
+  Building2,
+  FolderKanban,
+  CalendarDays,
+} from "lucide-react";
+
 import { projects } from "@/features/projects/mock/projects";
 import { useApp } from "@/providers/AppProvider";
 
@@ -15,20 +21,35 @@ export function CurrentProject() {
   }
 
   return (
-    <div className="rounded-lg border bg-card px-4 py-3">
+    <div className="rounded-xl border bg-card p-6 shadow-sm">
+      <div className="flex items-start justify-between">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+            Projeto Atual
+          </p>
 
-      <p className="text-xs uppercase tracking-wide text-muted-foreground">
-        Projeto Atual
-      </p>
+          <h2 className="mt-2 text-2xl font-bold">
+            {project.name}
+          </h2>
 
-      <p className="mt-1 font-semibold">
-        {project.name}
-      </p>
+          <div className="mt-4 flex flex-wrap gap-6 text-sm text-muted-foreground">
+            <div className="flex items-center gap-2">
+              <Building2 className="h-4 w-4" />
+              <span>{project.client}</span>
+            </div>
 
-      <p className="text-sm text-muted-foreground">
-        {project.client}
-      </p>
+            <div className="flex items-center gap-2">
+              <FolderKanban className="h-4 w-4" />
+              <span>Projeto ativo</span>
+            </div>
 
+            <div className="flex items-center gap-2">
+              <CalendarDays className="h-4 w-4" />
+              <span>Última atualização hoje</span>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

@@ -1,0 +1,2 @@
+article: Article;
+onEdit: () => void;

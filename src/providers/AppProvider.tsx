@@ -15,7 +15,7 @@ export function AppProvider({
   children: React.ReactNode;
 }) {
   const [currentProjectId, setCurrentProjectId] =
-    useState<string | null>(null);
+    useState<string | null>("project-001");
 
   return (
     <AppContext.Provider

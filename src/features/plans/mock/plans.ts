@@ -1,18 +1,4 @@
-export interface Recommendation {
-  id: string;
-  solution: string;
-  type: "create" | "update" | "review" | "merge";
-  article: string;
-  justification: string;
-}
-
-export interface ImprovementPlan {
-  id: string;
-  projectId: string;
-  title: string;
-  generatedAt: string;
-  recommendations: Recommendation[];
-}
+import type { ImprovementPlan } from "@/models/ImprovementPlan";
 
 export const plans: ImprovementPlan[] = [
   {

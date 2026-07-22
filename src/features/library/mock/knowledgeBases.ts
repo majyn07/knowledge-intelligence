@@ -1,6 +1,9 @@
-export const knowledgeBases = [
+import type { KnowledgeBase } from "@/models/KnowledgeBase";
+
+export const knowledgeBases: KnowledgeBase[] = [
   {
     id: "workflow",
+    projectId: "project-001",
 
     solution: "Visus Workflow",
 
@@ -17,6 +20,7 @@ export const knowledgeBases = [
 
   {
     id: "collab",
+    projectId: "project-001",
 
     solution: "Visus Collab",
 
@@ -33,6 +37,7 @@ export const knowledgeBases = [
 
   {
     id: "planning",
+    projectId: "project-001",
 
     solution: "Visus Planning",
 
