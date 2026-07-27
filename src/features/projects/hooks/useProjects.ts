@@ -1,16 +1,59 @@
 "use client";
 
-import { useCallback, useMemo, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
+
+import { toast } from "sonner";
 
 import type { Project } from "@/models/Project";
 import type { ProjectFormData } from "@/features/projects/types/ProjectFormData";
 
 import { ProjectService } from "@/features/projects/services/ProjectService";
 
+const STORAGE_KEY = "visus-projects";
+
 export function useProjects() {
   const [projects, setProjects] = useState<Project[]>(
-    () => ProjectService.getAll()
+    ProjectService.getAll()
   );
+
+  useEffect(() => {
+    const storedProjects =
+      localStorage.getItem(STORAGE_KEY);
+
+    if (!storedProjects) {
+      return;
+    }
+
+    try {
+      const parsedProjects = JSON.parse(
+        storedProjects
+      ) as Project[];
+
+      setProjects(
+        parsedProjects.map((project) => ({
+          ...project,
+          createdAt: new Date(project.createdAt),
+          updatedAt: new Date(project.updatedAt),
+        }))
+      );
+    } catch {
+      console.error(
+        "Erro ao carregar projetos do localStorage."
+      );
+    }
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify(projects)
+    );
+  }, [projects]);
 
   const createProject = useCallback(
     (data: ProjectFormData) => {
@@ -20,6 +63,8 @@ export function useProjects() {
         newProject,
         ...previous,
       ]);
+
+      toast.success("Projeto criado com sucesso.");
     },
     []
   );
@@ -33,6 +78,8 @@ export function useProjects() {
             : project
         )
       );
+
+      toast.success("Projeto atualizado com sucesso.");
     },
     []
   );
@@ -44,6 +91,8 @@ export function useProjects() {
           (project) => project.id !== id
         )
       );
+
+      toast.success("Projeto excluído com sucesso.");
     },
     []
   );

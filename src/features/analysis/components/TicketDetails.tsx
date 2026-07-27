@@ -17,6 +17,9 @@ interface TicketDetailsProps {
   onDelete: (ticketId: string) => void;
 }
 
+type ConversationMessage =
+  (typeof conversations)[keyof typeof conversations][number];
+
 export function TicketDetails({
   ticket,
   isAnalyzing,
@@ -27,8 +30,10 @@ export function TicketDetails({
   const [isEditing, setIsEditing] =
     useState(false);
 
-  const conversation =
-    conversations[ticket.id] ?? [];
+  const conversation: ConversationMessage[] =
+    conversations[
+      ticket.id as keyof typeof conversations
+    ] ?? [];
 
   if (isEditing) {
     return (
@@ -48,93 +53,117 @@ export function TicketDetails({
   }
 
   return (
-    <main className="flex-1 rounded-xl border bg-card">
-      <div className="flex items-start justify-between border-b p-6">
-        <div>
-          <h1 className="text-2xl font-semibold">
-            {ticket.title}
-          </h1>
+    <main className="flex-1 rounded-xl border bg-card overflow-hidden">
+      <div className="border-b p-6">
+        <div className="flex items-start justify-between gap-6">
+          <div className="space-y-5 flex-1">
+            <h1 className="text-2xl font-semibold">
+              {ticket.title}
+            </h1>
 
-          <div className="mt-6 grid grid-cols-2 gap-x-10 gap-y-3 text-sm">
-            <div>
-              <strong>Solução:</strong>{" "}
-              {ticket.solution}
-            </div>
+            <div className="grid grid-cols-2 gap-x-10 gap-y-3 text-sm">
+              <div>
+                <span className="font-semibold">
+                  Solução:
+                </span>{" "}
+                {ticket.solution}
+              </div>
 
-            <div>
-              <strong>Ticket:</strong> #
-              {ticket.id}
-            </div>
+              <div>
+                <span className="font-semibold">
+                  Ticket:
+                </span>{" "}
+                #{ticket.id}
+              </div>
 
-            <div>
-              <strong>Empresa:</strong>{" "}
-              {ticket.company}
-            </div>
+              <div>
+                <span className="font-semibold">
+                  Empresa:
+                </span>{" "}
+                {ticket.company}
+              </div>
 
-            <div>
-              <strong>Data:</strong>{" "}
-              {ticket.date}
+              <div>
+                <span className="font-semibold">
+                  Data:
+                </span>{" "}
+                {ticket.date}
+              </div>
             </div>
           </div>
-        </div>
 
-        <div className="flex gap-2">
-          <Button
-            variant="outline"
-            onClick={() =>
-              setIsEditing(true)
-            }
-          >
-            Editar
-          </Button>
+          <div className="flex flex-col gap-2">
+            <Button
+              disabled={isAnalyzing}
+              onClick={onAnalyze}
+            >
+              {isAnalyzing
+                ? "Analisando..."
+                : "Analisar atendimento"}
+            </Button>
 
-          <Button
-            variant="destructive"
-            onClick={() =>
-              onDelete(ticket.id)
-            }
-          >
-            Excluir
-          </Button>
+            <Button
+              variant="outline"
+              onClick={() =>
+                setIsEditing(true)
+              }
+            >
+              Editar
+            </Button>
 
-          <Button
-            disabled={isAnalyzing}
-            onClick={onAnalyze}
-          >
-            {isAnalyzing
-              ? "Analisando..."
-              : "Analisar Atendimento"}
-          </Button>
+            <Button
+              variant="destructive"
+              onClick={() =>
+                onDelete(ticket.id)
+              }
+            >
+              Excluir
+            </Button>
+          </div>
         </div>
       </div>
 
-      <div className="flex-1 overflow-auto p-6">
-        <h2 className="text-lg font-semibold">
+      <div className="p-6">
+        <h2 className="mb-5 text-lg font-semibold">
           Conversa
         </h2>
 
-        <div className="mt-4 space-y-4">
+        <div className="space-y-4">
           {conversation.map(
-            (message, index) => (
-              <div
-                key={index}
-                className="rounded-lg border p-4"
-              >
-                <div className="mb-3 flex items-center justify-between">
-                  <span className="font-medium">
-                    {message.author}
-                  </span>
+            (
+              message: ConversationMessage,
+              index: number
+            ) => {
+              const isSupport =
+                message.author
+                  .toLowerCase()
+                  .includes("suporte");
 
-                  <span className="text-xs text-muted-foreground">
-                    {message.date}
-                  </span>
+              return (
+                <div
+                  key={index}
+                  className={`max-w-[92%] rounded-xl border px-5 py-4 ${
+                    isSupport
+                      ? "ml-auto bg-muted"
+                      : "bg-purple-50 dark:bg-purple-950/20"
+                  }`}
+                >
+                  <div className="mb-2 flex items-center justify-between">
+                    <strong>
+                      {message.author}
+                    </strong>
+
+                    <span className="text-xs text-muted-foreground">
+                      {message.date}
+                    </span>
+                  </div>
+
+                  <p className="whitespace-pre-wrap text-sm leading-6">
+                    {message.message}
+                  </p>
                 </div>
-
-                <p className="whitespace-pre-wrap text-sm leading-6">
-                  {message.message}
-                </p>
-              </div>
-            )
+              );
+            }
           )}
         </div>
       </div>

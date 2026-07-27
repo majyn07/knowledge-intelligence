@@ -1,17 +1,15 @@
-import type { Recommendation } from "@/models/Recommendation";
+import type { KnowledgeOpportunity } from "@/features/analysis/types/KnowledgeOpportunity";
+import { OpportunityTypeLabel } from "@/features/analysis/types/KnowledgeOpportunity";
 
 interface RecommendationCardProps {
-  recommendation: Recommendation;
-  onApprove: (recommendation: Recommendation) => void;
-  onDiscard: (recommendation: Recommendation) => void;
+  recommendation: KnowledgeOpportunity;
+  onApprove: (
+    recommendation: KnowledgeOpportunity
+  ) => void;
+  onDiscard: (
+    recommendation: KnowledgeOpportunity
+  ) => void;
 }
-
-const actionLabels: Record<Recommendation["type"], string> = {
-  create: "Criar artigo",
-  update: "Atualizar artigo",
-  review: "Revisar artigo",
-  merge: "Mesclar artigos",
-};
 
 export function RecommendationCard({
   recommendation,
@@ -22,43 +20,31 @@ export function RecommendationCard({
     <div className="rounded-xl border bg-card p-5">
       <div className="flex items-center justify-between">
         <span className="rounded-md bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
-          {actionLabels[recommendation.type]}
+          {OpportunityTypeLabel[recommendation.type]}
         </span>
 
         <span className="text-xs text-muted-foreground">
-          {recommendation.solution}
+          {recommendation.status}
         </span>
       </div>
 
       <div className="mt-5">
         <p className="text-xs uppercase tracking-wide text-muted-foreground">
-          Artigo
+          Oportunidade
         </p>
 
         <h3 className="mt-1 font-semibold">
-          {recommendation.article}
+          {recommendation.title}
         </h3>
       </div>
 
-      {recommendation.section && (
-        <div className="mt-4">
-          <p className="text-xs uppercase tracking-wide text-muted-foreground">
-            Seção
-          </p>
-
-          <p className="mt-1 text-sm">
-            {recommendation.section}
-          </p>
-        </div>
-      )}
-
       <div className="mt-5 rounded-lg border bg-muted/30 p-4">
         <p className="text-xs uppercase tracking-wide text-muted-foreground">
-          Conteúdo sugerido
+          Descrição
         </p>
 
         <p className="mt-2 text-sm leading-6">
-          {recommendation.suggestedContent}
+          {recommendation.description}
         </p>
       </div>
 

@@ -1,4 +1,9 @@
-import { Search, Ticket, Building2, CheckCircle2 } from "lucide-react";
+import {
+  Search,
+  Ticket,
+  Building2,
+  CheckCircle2,
+} from "lucide-react";
 
 import { tickets as TicketType } from "../mock/tickets";
 
@@ -56,7 +61,6 @@ export function TicketList({
       </div>
 
       <Accordion
-        type="multiple"
         defaultValue={["status", "produto"]}
       >
         <AccordionItem value="status">
@@ -102,12 +106,15 @@ export function TicketList({
 
       <div className="flex-1 overflow-auto">
         {tickets.map((ticket) => {
-          const selected = ticket.id === selectedTicketId;
+          const selected =
+            ticket.id === selectedTicketId;
 
           return (
             <button
               key={ticket.id}
-              onClick={() => onSelectTicket(ticket.id)}
+              onClick={() =>
+                onSelectTicket(ticket.id)
+              }
               className={`w-full border-b px-5 py-4 text-left transition-all ${
                 selected
                   ? "border-l-4 border-l-primary bg-primary/5"
@@ -119,7 +126,13 @@ export function TicketList({
                   {ticket.title}
                 </p>
 
-                <Badge variant={selected ? "default" : "secondary"}>
+                <Badge
+                  variant={
+                    selected
+                      ? "default"
+                      : "secondary"
+                  }
+                >
                   #{ticket.id}
                 </Badge>
               </div>
@@ -137,7 +150,9 @@ export function TicketList({
 
                 <div className="flex items-center gap-2">
                   <CheckCircle2 className="h-3.5 w-3.5 text-primary" />
-                  <span>Pronto para análise</span>
+                  <span>
+                    Pronto para análise
+                  </span>
                 </div>
               </div>
             </button>

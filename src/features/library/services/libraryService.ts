@@ -1,67 +1,60 @@
-import type { Article } from "@/models/Article";
-import type { KnowledgeBase } from "@/models/KnowledgeBase";
+import type { Library } from "@/models/Library";
+import type { LibraryFormData } from "@/features/library/types/LibraryFormData";
 
-import { articles } from "../mock/articles";
-import { knowledgeBases } from "../mock/knowledgeBases";
+import { library } from "@/features/library/mock/library";
 
-export const libraryService = {
-  getKnowledgeBases(
-    projectId: string
-  ): KnowledgeBase[] {
-    return knowledgeBases.filter(
-      (knowledgeBase) =>
-        knowledgeBase.projectId === projectId
-    );
+export const LibraryService = {
+  getAll(): Library[] {
+    return library;
   },
 
-  getArticles(
-    knowledgeBaseId: string
-  ): Article[] {
-    return articles.filter(
-      (article) =>
-        article.knowledgeBaseId ===
-        knowledgeBaseId
-    );
+  getById(id: string): Library | undefined {
+    return library.find((item) => item.id === id);
   },
 
-  getArticle(
-    articleId: string
-  ): Article | undefined {
-    return articles.find(
-      (article) => article.id === articleId
-    );
+  create(data: LibraryFormData): Library {
+    const now = new Date();
+
+    return {
+      id: crypto.randomUUID(),
+      title: data.title.trim(),
+      description: data.description.trim(),
+
+      projectId: data.projectId,
+
+      type: data.type,
+      status: data.status,
+
+      category: data.category.trim(),
+      tags: data.tags,
+
+      createdAt: now,
+      updatedAt: now,
+    };
   },
 
-  updateArticle(article: Article): Article {
-    const index = articles.findIndex(
-      (currentArticle) =>
-        currentArticle.id === article.id
-    );
+  update(
+    item: Library,
+    data: LibraryFormData
+  ): Library {
+    return {
+      ...item,
+      title: data.title.trim(),
+      description: data.description.trim(),
 
-    if (index === -1) {
-      throw new Error("Artigo não encontrado.");
-    }
+      projectId: data.projectId,
 
-    articles[index] = article;
+      type: data.type,
+      status: data.status,
 
-    return article;
+      category: data.category.trim(),
+      tags: data.tags,
+
+      updatedAt: new Date(),
+    };
   },
 
-  createArticle(article: Article): Article {
-    articles.push(article);
-
-    return article;
-  },
-
-  deleteArticle(articleId: string): void {
-    const index = articles.findIndex(
-      (article) => article.id === articleId
-    );
-
-    if (index === -1) {
-      return;
-    }
-
-    articles.splice(index, 1);
+  delete(id: string): void {
+    throw new Error("Not implemented");
   },
 };

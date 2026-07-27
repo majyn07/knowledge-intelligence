@@ -3,7 +3,11 @@ import type { Dispatch, SetStateAction } from "react";
 import type { AIContext } from "@/models/AIContext";
 import type { AnalysisResult } from "@/models/AnalysisResult";
 import type { AnalysisMessage } from "@/models/AnalysisMessage";
-import type { Recommendation } from "@/models/Recommendation";
+import type { KnowledgeOpportunity } from "@/features/analysis/types/KnowledgeOpportunity";
+import {
+  ConfidenceLevelLabel,
+  DocumentationStatusLabel,
+} from "@/features/analysis/types/KnowledgeClassification";
 
 import { RecommendationCard } from "./RecommendationCard";
 import { RelatedArticlesPanel } from "./RelatedArticlesPanel";
@@ -15,21 +19,12 @@ interface AnalysisPanelProps {
   setMessages: Dispatch<SetStateAction<AnalysisMessage[]>>;
   context: AIContext;
   onApproveRecommendation: (
-    recommendation: Recommendation
+    recommendation: KnowledgeOpportunity
   ) => void;
   onDiscardRecommendation: (
-    recommendation: Recommendation
+    recommendation: KnowledgeOpportunity
   ) => void;
 }
-
-const classificationLabels: Record<
-  AnalysisResult["classification"],
-  string
-> = {
-  strong: "🟢 Cobertura completa",
-  partial: "🟡 Cobertura parcial",
-  none: "🔴 Sem cobertura",
-};
 
 export function AnalysisPanel({
   analysisResult,
@@ -73,11 +68,16 @@ export function AnalysisPanel({
           <div className="grid grid-cols-3 gap-6">
             <div>
               <p className="text-xs uppercase tracking-wide text-muted-foreground">
-                Classificação
+                Cobertura da documentação
               </p>
 
               <p className="mt-2 font-medium">
-                {classificationLabels[analysisResult.classification]}
+                {
+                  DocumentationStatusLabel[
+                    analysisResult.classification
+                      .documentationStatus
+                  ]
+                }
               </p>
             </div>
 
@@ -87,7 +87,14 @@ export function AnalysisPanel({
               </p>
 
               <p className="mt-2 font-medium">
-                {(analysisResult.confidence * 100).toFixed(0)}%
+                {analysisResult.confidence.toFixed(0)}%
+                {" • "}
+                {
+                  ConfidenceLevelLabel[
+                    analysisResult.classification
+                      .confidenceLevel
+                  ]
+                }
               </p>
             </div>
 
@@ -108,29 +115,32 @@ export function AnalysisPanel({
         <section>
           <div className="mb-4">
             <h3 className="font-semibold">
-              Sugestões da IA
+              Oportunidades identificadas
             </h3>
 
             <p className="mt-1 text-sm text-muted-foreground">
-              Revise cada sugestão antes de decidir quais alterações serão
-              incorporadas ao plano de melhoria.
+              Revise cada oportunidade antes de decidir quais alterações
+              serão incorporadas ao plano de melhoria.
             </p>
           </div>
 
-          {analysisResult.recommendations.length === 0 ? (
+          {analysisResult.opportunities.length === 0 ? (
             <div className="rounded-lg border border-dashed p-6 text-center text-sm text-muted-foreground">
-              Nenhuma sugestão foi identificada para este atendimento.
+              Nenhuma oportunidade foi identificada para este
+              atendimento.
             </div>
           ) : (
             <div className="space-y-4">
-              {analysisResult.recommendations.map((recommendation) => (
-                <RecommendationCard
-                  key={recommendation.id}
-                  recommendation={recommendation}
-                  onApprove={onApproveRecommendation}
-                  onDiscard={onDiscardRecommendation}
-                />
-              ))}
+              {analysisResult.opportunities.map(
+                (recommendation) => (
+                  <RecommendationCard
+                    key={recommendation.id}
+                    recommendation={recommendation}
+                    onApprove={onApproveRecommendation}
+                    onDiscard={onDiscardRecommendation}
+                  />
+                )
+              )}
             </div>
           )}
         </section>

@@ -1,11 +1,4 @@
-import type { Recommendation } from "./Recommendation";
+import type { KnowledgeAnalysisResult } from "@/features/analysis/types/KnowledgeAnalysisResult";
 
-export interface AnalysisResult {
-  classification: "strong" | "partial" | "none";
-
-  confidence: number;
-
-  relatedArticles: number;
-
-  recommendations: Recommendation[];
-}
+export type AnalysisResult =
+  KnowledgeAnalysisResult;

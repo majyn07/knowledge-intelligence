@@ -1,15 +1,18 @@
+export type RecommendationType =
+  | "new_article"
+  | "update_article"
+  | "faq"
+  | "tip"
+  | "warning";
+
 export interface Recommendation {
   id: string;
 
-  solution: string;
+  type: RecommendationType;
 
-  type: "create" | "update" | "review" | "merge";
+  title: string;
 
-  article: string;
-
-  section?: string;
-
-  suggestedContent: string;
+  description: string;
 
   justification: string;
 }

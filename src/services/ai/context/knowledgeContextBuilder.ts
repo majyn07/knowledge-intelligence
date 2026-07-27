@@ -15,14 +15,14 @@ Nenhum artigo relacionado foi encontrado.
 
   const content = articles
     .map(
-      (article, index) => `
+      (result, index) => `
 ## Artigo ${index + 1}
 
 Título:
-${article.title}
+${result.article.title}
 
 Resumo:
-${article.summary}
+${result.article.summary}
 `.trim()
     )
     .join("\n\n");

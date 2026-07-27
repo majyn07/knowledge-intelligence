@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 
+import { Toaster } from "@/components/ui/sonner";
+
 import { PlansProvider } from "@/features/plans/context/PlansContext";
 import { AppProvider } from "@/providers/AppProvider";
 
@@ -35,6 +37,12 @@ export default function RootLayout({
         <AppProvider>
           <PlansProvider>
             {children}
+
+            <Toaster
+              position="top-right"
+              richColors
+              closeButton
+            />
           </PlansProvider>
         </AppProvider>
       </body>

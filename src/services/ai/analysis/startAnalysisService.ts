@@ -2,9 +2,9 @@ import type { AIChatRequest } from "@/models/AIChatRequest";
 import type { StartAnalysisResponse } from "@/models/StartAnalysisResponse";
 
 import { buildAIContext } from "../context/aiContextBuilder";
+import { parseAnalysisResponse } from "../parsers/analysisResponseParser";
 import { geminiService } from "../server/geminiService";
 
-import { mockAnalysisResult } from "@/features/analysis/mock/analysisResult";
 import { analysisConversation } from "@/features/analysis/mock/analysisConversation";
 
 export const startAnalysisService = {
@@ -13,24 +13,27 @@ export const startAnalysisService = {
   ): Promise<StartAnalysisResponse> {
     const context = await buildAIContext(request);
 
-    const firstResponse = await geminiService.chat({
+    const response = await geminiService.analyze({
       ...request,
       context,
     });
+
+    const analysisResult = parseAnalysisResponse(response);
 
     const messages = [
       ...analysisConversation,
       {
         id: crypto.randomUUID(),
         author: "assistant" as const,
-        message: firstResponse,
+        message:
+          "Análise concluída. Consulte os resultados estruturados ao lado.",
         createdAt: new Date().toLocaleString(),
         status: "completed" as const,
       },
     ];
 
     return {
-      analysisResult: mockAnalysisResult,
+      analysisResult,
       messages,
       context: context!,
     };
