@@ -188,39 +188,21 @@ export function AnalysisWorkspace() {
         icon={<Sparkles className="h-6 w-6" />}
       />
 
-      <div className="grid min-h-0 gap-8 xl:grid-cols-[300px_minmax(0,1fr)]">
-      <aside className="min-h-0 xl:sticky xl:top-0 xl:max-h-[calc(100vh-12rem)]">
-        <TicketList
-          tickets={projectTickets}
-          selectedTicketId={selectedTicketId}
-          onSelectTicket={
-            handleSelectTicket
-          }
-        />
-      </aside>
-
-      <main className="flex min-h-0 flex-col gap-10">
-        <TicketDetails
-          ticket={selectedTicket}
-          isAnalyzing={isAnalyzing}
-          onAnalyze={handleAnalyze}
-          onSave={handleUpdateTicket}
-          onDelete={handleDeleteTicket}
-        />
-
-        <AnalysisPanel
-          analysisResult={analysisResult}
-          messages={messages}
-          setMessages={setMessages}
-          context={context}
-          onApproveRecommendation={
-            handleApproveRecommendation
-          }
-          onDiscardRecommendation={
-            handleDiscardRecommendation
-          }
-        />
-      </main>
+      <div className="grid h-full min-h-0 gap-6 xl:grid-cols-[330px_minmax(0,1.25fr)_480px]">
+        <aside className="flex h-full min-h-0 flex-col overflow-hidden rounded-2xl border border-border/60 bg-card shadow-xs">
+          <AnalysisPanel
+            analysisResult={analysisResult}
+            messages={messages}
+            setMessages={setMessages}
+            context={context}
+            onApproveRecommendation={
+              handleApproveRecommendation
+            }
+            onDiscardRecommendation={
+              handleDiscardRecommendation
+            }
+          />
+        </aside>
       </div>
     </div>
   );
