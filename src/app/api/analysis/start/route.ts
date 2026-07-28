@@ -6,7 +6,6 @@ import { startAnalysisService } from "@/services/ai/analysis/startAnalysisServic
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-
     const { context, messages } = body;
 
     const chatRequest: AIChatRequest = {
@@ -18,18 +17,11 @@ export async function POST(request: Request) {
 
     return NextResponse.json(result);
   } catch (error) {
-    console.error("========== START ANALYSIS ERROR ==========");
-    console.error(error);
+    console.error("START_ANALYSIS_ERROR", error);
 
     return NextResponse.json(
       {
-        error:
-          error instanceof Error
-            ? {
-                message: error.message,
-                stack: error.stack,
-              }
-            : error,
+        message: "Ocorreu um erro ao processar a análise. Tente novamente.",
       },
       {
         status: 500,

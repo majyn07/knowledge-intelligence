@@ -10,8 +10,8 @@ import {
   DocumentationStatusLabel,
 } from "@/features/analysis/types/KnowledgeClassification";
 
-import { PageSection } from "@/components/common/page/PageSection";
 import { MetricCard } from "@/components/common/cards/MetricCard";
+import { PageSection } from "@/components/common/page/PageSection";
 
 import { RecommendationCard } from "./RecommendationCard";
 import { RelatedArticlesPanel } from "./RelatedArticlesPanel";
@@ -46,17 +46,16 @@ export function AnalysisPanel({
         title="Análise da IA"
         description="Execute a análise para identificar oportunidades de melhoria na Base de Conhecimento."
       >
-        <div className="flex items-center justify-center py-20">
-          <div className="max-w-xl text-center">
-            <h3 className="text-lg font-medium">
+        <div className="flex min-h-96 items-center justify-center py-10">
+          <div className="max-w-lg text-center">
+            <h3 className="text-lg font-semibold tracking-tight">
               Nenhuma análise executada
             </h3>
 
-            <p className="mt-3 text-sm leading-7 text-muted-foreground">
-              Quando a análise for executada, a IA exibirá a
-              classificação do atendimento, artigos relacionados,
-              oportunidades de melhoria e abrirá uma conversa
-              contextualizada.
+            <p className="mt-3 text-sm leading-6 text-muted-foreground">
+              Execute a análise para que a IA classifique o atendimento,
+              encontre artigos relacionados, identifique oportunidades de
+              melhoria e inicie uma conversa contextualizada.
             </p>
           </div>
         </div>
@@ -67,29 +66,25 @@ export function AnalysisPanel({
   return (
     <PageSection
       title="Resultado da análise"
-      description="Revise o diagnóstico antes de aprovar alterações na Base de Conhecimento."
+      description="Revise o diagnóstico da IA antes de aprovar alterações na Base de Conhecimento."
     >
       <div className="space-y-10">
-        <div className="grid gap-3 md:grid-cols-3">
+        <div className="grid gap-px overflow-hidden rounded-xl border border-border/70 bg-border/70 lg:grid-cols-3">
           <MetricCard
             label="Cobertura"
             value={
               DocumentationStatusLabel[
-                analysisResult.classification
-                  .documentationStatus
+                analysisResult.classification.documentationStatus
               ]
             }
           />
 
           <MetricCard
             label="Confiança"
-            value={`${analysisResult.confidence.toFixed(
-              0
-            )}%`}
+            value={`${analysisResult.confidence.toFixed(0)}%`}
             description={
               ConfidenceLevelLabel[
-                analysisResult.classification
-                  .confidenceLevel
+                analysisResult.classification.confidenceLevel
               ]
             }
           />
@@ -102,33 +97,35 @@ export function AnalysisPanel({
 
         <RelatedArticlesPanel context={context} />
 
-        <PageSection
-          title="Oportunidades identificadas"
-          description="Aprove somente as recomendações que fazem sentido para a evolução da Base de Conhecimento."
-        >
+        <section className="border-t border-border/70 pt-8">
+          <div className="max-w-2xl">
+            <h2 className="text-lg font-semibold tracking-tight">
+              Oportunidades identificadas
+            </h2>
+
+            <p className="mt-2 text-sm leading-6 text-muted-foreground">
+              Aprove apenas as recomendações que realmente agregam valor à
+              Base de Conhecimento.
+            </p>
+          </div>
+
           {analysisResult.opportunities.length === 0 ? (
-            <div className="rounded-xl border border-dashed py-10 text-center text-muted-foreground">
+            <div className="py-12 text-center text-sm text-muted-foreground">
               Nenhuma oportunidade encontrada.
             </div>
           ) : (
-            <div className="space-y-5">
-              {analysisResult.opportunities.map(
-                (recommendation) => (
-                  <RecommendationCard
-                    key={recommendation.id}
-                    recommendation={recommendation}
-                    onApprove={
-                      onApproveRecommendation
-                    }
-                    onDiscard={
-                      onDiscardRecommendation
-                    }
-                  />
-                )
-              )}
+            <div className="mt-6 divide-y divide-border/70">
+              {analysisResult.opportunities.map((recommendation) => (
+                <RecommendationCard
+                  key={recommendation.id}
+                  recommendation={recommendation}
+                  onApprove={onApproveRecommendation}
+                  onDiscard={onDiscardRecommendation}
+                />
+              ))}
             </div>
           )}
-        </PageSection>
+        </section>
 
         <AnalysisConversation
           context={context}

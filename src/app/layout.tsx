@@ -3,7 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 
 import { Toaster } from "@/components/ui/sonner";
 
-import { PlansProvider } from "@/features/plans/context/PlansContext";
+import { PlansProvider } from "@/features/plans/providers/PlansProvider";
 import { AppProvider } from "@/providers/AppProvider";
 
 import "./globals.css";
@@ -37,15 +37,13 @@ export default function RootLayout({
     >
       <body className="min-h-screen bg-background font-sans text-foreground antialiased">
         <AppProvider>
-          <PlansProvider>
-            {children}
+          <PlansProvider>{children}</PlansProvider>
 
-            <Toaster
-              position="top-right"
-              richColors
-              closeButton
-            />
-          </PlansProvider>
+          <Toaster
+            position="top-right"
+            richColors
+            closeButton
+          />
         </AppProvider>
       </body>
     </html>

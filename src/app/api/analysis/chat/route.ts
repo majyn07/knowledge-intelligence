@@ -8,7 +8,6 @@ import { geminiService } from "@/services/ai/server/geminiService";
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-
     const { context, messages } = body;
 
     const chatRequest: AIChatRequest = {
@@ -27,15 +26,11 @@ export async function POST(request: Request) {
       message: response,
     });
   } catch (error) {
-    console.error("CHAT ERROR:");
-    console.error(error);
+    console.error("ANALYSIS_CHAT_ERROR", error);
 
     return NextResponse.json(
       {
-        message:
-          error instanceof Error
-            ? error.message
-            : "Ocorreu um erro ao processar a solicitação.",
+        message: "Ocorreu um erro ao processar a solicitação. Tente novamente.",
       },
       {
         status: 500,

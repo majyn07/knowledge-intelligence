@@ -7,7 +7,6 @@ import { Button } from "@/components/ui/button";
 import { AppShell } from "@/components/layout/AppShell";
 import { PageHeader } from "@/components/common/page/PageHeader";
 
-import { PlansProvider } from "@/features/plans/providers/PlansProvider";
 
 import { LibraryDeleteDialog } from "@/features/library/components/LibraryDeleteDialog";
 import { LibraryDialog } from "@/features/library/components/LibraryDialog";
@@ -73,8 +72,7 @@ export default function LibraryPage() {
   }
 
   return (
-    <PlansProvider>
-      <AppShell>
+    <AppShell>
         <div className="space-y-9">
           <PageHeader
             overline="Workspace"
@@ -150,7 +148,6 @@ export default function LibraryPage() {
             onConfirm={handleConfirmDelete}
           />
         </div>
-      </AppShell>
-    </PlansProvider>
+    </AppShell>
   );
 }

@@ -10,7 +10,6 @@ import { Button } from "@/components/ui/button";
 import { AppShell } from "@/components/layout/AppShell";
 import { PageHeader } from "@/components/common/page/PageHeader";
 
-import { PlansProvider } from "@/features/plans/providers/PlansProvider";
 
 import { ProjectDeleteDialog } from "@/features/projects/components/ProjectDeleteDialog";
 import { ProjectDialog } from "@/features/projects/components/ProjectDialog";
@@ -89,8 +88,7 @@ export default function ProjectsPage() {
   }
 
   return (
-    <PlansProvider>
-      <AppShell>
+    <AppShell>
         <div className="space-y-9">
           <PageHeader
             overline="Workspace"
@@ -157,7 +155,6 @@ export default function ProjectsPage() {
             onConfirm={handleConfirmDelete}
           />
         </div>
-      </AppShell>
-    </PlansProvider>
+    </AppShell>
   );
 }

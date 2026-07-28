@@ -7,10 +7,6 @@ import { searchKnowledge } from "../search/knowledgeSearchEngine";
 export async function searchRelatedArticles(
   query: KnowledgeQuery
 ): Promise<KnowledgeSearchResult[]> {
-  console.log(
-    `[ArticleSearch] Buscando artigos relacionados: ${query.text}`
-  );
-
   const articles = await getAllKnowledgeArticles();
 
   return searchKnowledge(articles, query);

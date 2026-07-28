@@ -1,10 +1,8 @@
 import { AppShell } from "@/components/layout/AppShell";
-import { PlansProvider } from "@/features/plans/providers/PlansProvider";
 
 export default function LibraryPage() {
   return (
-    <PlansProvider>
-      <AppShell>
+    <AppShell>
         <div className="rounded-xl border bg-card p-10">
           <h1 className="text-3xl font-bold">
             Configurações
@@ -14,7 +12,6 @@ export default function LibraryPage() {
             Esta funcionalidade será implementada nas próximas sprints.
           </p>
         </div>
-      </AppShell>
-    </PlansProvider>
+    </AppShell>
   );
 }
