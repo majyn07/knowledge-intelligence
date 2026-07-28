@@ -1,5 +1,20 @@
+import {
+  ArrowRight,
+  Brain,
+  FileText,
+  HelpCircle,
+  ShieldAlert,
+} from "lucide-react";
+
+import { EntityCard } from "@/components/common/cards/EntityCard";
+import { StatusBadge } from "@/components/common/status/StatusBadge";
+import { Button } from "@/components/ui/button";
+
 import type { KnowledgeOpportunity } from "@/features/analysis/types/KnowledgeOpportunity";
-import { OpportunityTypeLabel } from "@/features/analysis/types/KnowledgeOpportunity";
+import {
+  OpportunityStatusLabel,
+  OpportunityTypeLabel,
+} from "@/features/analysis/types/KnowledgeOpportunity";
 
 interface RecommendationCardProps {
   recommendation: KnowledgeOpportunity;
@@ -11,68 +26,108 @@ interface RecommendationCardProps {
   ) => void;
 }
 
+function getIcon(type: KnowledgeOpportunity["type"]) {
+  switch (type) {
+    case "new_article":
+    case "update_article":
+      return <FileText className="h-5 w-5" />;
+
+    case "faq":
+      return <HelpCircle className="h-5 w-5" />;
+
+    case "tip":
+      return <Brain className="h-5 w-5" />;
+
+    case "warning":
+      return <ShieldAlert className="h-5 w-5" />;
+
+    default:
+      return <Brain className="h-5 w-5" />;
+  }
+}
+
 export function RecommendationCard({
   recommendation,
   onApprove,
   onDiscard,
 }: RecommendationCardProps) {
   return (
-    <div className="rounded-xl border bg-card p-5">
-      <div className="flex items-center justify-between">
-        <span className="rounded-md bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
-          {OpportunityTypeLabel[recommendation.type]}
-        </span>
+    <EntityCard
+      title={recommendation.title}
+      description={
+        OpportunityTypeLabel[
+          recommendation.type
+        ]
+      }
+      actions={
+        <StatusBadge variant="info">
+          {
+            OpportunityStatusLabel[
+              recommendation.status
+            ]
+          }
+        </StatusBadge>
+      }
+      footer={
+        <div className="flex justify-end gap-3">
+          <Button
+            variant="outline"
+            onClick={() =>
+              onDiscard(recommendation)
+            }
+          >
+            Descartar
+          </Button>
 
-        <span className="text-xs text-muted-foreground">
-          {recommendation.status}
-        </span>
+          <Button
+            onClick={() =>
+              onApprove(recommendation)
+            }
+          >
+            Aprovar
+            <ArrowRight className="ml-2 h-4 w-4" />
+          </Button>
+        </div>
+      }
+    >
+      <div className="space-y-5">
+        <div className="flex items-center gap-4 rounded-xl bg-primary/5 p-4">
+          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
+            {getIcon(recommendation.type)}
+          </div>
+
+          <div>
+            <p className="text-sm font-semibold">
+              Recomendação gerada pela IA
+            </p>
+
+            <p className="text-sm text-muted-foreground">
+              A análise identificou uma oportunidade de evolução da Base de
+              Conhecimento.
+            </p>
+          </div>
+        </div>
+
+        <section>
+          <h4 className="mb-2 text-sm font-semibold">
+            Descrição
+          </h4>
+
+          <p className="text-sm leading-7 text-muted-foreground">
+            {recommendation.description}
+          </p>
+        </section>
+
+        <section className="border-l-2 border-primary/30 pl-4">
+          <h4 className="mb-2 text-sm font-semibold">
+            Justificativa da IA
+          </h4>
+
+          <p className="text-sm leading-7 text-muted-foreground">
+            {recommendation.justification}
+          </p>
+        </section>
       </div>
-
-      <div className="mt-5">
-        <p className="text-xs uppercase tracking-wide text-muted-foreground">
-          Oportunidade
-        </p>
-
-        <h3 className="mt-1 font-semibold">
-          {recommendation.title}
-        </h3>
-      </div>
-
-      <div className="mt-5 rounded-lg border bg-muted/30 p-4">
-        <p className="text-xs uppercase tracking-wide text-muted-foreground">
-          Descrição
-        </p>
-
-        <p className="mt-2 text-sm leading-6">
-          {recommendation.description}
-        </p>
-      </div>
-
-      <div className="mt-4">
-        <p className="text-xs uppercase tracking-wide text-muted-foreground">
-          Justificativa
-        </p>
-
-        <p className="mt-2 text-sm leading-6 text-muted-foreground">
-          {recommendation.justification}
-        </p>
-      </div>
-
-      <div className="mt-6 flex gap-3">
-        <button
-          onClick={() => onApprove(recommendation)}
-          className="flex-1 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90"
-        >
-          Aprovar
-        </button>
-
-        <button
-          onClick={() => onDiscard(recommendation)}
-          className="flex-1 rounded-lg border px-4 py-2 text-sm font-medium transition-colors hover:bg-muted"
-        >
-          Descartar
-        </button>
-      </div>
-    </div>
+    </EntityCard>
   );
 }

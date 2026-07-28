@@ -3,8 +3,8 @@ import { Search } from "lucide-react";
 import type { ProjectFilters } from "@/features/projects/types/ProjectFilters";
 
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { PageToolbar } from "@/components/common/page/PageToolbar";
 
 interface ProjectToolbarProps {
   filters: ProjectFilters;
@@ -29,8 +29,8 @@ export function ProjectToolbar({
   }
 
   return (
-    <Card>
-      <CardContent className="flex flex-col gap-4 p-6 lg:flex-row lg:items-center lg:justify-between">
+    <PageToolbar
+      start={
         <div className="relative w-full lg:max-w-md">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
 
@@ -46,6 +46,8 @@ export function ProjectToolbar({
             }
           />
         </div>
+      }
+      end={
 
         <div className="flex flex-wrap gap-2">
           <Button
@@ -96,7 +98,7 @@ export function ProjectToolbar({
             Novo Projeto
           </Button>
         </div>
-      </CardContent>
-    </Card>
+      }
+    />
   );
 }

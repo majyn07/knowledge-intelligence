@@ -44,13 +44,13 @@ export function ProjectCard({
 
   return (
     <Card
-      className="cursor-pointer transition-all hover:-translate-y-1 hover:shadow-md"
+      className="cursor-pointer rounded-xl border-border/70 bg-card shadow-none transition-colors hover:border-primary/30 hover:bg-muted/20"
       onClick={() => onClick?.(project)}
     >
-      <CardContent className="space-y-5 p-6">
+      <CardContent className="space-y-5 p-5">
         <div className="flex items-start justify-between">
           <div>
-            <h2 className="text-lg font-semibold">
+            <h2 className="text-base font-semibold tracking-tight">
               {project.name}
             </h2>
 

@@ -17,7 +17,7 @@ export function ProjectGrid({
 }: ProjectGridProps) {
   if (projects.length === 0) {
     return (
-      <div className="flex h-64 items-center justify-center rounded-xl border border-dashed bg-card">
+      <div className="flex h-64 items-center justify-center border-y border-dashed bg-muted/20">
         <div className="text-center">
           <h2 className="text-lg font-semibold">
             Nenhum projeto encontrado
@@ -32,7 +32,7 @@ export function ProjectGrid({
   }
 
   return (
-    <div className="grid gap-5 lg:grid-cols-2 xl:grid-cols-3">
+    <div className="grid gap-x-5 gap-y-6 lg:grid-cols-2 xl:grid-cols-3">
       {projects.map((project) => (
         <ProjectCard
           key={project.id}

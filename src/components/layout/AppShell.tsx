@@ -2,39 +2,44 @@
 
 import { ReactNode } from "react";
 
-import { AppHeader } from "./AppHeader";
-import { AppSidebar } from "./AppSidebar";
-
 import { CurrentProject } from "@/components/common/CurrentProject";
 import {
   SidebarInset,
   SidebarProvider,
-  SidebarTrigger,
 } from "@/components/ui/sidebar";
+
+import { AppHeader } from "./AppHeader";
+import { AppSidebar } from "./AppSidebar";
 
 interface AppShellProps {
   children: ReactNode;
 }
 
-export function AppShell({ children }: AppShellProps) {
+export function AppShell({
+  children,
+}: AppShellProps) {
   return (
-    <SidebarProvider>
+    <SidebarProvider defaultOpen>
       <AppSidebar />
 
-      <SidebarInset>
+      <SidebarInset className="overflow-hidden">
         <AppHeader
           title="Workspace"
           description="Visus Knowledge Intelligence"
         />
 
-        <main className="flex-1 overflow-auto p-8">
-          <SidebarTrigger className="mb-6" />
+        <main className="flex flex-1 flex-col overflow-hidden">
+          <section className="border-b border-border/60 bg-card/55 backdrop-blur-xl">
+            <div className="mx-auto w-full max-w-[1800px] px-6 py-5 xl:px-10">
+              <CurrentProject />
+            </div>
+          </section>
 
-          <div className="mb-6">
-            <CurrentProject />
-          </div>
-
-          {children}
+          <section className="flex-1 overflow-auto">
+            <div className="mx-auto flex w-full max-w-[1800px] flex-1 px-6 py-8 xl:px-10">
+              {children}
+            </div>
+          </section>
         </main>
       </SidebarInset>
     </SidebarProvider>

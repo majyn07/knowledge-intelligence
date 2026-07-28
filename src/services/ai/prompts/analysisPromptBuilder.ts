@@ -4,7 +4,7 @@ import type { AIChatRequest } from "@/models/AIChatRequest";
 import { buildConversationContext } from "../context/conversationContextBuilder";
 import { buildKnowledgeContext } from "../context/knowledgeContextBuilder";
 import { buildTicketContext } from "../context/ticketContextBuilder";
-import { ANALYSIS_SYSTEM_PROMPT } from "./analysisPrompt";
+import { CHAT_ANALYSIS_SYSTEM_PROMPT } from "./chatAnalysisPrompt";
 
 export function buildAnalysisPrompt({
   context,
@@ -25,7 +25,7 @@ export function buildAnalysisPrompt({
   return [
     {
       role: "system",
-      content: ANALYSIS_SYSTEM_PROMPT,
+      content: CHAT_ANALYSIS_SYSTEM_PROMPT,
     },
     {
       role: "user",

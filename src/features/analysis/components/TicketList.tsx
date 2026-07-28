@@ -1,20 +1,17 @@
 import {
-  Search,
-  Ticket,
   Building2,
   CheckCircle2,
+  Search,
+  Ticket,
 } from "lucide-react";
 
 import { tickets as TicketType } from "../mock/tickets";
 
-import { Input } from "@/components/ui/input";
+import { PageHeader } from "@/components/common/page/PageHeader";
+import { StatusBadge } from "@/components/common/status/StatusBadge";
+
 import { Badge } from "@/components/ui/badge";
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
+import { Input } from "@/components/ui/input";
 
 type Ticket = (typeof TicketType)[number];
 
@@ -30,81 +27,29 @@ export function TicketList({
   onSelectTicket,
 }: TicketListProps) {
   return (
-    <aside className="flex w-96 flex-col rounded-xl border bg-card shadow-sm">
-      <div className="border-b p-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h2 className="text-lg font-semibold">
-              Atendimentos
-            </h2>
+    <aside className="flex h-full flex-col overflow-hidden rounded-xl border border-border/70 bg-card">
+      <header className="border-b border-border/70 p-4">
+        <PageHeader
+          title="Atendimentos"
+          description={`${tickets.length} ticket(s) disponíveis`}
+          actions={
+            <Badge variant="secondary">
+              {tickets.length}
+            </Badge>
+          }
+        />
 
-            <p className="mt-1 text-sm text-muted-foreground">
-              {tickets.length} atendimento(s) disponível(is)
-            </p>
-          </div>
-
-          <Badge>
-            Ativos
-          </Badge>
-        </div>
-      </div>
-
-      <div className="border-b p-5">
-        <div className="relative">
+        <div className="relative mt-6">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
 
           <Input
-            className="pl-9"
+          className="h-9 rounded-lg bg-muted/40 pl-9"
             placeholder="Pesquisar atendimento..."
           />
         </div>
-      </div>
+      </header>
 
-      <Accordion
-        defaultValue={["status", "produto"]}
-      >
-        <AccordionItem value="status">
-          <AccordionTrigger className="px-5">
-            Status
-          </AccordionTrigger>
-
-          <AccordionContent>
-            <div className="flex flex-wrap gap-2 px-5 pb-4">
-              <Badge variant="secondary">
-                Pendentes
-              </Badge>
-
-              <Badge variant="secondary">
-                Revisados
-              </Badge>
-            </div>
-          </AccordionContent>
-        </AccordionItem>
-
-        <AccordionItem value="produto">
-          <AccordionTrigger className="px-5">
-            Produto
-          </AccordionTrigger>
-
-          <AccordionContent>
-            <div className="flex flex-wrap gap-2 px-5 pb-4">
-              <Badge variant="secondary">
-                Workflow
-              </Badge>
-
-              <Badge variant="secondary">
-                Collab
-              </Badge>
-
-              <Badge variant="secondary">
-                Planning
-              </Badge>
-            </div>
-          </AccordionContent>
-        </AccordionItem>
-      </Accordion>
-
-      <div className="flex-1 overflow-auto">
+      <div className="flex-1 overflow-y-auto">
         {tickets.map((ticket) => {
           const selected =
             ticket.id === selectedTicketId;
@@ -115,44 +60,56 @@ export function TicketList({
               onClick={() =>
                 onSelectTicket(ticket.id)
               }
-              className={`w-full border-b px-5 py-4 text-left transition-all ${
+              className={`w-full border-b border-border/60 px-4 py-4 text-left transition-colors ${
                 selected
-                  ? "border-l-4 border-l-primary bg-primary/5"
+                  ? "bg-primary/8 shadow-[inset_2px_0_0_var(--primary)]"
                   : "hover:bg-muted/40"
               }`}
             >
-              <div className="flex items-start justify-between">
-                <p className="font-semibold leading-snug">
-                  {ticket.title}
-                </p>
+              <div className="flex items-start justify-between gap-4">
+                <div className="min-w-0">
+                  <h3
+                    className={`line-clamp-2 text-sm leading-6 ${
+                      selected
+                        ? "font-semibold"
+                        : "font-medium"
+                    }`}
+                  >
+                    {ticket.title}
+                  </h3>
 
-                <Badge
-                  variant={
-                    selected
-                      ? "default"
-                      : "secondary"
-                  }
-                >
-                  #{ticket.id}
-                </Badge>
-              </div>
+                  <div className="mt-3 space-y-1.5">
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                      <Building2 className="h-3.5 w-3.5" />
+                      <span className="truncate">
+                        {ticket.company}
+                      </span>
+                    </div>
 
-              <div className="mt-4 space-y-2 text-xs text-muted-foreground">
-                <div className="flex items-center gap-2">
-                  <Building2 className="h-3.5 w-3.5" />
-                  <span>{ticket.company}</span>
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                      <Ticket className="h-3.5 w-3.5" />
+                      <span className="truncate">
+                        {ticket.solution}
+                      </span>
+                    </div>
+                  </div>
                 </div>
 
-                <div className="flex items-center gap-2">
-                  <Ticket className="h-3.5 w-3.5" />
-                  <span>{ticket.solution}</span>
-                </div>
+                <div className="flex shrink-0 flex-col items-end gap-3">
+                  <Badge
+                    variant={
+                      selected
+                        ? "default"
+                        : "outline"
+                    }
+                  >
+                    #{ticket.id}
+                  </Badge>
 
-                <div className="flex items-center gap-2">
-                  <CheckCircle2 className="h-3.5 w-3.5 text-primary" />
-                  <span>
-                    Pronto para análise
-                  </span>
+                  <StatusBadge variant="success">
+                    <CheckCircle2 className="mr-1 h-3 w-3" />
+                    Pronto
+                  </StatusBadge>
                 </div>
               </div>
             </button>

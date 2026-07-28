@@ -16,37 +16,40 @@ import { LibraryService } from "@/features/library/services/LibraryService";
 
 const STORAGE_KEY = "visus-library";
 
+function loadLibrary(): Library[] {
+  if (typeof window === "undefined") {
+    return LibraryService.getAll();
+  }
+
+  const storedItems =
+    localStorage.getItem(STORAGE_KEY);
+
+  if (!storedItems) {
+    return LibraryService.getAll();
+  }
+
+  try {
+    const parsedItems = JSON.parse(
+      storedItems
+    ) as Library[];
+
+    return parsedItems.map((item) => ({
+      ...item,
+      createdAt: new Date(item.createdAt),
+      updatedAt: new Date(item.updatedAt),
+    }));
+  } catch {
+    console.error(
+      "Erro ao carregar biblioteca do localStorage."
+    );
+
+    return LibraryService.getAll();
+  }
+}
+
 export function useLibrary() {
-  const [items, setItems] = useState<Library[]>(
-    LibraryService.getAll()
-  );
-
-  useEffect(() => {
-    const storedItems =
-      localStorage.getItem(STORAGE_KEY);
-
-    if (!storedItems) {
-      return;
-    }
-
-    try {
-      const parsedItems = JSON.parse(
-        storedItems
-      ) as Library[];
-
-      setItems(
-        parsedItems.map((item) => ({
-          ...item,
-          createdAt: new Date(item.createdAt),
-          updatedAt: new Date(item.updatedAt),
-        }))
-      );
-    } catch {
-      console.error(
-        "Erro ao carregar biblioteca do localStorage."
-      );
-    }
-  }, []);
+  const [items, setItems] =
+    useState<Library[]>(loadLibrary);
 
   useEffect(() => {
     localStorage.setItem(

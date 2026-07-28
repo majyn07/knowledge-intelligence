@@ -1,8 +1,13 @@
 "use client";
 
 import { useState } from "react";
+import { Brain, CalendarDays, Building2, Boxes } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+
+import { PageHeader } from "@/components/common/page/PageHeader";
+import { PageSection } from "@/components/common/page/PageSection";
+import { PropertyGrid } from "@/components/common/data/PropertyGrid";
 
 import { conversations } from "../mock/conversations";
 import { TicketEditor } from "./TicketEditor";
@@ -27,8 +32,7 @@ export function TicketDetails({
   onSave,
   onDelete,
 }: TicketDetailsProps) {
-  const [isEditing, setIsEditing] =
-    useState(false);
+  const [isEditing, setIsEditing] = useState(false);
 
   const conversation: ConversationMessage[] =
     conversations[
@@ -37,136 +41,141 @@ export function TicketDetails({
 
   if (isEditing) {
     return (
-      <main className="flex-1 rounded-xl border bg-card p-6">
+      <PageSection>
         <TicketEditor
           ticket={ticket}
           onSave={(ticket) => {
             onSave(ticket);
             setIsEditing(false);
           }}
-          onCancel={() =>
-            setIsEditing(false)
-          }
+          onCancel={() => setIsEditing(false)}
         />
-      </main>
+      </PageSection>
     );
   }
 
   return (
-    <main className="flex-1 rounded-xl border bg-card overflow-hidden">
-      <div className="border-b p-6">
-        <div className="flex items-start justify-between gap-6">
-          <div className="space-y-5 flex-1">
-            <h1 className="text-2xl font-semibold">
-              {ticket.title}
-            </h1>
-
-            <div className="grid grid-cols-2 gap-x-10 gap-y-3 text-sm">
-              <div>
-                <span className="font-semibold">
-                  Solução:
-                </span>{" "}
-                {ticket.solution}
-              </div>
-
-              <div>
-                <span className="font-semibold">
-                  Ticket:
-                </span>{" "}
-                #{ticket.id}
-              </div>
-
-              <div>
-                <span className="font-semibold">
-                  Empresa:
-                </span>{" "}
-                {ticket.company}
-              </div>
-
-              <div>
-                <span className="font-semibold">
-                  Data:
-                </span>{" "}
-                {ticket.date}
-              </div>
-            </div>
-          </div>
-
-          <div className="flex flex-col gap-2">
+    <div className="space-y-7">
+      <PageSection
+        actions={
+          <div className="flex flex-wrap gap-3">
             <Button
+              size="default"
               disabled={isAnalyzing}
               onClick={onAnalyze}
             >
+              <Brain className="mr-2 h-4 w-4" />
               {isAnalyzing
                 ? "Analisando..."
-                : "Analisar atendimento"}
+                : "Analisar com IA"}
             </Button>
 
             <Button
+              size="default"
               variant="outline"
-              onClick={() =>
-                setIsEditing(true)
-              }
+              onClick={() => setIsEditing(true)}
             >
               Editar
             </Button>
 
             <Button
+              size="default"
               variant="destructive"
-              onClick={() =>
-                onDelete(ticket.id)
-              }
+              onClick={() => onDelete(ticket.id)}
             >
               Excluir
             </Button>
           </div>
-        </div>
-      </div>
+        }
+      >
+        <PageHeader
+          icon={<Brain className="h-7 w-7" />}
+          overline={`Ticket #${ticket.id}`}
+          title={ticket.title}
+          description="Revise o atendimento antes de iniciar a análise por Inteligência Artificial."
+        />
 
-      <div className="p-6">
-        <h2 className="mb-5 text-lg font-semibold">
-          Conversa
-        </h2>
+        <PropertyGrid
+          className="mt-7"
+          columns={3}
+          items={[
+            {
+              label: "Empresa",
+              value: (
+                <div className="flex items-center gap-2">
+                  <Building2 className="h-4 w-4 text-primary" />
+                  <span>{ticket.company}</span>
+                </div>
+              ),
+            },
+            {
+              label: "Solução",
+              value: (
+                <div className="flex items-center gap-2">
+                  <Boxes className="h-4 w-4 text-primary" />
+                  <span>{ticket.solution}</span>
+                </div>
+              ),
+            },
+            {
+              label: "Data",
+              value: (
+                <div className="flex items-center gap-2">
+                  <CalendarDays className="h-4 w-4 text-primary" />
+                  <span>{ticket.date}</span>
+                </div>
+              ),
+            },
+          ]}
+        />
+      </PageSection>
 
+      <PageSection
+        title="Conversa"
+        description="Histórico completo do atendimento entre cliente e equipe de suporte."
+      >
         <div className="space-y-4">
-          {conversation.map(
-            (
-              message: ConversationMessage,
-              index: number
-            ) => {
-              const isSupport =
-                message.author
-                  .toLowerCase()
-                  .includes("suporte");
+          {conversation.map((message, index) => {
+            const isSupport =
+              message.author
+                .toLowerCase()
+                .includes("suporte");
 
-              return (
-                <div
-                  key={index}
-                  className={`max-w-[92%] rounded-xl border px-5 py-4 ${
+            return (
+              <div
+                key={index}
+                className={`flex ${
+                  isSupport
+                    ? "justify-end"
+                    : "justify-start"
+                }`}
+              >
+                <article
+                  className={`max-w-[85%] rounded-2xl border px-6 py-5 shadow-sm transition-all ${
                     isSupport
-                      ? "ml-auto bg-muted"
-                      : "bg-purple-50 dark:bg-purple-950/20"
+                    ? "border-primary/15 bg-primary/5"
+                    : "border-border/70 bg-muted/20"
                   }`}
                 >
-                  <div className="mb-2 flex items-center justify-between">
-                    <strong>
+                  <div className="mb-4 flex items-center justify-between gap-6">
+                    <span className="text-sm font-semibold">
                       {message.author}
-                    </strong>
+                    </span>
 
                     <span className="text-xs text-muted-foreground">
                       {message.date}
                     </span>
                   </div>
 
-                  <p className="whitespace-pre-wrap text-sm leading-6">
+                  <p className="whitespace-pre-wrap text-[15px] leading-7">
                     {message.message}
                   </p>
-                </div>
-              );
-            }
-          )}
+                </article>
+              </div>
+            );
+          })}
         </div>
-      </div>
-    </main>
+      </PageSection>
+    </div>
   );
 }

@@ -26,11 +26,13 @@ export function ProjectForm({
   onSubmit,
   onCancel,
 }: ProjectFormProps) {
-  const [formData, setFormData] = useState<ProjectFormData>(
-    initialData ?? emptyForm
-  );
+  const [formData, setFormData] =
+    useState<ProjectFormData>(
+      initialData ?? emptyForm
+    );
 
   useEffect(() => {
+    // Sincroniza o formulário quando o projeto em edição muda.
     setFormData(initialData ?? emptyForm);
   }, [initialData]);
 
@@ -73,7 +75,10 @@ export function ProjectForm({
           value={formData.name}
           placeholder="Ex.: Edifício Comercial Alpha"
           onChange={(event) =>
-            handleChange("name", event.target.value)
+            handleChange(
+              "name",
+              event.target.value
+            )
           }
         />
       </div>
@@ -88,7 +93,10 @@ export function ProjectForm({
           value={formData.description}
           placeholder="Descrição do projeto"
           onChange={(event) =>
-            handleChange("description", event.target.value)
+            handleChange(
+              "description",
+              event.target.value
+            )
           }
         />
       </div>

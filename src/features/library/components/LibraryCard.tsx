@@ -77,13 +77,13 @@ export function LibraryCard({
 
   return (
     <Card
-      className="cursor-pointer transition-all hover:-translate-y-1 hover:shadow-md"
+      className="cursor-pointer rounded-xl border-border/70 bg-card shadow-none transition-colors hover:border-primary/30 hover:bg-muted/20"
       onClick={() => onClick?.(item)}
     >
-      <CardContent className="space-y-5 p-6">
+      <CardContent className="space-y-5 p-5">
         <div className="flex items-start justify-between">
           <div className="space-y-2">
-            <h2 className="text-lg font-semibold">
+            <h2 className="text-base font-semibold tracking-tight">
               {item.title}
             </h2>
 
@@ -113,11 +113,11 @@ export function LibraryCard({
           {item.description}
         </p>
 
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-1.5">
           {item.tags.map((tag) => (
             <span
               key={tag}
-              className="rounded-full bg-muted px-2 py-1 text-xs"
+              className="rounded-md bg-muted px-2 py-1 text-xs"
             >
               #{tag}
             </span>

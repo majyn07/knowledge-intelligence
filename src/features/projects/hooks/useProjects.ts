@@ -16,37 +16,40 @@ import { ProjectService } from "@/features/projects/services/ProjectService";
 
 const STORAGE_KEY = "visus-projects";
 
+function loadProjects(): Project[] {
+  if (typeof window === "undefined") {
+    return ProjectService.getAll();
+  }
+
+  const storedProjects =
+    localStorage.getItem(STORAGE_KEY);
+
+  if (!storedProjects) {
+    return ProjectService.getAll();
+  }
+
+  try {
+    const parsedProjects = JSON.parse(
+      storedProjects
+    ) as Project[];
+
+    return parsedProjects.map((project) => ({
+      ...project,
+      createdAt: new Date(project.createdAt),
+      updatedAt: new Date(project.updatedAt),
+    }));
+  } catch {
+    console.error(
+      "Erro ao carregar projetos do localStorage."
+    );
+
+    return ProjectService.getAll();
+  }
+}
+
 export function useProjects() {
-  const [projects, setProjects] = useState<Project[]>(
-    ProjectService.getAll()
-  );
-
-  useEffect(() => {
-    const storedProjects =
-      localStorage.getItem(STORAGE_KEY);
-
-    if (!storedProjects) {
-      return;
-    }
-
-    try {
-      const parsedProjects = JSON.parse(
-        storedProjects
-      ) as Project[];
-
-      setProjects(
-        parsedProjects.map((project) => ({
-          ...project,
-          createdAt: new Date(project.createdAt),
-          updatedAt: new Date(project.updatedAt),
-        }))
-      );
-    } catch {
-      console.error(
-        "Erro ao carregar projetos do localStorage."
-      );
-    }
-  }, []);
+  const [projects, setProjects] =
+    useState<Project[]>(loadProjects);
 
   useEffect(() => {
     localStorage.setItem(

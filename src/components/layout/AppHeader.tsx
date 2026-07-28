@@ -1,10 +1,11 @@
 "use client";
 
 import { ReactNode } from "react";
-import { Bell, Search } from "lucide-react";
+import { Bell, Command, Search } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+
+import { SidebarTrigger } from "@/components/ui/sidebar";
 
 interface AppHeaderProps {
   title: string;
@@ -18,39 +19,48 @@ export function AppHeader({
   actions,
 }: AppHeaderProps) {
   return (
-    <header className="flex h-16 items-center justify-between border-b bg-card px-6">
-      <div className="flex items-center gap-4">
-        <div>
-          <h1 className="text-xl font-semibold">
-            {title}
-          </h1>
+    <header className="sticky top-0 z-20 border-b border-border/70 bg-background/85 backdrop-blur-xl">
+      <div className="flex min-h-16 items-center justify-between gap-4 px-5 lg:px-8">
+        <div className="flex items-center gap-4">
+          <SidebarTrigger />
 
-          {description && (
-            <p className="text-sm text-muted-foreground">
-              {description}
-            </p>
-          )}
-        </div>
-      </div>
+          <div>
+            <h1 className="text-sm font-semibold tracking-tight">
+              {title}
+            </h1>
 
-      <div className="flex items-center gap-3">
-        <div className="relative hidden w-96 lg:block">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-
-          <Input
-            placeholder="Pesquisar artigos, tickets, projetos..."
-            className="pl-9"
-          />
+            {description && (
+              <p className="text-sm text-muted-foreground">
+                {description}
+              </p>
+            )}
+          </div>
         </div>
 
-        {actions}
+        <div className="flex items-center gap-2">
+          {actions}
 
-        <Button
-          variant="ghost"
-          size="icon"
-        >
-          <Bell className="h-5 w-5" />
-        </Button>
+          <Button
+            variant="ghost"
+            className="hidden h-8 min-w-52 justify-between border border-border/70 bg-muted/35 px-3 text-muted-foreground hover:bg-muted md:flex"
+          >
+            <span className="flex items-center gap-2">
+              <Search className="h-3.5 w-3.5" />
+              Buscar
+            </span>
+            <span className="flex items-center gap-1 text-[11px]">
+              <Command className="h-3 w-3" />K
+            </span>
+          </Button>
+
+          <Button
+            variant="ghost"
+            size="icon-sm"
+            aria-label="Notificações"
+          >
+            <Bell className="h-4 w-4" />
+          </Button>
+        </div>
       </div>
     </header>
   );

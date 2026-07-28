@@ -1,12 +1,12 @@
 import { AppShell } from "@/components/layout/AppShell";
-import { DashboardPage } from "@/features/dashboard/DashboardPage";
+import { PlansWorkspace } from "@/features/plans/PlansWorkspace";
 import { PlansProvider } from "@/features/plans/providers/PlansProvider";
 
-export default function HomePage() {
+export default function ImprovementPlanPage() {
   return (
     <PlansProvider>
       <AppShell>
-        <DashboardPage />
+        <PlansWorkspace />
       </AppShell>
     </PlansProvider>
   );

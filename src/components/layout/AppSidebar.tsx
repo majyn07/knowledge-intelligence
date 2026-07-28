@@ -4,11 +4,13 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   BarChart3,
-  Bell,
   BookOpen,
   FileSearch,
-  FolderOpen,
+  FolderKanban,
+  Home,
+  Plug,
   Settings,
+  Sparkles,
 } from "lucide-react";
 
 import {
@@ -26,18 +28,18 @@ import {
 
 const workspaceItems = [
   {
-    title: "Dashboard",
-    icon: BarChart3,
+    title: "Início",
+    icon: Home,
     href: "/",
   },
   {
-    title: "Análises",
-    icon: FileSearch,
+    title: "Workspace",
+    icon: Sparkles,
     href: "/analysis",
   },
   {
     title: "Projetos",
-    icon: FolderOpen,
+    icon: FolderKanban,
     href: "/projects",
   },
   {
@@ -45,22 +47,27 @@ const workspaceItems = [
     icon: BookOpen,
     href: "/library",
   },
+  {
+    title: "Plano de Melhorias",
+    icon: FileSearch,
+    href: "/improvement-plan",
+  },
 ];
 
 const managementItems = [
   {
-    title: "Indicadores",
+    title: "Métricas",
     icon: BarChart3,
     href: "/indicators",
-  },
-  {
-    title: "Atividades",
-    icon: Bell,
-    href: "/activities",
   },
 ];
 
 const systemItems = [
+  {
+    title: "Integrações",
+    icon: Plug,
+    href: "/integrations",
+  },
   {
     title: "Configurações",
     icon: Settings,
@@ -75,16 +82,16 @@ export function AppSidebar() {
     <Sidebar variant="sidebar" collapsible="icon">
       <SidebarHeader className="py-6">
         <div className="px-2">
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-sidebar-foreground/60">
-            AltoQi
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-sidebar-foreground/60">
+            Powered by AltoQi
           </p>
 
           <h2 className="mt-2 text-lg font-semibold leading-tight">
-            Visus Knowledge
+            Knowledge Intelligence
           </h2>
 
           <p className="text-sm text-sidebar-foreground/70">
-            Intelligence
+            Visus
           </p>
         </div>
       </SidebarHeader>
@@ -98,9 +105,7 @@ export function AppSidebar() {
               {workspaceItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton
-                    render={
-                      <Link href={item.href} />
-                    }
+                    render={<Link href={item.href} />}
                     isActive={pathname === item.href}
                     tooltip={item.title}
                   >
@@ -121,9 +126,7 @@ export function AppSidebar() {
               {managementItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton
-                    render={
-                      <Link href={item.href} />
-                    }
+                    render={<Link href={item.href} />}
                     isActive={pathname === item.href}
                     tooltip={item.title}
                   >
@@ -144,9 +147,7 @@ export function AppSidebar() {
               {systemItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton
-                    render={
-                      <Link href={item.href} />
-                    }
+                    render={<Link href={item.href} />}
                     isActive={pathname === item.href}
                     tooltip={item.title}
                   >
@@ -161,8 +162,18 @@ export function AppSidebar() {
       </SidebarContent>
 
       <SidebarFooter>
-        <div className="px-2 py-2 text-xs text-sidebar-foreground/60">
-          v0.1.0
+        <div className="space-y-1 px-2 py-3">
+          <p className="text-xs font-medium text-sidebar-foreground">
+            Produto
+          </p>
+
+          <p className="text-xs text-sidebar-foreground/70">
+            🟣 Visus
+          </p>
+
+          <p className="pt-2 text-[11px] text-sidebar-foreground/50">
+            v0.1.0
+          </p>
         </div>
       </SidebarFooter>
     </Sidebar>

@@ -53,6 +53,7 @@ export function LibraryForm({
   const [tags, setTags] = useState("");
 
   useEffect(() => {
+    // Sincroniza o formulário quando o item em edição muda.
     setFormData(initialData ?? emptyForm);
 
     setTags(

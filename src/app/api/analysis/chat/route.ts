@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 
 import type { AIChatRequest } from "@/models/AIChatRequest";
+
 import { buildAIContext } from "@/services/ai/context/aiContextBuilder";
 import { geminiService } from "@/services/ai/server/geminiService";
 
@@ -26,11 +27,15 @@ export async function POST(request: Request) {
       message: response,
     });
   } catch (error) {
+    console.error("CHAT ERROR:");
     console.error(error);
 
     return NextResponse.json(
       {
-        message: "Ocorreu um erro ao processar a solicitação.",
+        message:
+          error instanceof Error
+            ? error.message
+            : "Ocorreu um erro ao processar a solicitação.",
       },
       {
         status: 500,

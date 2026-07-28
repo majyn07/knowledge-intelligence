@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 
 import { TicketList } from "./components/TicketList";
 import { TicketDetails } from "./components/TicketDetails";
@@ -18,24 +18,18 @@ import type { Ticket } from "@/models/Ticket";
 import { useApp } from "@/providers/AppProvider";
 import { usePlans } from "../plans/providers/PlansProvider";
 import { useAnalysisContext } from "./hooks/useAnalysisContext";
+import { PageHeader } from "@/components/common/page/PageHeader";
+import { Sparkles } from "lucide-react";
 
 export function AnalysisWorkspace() {
   const { currentProjectId } = useApp();
-
   const { setImprovementPlan } = usePlans();
 
-  const [refreshKey, setRefreshKey] = useState(0);
-
-  const projectTickets = useMemo(
-    () =>
-      currentProjectId
-        ? ticketService.getTickets(currentProjectId)
-        : [],
-    [currentProjectId, refreshKey]
-  );
+  const [projectTickets, setProjectTickets] =
+    useState<Ticket[]>([]);
 
   const [selectedTicketId, setSelectedTicketId] =
-    useState(projectTickets[0]?.id ?? "");
+    useState("");
 
   const [isAnalyzing, setIsAnalyzing] =
     useState(false);
@@ -47,20 +41,44 @@ export function AnalysisWorkspace() {
     AnalysisMessage[]
   >([]);
 
+  useEffect(() => {
+    if (!currentProjectId) {
+      setProjectTickets([]);
+      setSelectedTicketId("");
+      setAnalysisResult(null);
+      setMessages([]);
+      return;
+    }
+
+    const tickets =
+      ticketService.getTickets(currentProjectId);
+
+    setProjectTickets(tickets);
+
+    setSelectedTicketId((current) => {
+      if (
+        current &&
+        tickets.some(
+          (ticket) => ticket.id === current
+        )
+      ) {
+        return current;
+      }
+
+      return tickets[0]?.id ?? "";
+    });
+
+    setAnalysisResult(null);
+    setMessages([]);
+  }, [currentProjectId]);
+
   const selectedTicket =
     projectTickets.find(
       (ticket) => ticket.id === selectedTicketId
     ) ?? projectTickets[0];
 
-  const context = useAnalysisContext(selectedTicket);
-
-  useEffect(() => {
-    if (projectTickets.length > 0) {
-      setSelectedTicketId(projectTickets[0].id);
-      setAnalysisResult(null);
-      setMessages([]);
-    }
-  }, [projectTickets]);
+  const context =
+    useAnalysisContext(selectedTicket);
 
   async function handleAnalyze() {
     if (!selectedTicket) {
@@ -68,15 +86,19 @@ export function AnalysisWorkspace() {
     }
 
     setIsAnalyzing(true);
-
     setAnalysisResult(null);
     setMessages([]);
 
     try {
       const response =
-        await analysisService.startAnalysis(context);
+        await analysisService.startAnalysis(
+          context
+        );
 
-      setAnalysisResult(response.analysisResult);
+      setAnalysisResult(
+        response.analysisResult
+      );
+
       setMessages(response.messages);
     } catch (error) {
       console.error(error);
@@ -85,34 +107,46 @@ export function AnalysisWorkspace() {
     }
   }
 
-  function handleSelectTicket(id: string) {
-    setSelectedTicketId(id);
+  function resetAnalysis() {
     setAnalysisResult(null);
     setMessages([]);
+  }
+
+  function handleSelectTicket(id: string) {
+    setSelectedTicketId(id);
+    resetAnalysis();
   }
 
   function handleUpdateTicket(ticket: Ticket) {
     ticketService.updateTicket(ticket);
 
-    setRefreshKey((value) => value + 1);
+    if (!currentProjectId) {
+      return;
+    }
+
+    setProjectTickets(
+      ticketService.getTickets(currentProjectId)
+    );
   }
 
   function handleDeleteTicket(ticketId: string) {
     ticketService.deleteTicket(ticketId);
 
-    setRefreshKey((value) => value + 1);
+    if (!currentProjectId) {
+      return;
+    }
+
+    const remainingTickets =
+      ticketService.getTickets(currentProjectId);
+
+    setProjectTickets(remainingTickets);
 
     if (selectedTicketId === ticketId) {
-      const remainingTickets = currentProjectId
-        ? ticketService.getTickets(currentProjectId)
-        : [];
-
       setSelectedTicketId(
         remainingTickets[0]?.id ?? ""
       );
 
-      setAnalysisResult(null);
-      setMessages([]);
+      resetAnalysis();
     }
   }
 
@@ -130,45 +164,64 @@ export function AnalysisWorkspace() {
   function handleDiscardRecommendation(
     recommendation: Recommendation
   ) {
-    console.log("Descartada:", recommendation);
+    console.log(
+      "Descartada:",
+      recommendation
+    );
   }
 
   if (!selectedTicket) {
     return (
-      <div className="rounded-xl border bg-card p-8 text-center text-muted-foreground">
-        Nenhum atendimento encontrado para o projeto selecionado.
+      <div className="flex h-full items-center justify-center rounded-xl border border-dashed p-12 text-center text-muted-foreground">
+        Nenhum atendimento encontrado para o projeto
+        selecionado.
       </div>
     );
   }
 
   return (
-    <div className="flex h-full gap-6">
-      <TicketList
-        tickets={projectTickets}
-        selectedTicketId={selectedTicketId}
-        onSelectTicket={handleSelectTicket}
+    <div className="space-y-7">
+      <PageHeader
+        overline="Workspace de análise"
+        title="Transforme atendimentos em conhecimento"
+        description="Compare o contexto do suporte com a leitura da IA e aprove apenas recomendações fundamentadas."
+        icon={<Sparkles className="h-6 w-6" />}
       />
 
-      <TicketDetails
-        ticket={selectedTicket}
-        isAnalyzing={isAnalyzing}
-        onAnalyze={handleAnalyze}
-        onSave={handleUpdateTicket}
-        onDelete={handleDeleteTicket}
-      />
+      <div className="grid min-h-0 gap-8 xl:grid-cols-[300px_minmax(0,1fr)]">
+      <aside className="min-h-0 xl:sticky xl:top-0 xl:max-h-[calc(100vh-12rem)]">
+        <TicketList
+          tickets={projectTickets}
+          selectedTicketId={selectedTicketId}
+          onSelectTicket={
+            handleSelectTicket
+          }
+        />
+      </aside>
 
-      <AnalysisPanel
-        analysisResult={analysisResult}
-        messages={messages}
-        setMessages={setMessages}
-        context={context}
-        onApproveRecommendation={
-          handleApproveRecommendation
-        }
-        onDiscardRecommendation={
-          handleDiscardRecommendation
-        }
-      />
+      <main className="flex min-h-0 flex-col gap-10">
+        <TicketDetails
+          ticket={selectedTicket}
+          isAnalyzing={isAnalyzing}
+          onAnalyze={handleAnalyze}
+          onSave={handleUpdateTicket}
+          onDelete={handleDeleteTicket}
+        />
+
+        <AnalysisPanel
+          analysisResult={analysisResult}
+          messages={messages}
+          setMessages={setMessages}
+          context={context}
+          onApproveRecommendation={
+            handleApproveRecommendation
+          }
+          onDiscardRecommendation={
+            handleDiscardRecommendation
+          }
+        />
+      </main>
+      </div>
     </div>
   );
 }

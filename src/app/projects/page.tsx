@@ -91,7 +91,7 @@ export default function ProjectsPage() {
   return (
     <PlansProvider>
       <AppShell>
-        <div className="space-y-8">
+        <div className="space-y-9">
           <PageHeader
             overline="Workspace"
             title="Projetos"

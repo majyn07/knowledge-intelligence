@@ -50,8 +50,7 @@ export function PlansWorkspace() {
             </span>
 
             <p className="mt-3 text-sm text-muted-foreground">
-              {improvementPlan.recommendations.length}{" "}
-              recomendação
+              {improvementPlan.recommendations.length} recomendação
               {improvementPlan.recommendations.length !== 1
                 ? "ões"
                 : ""}
@@ -81,28 +80,22 @@ export function PlansWorkspace() {
                   <div className="flex items-center justify-between">
                     <div>
                       <h3 className="font-semibold">
-                        {recommendation.article}
+                        {recommendation.title}
                       </h3>
 
-                      {recommendation.section && (
-                        <p className="mt-1 text-sm text-muted-foreground">
-                          Seção: {recommendation.section}
-                        </p>
-                      )}
+                      <p className="mt-1 text-sm text-muted-foreground">
+                        Tipo: {recommendation.type}
+                      </p>
                     </div>
-
-                    <span className="rounded-md bg-primary/10 px-3 py-1 text-xs font-medium text-primary">
-                      {recommendation.solution}
-                    </span>
                   </div>
 
                   <div className="mt-4">
                     <p className="text-xs uppercase tracking-wide text-muted-foreground">
-                      Conteúdo sugerido
+                      Descrição
                     </p>
 
                     <p className="mt-2 text-sm leading-6">
-                      {recommendation.suggestedContent}
+                      {recommendation.description}
                     </p>
                   </div>
 

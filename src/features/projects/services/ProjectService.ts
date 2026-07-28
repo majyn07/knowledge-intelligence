@@ -9,7 +9,9 @@ export const ProjectService = {
   },
 
   getById(id: string): Project | undefined {
-    return projects.find((project) => project.id === id);
+    return projects.find(
+      (project) => project.id === id
+    );
   },
 
   create(data: ProjectFormData): Project {
@@ -38,7 +40,7 @@ export const ProjectService = {
     };
   },
 
-  delete(id: string): void {
+  delete(): void {
     throw new Error("Not implemented");
   },
 };

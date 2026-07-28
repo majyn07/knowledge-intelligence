@@ -9,7 +9,9 @@ export const LibraryService = {
   },
 
   getById(id: string): Library | undefined {
-    return library.find((item) => item.id === id);
+    return library.find(
+      (item) => item.id === id
+    );
   },
 
   create(data: LibraryFormData): Library {
@@ -54,7 +56,7 @@ export const LibraryService = {
     };
   },
 
-  delete(id: string): void {
+  delete(): void {
     throw new Error("Not implemented");
   },
 };
