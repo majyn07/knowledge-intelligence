@@ -15,6 +15,7 @@ import { sendAnalysisMessage } from "../../hooks/useAnalysisConversation";
 import { PageSection } from "@/components/common/page/PageSection";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { toast } from "sonner";
 
 import type { AIContext } from "@/models/AIContext";
 import type { AnalysisMessage } from "@/models/AnalysisMessage";
@@ -72,6 +73,8 @@ export function AnalysisConversation({
         ...current,
         assistantMessage,
       ]);
+    } catch {
+      toast.error("Não foi possível enviar a mensagem. Tente novamente.");
     } finally {
       setIsLoading(false);
     }
@@ -82,7 +85,7 @@ export function AnalysisConversation({
   ) {
     if (
       event.key === "Enter" &&
-      event.ctrlKey &&
+      !event.shiftKey &&
       !isLoading
     ) {
       event.preventDefault();
@@ -192,7 +195,7 @@ export function AnalysisConversation({
 
           <div className="mt-5 flex items-center justify-between">
             <span className="text-xs text-muted-foreground">
-              Ctrl + Enter para enviar
+              Enter para enviar · Shift + Enter para nova linha
             </span>
 
             <Button

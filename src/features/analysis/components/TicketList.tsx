@@ -1,3 +1,4 @@
+import { useMemo, useState } from "react";
 import { Building2, CheckCircle2, Search, Ticket } from "lucide-react";
 
 import { tickets as TicketType } from "../mock/tickets";
@@ -19,6 +20,22 @@ export function TicketList({
   selectedTicketId,
   onSelectTicket,
 }: TicketListProps) {
+  const [search, setSearch] = useState("");
+
+  const filteredTickets = useMemo(() => {
+    const query = search.trim().toLocaleLowerCase("pt-BR");
+
+    if (!query) {
+      return tickets;
+    }
+
+    return tickets.filter((ticket) =>
+      [ticket.id, ticket.title, ticket.company, ticket.solution].some(
+        (value) => value.toLocaleLowerCase("pt-BR").includes(query)
+      )
+    );
+  }, [search, tickets]);
+
   return (
     <aside className="flex min-h-96 flex-col overflow-hidden rounded-xl border border-border/70 bg-card xl:h-full">
       <header className="border-b border-border/70 p-4">
@@ -28,11 +45,11 @@ export function TicketList({
               Atendimentos
             </h2>
             <p className="mt-1 text-xs text-muted-foreground">
-              {tickets.length} ticket(s) disponíveis
+              {filteredTickets.length} de {tickets.length} ticket(s)
             </p>
           </div>
 
-          <Badge variant="secondary">{tickets.length}</Badge>
+          <Badge variant="secondary">{filteredTickets.length}</Badge>
         </div>
 
         <div className="relative mt-4">
@@ -40,12 +57,14 @@ export function TicketList({
           <Input
             className="h-8 rounded-lg bg-muted/45 pl-8 text-xs"
             placeholder="Pesquisar atendimento..."
+            value={search}
+            onChange={(event) => setSearch(event.target.value)}
           />
         </div>
       </header>
 
       <div className="min-h-0 flex-1 overflow-y-auto">
-        {tickets.map((ticket) => {
+        {filteredTickets.map((ticket) => {
           const selected = ticket.id === selectedTicketId;
 
           return (
@@ -95,6 +114,12 @@ export function TicketList({
             </button>
           );
         })}
+
+        {filteredTickets.length === 0 && (
+          <div className="px-4 py-10 text-center text-xs leading-5 text-muted-foreground">
+            Nenhum atendimento corresponde à busca.
+          </div>
+        )}
       </div>
     </aside>
   );

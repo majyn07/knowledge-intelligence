@@ -2,6 +2,10 @@
 
 import { useState } from "react";
 
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+
 import type { Ticket } from "@/models/Ticket";
 
 interface TicketEditorProps {
@@ -28,74 +32,50 @@ export function TicketEditor({
   }
 
   return (
-    <div className="rounded-xl border bg-card p-6">
-      <div className="space-y-6">
-        <div>
-          <label className="mb-2 block text-sm font-medium">
-            Título
-          </label>
+    <form
+      className="space-y-5"
+      onSubmit={(event) => {
+        event.preventDefault();
+        onSave(form);
+      }}
+    >
+      <div className="space-y-2">
+        <Label htmlFor="ticket-title">Título</Label>
+        <Input
+          id="ticket-title"
+          value={form.title}
+          onChange={(event) => updateField("title", event.target.value)}
+        />
+      </div>
 
-          <input
-            value={form.title}
-            onChange={(e) =>
-              updateField("title", e.target.value)
+      <div className="grid gap-4 sm:grid-cols-2">
+        <div className="space-y-2">
+          <Label htmlFor="ticket-solution">Solução</Label>
+          <Input
+            id="ticket-solution"
+            value={form.solution}
+            onChange={(event) =>
+              updateField("solution", event.target.value)
             }
-            className="w-full rounded-lg border px-3 py-2"
           />
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <label className="mb-2 block text-sm font-medium">
-              Solução
-            </label>
-
-            <input
-              value={form.solution}
-              onChange={(e) =>
-                updateField(
-                  "solution",
-                  e.target.value
-                )
-              }
-              className="w-full rounded-lg border px-3 py-2"
-            />
-          </div>
-
-          <div>
-            <label className="mb-2 block text-sm font-medium">
-              Empresa
-            </label>
-
-            <input
-              value={form.company}
-              onChange={(e) =>
-                updateField(
-                  "company",
-                  e.target.value
-                )
-              }
-              className="w-full rounded-lg border px-3 py-2"
-            />
-          </div>
-        </div>
-
-        <div className="flex justify-end gap-3">
-          <button
-            onClick={onCancel}
-            className="rounded-lg border px-4 py-2"
-          >
-            Cancelar
-          </button>
-
-          <button
-            onClick={() => onSave(form)}
-            className="rounded-lg bg-primary px-4 py-2 text-primary-foreground"
-          >
-            Salvar
-          </button>
+        <div className="space-y-2">
+          <Label htmlFor="ticket-company">Empresa</Label>
+          <Input
+            id="ticket-company"
+            value={form.company}
+            onChange={(event) => updateField("company", event.target.value)}
+          />
         </div>
       </div>
-    </div>
+
+      <div className="flex justify-end gap-2 border-t border-border/70 pt-5">
+        <Button type="button" variant="outline" onClick={onCancel}>
+          Cancelar
+        </Button>
+        <Button type="submit">Salvar</Button>
+      </div>
+    </form>
   );
 }

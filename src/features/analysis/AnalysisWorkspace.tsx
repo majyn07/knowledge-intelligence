@@ -20,6 +20,7 @@ import { PageHeader } from "@/components/common/page/PageHeader";
 import { useApp } from "@/providers/AppProvider";
 import { usePlans } from "../plans/providers/PlansProvider";
 import { useAnalysisContext } from "./hooks/useAnalysisContext";
+import { toast } from "sonner";
 
 export function AnalysisWorkspace() {
   const { currentProjectId } = useApp();
@@ -88,6 +89,7 @@ export function AnalysisWorkspace() {
       setMessages(response.messages);
     } catch (error) {
       console.error(error);
+      toast.error("Não foi possível concluir a análise. Tente novamente.");
     } finally {
       setIsAnalyzing(false);
     }
@@ -137,7 +139,9 @@ export function AnalysisWorkspace() {
   }
 
   function handleDiscardRecommendation(recommendation: Recommendation) {
-    console.log("Descartada:", recommendation);
+    toast.info("Recomendação descartada.", {
+      description: recommendation.title,
+    });
   }
 
   if (!selectedTicket) {

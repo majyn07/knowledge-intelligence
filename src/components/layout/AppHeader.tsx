@@ -1,7 +1,7 @@
 "use client";
 
 import { ReactNode } from "react";
-import { Bell, Command, Search } from "lucide-react";
+import { Bell } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 
@@ -39,19 +39,6 @@ export function AppHeader({
 
         <div className="flex items-center gap-2">
           {actions}
-
-          <Button
-            variant="ghost"
-            className="hidden h-8 min-w-52 justify-between border border-border/70 bg-muted/35 px-3 text-muted-foreground hover:bg-muted md:flex"
-          >
-            <span className="flex items-center gap-2">
-              <Search className="h-3.5 w-3.5" />
-              Buscar
-            </span>
-            <span className="flex items-center gap-1 text-[11px]">
-              <Command className="h-3 w-3" />K
-            </span>
-          </Button>
 
           <Button
             variant="ghost"

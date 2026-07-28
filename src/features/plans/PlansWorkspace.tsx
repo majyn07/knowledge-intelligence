@@ -2,6 +2,7 @@
 
 import { plansService } from "./services/plansService";
 import { usePlans } from "./providers/PlansProvider";
+import { Button } from "@/components/ui/button";
 
 export function PlansWorkspace() {
   const {
@@ -110,16 +111,16 @@ export function PlansWorkspace() {
                   </div>
 
                   <div className="mt-6 flex justify-end">
-                    <button
+                    <Button
+                      variant="outline"
                       onClick={() =>
                         handleRemoveRecommendation(
                           recommendation.id
                         )
                       }
-                      className="rounded-lg border px-4 py-2 text-sm font-medium transition-colors hover:bg-muted"
                     >
                       Remover do plano
-                    </button>
+                    </Button>
                   </div>
                 </div>
               )
