@@ -12,7 +12,7 @@ import { toast } from "sonner";
 import type { Library } from "@/models/Library";
 import type { LibraryFormData } from "@/features/library/types/LibraryFormData";
 
-import { LibraryService } from "@/features/library/services/LibraryService";
+import { LibraryService } from "@/features/library/services/libraryService";
 
 const STORAGE_KEY = "visus-library";
 
