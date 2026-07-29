@@ -27,7 +27,7 @@ import { PanelLeftIcon } from "lucide-react"
 
 const SIDEBAR_COOKIE_NAME = "sidebar_state"
 const SIDEBAR_COOKIE_MAX_AGE = 60 * 60 * 24 * 7
-const SIDEBAR_WIDTH = "16rem"
+const SIDEBAR_WIDTH = "17.5rem"
 const SIDEBAR_WIDTH_MOBILE = "18rem"
 const SIDEBAR_WIDTH_ICON = "3rem"
 const SIDEBAR_KEYBOARD_SHORTCUT = "b"
@@ -307,7 +307,7 @@ function SidebarInset({ className, ...props }: React.ComponentProps<"main">) {
     <main
       data-slot="sidebar-inset"
       className={cn(
-        "relative flex w-full flex-1 flex-col bg-background md:peer-data-[variant=inset]:m-2 md:peer-data-[variant=inset]:ml-0 md:peer-data-[variant=inset]:rounded-xl md:peer-data-[variant=inset]:shadow-sm md:peer-data-[variant=inset]:peer-data-[state=collapsed]:ml-2",
+        "relative flex w-full flex-1 flex-col bg-background md:peer-data-[variant=inset]:m-2 md:peer-data-[variant=inset]:ml-0 md:peer-data-[variant=inset]:rounded-lg md:peer-data-[variant=inset]:shadow-sm md:peer-data-[variant=inset]:peer-data-[state=collapsed]:ml-2",
         className
       )}
       {...props}
@@ -334,7 +334,10 @@ function SidebarHeader({ className, ...props }: React.ComponentProps<"div">) {
     <div
       data-slot="sidebar-header"
       data-sidebar="header"
-      className={cn("flex flex-col gap-2 p-2", className)}
+      className={cn(
+        "flex flex-col gap-3 border-b border-sidebar-border px-4 py-6",
+        className
+      )}
       {...props}
     />
   )
@@ -345,7 +348,10 @@ function SidebarFooter({ className, ...props }: React.ComponentProps<"div">) {
     <div
       data-slot="sidebar-footer"
       data-sidebar="footer"
-      className={cn("flex flex-col gap-2 p-2", className)}
+      className={cn(
+        "flex flex-col gap-3 border-t border-sidebar-border px-4 py-5",
+        className
+      )}
       {...props}
     />
   )
@@ -384,7 +390,10 @@ function SidebarGroup({ className, ...props }: React.ComponentProps<"div">) {
     <div
       data-slot="sidebar-group"
       data-sidebar="group"
-      className={cn("relative flex w-full min-w-0 flex-col p-2", className)}
+      className={cn(
+        "relative flex w-full min-w-0 flex-col px-3 py-3",
+        className
+      )}
       {...props}
     />
   )
@@ -400,9 +409,9 @@ function SidebarGroupLabel({
     props: mergeProps<"div">(
       {
         className: cn(
-          "flex h-8 shrink-0 items-center rounded-md px-2 text-xs font-medium text-sidebar-foreground/70 ring-sidebar-ring outline-hidden transition-[margin,opacity] duration-200 ease-linear group-data-[collapsible=icon]:-mt-8 group-data-[collapsible=icon]:opacity-0 focus-visible:ring-2 [&>svg]:size-4 [&>svg]:shrink-0",
-          className
-        ),
+  "flex h-7 items-center px-2 text-[10px] font-semibold uppercase tracking-[0.18em] text-sidebar-foreground/45 ring-sidebar-ring outline-hidden transition-[margin,opacity] duration-200 ease-linear group-data-[collapsible=icon]:-mt-8 group-data-[collapsible=icon]:opacity-0 focus-visible:ring-2",
+  className
+),
       },
       props
     ),
@@ -475,7 +484,68 @@ function SidebarMenuItem({ className, ...props }: React.ComponentProps<"li">) {
 }
 
 const sidebarMenuButtonVariants = cva(
-  "peer/menu-button group/menu-button flex w-full items-center gap-2 overflow-hidden rounded-md p-2 text-left text-sm ring-sidebar-ring outline-hidden transition-[width,height,padding] group-has-data-[sidebar=menu-action]/menu-item:pr-8 group-data-[collapsible=icon]:size-8! group-data-[collapsible=icon]:p-2! hover:bg-sidebar-accent hover:text-sidebar-accent-foreground focus-visible:ring-2 active:bg-sidebar-accent active:text-sidebar-accent-foreground disabled:pointer-events-none disabled:opacity-50 aria-disabled:pointer-events-none aria-disabled:opacity-50 data-open:hover:bg-sidebar-accent data-open:hover:text-sidebar-accent-foreground data-active:bg-sidebar-accent data-active:font-medium data-active:text-sidebar-accent-foreground [&_svg]:size-4 [&_svg]:shrink-0 [&>span:last-child]:truncate",
+  `
+  peer/menu-button
+  group/menu-button
+
+  flex
+  w-full
+  items-center
+  gap-3
+
+  overflow-hidden
+
+  rounded-xl
+
+  px-3.5
+  py-2.5
+
+  text-left
+  text-[14px]
+  font-medium
+
+  ring-sidebar-ring
+  outline-hidden
+
+  transition-all
+  duration-200
+  ease-out
+
+  group-has-data-[sidebar=menu-action]/menu-item:pr-8
+
+  group-data-[collapsible=icon]:size-10!
+  group-data-[collapsible=icon]:p-0!
+
+  hover:bg-sidebar-accent/60
+  hover:text-sidebar-accent-foreground
+
+  hover:shadow-sm
+
+  focus-visible:ring-2
+
+  active:scale-[0.99]
+
+  disabled:pointer-events-none
+  disabled:opacity-50
+
+  aria-disabled:pointer-events-none
+  aria-disabled:opacity-50
+
+  data-open:hover:bg-sidebar-accent
+
+  data-active:bg-sidebar-accent
+  data-active:text-sidebar-accent-foreground
+  data-active:font-semibold
+  data-active:shadow-sm
+  data-active:border
+  data-active:border-sidebar-border
+
+  [&_svg]:size-[18px]
+  [&_svg]:shrink-0
+  [&_svg]:transition-colors
+
+  [&>span:last-child]:truncate
+`,
   {
     variants: {
       variant: {
@@ -484,8 +554,8 @@ const sidebarMenuButtonVariants = cva(
           "bg-background shadow-[0_0_0_1px_var(--sidebar-border)] hover:bg-sidebar-accent hover:text-sidebar-accent-foreground hover:shadow-[0_0_0_1px_var(--sidebar-accent)]",
       },
       size: {
-        default: "h-8 text-sm",
-        sm: "h-7 text-xs",
+        default: "h-10 text-sm",
+        sm: "h-9 text-xs",
         lg: "h-12 text-sm group-data-[collapsible=icon]:p-0!",
       },
     },

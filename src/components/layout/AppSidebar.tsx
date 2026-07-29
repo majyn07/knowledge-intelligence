@@ -1,5 +1,5 @@
 "use client";
-
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -48,11 +48,6 @@ const workspaceItems = [
     icon: BookOpen,
     href: "/library",
   },
-  {
-    title: "Plano de Melhorias",
-    icon: FileSearch,
-    href: "/improvement-plan",
-  },
 ];
 
 const managementItems = [
@@ -60,6 +55,11 @@ const managementItems = [
     title: "Métricas",
     icon: BarChart3,
     href: "/indicators",
+  },
+  {
+    title: "Plano de Melhorias",
+    icon: FileSearch,
+    href: "/improvement-plan",
   },
 ];
 
@@ -75,7 +75,6 @@ const systemItems = [
     href: "/settings",
   },
 ];
-
 export function AppSidebar() {
   const pathname = usePathname();
   const { theme } = useBrandTheme();
@@ -83,25 +82,38 @@ export function AppSidebar() {
 
   return (
     <Sidebar variant="sidebar" collapsible="icon">
-      <SidebarHeader className="py-6">
-        <div className="px-2">
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-sidebar-foreground/60">
-            Powered by AltoQi
-          </p>
+      <SidebarHeader className="p-2">
+  <div className="flex items-center gap-3 px-2 group-data-[collapsible=icon]:justify-center">
+    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-white shadow-sm">
+      <Image
+        src="/logo-altoqi.png"
+        alt="AltoQi"
+        width={40}
+        height={40}
+        className="object-contain"
+        priority
+      />
+    </div>
 
-          <h2 className="mt-2 text-lg font-semibold leading-tight">
-            Knowledge Intelligence
-          </h2>
+    <div className="min-w-0 group-data-[collapsible=icon]:hidden">
+      <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-sidebar-foreground/50">
+        Powered by AltoQi
+      </p>
 
-          <p className="text-sm text-sidebar-foreground/70">
-            {brand.name}
-          </p>
-        </div>
-      </SidebarHeader>
+      <h2 className="truncate text-lg font-semibold">
+        Knowledge Intelligence
+      </h2>
+
+      <p className="truncate text-sm text-sidebar-foreground/65">
+        Central de Conhecimento
+      </p>
+    </div>
+  </div>
+</SidebarHeader>
 
       <SidebarContent>
-        <SidebarGroup>
-          <SidebarGroupLabel>Workspace</SidebarGroupLabel>
+        <SidebarGroup className="pt-2">
+          <SidebarGroupLabel>Navegação</SidebarGroupLabel>
 
           <SidebarGroupContent>
             <SidebarMenu>
@@ -121,8 +133,8 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
 
-        <SidebarGroup>
-          <SidebarGroupLabel>Gestão</SidebarGroupLabel>
+        <SidebarGroup className="pt-4">
+          <SidebarGroupLabel>Análises</SidebarGroupLabel>
 
           <SidebarGroupContent>
             <SidebarMenu>
@@ -142,8 +154,8 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
 
-        <SidebarGroup>
-          <SidebarGroupLabel>Sistema</SidebarGroupLabel>
+        <SidebarGroup className="pt-4">
+          <SidebarGroupLabel>Administração</SidebarGroupLabel>
 
           <SidebarGroupContent>
             <SidebarMenu>
@@ -165,20 +177,24 @@ export function AppSidebar() {
       </SidebarContent>
 
       <SidebarFooter>
-        <div className="space-y-1 px-2 py-3">
-          <p className="text-xs font-medium text-sidebar-foreground">
-            Produto
-          </p>
+  <div className="rounded-xl border border-sidebar-border bg-sidebar-accent/40 p-3">
+    <div className="flex items-center justify-between group-data-[collapsible=icon]:justify-center">
+      <div className="group-data-[collapsible=icon]:hidden">
+        <p className="text-xs font-semibold">
+          Central de Conhecimento
+        </p>
 
-          <p className="text-xs text-sidebar-foreground/70">
-            🟣 Visus
-          </p>
+        <p className="text-[11px] text-sidebar-foreground/60">
+          Build de desenvolvimento
+        </p>
+      </div>
 
-          <p className="pt-2 text-[11px] text-sidebar-foreground/50">
-            v0.1.0
-          </p>
-        </div>
-      </SidebarFooter>
+      <span className="rounded-md bg-primary/10 px-2 py-1 text-[10px] font-semibold text-primary">
+        v0.1.0
+      </span>
+    </div>
+  </div>
+</SidebarFooter>
     </Sidebar>
   );
 }
