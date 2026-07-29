@@ -133,6 +133,35 @@
   --sidebar-ring: var(--primary);
 }
 
+/* Produto: Visus — leitura de dados e contexto. */
+:root[data-brand="visus"] {
+  --primary: oklch(0.61 0.15 205);
+  --accent: oklch(0.95 0.025 205);
+  --sidebar: oklch(0.25 0.04 215);
+  --sidebar-accent: oklch(0.33 0.05 215);
+  --sidebar-border: oklch(0.39 0.04 215);
+}
+
+/* Produto: Builder — planejamento, avanço e execução. */
+:root[data-brand="builder"] {
+  --primary: oklch(0.61 0.16 145);
+  --accent: oklch(0.95 0.04 145);
+  --sidebar: oklch(0.24 0.045 155);
+  --sidebar-accent: oklch(0.32 0.055 155);
+  --sidebar-border: oklch(0.38 0.045 155);
+  --chart-1: oklch(0.61 0.16 145);
+}
+
+/* Produto: Eberick — estruturas, cálculo e precisão. */
+:root[data-brand="eberick"] {
+  --primary: oklch(0.57 0.17 35);
+  --accent: oklch(0.95 0.04 35);
+  --sidebar: oklch(0.23 0.035 35);
+  --sidebar-accent: oklch(0.31 0.045 35);
+  --sidebar-border: oklch(0.37 0.04 35);
+  --chart-1: oklch(0.57 0.17 35);
+}
+
 .dark {
 
   --background: oklch(0.18 0.01 220);
@@ -195,10 +224,42 @@
 
   body {
     @apply bg-background text-foreground;
+    background-image: linear-gradient(to right, color-mix(in oklch, var(--primary) 4%, transparent) 1px, transparent 1px), linear-gradient(to bottom, color-mix(in oklch, var(--primary) 4%, transparent) 1px, transparent 1px);
+    background-size: 32px 32px;
   }
 
   ::selection {
     @apply bg-primary/20 text-foreground;
   }
 
+}
+
+@layer utilities {
+  .technical-frame {
+    position: relative;
+  }
+
+  .technical-frame::before,
+  .technical-frame::after {
+    content: "";
+    position: absolute;
+    width: 42px;
+    height: 42px;
+    pointer-events: none;
+    border-color: color-mix(in oklch, var(--primary) 45%, transparent);
+  }
+
+  .technical-frame::before {
+    top: -1px;
+    left: -1px;
+    border-top: 1px solid;
+    border-left: 1px solid;
+  }
+
+  .technical-frame::after {
+    right: -1px;
+    bottom: -1px;
+    border-right: 1px solid;
+    border-bottom: 1px solid;
+  }
 }

@@ -4,7 +4,9 @@ import { Geist, Geist_Mono } from "next/font/google";
 import { Toaster } from "@/components/ui/sonner";
 
 import { PlansProvider } from "@/features/plans/providers/PlansProvider";
+import { KnowledgeLifecycleProvider } from "@/features/analysis/providers/KnowledgeLifecycleProvider";
 import { AppProvider } from "@/providers/AppProvider";
+import { BrandThemeProvider } from "@/providers/BrandThemeProvider";
 
 import "./globals.css";
 
@@ -36,15 +38,19 @@ export default function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable}`}
     >
       <body className="min-h-screen bg-background font-sans text-foreground antialiased">
-        <AppProvider>
-          <PlansProvider>{children}</PlansProvider>
-
-          <Toaster
+        <BrandThemeProvider>
+          <AppProvider>
+            <KnowledgeLifecycleProvider>
+              <PlansProvider>{children}</PlansProvider>
+            </KnowledgeLifecycleProvider>
+            
+            <Toaster
             position="top-right"
             richColors
             closeButton
-          />
-        </AppProvider>
+            />
+          </AppProvider>
+        </BrandThemeProvider>
       </body>
     </html>
   );

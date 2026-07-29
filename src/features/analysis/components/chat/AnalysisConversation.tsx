@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import type { Dispatch, KeyboardEvent, SetStateAction } from "react";
+import type { KeyboardEvent } from "react";
 
 import {
   Bot,
@@ -13,6 +13,7 @@ import {
 import { sendAnalysisMessage } from "../../hooks/useAnalysisConversation";
 
 import { PageSection } from "@/components/common/page/PageSection";
+import { MarkdownContent } from "@/components/common/MarkdownContent";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
@@ -23,9 +24,7 @@ import type { AnalysisMessage } from "@/models/AnalysisMessage";
 interface AnalysisConversationProps {
   context: AIContext;
   messages: AnalysisMessage[];
-  setMessages: Dispatch<
-    SetStateAction<AnalysisMessage[]>
-  >;
+  setMessages: (messages: AnalysisMessage[]) => void;
 }
 
 export function AnalysisConversation({
@@ -69,10 +68,7 @@ export function AnalysisConversation({
           prompt
         );
 
-      setMessages((current) => [
-        ...current,
-        assistantMessage,
-      ]);
+      setMessages([...updatedMessages, assistantMessage]);
     } catch {
       toast.error("Não foi possível enviar a mensagem. Tente novamente.");
     } finally {
@@ -171,9 +167,7 @@ export function AnalysisConversation({
                       </span>
                     </div>
 
-                    <p className="whitespace-pre-wrap text-sm leading-7">
-                      {item.message}
-                    </p>
+                    {assistant ? <MarkdownContent content={item.message} /> : <p className="whitespace-pre-wrap text-sm leading-7">{item.message}</p>}
                   </article>
                 </div>
               </div>

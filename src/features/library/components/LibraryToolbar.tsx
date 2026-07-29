@@ -63,13 +63,6 @@ export function LibraryToolbar({
           </Button>
 
           <Button
-            variant={filters.status === "review" ? "default" : "outline"}
-            onClick={() => changeStatus("review")}
-          >
-            Revisão
-          </Button>
-
-          <Button
             variant={filters.status === "published" ? "default" : "outline"}
             onClick={() => changeStatus("published")}
           >

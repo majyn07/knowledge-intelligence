@@ -1,6 +1,5 @@
 export type LibraryStatus =
   | "draft"
-  | "review"
   | "published"
   | "archived";
 

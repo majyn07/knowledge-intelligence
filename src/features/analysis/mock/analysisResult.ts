@@ -45,7 +45,7 @@ export const mockAnalysisResult: AnalysisResult = {
         "Adicionar o novo fluxo de autenticação, incluindo as validações executadas após a atualização do sistema.",
       justification:
         "O procedimento utilizado pelo suporte não está refletido na documentação atual.",
-      status: "pending",
+      status: "proposed",
     },
     {
       id: "opp-002",
@@ -55,7 +55,7 @@ export const mockAnalysisResult: AnalysisResult = {
         "Revisar os artigos relacionados às permissões para refletir os novos perfis disponíveis.",
       justification:
         "Foi identificada documentação desatualizada durante a análise do atendimento.",
-      status: "pending",
+      status: "proposed",
     },
   ],
 };

@@ -30,7 +30,7 @@ const VALID_CONFIDENCE_LEVEL: ConfidenceLevel[] = [
 ];
 
 const DEFAULT_OPPORTUNITY_STATUS: OpportunityStatus =
-  "pending";
+  "proposed";
 
 export function parseAnalysisResponse(
   response: string

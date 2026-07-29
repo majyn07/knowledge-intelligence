@@ -25,6 +25,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
+import { brandThemes, useBrandTheme } from "@/providers/BrandThemeProvider";
 
 const workspaceItems = [
   {
@@ -77,6 +78,8 @@ const systemItems = [
 
 export function AppSidebar() {
   const pathname = usePathname();
+  const { theme } = useBrandTheme();
+  const brand = brandThemes[theme];
 
   return (
     <Sidebar variant="sidebar" collapsible="icon">
@@ -91,7 +94,7 @@ export function AppSidebar() {
           </h2>
 
           <p className="text-sm text-sidebar-foreground/70">
-            Visus
+            {brand.name}
           </p>
         </div>
       </SidebarHeader>

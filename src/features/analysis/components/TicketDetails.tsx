@@ -13,6 +13,7 @@ import { conversations } from "../mock/conversations";
 import { TicketEditor } from "./TicketEditor";
 
 import type { Ticket } from "@/models/Ticket";
+import type { AnalysisStatus } from "@/models/KnowledgeLifecycle";
 
 interface TicketDetailsProps {
   ticket: Ticket;
@@ -20,6 +21,8 @@ interface TicketDetailsProps {
   onAnalyze: () => void;
   onSave: (ticket: Ticket) => void;
   onDelete: (ticketId: string) => void;
+  analysisStatus?: AnalysisStatus;
+  onFinalize: () => void;
 }
 
 type ConversationMessage =
@@ -31,6 +34,8 @@ export function TicketDetails({
   onAnalyze,
   onSave,
   onDelete,
+  analysisStatus,
+  onFinalize,
 }: TicketDetailsProps) {
   const [isEditing, setIsEditing] = useState(false);
 
@@ -69,6 +74,12 @@ export function TicketDetails({
                 ? "Analisando..."
                 : "Analisar com IA"}
             </Button>
+
+            {analysisStatus === "in_review" && (
+              <Button size="default" variant="secondary" onClick={onFinalize}>
+                Finalizar análise
+              </Button>
+            )}
 
             <Button
               size="default"

@@ -25,7 +25,7 @@ Utilize apenas as informações presentes no contexto.
 
 # IMPORTANTE
 
-Responda em linguagem natural.
+Responda em Markdown legível, usando títulos curtos, listas, tabelas ou blocos de código quando ajudarem a investigação.
 
 NUNCA responda em JSON.
 

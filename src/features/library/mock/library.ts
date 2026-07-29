@@ -21,7 +21,7 @@ export const library: Library[] = [
       "Documentação do processo de revisão e publicação da base de conhecimento.",
     projectId: "project-001",
     type: "workflow",
-    status: "review",
+    status: "draft",
     category: "Processos",
     tags: ["aprovação", "kb"],
     createdAt: new Date("2026-07-10"),

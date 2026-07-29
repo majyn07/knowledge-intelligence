@@ -226,10 +226,6 @@ export function LibraryForm({
                 Rascunho
               </SelectItem>
 
-              <SelectItem value="review">
-                Em revisão
-              </SelectItem>
-
               <SelectItem value="published">
                 Publicado
               </SelectItem>

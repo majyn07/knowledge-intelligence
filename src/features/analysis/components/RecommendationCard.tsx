@@ -23,6 +23,7 @@ interface RecommendationCardProps {
   onDiscard: (
     recommendation: KnowledgeOpportunity
   ) => void;
+  readOnly?: boolean;
 }
 
 function getIcon(type: KnowledgeOpportunity["type"]) {
@@ -49,6 +50,7 @@ export function RecommendationCard({
   recommendation,
   onApprove,
   onDiscard,
+  readOnly = false,
 }: RecommendationCardProps) {
   return (
     <article className="py-6 first:pt-0 last:pb-0">
@@ -75,7 +77,7 @@ export function RecommendationCard({
             </div>
           </div>
 
-          <div className="mt-5 grid gap-5 text-sm leading-6 lg:grid-cols-2">
+          <div className="mt-5 space-y-5 text-sm leading-6">
             <div>
               <p className="mb-1.5 text-xs font-medium uppercase tracking-wide text-muted-foreground">
                 Descrição
@@ -95,17 +97,17 @@ export function RecommendationCard({
         </div>
 
         <div className="flex shrink-0 items-center gap-2 lg:pt-1">
-          <Button
+          {!readOnly && <Button
             variant="ghost"
             onClick={() => onDiscard(recommendation)}
           >
             Descartar
-          </Button>
+          </Button>}
 
-          <Button onClick={() => onApprove(recommendation)}>
+          {!readOnly && <Button onClick={() => onApprove(recommendation)}>
             Aprovar
             <ArrowRight className="ml-2 h-4 w-4" />
-          </Button>
+          </Button>}
         </div>
       </div>
     </article>

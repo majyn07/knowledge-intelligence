@@ -35,6 +35,7 @@ function loadLibrary(): Library[] {
 
     return parsedItems.map((item) => ({
       ...item,
+      status: (item.status as string) === "review" ? "draft" : item.status,
       createdAt: new Date(item.createdAt),
       updatedAt: new Date(item.updatedAt),
     }));

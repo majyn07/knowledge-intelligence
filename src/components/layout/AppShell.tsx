@@ -28,7 +28,7 @@ export function AppShell({
           description="Visus Knowledge Intelligence"
         />
 
-        <main className="flex flex-1 flex-col overflow-hidden">
+        <main className="technical-frame flex flex-1 flex-col overflow-hidden">
           <section className="border-b border-border/60 bg-card/55 backdrop-blur-xl">
             <div className="mx-auto w-full max-w-[1800px] px-6 py-5 xl:px-10">
               <CurrentProject />

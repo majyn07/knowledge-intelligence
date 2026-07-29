@@ -27,10 +27,6 @@ const statusMap = {
     label: "Rascunho",
     color: "bg-slate-400",
   },
-  review: {
-    label: "Em revisão",
-    color: "bg-amber-500",
-  },
   published: {
     label: "Publicado",
     color: "bg-emerald-500",
