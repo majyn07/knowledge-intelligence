@@ -4,10 +4,10 @@ import { createContext, useContext, useEffect, useState, type ReactNode } from "
 
 export type BrandTheme = "visus" | "builder" | "eberick";
 
-export const brandThemes: Record<BrandTheme, { name: string; description: string }> = {
-  visus: { name: "Visus", description: "Inteligência e gestão do conhecimento" },
-  builder: { name: "Builder", description: "Planejamento e produtividade" },
-  eberick: { name: "Eberick", description: "Estruturas e precisão técnica" },
+export const brandThemes: Record<BrandTheme, { name: string }> = {
+  visus: { name: "Visus" },
+  builder: { name: "Builder" },
+  eberick: { name: "Eberick" },
 };
 
 const BrandThemeContext = createContext<{ theme: BrandTheme; setTheme: (theme: BrandTheme) => void } | null>(null);

@@ -21,7 +21,7 @@ export function PageSection({
   return (
     <section
       className={cn(
-        "border-t border-border/80 pt-6",
+        "brand-section border-t border-border/80 pt-6",
         className
       )}
     >

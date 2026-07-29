@@ -135,31 +135,31 @@
 
 /* Produto: Visus — leitura de dados e contexto. */
 :root[data-brand="visus"] {
-  --primary: oklch(0.61 0.15 205);
-  --accent: oklch(0.95 0.025 205);
-  --sidebar: oklch(0.25 0.04 215);
-  --sidebar-accent: oklch(0.33 0.05 215);
-  --sidebar-border: oklch(0.39 0.04 215);
+  --primary: oklch(0.48 0.16 300);
+  --accent: oklch(0.95 0.035 300);
+  --sidebar: oklch(0.22 0.055 300);
+  --sidebar-accent: oklch(0.30 0.065 300);
+  --sidebar-border: oklch(0.36 0.05 300);
 }
 
 /* Produto: Builder — planejamento, avanço e execução. */
 :root[data-brand="builder"] {
-  --primary: oklch(0.61 0.16 145);
-  --accent: oklch(0.95 0.04 145);
-  --sidebar: oklch(0.24 0.045 155);
-  --sidebar-accent: oklch(0.32 0.055 155);
-  --sidebar-border: oklch(0.38 0.045 155);
-  --chart-1: oklch(0.61 0.16 145);
+  --primary: oklch(0.66 0.16 72);
+  --accent: oklch(0.96 0.045 78);
+  --sidebar: oklch(0.24 0.04 72);
+  --sidebar-accent: oklch(0.32 0.05 72);
+  --sidebar-border: oklch(0.38 0.04 72);
+  --chart-1: oklch(0.66 0.16 72);
 }
 
 /* Produto: Eberick — estruturas, cálculo e precisão. */
 :root[data-brand="eberick"] {
-  --primary: oklch(0.57 0.17 35);
-  --accent: oklch(0.95 0.04 35);
-  --sidebar: oklch(0.23 0.035 35);
-  --sidebar-accent: oklch(0.31 0.045 35);
-  --sidebar-border: oklch(0.37 0.04 35);
-  --chart-1: oklch(0.57 0.17 35);
+  --primary: oklch(0.52 0.12 225);
+  --accent: oklch(0.95 0.03 225);
+  --sidebar: oklch(0.22 0.04 225);
+  --sidebar-accent: oklch(0.30 0.05 225);
+  --sidebar-border: oklch(0.36 0.04 225);
+  --chart-1: oklch(0.52 0.12 225);
 }
 
 .dark {
@@ -234,7 +234,109 @@
 
 }
 
+:root[data-brand="builder"] body {
+  background-image: linear-gradient(30deg, color-mix(in oklch, var(--primary) 5%, transparent) 12%, transparent 12.5%, transparent 87%, color-mix(in oklch, var(--primary) 5%, transparent) 87.5%, color-mix(in oklch, var(--primary) 5%, transparent)), linear-gradient(150deg, color-mix(in oklch, var(--primary) 5%, transparent) 12%, transparent 12.5%, transparent 87%, color-mix(in oklch, var(--primary) 5%, transparent) 87.5%, color-mix(in oklch, var(--primary) 5%, transparent));
+  background-size: 56px 32px;
+}
+
+:root[data-brand="eberick"] body {
+  background-image: linear-gradient(60deg, transparent 47%, color-mix(in oklch, var(--primary) 5%, transparent) 48%, color-mix(in oklch, var(--primary) 5%, transparent) 52%, transparent 53%), linear-gradient(120deg, transparent 47%, color-mix(in oklch, var(--primary) 5%, transparent) 48%, color-mix(in oklch, var(--primary) 5%, transparent) 52%, transparent 53%), linear-gradient(to bottom, color-mix(in oklch, var(--primary) 5%, transparent) 1px, transparent 1px);
+  background-size: 48px 28px;
+}
+
+.brand-graphic-stroke { stroke: currentColor; }
+.brand-graphic-fill { fill: currentColor; }
+.brand-graphic-fill-alt { fill: color-mix(in oklch, currentColor 45%, transparent); }
+
 @layer utilities {
+  .brand-page-header {
+    position: relative;
+    isolation: isolate;
+    min-height: 7.5rem;
+    overflow: hidden;
+    padding: 1.25rem 1.5rem;
+    border: 1px solid color-mix(in oklch, var(--border) 72%, var(--primary));
+    background: color-mix(in oklch, var(--card) 92%, var(--primary));
+  }
+
+  .brand-page-header::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0.38;
+    background-image: linear-gradient(to right, color-mix(in oklch, var(--primary) 12%, transparent) 1px, transparent 1px), linear-gradient(to bottom, color-mix(in oklch, var(--primary) 12%, transparent) 1px, transparent 1px);
+    background-size: 18px 18px;
+  }
+
+  :root[data-brand="builder"] .brand-page-header::before {
+    background-image: linear-gradient(30deg, transparent 46%, color-mix(in oklch, var(--primary) 19%, transparent) 47%, color-mix(in oklch, var(--primary) 19%, transparent) 53%, transparent 54%), linear-gradient(150deg, transparent 46%, color-mix(in oklch, var(--primary) 19%, transparent) 47%, color-mix(in oklch, var(--primary) 19%, transparent) 53%, transparent 54%);
+    background-size: 30px 18px;
+  }
+
+  :root[data-brand="eberick"] .brand-page-header::before {
+    background-image: linear-gradient(60deg, transparent 46%, color-mix(in oklch, var(--primary) 17%, transparent) 47%, color-mix(in oklch, var(--primary) 17%, transparent) 53%, transparent 54%), linear-gradient(120deg, transparent 46%, color-mix(in oklch, var(--primary) 17%, transparent) 47%, color-mix(in oklch, var(--primary) 17%, transparent) 53%, transparent 54%);
+    background-size: 30px 18px;
+  }
+
+  .brand-section > header h2::before {
+    content: "";
+    display: inline-block;
+    width: 1.75rem;
+    height: 0.4rem;
+    margin-right: 0.65rem;
+    vertical-align: middle;
+    border-top: 2px solid var(--primary);
+    border-bottom: 1px solid color-mix(in oklch, var(--primary) 40%, transparent);
+  }
+
+  .product-identity-chip {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    min-height: 2rem;
+    padding: 0.15rem 0.5rem;
+    border: 1px solid color-mix(in oklch, var(--border) 75%, var(--primary));
+    background: color-mix(in oklch, var(--card) 92%, var(--primary));
+    transition: border-color 150ms ease;
+  }
+
+  .product-identity-chip:hover { border-color: var(--primary); }
+
+  .product-choice {
+    position: relative;
+    min-height: 7rem;
+    overflow: hidden;
+    padding: 1rem;
+    border: 1px solid var(--border);
+    background: var(--card);
+    text-align: left;
+    transition: transform 150ms ease, border-color 150ms ease;
+  }
+
+  .product-choice:hover { transform: translateY(-2px); border-color: color-mix(in oklch, var(--primary) 60%, var(--border)); }
+  .product-choice-active { border-color: var(--primary); box-shadow: inset 4px 0 0 var(--primary); }
+
+  .brand-feature-card {
+    min-height: 8rem;
+    padding: 1.25rem;
+    border: 1px solid var(--border);
+    background: color-mix(in oklch, var(--card) 94%, var(--primary));
+  }
+  .brand-feature-card h2 { margin-top: 1.75rem; font-weight: 600; }
+
+  .brand-empty-state {
+    display: grid;
+    min-height: 16rem;
+    place-content: center;
+    padding: 2rem;
+    border: 1px dashed color-mix(in oklch, var(--border) 45%, var(--primary));
+    background: color-mix(in oklch, var(--muted) 72%, transparent);
+    text-align: center;
+  }
+  .brand-empty-state h2 { margin-top: 0.5rem; font-weight: 600; }
+  .brand-empty-state p { max-width: 28rem; margin-top: 0.5rem; font-size: 0.875rem; line-height: 1.5rem; color: var(--muted-foreground); }
+
   .technical-frame {
     position: relative;
   }
