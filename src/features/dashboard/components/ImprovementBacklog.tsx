@@ -18,6 +18,7 @@ const statusVariant: Record<OpportunityStatus, "warning" | "success" | "info" | 
   approved: "success",
   discarded: "default",
   draft: "info",
+  deferred: "default",
 };
 
 function getPriority(type: string) {

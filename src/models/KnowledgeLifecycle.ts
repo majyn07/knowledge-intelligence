@@ -6,7 +6,8 @@ export type OpportunityWorkflowStatus =
   | "proposed"
   | "approved"
   | "discarded"
-  | "draft";
+  | "draft"
+  | "deferred";
 
 export interface AnalysisRecord {
   id: string;

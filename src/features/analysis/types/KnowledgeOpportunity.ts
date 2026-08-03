@@ -9,7 +9,8 @@ export type OpportunityStatus =
   | "proposed"
   | "approved"
   | "discarded"
-  | "draft";
+  | "draft"
+  | "deferred";
 
 export interface KnowledgeOpportunity {
   id: string;
@@ -39,4 +40,5 @@ export const OpportunityStatusLabel: Record<
   approved: "Aprovada",
   discarded: "Descartada",
   draft: "Em rascunho",
+  deferred: "Adiada",
 };

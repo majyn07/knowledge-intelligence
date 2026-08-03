@@ -61,6 +61,12 @@ export function RelatedArticlesPanel({
                   <p className="mt-2 text-sm leading-6 text-muted-foreground">
                     {article.summary}
                   </p>
+
+                  <p className="mt-3 text-xs leading-5 text-muted-foreground">
+                    {matchedTerms.length > 0
+                      ? `Relacionado porque aborda: ${matchedTerms.join(", ")}. Revise se o conteúdo atual resolve o mesmo fluxo ou precisa ser atualizado.`
+                      : "Relacionado pela proximidade com o fluxo analisado. Valide se este conteúdo cobre a necessidade identificada."}
+                  </p>
                 </div>
 
                 <StatusBadge variant="info">

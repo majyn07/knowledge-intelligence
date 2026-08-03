@@ -11,6 +11,7 @@ import {
 } from "react";
 
 import type { AnalysisMessage } from "@/models/AnalysisMessage";
+import type { KnowledgeOpportunity } from "@/features/analysis/types/KnowledgeOpportunity";
 import type {
   AnalysisRecord,
   AnalysisStatus,
@@ -27,6 +28,11 @@ interface KnowledgeLifecycleValue {
     analysisId: string,
     opportunityId: string,
     status: OpportunityWorkflowStatus
+  ) => void;
+  updateOpportunity: (
+    analysisId: string,
+    opportunityId: string,
+    changes: Pick<KnowledgeOpportunity, "title" | "description" | "justification">
   ) => void;
   setAnalysisStatus: (analysisId: string, status: AnalysisStatus) => void;
   getAnalysis: (projectId: string, ticketId: string) => AnalysisRecord | undefined;
@@ -76,6 +82,16 @@ export function KnowledgeLifecycleProvider({ children }: { children: ReactNode }
     }));
   }, []);
 
+  const updateOpportunity = useCallback((analysisId: string, opportunityId: string, changes: Pick<KnowledgeOpportunity, "title" | "description" | "justification">) => {
+    setAnalyses((current) => current.map((item) => item.id !== analysisId ? item : {
+      ...item,
+      result: {
+        ...item.result,
+        opportunities: item.result.opportunities.map((opportunity) => opportunity.id !== opportunityId ? opportunity : { ...opportunity, ...changes }),
+      },
+    }));
+  }, []);
+
   const setAnalysisStatus = useCallback((analysisId: string, status: AnalysisStatus) => {
     setAnalyses((current) => current.map((item) => item.id !== analysisId ? item : {
       ...item,
@@ -89,9 +105,10 @@ export function KnowledgeLifecycleProvider({ children }: { children: ReactNode }
     saveAnalysis,
     updateMessages,
     updateOpportunityStatus,
+    updateOpportunity,
     setAnalysisStatus,
-    getAnalysis: (projectId: string, ticketId: string) => analyses.find((item) => item.projectId === projectId && item.ticketId === ticketId && item.status !== "completed"),
-  }), [analyses, saveAnalysis, setAnalysisStatus, updateMessages, updateOpportunityStatus]);
+    getAnalysis: (projectId: string, ticketId: string) => analyses.find((item) => item.projectId === projectId && item.ticketId === ticketId),
+  }), [analyses, saveAnalysis, setAnalysisStatus, updateMessages, updateOpportunity, updateOpportunityStatus]);
 
   return <KnowledgeLifecycleContext.Provider value={value}>{children}</KnowledgeLifecycleContext.Provider>;
 }
