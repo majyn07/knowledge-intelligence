@@ -3,7 +3,7 @@ import type { StartAnalysisResponse } from "@/models/StartAnalysisResponse";
 
 import { buildAIContext } from "../context/aiContextBuilder";
 import { parseAnalysisResponse } from "../parsers/analysisResponseParser";
-import { geminiService } from "../server/geminiService";
+import { analysisAIService } from "./analysisAIService";
 
 import { analysisConversation } from "@/features/analysis/mock/analysisConversation";
 
@@ -13,7 +13,7 @@ export const startAnalysisService = {
   ): Promise<StartAnalysisResponse> {
     const context = await buildAIContext(request);
 
-    const response = await geminiService.analyze({
+    const response = await analysisAIService.analyze({
       ...request,
       context,
     });

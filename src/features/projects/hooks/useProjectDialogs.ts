@@ -49,6 +49,8 @@ export function useProjectDialogs() {
     deleteDialogOpen,
     selectedProject,
 
+    setDialogOpen,
+
     openCreateDialog,
     openEditDialog,
     openDeleteDialog,

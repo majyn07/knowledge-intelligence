@@ -1,27 +1,45 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowRight, BookOpen, CheckCircle2, FileSearch, Sparkles } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { MetricCard } from "@/components/common/cards/MetricCard";
-import { PageHeader } from "@/components/common/page/PageHeader";
-import { PageSection } from "@/components/common/page/PageSection";
-import { StatusBadge } from "@/components/common/status/StatusBadge";
-import { useKnowledgeLifecycle } from "@/features/analysis/providers/KnowledgeLifecycleProvider";
+import { Sparkles } from "lucide-react";
+
 import { ProductGraphic } from "@/components/brand/ProductGraphic";
+import { PageHeader } from "@/components/common/page/PageHeader";
+import { Button } from "@/components/ui/button";
+import { useKnowledgeLifecycle } from "@/features/analysis/providers/KnowledgeLifecycleProvider";
 import { useBrandTheme } from "@/providers/BrandThemeProvider";
+
+import { AIInsights } from "./components/AIInsights";
+import { DashboardIndicators } from "./components/DashboardIndicators";
+import { ImprovementBacklog } from "./components/ImprovementBacklog";
+import { NextPriority } from "./components/NextPriority";
 
 export function DashboardPage() {
   const { analyses } = useKnowledgeLifecycle();
   const { theme } = useBrandTheme();
-  const completed = analyses.filter((item) => item.status === "completed");
-  const open = analyses.filter((item) => item.status !== "completed");
-  const opportunities = analyses.flatMap((analysis) => analysis.result.opportunities.map((opportunity) => ({ analysis, opportunity }))).filter(({ opportunity }) => opportunity.status !== "discarded");
-  const coverage = completed.length ? Math.round((completed.filter((item) => item.result.classification.documentationStatus === "adequate").length / completed.length) * 100) : 0;
-  return <div className="space-y-10">
-    <PageHeader overline="Centro de Inteligência" title="Os atendimentos revelaram oportunidades para evoluir a Base de Conhecimento" description="Acompanhe o que foi analisado, o que exige revisão e o que está pronto para virar conhecimento reutilizável." icon={<ProductGraphic product={theme} className="h-10 w-12" />} actions={<Button size="lg" render={<Link href="/analysis" />}><Sparkles className="mr-2 h-4 w-4" />Iniciar análise</Button>} />
-    <section className="grid gap-px overflow-hidden rounded-xl border border-border/70 bg-border/70 sm:grid-cols-2 xl:grid-cols-4"><MetricCard label="Cobertura da Base" value={`${coverage}%`} description="Somente análises concluídas" /><MetricCard label="Análises abertas" value={open.length} description="Aguardando revisão humana" /><MetricCard label="Análises concluídas" value={completed.length} description="Atualizam os indicadores" /><MetricCard label="Prontas para publicação" value={opportunities.filter(({ opportunity }) => opportunity.status === "draft").length} description="Em rascunho na fila documental" /></section>
-    <div className="grid gap-10 xl:grid-cols-[minmax(0,1.25fr)_minmax(280px,0.75fr)]"><PageSection title="Fila de melhorias" description="Oportunidades provenientes das análises, ordenadas pelas mais recentes." actions={<Link href="/improvement-plan" className="text-sm font-medium text-primary hover:underline">Ver fila</Link>}><div className="divide-y divide-border/70">{opportunities.slice(0, 4).map(({ analysis, opportunity }) => <div key={`${analysis.id}-${opportunity.id}`} className="flex gap-4 py-5 first:pt-0"><span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary"><FileSearch className="h-4 w-4" /></span><div className="min-w-0 flex-1"><div className="flex flex-wrap items-center justify-between gap-3"><h3 className="font-medium">{opportunity.title}</h3><StatusBadge variant={opportunity.status === "draft" ? "info" : opportunity.status === "approved" ? "success" : "warning"}>{opportunity.status === "draft" ? "Em rascunho" : opportunity.status === "approved" ? "Aprovada" : "Proposta"}</StatusBadge></div><p className="mt-1.5 text-sm text-muted-foreground">Atendimento #{analysis.ticketId} · {opportunity.description}</p></div></div>)}{opportunities.length === 0 && <p className="py-8 text-sm text-muted-foreground">Ainda não há oportunidades registradas.</p>}</div></PageSection><PageSection title="Próxima ação" description="Continue o trabalho em andamento."><div className="rounded-xl bg-muted/55 p-5"><CheckCircle2 className="h-5 w-5 text-primary" /><h3 className="mt-4 text-lg font-semibold">{open[0] ? `Revisar atendimento #${open[0].ticketId}` : "Iniciar uma análise"}</h3><p className="mt-2 text-sm leading-6 text-muted-foreground">{open[0] ? "Há uma análise aguardando decisão humana antes de entrar nos indicadores." : "Escolha um atendimento e gere a primeira análise estruturada."}</p><Button className="mt-5" variant="outline" render={<Link href="/analysis" />}>Abrir Workspace <ArrowRight className="ml-2 h-4 w-4" /></Button></div></PageSection></div>
-    <PageSection title="Fluxo de conhecimento" description="Cada etapa possui um estado claro e rastreável."><div className="grid grid-cols-2 gap-3 sm:grid-cols-4">{[[FileSearch, "Análises abertas", open.length], [CheckCircle2, "Concluídas", completed.length], [BookOpen, "Aprovadas", opportunities.filter(({ opportunity }) => opportunity.status === "approved").length], [BookOpen, "Rascunhos", opportunities.filter(({ opportunity }) => opportunity.status === "draft").length]].map(([Icon, label, value]) => { const StepIcon = Icon as typeof FileSearch; return <div key={label as string} className="rounded-xl bg-muted/55 p-4"><StepIcon className="h-4 w-4 text-primary" /><p className="mt-5 text-2xl font-semibold">{value as number}</p><p className="mt-1 text-xs text-muted-foreground">{label as string}</p></div>; })}</div></PageSection>
-  </div>;
+
+  return (
+    <div className="w-full space-y-12">
+      <PageHeader
+        overline="Centro de Inteligência"
+        title="Transforme cada atendimento em conhecimento que move a equipe."
+        description="Acompanhe o que foi descoberto, priorize o que precisa de revisão e mantenha a Base de Conhecimento em evolução contínua."
+        icon={<ProductGraphic product={theme} className="h-10 w-12" />}
+        actions={
+          <Button size="lg" render={<Link href="/analysis" />}>
+            <Sparkles className="mr-2 h-4 w-4" />
+            Nova análise
+          </Button>
+        }
+      />
+
+      <NextPriority analyses={analyses} />
+
+      <AIInsights analyses={analyses} />
+
+      <ImprovementBacklog analyses={analyses} />
+
+      <DashboardIndicators analyses={analyses} />
+    </div>
+  );
 }

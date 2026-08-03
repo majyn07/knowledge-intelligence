@@ -25,7 +25,6 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
-import { brandThemes, useBrandTheme } from "@/providers/BrandThemeProvider";
 
 const workspaceItems = [
   {
@@ -77,9 +76,6 @@ const systemItems = [
 ];
 export function AppSidebar() {
   const pathname = usePathname();
-  const { theme } = useBrandTheme();
-  const brand = brandThemes[theme];
-
   return (
     <Sidebar variant="sidebar" collapsible="icon">
       <SidebarHeader className="p-2">

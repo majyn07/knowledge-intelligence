@@ -2,8 +2,8 @@ import { NextResponse } from "next/server";
 
 import type { AIChatRequest } from "@/models/AIChatRequest";
 
+import { analysisAIService } from "@/services/ai/analysis/analysisAIService";
 import { buildAIContext } from "@/services/ai/context/aiContextBuilder";
-import { geminiService } from "@/services/ai/server/geminiService";
 
 export async function POST(request: Request) {
   try {
@@ -17,7 +17,7 @@ export async function POST(request: Request) {
 
     const enrichedContext = await buildAIContext(chatRequest);
 
-    const response = await geminiService.chat({
+    const response = await analysisAIService.chat({
       ...chatRequest,
       context: enrichedContext,
     });

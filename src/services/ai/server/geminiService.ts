@@ -1,3 +1,5 @@
+import "server-only";
+
 import { GoogleGenAI } from "@google/genai";
 
 import type { AIChatRequest } from "@/models/AIChatRequest";

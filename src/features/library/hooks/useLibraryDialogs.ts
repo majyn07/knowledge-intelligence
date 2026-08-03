@@ -1,4 +1,6 @@
-import { useState } from "react";
+"use client";
+
+import { useCallback, useState } from "react";
 
 import type { Library } from "@/models/Library";
 
@@ -11,30 +13,30 @@ export function useLibraryDialogs() {
   const [selectedItem, setSelectedItem] =
     useState<Library | null>(null);
 
-  function openCreateDialog() {
+  const openCreateDialog = useCallback(() => {
     setSelectedItem(null);
     setDialogOpen(true);
-  }
+  }, []);
 
-  function openEditDialog(item: Library) {
+  const openEditDialog = useCallback((item: Library) => {
     setSelectedItem(item);
     setDialogOpen(true);
-  }
+  }, []);
 
-  function openDeleteDialog(item: Library) {
+  const openDeleteDialog = useCallback((item: Library) => {
     setSelectedItem(item);
     setDeleteDialogOpen(true);
-  }
+  }, []);
 
-  function closeDialog() {
+  const closeDialog = useCallback(() => {
     setDialogOpen(false);
     setSelectedItem(null);
-  }
+  }, []);
 
-  function closeDeleteDialog() {
+  const closeDeleteDialog = useCallback(() => {
     setDeleteDialogOpen(false);
     setSelectedItem(null);
-  }
+  }, []);
 
   return {
     dialogOpen,

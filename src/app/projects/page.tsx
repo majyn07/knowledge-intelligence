@@ -1,8 +1,5 @@
 "use client";
 
-import { useState } from "react";
-
-import type { Project } from "@/models/Project";
 import type { ProjectFormData } from "@/features/projects/types/ProjectFormData";
 
 import { Button } from "@/components/ui/button";
@@ -18,17 +15,10 @@ import { ProjectGrid } from "@/features/projects/components/ProjectGrid";
 import { ProjectToolbar } from "@/features/projects/components/ProjectToolbar";
 
 import { useProjectFilters } from "@/features/projects/hooks/useProjectFilters";
+import { useProjectDialogs } from "@/features/projects/hooks/useProjectDialogs";
 import { useProjects } from "@/features/projects/hooks/useProjects";
 
 export default function ProjectsPage() {
-  const [dialogOpen, setDialogOpen] = useState(false);
-
-  const [deleteDialogOpen, setDeleteDialogOpen] =
-    useState(false);
-
-  const [selectedProject, setSelectedProject] =
-    useState<Project | null>(null);
-
   const {
     projects,
     createProject,
@@ -42,20 +32,17 @@ export default function ProjectsPage() {
     filteredProjects,
   } = useProjectFilters(projects);
 
-  function handleNewProject() {
-    setSelectedProject(null);
-    setDialogOpen(true);
-  }
-
-  function handleProjectClick(project: Project) {
-    setSelectedProject(project);
-    setDialogOpen(true);
-  }
-
-  function handleProjectDelete(project: Project) {
-    setSelectedProject(project);
-    setDeleteDialogOpen(true);
-  }
+  const {
+    dialogOpen,
+    deleteDialogOpen,
+    selectedProject,
+    setDialogOpen,
+    openCreateDialog,
+    openEditDialog,
+    openDeleteDialog,
+    closeDialog,
+    closeDeleteDialog,
+  } = useProjectDialogs();
 
   function handleSubmit(data: ProjectFormData) {
     if (selectedProject) {
@@ -64,7 +51,7 @@ export default function ProjectsPage() {
       createProject(data);
     }
 
-    handleCloseDialog();
+    closeDialog();
   }
 
   function handleConfirmDelete() {
@@ -74,17 +61,7 @@ export default function ProjectsPage() {
 
     deleteProject(selectedProject.id);
 
-    handleCloseDeleteDialog();
-  }
-
-  function handleCloseDialog() {
-    setDialogOpen(false);
-    setSelectedProject(null);
-  }
-
-  function handleCloseDeleteDialog() {
-    setDeleteDialogOpen(false);
-    setSelectedProject(null);
+    closeDeleteDialog();
   }
 
   return (
@@ -95,7 +72,7 @@ export default function ProjectsPage() {
             title="Projetos"
             description="Gerencie todos os projetos cadastrados na plataforma."
             actions={
-              <Button onClick={handleNewProject}>
+              <Button onClick={openCreateDialog}>
                 Novo Projeto
               </Button>
             }
@@ -104,14 +81,14 @@ export default function ProjectsPage() {
           <ProjectToolbar
             filters={filters}
             onFiltersChange={setFilters}
-            onNewProject={handleNewProject}
+            onNewProject={openCreateDialog}
           />
 
           <ProjectGrid
             projects={filteredProjects}
-            onProjectClick={handleProjectClick}
-            onProjectEdit={handleProjectClick}
-            onProjectDelete={handleProjectDelete}
+            onProjectClick={openEditDialog}
+            onProjectEdit={openEditDialog}
+            onProjectDelete={openDeleteDialog}
           />
 
           <ProjectDialog
@@ -144,14 +121,14 @@ export default function ProjectsPage() {
                   : "Salvar"
               }
               onSubmit={handleSubmit}
-              onCancel={handleCloseDialog}
+              onCancel={closeDialog}
             />
           </ProjectDialog>
 
           <ProjectDeleteDialog
             open={deleteDialogOpen}
             projectName={selectedProject?.name ?? ""}
-            onCancel={handleCloseDeleteDialog}
+            onCancel={closeDeleteDialog}
             onConfirm={handleConfirmDelete}
           />
         </div>
