@@ -1,18 +1,23 @@
 import type {
-  LibraryStatus,
-  LibraryType,
-} from "@/models/Library";
+  ArticleStatus,
+  ArticleType,
+} from "@/models/KnowledgeArticle";
 
 export interface LibraryFormData {
   title: string;
-  description: string;
+  summary: string;
   content: string;
 
   projectId: string;
 
-  type: LibraryType;
-  status: LibraryStatus;
+  type: ArticleType;
+  status: ArticleStatus;
 
+  product: string;
+  module: string;
   category: string;
+
   tags: string[];
+  keywords: string[];
+  url: string;
 }

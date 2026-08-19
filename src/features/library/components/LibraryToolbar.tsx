@@ -1,6 +1,8 @@
 import { Search } from "lucide-react";
 
 import type { LibraryFilters } from "@/features/library/types/LibraryFilters";
+import { PROJECT_PRODUCTS } from "@/features/projects/constants/products";
+import { articleStatusLabel, type ArticleStatus } from "@/models/KnowledgeArticle";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,20 +14,13 @@ interface LibraryToolbarProps {
   onNewItem: () => void;
 }
 
-export function LibraryToolbar({
-  filters,
-  onFiltersChange,
-  onNewItem,
-}: LibraryToolbarProps) {
-  function changeStatus(
-    status: LibraryFilters["status"]
-  ) {
-    onFiltersChange({
-      ...filters,
-      status,
-    });
-  }
+const statusFilters: (ArticleStatus | "all")[] = ["all", "draft", "review", "published", "archived"];
 
+function filterLabel(value: ArticleStatus | "all") {
+  return value === "all" ? "Todos" : articleStatusLabel[value];
+}
+
+export function LibraryToolbar({ filters, onFiltersChange, onNewItem }: LibraryToolbarProps) {
   return (
     <PageToolbar
       start={
@@ -34,58 +29,51 @@ export function LibraryToolbar({
 
           <Input
             className="pl-9"
-            placeholder="Pesquisar conteúdo..."
+            placeholder="Buscar por título, resumo, módulo, tag ou palavra-chave..."
             value={filters.search}
-            onChange={(event) =>
-              onFiltersChange({
-                ...filters,
-                search: event.target.value,
-              })
-            }
+            onChange={(event) => onFiltersChange({ ...filters, search: event.target.value })}
           />
         </div>
       }
       end={
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="flex flex-wrap gap-1.5" role="group" aria-label="Filtrar por status">
+            {statusFilters.map((status) => (
+              <Button
+                key={status}
+                size="sm"
+                variant={filters.status === status ? "default" : "outline"}
+                onClick={() => onFiltersChange({ ...filters, status })}
+              >
+                {filterLabel(status)}
+              </Button>
+            ))}
+          </div>
 
-        <div className="flex flex-wrap gap-2">
-          <Button
-            variant={filters.status === "all" ? "default" : "outline"}
-            onClick={() => changeStatus("all")}
-          >
-            Todos
-          </Button>
+          <span className="hidden h-5 w-px bg-border sm:block" />
 
-          <Button
-            variant={filters.status === "draft" ? "default" : "outline"}
-            onClick={() => changeStatus("draft")}
-          >
-            Rascunhos
-          </Button>
+          <div className="flex flex-wrap gap-1.5" role="group" aria-label="Filtrar por produto">
+            <Button
+              size="sm"
+              variant={filters.product === "all" ? "default" : "outline"}
+              onClick={() => onFiltersChange({ ...filters, product: "all" })}
+            >
+              Todos os produtos
+            </Button>
 
-          <Button
-            variant={filters.status === "published" ? "default" : "outline"}
-            onClick={() => changeStatus("published")}
-          >
-            Publicados
-          </Button>
+            {PROJECT_PRODUCTS.map((product) => (
+              <Button
+                key={product}
+                size="sm"
+                variant={filters.product === product ? "default" : "outline"}
+                onClick={() => onFiltersChange({ ...filters, product })}
+              >
+                {product.replace("AltoQi ", "")}
+              </Button>
+            ))}
+          </div>
 
-          <Button
-            variant={filters.status === "review" ? "default" : "outline"}
-            onClick={() => changeStatus("review")}
-          >
-            Em revisão
-          </Button>
-
-          <Button
-            variant={filters.status === "archived" ? "default" : "outline"}
-            onClick={() => changeStatus("archived")}
-          >
-            Arquivados
-          </Button>
-
-          <Button onClick={onNewItem}>
-            Novo Conteúdo
-          </Button>
+          <Button onClick={onNewItem}>Novo artigo</Button>
         </div>
       }
     />

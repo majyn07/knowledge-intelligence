@@ -2,7 +2,7 @@
 
 import { useCallback, useState } from "react";
 
-import type { Library } from "@/models/Library";
+import type { KnowledgeArticle } from "@/models/KnowledgeArticle";
 
 export function useLibraryDialogs() {
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -11,19 +11,19 @@ export function useLibraryDialogs() {
     useState(false);
 
   const [selectedItem, setSelectedItem] =
-    useState<Library | null>(null);
+    useState<KnowledgeArticle | null>(null);
 
   const openCreateDialog = useCallback(() => {
     setSelectedItem(null);
     setDialogOpen(true);
   }, []);
 
-  const openEditDialog = useCallback((item: Library) => {
+  const openEditDialog = useCallback((item: KnowledgeArticle) => {
     setSelectedItem(item);
     setDialogOpen(true);
   }, []);
 
-  const openDeleteDialog = useCallback((item: Library) => {
+  const openDeleteDialog = useCallback((item: KnowledgeArticle) => {
     setSelectedItem(item);
     setDeleteDialogOpen(true);
   }, []);

@@ -9,7 +9,7 @@ export function buildKnowledgeContext(
     return `
 # BASE DE CONHECIMENTO
 
-Nenhum artigo relacionado foi encontrado.
+Nenhum artigo publicado da Base de Conhecimento tem relação com este atendimento.
 `.trim();
   }
 
@@ -29,6 +29,8 @@ ${result.article.summary}
 
   return `
 # BASE DE CONHECIMENTO
+
+Artigos publicados relacionados a este atendimento.
 
 ${content}
 `.trim();

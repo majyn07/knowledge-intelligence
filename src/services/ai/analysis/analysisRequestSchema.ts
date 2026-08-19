@@ -8,6 +8,36 @@ const analysisMessageSchema = z.object({
   status: z.enum(["sending", "completed", "error"]).optional(),
 }).strict();
 
+const conversationSchema = z.object({
+  id: z.string().min(1),
+  ticketId: z.string().min(1),
+  messages: z.array(z.object({
+    id: z.string().min(1),
+    author: z.string(),
+    body: z.string(),
+    createdAt: z.string(),
+  }).strict()),
+  source: z.object({
+    provider: z.literal("hubspot"),
+    externalId: z.string(),
+    importedAt: z.string(),
+  }).strict().optional(),
+}).strict();
+
+/**
+ * Evidência documental já resolvida pelo cliente, que é onde o acervo vive.
+ * Só trafega o que o prompt realmente usa.
+ */
+const relatedArticleSchema = z.object({
+  article: z.object({
+    id: z.string().min(1),
+    title: z.string().min(1),
+    summary: z.string(),
+  }).strict(),
+  score: z.number().min(0).max(1),
+  matchedTerms: z.array(z.string()),
+}).strict();
+
 const analysisContextSchema = z.object({
   ticket: z.object({
     id: z.string().min(1),
@@ -17,6 +47,8 @@ const analysisContextSchema = z.object({
     company: z.string(),
     date: z.string().min(1),
   }).strict(),
+  conversation: conversationSchema.optional(),
+  relatedArticles: z.array(relatedArticleSchema).optional(),
   knowledgeBaseId: z.string().min(1).optional(),
   projectId: z.string().min(1).optional(),
   analysisMode: z.enum(["ticket", "article"]).optional(),

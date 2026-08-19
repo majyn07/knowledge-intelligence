@@ -1,0 +1,217 @@
+"use client";
+
+import { useState } from "react";
+import Link from "next/link";
+import { ArrowLeft, ExternalLink, FileSearch, Link2, Sparkles } from "lucide-react";
+
+import { BrandEmptyState } from "@/components/brand/BrandEmptyState";
+import { MarkdownContent } from "@/components/common/MarkdownContent";
+import { PageHeader } from "@/components/common/page/PageHeader";
+import { PageSection } from "@/components/common/page/PageSection";
+import { PropertyGrid } from "@/components/common/data/PropertyGrid";
+import { StatusBadge } from "@/components/common/status/StatusBadge";
+import { Button } from "@/components/ui/button";
+import {
+  allowedArticleTransitions,
+  articleStatusLabel,
+  articleTypeLabel,
+  type ArticleStatus,
+} from "@/models/KnowledgeArticle";
+import { useProject } from "@/providers/ProjectProvider";
+
+import { LibraryDialog } from "./components/LibraryDialog";
+import { LibraryForm } from "./components/LibraryForm";
+import { useLibrary } from "./providers/LibraryProvider";
+import { articleService } from "./services/articleService";
+import type { LibraryFormData } from "./types/LibraryFormData";
+
+interface ArticleWorkspaceProps {
+  articleId: string;
+}
+
+const statusVariant: Record<ArticleStatus, "default" | "warning" | "success"> = {
+  draft: "default",
+  review: "warning",
+  published: "success",
+  archived: "default",
+};
+
+export function ArticleWorkspace({ articleId }: ArticleWorkspaceProps) {
+  const { items, updateItem, changeStatus } = useLibrary();
+  const { projects } = useProject();
+  const [isEditing, setIsEditing] = useState(false);
+
+  const article = items.find((item) => item.id === articleId);
+
+  if (!article) {
+    return (
+      <div className="w-full space-y-7">
+        <Button variant="ghost" size="sm" render={<Link href="/library" />} nativeButton={false}>
+          <ArrowLeft className="mr-1.5 h-4 w-4" />
+          Toda a Biblioteca
+        </Button>
+
+        <BrandEmptyState
+          title="Artigo não encontrado"
+          description="Este conteúdo pode ter sido excluído. Volte para a Biblioteca e selecione outro."
+        />
+      </div>
+    );
+  }
+
+  const projectName =
+    projects.find((project) => project.id === article.projectId)?.name ?? "Projeto não encontrado";
+  const transitions = allowedArticleTransitions[article.status];
+
+  function handleSubmit(data: LibraryFormData) {
+    updateItem(article!.id, data);
+    setIsEditing(false);
+  }
+
+  return (
+    <div className="w-full space-y-8">
+      <Button variant="ghost" size="sm" render={<Link href="/library" />} nativeButton={false}>
+        <ArrowLeft className="mr-1.5 h-4 w-4" />
+        Toda a Biblioteca
+      </Button>
+
+      <PageHeader
+        overline={`Base de Conhecimento · ${articleTypeLabel[article.type]}`}
+        title={article.title}
+        description={article.summary || "Sem resumo registrado."}
+        actions={
+          <div className="flex flex-wrap gap-2">
+            {transitions.map((status) => (
+              <Button
+                key={status}
+                variant="outline"
+                onClick={() => changeStatus(article.id, status)}
+              >
+                Mover para {articleStatusLabel[status].toLowerCase()}
+              </Button>
+            ))}
+
+            <Button onClick={() => setIsEditing(true)}>Editar artigo</Button>
+          </div>
+        }
+      />
+
+      <section className="rounded-xl border border-border/70 bg-card p-5 sm:p-6">
+        <div className="flex flex-wrap items-center gap-2">
+          <StatusBadge variant={statusVariant[article.status]}>
+            {articleStatusLabel[article.status]}
+          </StatusBadge>
+
+          {article.status === "published" ? (
+            <span className="text-xs text-muted-foreground">
+              Publicado: a análise considera este artigo ao avaliar a cobertura documental.
+            </span>
+          ) : (
+            <span className="text-xs text-muted-foreground">
+              Ainda não publicado: a análise não considera este conteúdo como cobertura.
+            </span>
+          )}
+        </div>
+
+        <PropertyGrid
+          className="mt-6"
+          columns={4}
+          items={[
+            { label: "Projeto", value: projectName },
+            { label: "Produto", value: article.product || "Não definido" },
+            { label: "Módulo", value: article.module || "Não definido" },
+            { label: "Categoria", value: article.category || "Não definida" },
+          ]}
+        />
+
+        {(article.tags.length > 0 || article.keywords.length > 0) && (
+          <div className="mt-6 flex flex-wrap gap-1.5">
+            {article.tags.map((tag) => (
+              <span key={tag} className="rounded-md bg-muted px-2 py-1 text-xs">
+                #{tag}
+              </span>
+            ))}
+            {article.keywords.map((keyword) => (
+              <span key={keyword} className="rounded-md border border-border/70 px-2 py-1 text-xs text-muted-foreground">
+                {keyword}
+              </span>
+            ))}
+          </div>
+        )}
+
+        {article.url && (
+          <a
+            href={article.url}
+            target="_blank"
+            rel="noreferrer"
+            className="mt-6 inline-flex items-center gap-1.5 text-sm text-primary hover:underline"
+          >
+            <ExternalLink className="h-3.5 w-3.5" />
+            Abrir versão publicada
+          </a>
+        )}
+      </section>
+
+      <PageSection title="Conteúdo" description="Como o artigo será lido por quem procura ajuda.">
+        <div className="rounded-xl border border-border/70 bg-card p-6 sm:p-8">
+          {article.content.trim() ? (
+            <MarkdownContent content={article.content} />
+          ) : (
+            <p className="text-sm text-muted-foreground">
+              Este artigo ainda não tem conteúdo escrito. Edite para começar.
+            </p>
+          )}
+        </div>
+      </PageSection>
+
+      {article.source && (
+        <PageSection
+          title="Origem no ciclo de conhecimento"
+          description="Este conteúdo nasceu de uma decisão registrada, e o caminho até ela está preservado."
+        >
+          <div className="flex flex-col gap-4 rounded-xl border border-border/70 bg-muted/20 p-5 sm:flex-row sm:items-center sm:justify-between">
+            <ol className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm">
+              <li className="flex items-center gap-1.5 text-muted-foreground">
+                <Link2 className="h-3.5 w-3.5 text-primary" />
+                Atendimento #{article.source.ticketId}
+              </li>
+              <li aria-hidden className="text-muted-foreground">→</li>
+              <li className="text-muted-foreground">Análise</li>
+              <li aria-hidden className="text-muted-foreground">→</li>
+              <li className="text-muted-foreground">Oportunidade aprovada</li>
+              <li aria-hidden className="text-muted-foreground">→</li>
+              <li className="font-medium">Plano de melhoria</li>
+            </ol>
+
+            <div className="flex shrink-0 gap-2">
+              <Button size="sm" variant="outline" render={<Link href="/analysis" />} nativeButton={false}>
+                <Sparkles className="mr-1.5 h-3.5 w-3.5" />
+                Análise
+              </Button>
+
+              <Button size="sm" variant="outline" render={<Link href="/improvement-plan" />} nativeButton={false}>
+                <FileSearch className="mr-1.5 h-3.5 w-3.5" />
+                Plano
+              </Button>
+            </div>
+          </div>
+        </PageSection>
+      )}
+
+      <LibraryDialog
+        open={isEditing}
+        onOpenChange={setIsEditing}
+        title="Editar artigo"
+        description="Atualize o conteúdo, a classificação e o estágio editorial."
+      >
+        <LibraryForm
+          projects={projects.map((project) => ({ id: project.id, name: project.name }))}
+          initialData={articleService.toFormData(article)}
+          submitLabel="Atualizar"
+          onSubmit={handleSubmit}
+          onCancel={() => setIsEditing(false)}
+        />
+      </LibraryDialog>
+    </div>
+  );
+}

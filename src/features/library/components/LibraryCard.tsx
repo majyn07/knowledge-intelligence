@@ -1,145 +1,110 @@
+"use client";
+
+import Link from "next/link";
 import {
   BookOpen,
+  Boxes,
   FileText,
-  FolderKanban,
   GitBranch,
   HelpCircle,
   LayoutTemplate,
+  LinkIcon,
   Pencil,
   Trash2,
 } from "lucide-react";
 
-import type { Library } from "@/models/Library";
+import type { ArticleStatus, ArticleType, KnowledgeArticle } from "@/models/KnowledgeArticle";
+import { articleStatusLabel, articleTypeLabel } from "@/models/KnowledgeArticle";
 
+import { StatusBadge } from "@/components/common/status/StatusBadge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 
 interface LibraryCardProps {
-  item: Library;
+  item: KnowledgeArticle;
   projectName: string;
-  onClick?: (item: Library) => void;
-  onEdit?: (item: Library) => void;
-  onDelete?: (item: Library) => void;
+  onEdit?: (item: KnowledgeArticle) => void;
+  onDelete?: (item: KnowledgeArticle) => void;
 }
 
-const statusMap = {
-  draft: {
-    label: "Rascunho",
-    color: "bg-slate-400",
-  },
-  review: {
-    label: "Em revisão",
-    color: "bg-amber-500",
-  },
-  published: {
-    label: "Publicado",
-    color: "bg-emerald-500",
-  },
-  archived: {
-    label: "Arquivado",
-    color: "bg-zinc-500",
-  },
-} as const;
+const statusVariant: Record<ArticleStatus, "default" | "warning" | "success"> = {
+  draft: "default",
+  review: "warning",
+  published: "success",
+  archived: "default",
+};
 
-const typeMap = {
-  article: {
-    icon: FileText,
-    label: "Artigo",
-  },
-  faq: {
-    icon: HelpCircle,
-    label: "FAQ",
-  },
-  workflow: {
-    icon: GitBranch,
-    label: "Workflow",
-  },
-  document: {
-    icon: BookOpen,
-    label: "Documento",
-  },
-  template: {
-    icon: LayoutTemplate,
-    label: "Template",
-  },
-} as const;
+const typeIcon: Record<ArticleType, typeof FileText> = {
+  article: FileText,
+  faq: HelpCircle,
+  workflow: GitBranch,
+  document: BookOpen,
+  template: LayoutTemplate,
+};
 
-export function LibraryCard({
-  item,
-  projectName,
-  onClick,
-  onEdit,
-  onDelete,
-}: LibraryCardProps) {
-  const status = statusMap[item.status];
-  const type = typeMap[item.type];
-  const Icon = type.icon;
+export function LibraryCard({ item, projectName, onEdit, onDelete }: LibraryCardProps) {
+  const Icon = typeIcon[item.type];
+  const context = [item.product, item.module].filter(Boolean).join(" · ");
 
   return (
-    <Card
-      className="cursor-pointer rounded-xl border-border/70 bg-card shadow-none transition-colors hover:border-primary/30 hover:bg-muted/20"
-      onClick={() => onClick?.(item)}
-    >
-      <CardContent className="space-y-5 p-5">
-        <div className="flex items-start justify-between">
-          <div className="space-y-2">
-            <h2 className="text-base font-semibold tracking-tight">
-              {item.title}
-            </h2>
+    <Card className="relative rounded-xl border-border/70 bg-card shadow-none transition-colors hover:border-primary/30">
+      <CardContent className="flex h-full flex-col gap-4 p-5">
+        <div className="flex flex-wrap items-center gap-2">
+          <StatusBadge variant={statusVariant[item.status]}>
+            {articleStatusLabel[item.status]}
+          </StatusBadge>
 
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <FolderKanban className="h-4 w-4" />
-              <span>{projectName}</span>
-            </div>
-
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <Icon className="h-4 w-4" />
-              <span>{type.label}</span>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <span
-              className={`h-2.5 w-2.5 rounded-full ${status.color}`}
-            />
-
-            <span className="text-xs text-muted-foreground">
-              {status.label}
-            </span>
-          </div>
-        </div>
-
-        <p className="line-clamp-3 text-sm text-muted-foreground">
-          {item.description}
-        </p>
-
-        <div className="flex flex-wrap gap-1.5">
-          {item.tags.map((tag) => (
-            <span
-              key={tag}
-              className="rounded-md bg-muted px-2 py-1 text-xs"
-            >
-              #{tag}
-            </span>
-          ))}
-        </div>
-
-        {item.source && <p className="text-xs text-muted-foreground">Origem: plano {item.source.planId}</p>}<div className="flex items-center justify-between border-t pt-4">
-          <span className="text-xs text-muted-foreground">
-            Atualizado em{" "}
-            {item.updatedAt.toLocaleDateString(
-              "pt-BR"
-            )}
+          <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
+            <Icon className="h-3.5 w-3.5" />
+            {articleTypeLabel[item.type]}
           </span>
 
-          <div className="flex gap-2">
+          {item.source && (
+            <span className="flex items-center gap-1 text-xs text-muted-foreground">
+              <LinkIcon className="h-3 w-3" />
+              Origem no ciclo
+            </span>
+          )}
+        </div>
+
+        <div className="min-w-0">
+          <h2 className="text-base font-semibold tracking-tight">
+            <Link href={`/library/${item.id}`} className="after:absolute after:inset-0 hover:underline">
+              {item.title}
+            </Link>
+          </h2>
+
+          <p className="mt-2 line-clamp-3 text-sm leading-6 text-muted-foreground">
+            {item.summary || "Sem resumo."}
+          </p>
+        </div>
+
+        <p className="flex items-center gap-2 text-sm text-muted-foreground">
+          <Boxes className="h-3.5 w-3.5 shrink-0 text-primary" />
+          <span className="truncate">{context || "Produto não definido"}</span>
+        </p>
+
+        {item.tags.length > 0 && (
+          <div className="flex flex-wrap gap-1.5">
+            {item.tags.map((tag) => (
+              <span key={tag} className="rounded-md bg-muted px-2 py-1 text-xs">
+                #{tag}
+              </span>
+            ))}
+          </div>
+        )}
+
+        <div className="mt-auto flex items-center justify-between border-t pt-4">
+          <span className="truncate text-xs text-muted-foreground">
+            {projectName} · {item.updatedAt.toLocaleDateString("pt-BR")}
+          </span>
+
+          <div className="relative flex gap-2">
             <Button
               size="icon"
               variant="ghost"
-              onClick={(event) => {
-                event.stopPropagation();
-                onEdit?.(item);
-              }}
+              aria-label={`Editar ${item.title}`}
+              onClick={() => onEdit?.(item)}
             >
               <Pencil className="h-4 w-4" />
             </Button>
@@ -147,10 +112,8 @@ export function LibraryCard({
             <Button
               size="icon"
               variant="ghost"
-              onClick={(event) => {
-                event.stopPropagation();
-                onDelete?.(item);
-              }}
+              aria-label={`Excluir ${item.title}`}
+              onClick={() => onDelete?.(item)}
             >
               <Trash2 className="h-4 w-4" />
             </Button>

@@ -11,46 +11,53 @@ import {
 import { toast } from "sonner";
 
 import { usePersistedState } from "@/hooks/usePersistedState";
-import type { Library } from "@/models/Library";
+import { articleStatusLabel, type ArticleStatus, type KnowledgeArticle } from "@/models/KnowledgeArticle";
 import type { LibraryFormData } from "@/features/library/types/LibraryFormData";
 import type { PlanWorkspaceItem } from "@/features/plans/types/PlanWorkspace";
 
-import { LibraryService } from "@/features/library/services/libraryService";
+import { articleService } from "@/features/library/services/articleService";
 
 const STORAGE_KEY = "visus-library";
 
-function parseLibrary(raw: string): Library[] {
-  return (JSON.parse(raw) as Library[]).map((item) => ({
-    ...item,
-    content: item.content ?? "",
-    createdAt: new Date(item.createdAt),
-    updatedAt: new Date(item.updatedAt),
+function parseArticles(raw: string): KnowledgeArticle[] {
+  return (JSON.parse(raw) as KnowledgeArticle[]).map((article) => ({
+    ...article,
+    // Conteúdos gravados antes da unificação não possuem estes campos.
+    summary: article.summary ?? "",
+    content: article.content ?? "",
+    product: article.product ?? "",
+    module: article.module ?? "",
+    keywords: article.keywords ?? [],
+    tags: article.tags ?? [],
+    createdAt: new Date(article.createdAt),
+    updatedAt: new Date(article.updatedAt),
   }));
 }
 
 interface LibraryContextValue {
-  items: Library[];
+  items: KnowledgeArticle[];
   totalItems: number;
   createItem: (data: LibraryFormData) => void;
   updateItem: (id: string, data: LibraryFormData) => void;
+  changeStatus: (id: string, status: ArticleStatus) => void;
   deleteItem: (id: string) => void;
-  createItemFromPlan: (plan: PlanWorkspaceItem) => { item: Library; created: boolean };
+  createItemFromPlan: (plan: PlanWorkspaceItem) => { item: KnowledgeArticle; created: boolean };
 }
 
 const LibraryContext = createContext<LibraryContextValue | null>(null);
 
 export function LibraryProvider({ children }: { children: ReactNode }) {
-  const [items, setItems] = usePersistedState<Library[]>({
+  const [items, setItems] = usePersistedState<KnowledgeArticle[]>({
     key: STORAGE_KEY,
-    fallback: LibraryService.getAll(),
-    parse: parseLibrary,
+    fallback: articleService.getSeed(),
+    parse: parseArticles,
   });
 
   const createItem = useCallback(
     (data: LibraryFormData) => {
-      const newItem = LibraryService.create(data);
+      const newItem = articleService.create(data);
       setItems((previous) => [newItem, ...previous]);
-      toast.success("Conteúdo criado com sucesso.");
+      toast.success("Artigo criado como rascunho.");
     },
     [setItems]
   );
@@ -58,17 +65,44 @@ export function LibraryProvider({ children }: { children: ReactNode }) {
   const updateItem = useCallback(
     (id: string, data: LibraryFormData) => {
       const currentItem = items.find((item) => item.id === id);
-      if (!currentItem || !LibraryService.canTransitionStatus(currentItem.status, data.status)) {
-        toast.error("Transição de status inválida para o ciclo de conhecimento.");
+      if (!currentItem) return;
+
+      if (!articleService.canTransitionStatus(currentItem.status, data.status)) {
+        toast.error(
+          `Não é possível ir de "${articleStatusLabel[currentItem.status]}" para "${articleStatusLabel[data.status]}".`
+        );
         return;
       }
 
-      const updatedItem = LibraryService.update(currentItem, data);
+      const updatedItem = articleService.update(currentItem, data);
       setItems((previous) =>
         previous.map((item) => (item.id === id ? updatedItem : item))
       );
 
-      toast.success("Conteúdo atualizado com sucesso.");
+      toast.success("Artigo atualizado.");
+    },
+    [items, setItems]
+  );
+
+  const changeStatus = useCallback(
+    (id: string, status: ArticleStatus) => {
+      const currentItem = items.find((item) => item.id === id);
+      if (!currentItem) return;
+
+      if (!articleService.canTransitionStatus(currentItem.status, status)) {
+        toast.error(
+          `Não é possível ir de "${articleStatusLabel[currentItem.status]}" para "${articleStatusLabel[status]}".`
+        );
+        return;
+      }
+
+      setItems((previous) =>
+        previous.map((item) =>
+          item.id === id ? articleService.changeStatus(item, status) : item
+        )
+      );
+
+      toast.success(`Artigo movido para "${articleStatusLabel[status]}".`);
     },
     [items, setItems]
   );
@@ -78,7 +112,7 @@ export function LibraryProvider({ children }: { children: ReactNode }) {
       const existing = items.find((item) => item.source?.planId === plan.id);
       if (existing) return { item: existing, created: false };
 
-      const newItem = LibraryService.createFromPlan(plan);
+      const newItem = articleService.createFromPlan(plan);
       setItems((previous) => [newItem, ...previous]);
       toast.success("Rascunho criado a partir do plano de melhoria.");
       return { item: newItem, created: true };
@@ -89,7 +123,7 @@ export function LibraryProvider({ children }: { children: ReactNode }) {
   const deleteItem = useCallback(
     (id: string) => {
       setItems((previous) => previous.filter((item) => item.id !== id));
-      toast.success("Conteúdo excluído com sucesso.");
+      toast.success("Artigo excluído.");
     },
     [setItems]
   );
@@ -100,10 +134,11 @@ export function LibraryProvider({ children }: { children: ReactNode }) {
       totalItems: items.length,
       createItem,
       updateItem,
+      changeStatus,
       deleteItem,
       createItemFromPlan,
     }),
-    [createItem, createItemFromPlan, deleteItem, items, updateItem]
+    [changeStatus, createItem, createItemFromPlan, deleteItem, items, updateItem]
   );
 
   return <LibraryContext.Provider value={value}>{children}</LibraryContext.Provider>;

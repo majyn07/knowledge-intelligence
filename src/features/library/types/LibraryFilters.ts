@@ -1,6 +1,7 @@
-import type { LibraryStatus } from "@/models/Library";
+import type { ArticleStatus } from "@/models/KnowledgeArticle";
 
 export interface LibraryFilters {
   search: string;
-  status: LibraryStatus | "all";
+  status: ArticleStatus | "all";
+  product: string | "all";
 }

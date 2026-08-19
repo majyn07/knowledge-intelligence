@@ -1,14 +1,14 @@
 import type { KnowledgeOpportunity, OpportunityStatus } from "@/features/analysis/types/KnowledgeOpportunity";
 import type { PlanWorkspaceItem } from "@/features/plans/types/PlanWorkspace";
 import type { AnalysisRecord } from "@/models/KnowledgeLifecycle";
-import type { Library, LibraryStatus } from "@/models/Library";
+import type { ArticleStatus, KnowledgeArticle } from "@/models/KnowledgeArticle";
 import type { Ticket } from "@/models/Ticket";
 
 export interface ProjectMetricsInput {
   projectId: string | null;
   analyses: AnalysisRecord[];
   plans: PlanWorkspaceItem[];
-  articles: Library[];
+  articles: KnowledgeArticle[];
   /** Atendimentos do projeto, quando a tela precisa exibi-los. */
   tickets?: Ticket[];
 }
@@ -39,7 +39,7 @@ export function selectProjectMetrics({ projectId, analyses, plans, articles, tic
   );
 
   const opportunityCount = (status: OpportunityStatus) => opportunities.filter((opportunity) => opportunity.status === status).length;
-  const articleCount = (status: LibraryStatus) => projectArticles.filter((article) => article.status === status).length;
+  const articleCount = (status: ArticleStatus) => projectArticles.filter((article) => article.status === status).length;
   const completedAnalyses = projectAnalyses.filter((analysis) => analysis.status === "completed");
   const adequateAnalyses = completedAnalyses.filter(
     (analysis) => analysis.result.classification.documentationStatus === "adequate"

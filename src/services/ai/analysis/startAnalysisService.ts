@@ -1,7 +1,6 @@
 import type { AIChatRequest } from "@/models/AIChatRequest";
 import type { StartAnalysisResponse } from "@/models/StartAnalysisResponse";
 
-import { buildAIContext } from "../context/aiContextBuilder";
 import { parseAnalysisResponse } from "../parsers/analysisResponseParser";
 import { analysisAIService } from "./analysisAIService";
 
@@ -9,12 +8,7 @@ export const startAnalysisService = {
   async execute(
     request: AIChatRequest
   ): Promise<StartAnalysisResponse> {
-    const context = await buildAIContext(request);
-
-    const response = await analysisAIService.analyze({
-      ...request,
-      context,
-    });
+    const response = await analysisAIService.analyze(request);
 
     const analysisResult = parseAnalysisResponse(response);
 
@@ -32,7 +26,7 @@ export const startAnalysisService = {
     return {
       analysisResult,
       messages,
-      context: context!,
+      context: request.context!,
     };
   },
 };

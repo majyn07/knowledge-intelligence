@@ -3,7 +3,6 @@ import { NextResponse } from "next/server";
 import { AIConfigurationError, AIProviderError } from "@/services/ai/analysis/analysisErrors";
 import { analysisChatRequestSchema } from "@/services/ai/analysis/analysisRequestSchema";
 import { analysisAIService } from "@/services/ai/analysis/analysisAIService";
-import { buildAIContext } from "@/services/ai/context/aiContextBuilder";
 
 function errorResponse(error: unknown) {
   if (error instanceof AIConfigurationError) {
@@ -30,8 +29,7 @@ export async function POST(request: Request) {
   }
 
   try {
-    const context = await buildAIContext(parsedRequest.data);
-    const message = await analysisAIService.chat({ ...parsedRequest.data, context });
+    const message = await analysisAIService.chat(parsedRequest.data);
     return NextResponse.json({ message });
   } catch (error) {
     return errorResponse(error);

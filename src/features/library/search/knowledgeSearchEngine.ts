@@ -8,6 +8,10 @@ const TAG_WEIGHT = 6;
 const SUMMARY_WEIGHT = 4;
 const CONTENT_WEIGHT = 2;
 
+/**
+ * Busca somente conteúdo publicado: a pergunta que a análise faz é se a Base
+ * de Conhecimento já cobre o caso, e rascunhos ainda não cobrem nada.
+ */
 export function searchKnowledge(
   articles: KnowledgeArticle[],
   query: KnowledgeQuery
@@ -26,7 +30,13 @@ export function searchKnowledge(
       SUMMARY_WEIGHT +
       CONTENT_WEIGHT);
 
+  if (maxScore === 0) {
+    return [];
+  }
+
   return articles
+    .filter((article) => article.status === "published")
+    .filter((article) => !query.projectId || article.projectId === query.projectId)
     .map((article) => {
       let score = 0;
 
@@ -35,12 +45,8 @@ export function searchKnowledge(
       const title = article.title.toLowerCase();
       const summary = article.summary.toLowerCase();
       const content = article.content.toLowerCase();
-      const keywords = (article.keywords ?? [])
-        .join(" ")
-        .toLowerCase();
-      const tags = (article.tags ?? [])
-        .join(" ")
-        .toLowerCase();
+      const keywords = article.keywords.join(" ").toLowerCase();
+      const tags = article.tags.join(" ").toLowerCase();
 
       for (const term of terms) {
         if (title.includes(term)) {
@@ -70,7 +76,7 @@ export function searchKnowledge(
       }
 
       return {
-        article,
+        article: { id: article.id, title: article.title, summary: article.summary },
         score: score / maxScore,
         matchedTerms: [...matchedTerms],
       };

@@ -1,9 +1,19 @@
 "use client";
 
-import { FormEvent, useEffect, useState } from "react";
+import { FormEvent, useEffect, useState, type ReactNode } from "react";
+import { Eye, PenLine } from "lucide-react";
 
 import type { LibraryFormData } from "@/features/library/types/LibraryFormData";
+import { PROJECT_PRODUCTS, UNSET_PRODUCT } from "@/features/projects/constants/products";
+import {
+  allowedArticleTransitions,
+  articleStatusLabel,
+  articleTypeLabel,
+  type ArticleStatus,
+  type ArticleType,
+} from "@/models/KnowledgeArticle";
 
+import { MarkdownContent } from "@/components/common/MarkdownContent";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -17,11 +27,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 
 interface LibraryFormProps {
-  projects: {
-    id: string;
-    name: string;
-  }[];
-
+  projects: { id: string; name: string }[];
   initialData?: LibraryFormData;
   submitLabel?: string;
   onSubmit: (data: LibraryFormData) => void;
@@ -30,14 +36,38 @@ interface LibraryFormProps {
 
 const emptyForm: LibraryFormData = {
   title: "",
-  description: "",
+  summary: "",
   content: "",
   projectId: "",
   type: "article",
   status: "draft",
+  product: UNSET_PRODUCT,
+  module: "",
   category: "",
   tags: [],
+  keywords: [],
+  url: "",
 };
+
+const articleTypes: ArticleType[] = ["article", "faq", "workflow", "document", "template"];
+const PRODUCT_PLACEHOLDER = "Não definido";
+
+function toList(value: string) {
+  return value.split(",").map((item) => item.trim()).filter(Boolean);
+}
+
+function Fieldset({ legend, hint, children }: { legend: string; hint: string; children: ReactNode }) {
+  return (
+    <fieldset className="space-y-4 border-t border-border/70 pt-5 first:border-t-0 first:pt-0">
+      <legend className="sr-only">{legend}</legend>
+      <div>
+        <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">{legend}</p>
+        <p className="mt-1 text-xs leading-5 text-muted-foreground">{hint}</p>
+      </div>
+      {children}
+    </fieldset>
+  );
+}
 
 export function LibraryForm({
   projects,
@@ -46,263 +76,256 @@ export function LibraryForm({
   onSubmit,
   onCancel,
 }: LibraryFormProps) {
-  const [formData, setFormData] =
-    useState<LibraryFormData>(
-      initialData ?? emptyForm
-    );
-
+  const [formData, setFormData] = useState<LibraryFormData>(initialData ?? emptyForm);
   const [tags, setTags] = useState("");
+  const [keywords, setKeywords] = useState("");
+  const [isPreviewing, setIsPreviewing] = useState(false);
 
   useEffect(() => {
-    // Sincroniza o formulário quando o item em edição muda.
     setFormData(initialData ?? emptyForm);
-
-    setTags(
-      initialData?.tags.join(", ") ?? ""
-    );
+    setTags(initialData?.tags.join(", ") ?? "");
+    setKeywords(initialData?.keywords.join(", ") ?? "");
   }, [initialData]);
 
-  function handleSubmit(
-    event: FormEvent<HTMLFormElement>
-  ) {
+  // Fora da edição, o status é sempre rascunho; na edição, só os destinos válidos.
+  const statusOptions: ArticleStatus[] = initialData
+    ? [initialData.status, ...allowedArticleTransitions[initialData.status]]
+    : ["draft"];
+
+  function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
-    if (!formData.title.trim()) {
-      return;
-    }
+    if (!formData.title.trim() || !formData.projectId) return;
 
-    onSubmit({
-      ...formData,
-      tags: tags
-        .split(",")
-        .map((tag) => tag.trim())
-        .filter(Boolean),
-    });
+    onSubmit({ ...formData, tags: toList(tags), keywords: toList(keywords) });
 
     setFormData(emptyForm);
     setTags("");
+    setKeywords("");
   }
 
-  function handleChange<K extends keyof LibraryFormData>(
-    field: K,
-    value: LibraryFormData[K]
-  ) {
-    setFormData((previous) => ({
-      ...previous,
-      [field]: value,
-    }));
+  function change<K extends keyof LibraryFormData>(field: K, value: LibraryFormData[K]) {
+    setFormData((previous) => ({ ...previous, [field]: value }));
   }
 
   return (
-    <form
-      onSubmit={handleSubmit}
-      className="space-y-6"
-    >
-      <div className="space-y-2">
-        <Label htmlFor="title">
-          Título
-        </Label>
-
-        <Input
-          id="title"
-          placeholder="Ex.: Como configurar Workflow"
-          value={formData.title}
-          onChange={(event) =>
-            handleChange(
-              "title",
-              event.target.value
-            )
-          }
-        />
-      </div>
-
-      <div className="space-y-2">
-        <Label htmlFor="description">
-          Descrição
-        </Label>
-
-        <Textarea
-          id="description"
-          placeholder="Descreva o conteúdo..."
-          value={formData.description}
-          onChange={(event) =>
-            handleChange(
-              "description",
-              event.target.value
-            )
-          }
-        />
-      </div>
-
-      <div className="space-y-2">
-        <Label htmlFor="content">Conteúdo</Label>
-        <Textarea
-          id="content"
-          placeholder="Escreva o conteúdo que será revisado antes da publicação..."
-          value={formData.content}
-          onChange={(event) => handleChange("content", event.target.value)}
-        />
-      </div>
-
-      <div className="grid gap-4 md:grid-cols-3">
+    <form onSubmit={handleSubmit} className="space-y-6">
+      <Fieldset legend="Artigo" hint="O que este conteúdo ensina e para quem.">
         <div className="space-y-2">
-          <Label>Projeto</Label>
-
-          <Select
-            value={formData.projectId}
-            onValueChange={(value) =>
-              handleChange(
-                "projectId",
-                value ?? ""
-              )
-            }
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Selecione um projeto" />
-            </SelectTrigger>
-
-            <SelectContent>
-              {projects.map((project) => (
-                <SelectItem
-                  key={project.id}
-                  value={project.id}
-                >
-                  {project.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <Label htmlFor="title">Título</Label>
+          <Input
+            id="title"
+            placeholder="Ex.: Erro ao autenticar após atualização"
+            value={formData.title}
+            onChange={(event) => change("title", event.target.value)}
+          />
         </div>
 
         <div className="space-y-2">
-          <Label>Tipo</Label>
+          <Label htmlFor="summary">Resumo</Label>
+          <Textarea
+            id="summary"
+            rows={2}
+            placeholder="Uma frase que descreve o que o artigo resolve. É o que a análise lê ao procurar cobertura."
+            value={formData.summary}
+            onChange={(event) => change("summary", event.target.value)}
+          />
+        </div>
+      </Fieldset>
 
-          <Select
-            value={formData.type}
-            onValueChange={(value) =>
-              handleChange(
-                "type",
-                (value ??
-                  "article") as LibraryFormData["type"]
-              )
-            }
+      <Fieldset legend="Conteúdo" hint="Aceita Markdown: títulos, listas, tabelas e blocos de código.">
+        <div className="flex items-center justify-between">
+          <Label htmlFor="content">Corpo do artigo</Label>
+
+          <Button
+            type="button"
+            size="sm"
+            variant="ghost"
+            onClick={() => setIsPreviewing((previous) => !previous)}
           >
-            <SelectTrigger>
-              <SelectValue />
-            </SelectTrigger>
+            {isPreviewing ? (
+              <>
+                <PenLine className="mr-1.5 h-3.5 w-3.5" />
+                Editar
+              </>
+            ) : (
+              <>
+                <Eye className="mr-1.5 h-3.5 w-3.5" />
+                Pré-visualizar
+              </>
+            )}
+          </Button>
+        </div>
 
-            <SelectContent>
-              <SelectItem value="article">
-                Artigo
-              </SelectItem>
+        {isPreviewing ? (
+          <div className="min-h-56 rounded-lg border border-border/70 bg-muted/20 p-5">
+            {formData.content.trim() ? (
+              <MarkdownContent content={formData.content} />
+            ) : (
+              <p className="text-sm text-muted-foreground">Nada escrito ainda.</p>
+            )}
+          </div>
+        ) : (
+          <Textarea
+            id="content"
+            rows={12}
+            className="font-mono text-sm"
+            placeholder={"## Passo a passo\n\n1. Primeiro passo\n2. Segundo passo"}
+            value={formData.content}
+            onChange={(event) => change("content", event.target.value)}
+          />
+        )}
+      </Fieldset>
 
-              <SelectItem value="faq">
-                FAQ
-              </SelectItem>
+      <Fieldset legend="Classificação" hint="Como este artigo é encontrado — pela busca e pela análise.">
+        <div className="grid gap-4 md:grid-cols-2">
+          <div className="space-y-2">
+            <Label htmlFor="article-project">Projeto</Label>
+            <Select
+              value={formData.projectId}
+              onValueChange={(value) => change("projectId", value ?? "")}
+            >
+              <SelectTrigger id="article-project">
+                <SelectValue placeholder="Selecione um projeto">
+                  {(id: string) => projects.find((project) => project.id === id)?.name ?? "Selecione um projeto"}
+                </SelectValue>
+              </SelectTrigger>
 
-              <SelectItem value="workflow">
-                Workflow
-              </SelectItem>
+              <SelectContent>
+                {projects.map((project) => (
+                  <SelectItem key={project.id} value={project.id}>
+                    {project.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
 
-              <SelectItem value="document">
-                Documento
-              </SelectItem>
+          <div className="space-y-2">
+            <Label htmlFor="article-type">Tipo</Label>
+            <Select
+              value={formData.type}
+              onValueChange={(value) => change("type", (value ?? "article") as ArticleType)}
+            >
+              <SelectTrigger id="article-type">
+                <SelectValue>{(type: ArticleType) => articleTypeLabel[type]}</SelectValue>
+              </SelectTrigger>
 
-              <SelectItem value="template">
-                Template
-              </SelectItem>
-            </SelectContent>
-          </Select>
+              <SelectContent>
+                {articleTypes.map((type) => (
+                  <SelectItem key={type} value={type}>
+                    {articleTypeLabel[type]}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="article-product">Produto</Label>
+            <Select
+              value={formData.product}
+              onValueChange={(value) =>
+                change("product", !value || value === PRODUCT_PLACEHOLDER ? UNSET_PRODUCT : value)
+              }
+            >
+              <SelectTrigger id="article-product">
+                <SelectValue>{(product: string) => product || PRODUCT_PLACEHOLDER}</SelectValue>
+              </SelectTrigger>
+
+              <SelectContent>
+                <SelectItem value={PRODUCT_PLACEHOLDER}>{PRODUCT_PLACEHOLDER}</SelectItem>
+                {PROJECT_PRODUCTS.map((product) => (
+                  <SelectItem key={product} value={product}>
+                    {product}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="module">Módulo</Label>
+            <Input
+              id="module"
+              placeholder="Ex.: Cost Management"
+              value={formData.module}
+              onChange={(event) => change("module", event.target.value)}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="category">Categoria</Label>
+            <Input
+              id="category"
+              placeholder="Ex.: Instalação e acesso ao software"
+              value={formData.category}
+              onChange={(event) => change("category", event.target.value)}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="article-status">Status</Label>
+            <Select
+              value={formData.status}
+              disabled={!initialData}
+              onValueChange={(value) => change("status", (value ?? "draft") as ArticleStatus)}
+            >
+              <SelectTrigger id="article-status">
+                <SelectValue>{(status: ArticleStatus) => articleStatusLabel[status]}</SelectValue>
+              </SelectTrigger>
+
+              <SelectContent>
+                {statusOptions.map((status) => (
+                  <SelectItem key={status} value={status}>
+                    {articleStatusLabel[status]}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
         </div>
 
         <div className="space-y-2">
-          <Label>Status</Label>
-
-          <Select
-            value={formData.status}
-            disabled={!initialData}
-            onValueChange={(value) =>
-              handleChange(
-                "status",
-                (value ??
-                  "draft") as LibraryFormData["status"]
-              )
-            }
-          >
-            <SelectTrigger>
-              <SelectValue />
-            </SelectTrigger>
-
-            <SelectContent>
-              <SelectItem value="draft">
-                Rascunho
-              </SelectItem>
-
-              <SelectItem value="review">
-                Em revisão
-              </SelectItem>
-
-              <SelectItem value="published">
-                Publicado
-              </SelectItem>
-
-              <SelectItem value="archived">
-                Arquivado
-              </SelectItem>
-            </SelectContent>
-          </Select>
+          <Label htmlFor="tags">Tags</Label>
+          <Input
+            id="tags"
+            placeholder="autenticação, acesso"
+            value={tags}
+            onChange={(event) => setTags(event.target.value)}
+          />
         </div>
-      </div>
 
-      <div className="space-y-2">
-        <Label htmlFor="category">
-          Categoria
-        </Label>
+        <div className="space-y-2">
+          <Label htmlFor="keywords">Palavras-chave</Label>
+          <Input
+            id="keywords"
+            placeholder="login, token, sessão"
+            value={keywords}
+            onChange={(event) => setKeywords(event.target.value)}
+          />
+          <p className="text-xs text-muted-foreground">
+            Termos que os clientes usam ao descrever o problema. Têm peso alto na busca da análise.
+          </p>
+        </div>
 
-        <Input
-          id="category"
-          placeholder="Workflow"
-          value={formData.category}
-          onChange={(event) =>
-            handleChange(
-              "category",
-              event.target.value
-            )
-          }
-        />
-      </div>
+        <div className="space-y-2">
+          <Label htmlFor="url">Endereço público</Label>
+          <Input
+            id="url"
+            placeholder="https://suporte.altoqi.com.br/..."
+            value={formData.url}
+            onChange={(event) => change("url", event.target.value)}
+          />
+        </div>
+      </Fieldset>
 
-      <div className="space-y-2">
-        <Label htmlFor="tags">
-          Tags
-        </Label>
-
-        <Input
-          id="tags"
-          placeholder="workflow, kb, planejamento"
-          value={tags}
-          onChange={(event) =>
-            setTags(event.target.value)
-          }
-        />
-      </div>
-
-      <div className="flex justify-end gap-2">
-        <Button
-          type="button"
-          variant="outline"
-          onClick={onCancel}
-        >
+      <div className="flex justify-end gap-2 border-t border-border/70 pt-5">
+        <Button type="button" variant="outline" onClick={onCancel}>
           Cancelar
         </Button>
 
-        <Button
-          type="submit"
-          disabled={
-            !formData.title.trim() ||
-            !formData.projectId
-          }
-        >
+        <Button type="submit" disabled={!formData.title.trim() || !formData.projectId}>
           {submitLabel}
         </Button>
       </div>

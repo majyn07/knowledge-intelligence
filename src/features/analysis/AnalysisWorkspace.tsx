@@ -18,6 +18,7 @@ import { useKnowledgeLifecycle } from "./providers/KnowledgeLifecycleProvider";
 import { analysisService } from "./services/analysisService";
 import { ticketService } from "./services/ticketService";
 import { usePlans } from "../plans/providers/PlansProvider";
+import { useLibrary } from "../library/providers/LibraryProvider";
 
 const SIDEBAR_STORAGE_KEY = "visus-workspace-sidebar-collapsed";
 
@@ -33,6 +34,7 @@ export function AnalysisWorkspace() {
     linkOpportunityToPlan,
   } = useKnowledgeLifecycle();
   const { createPlanFromApprovedOpportunity } = usePlans();
+  const { items: articles } = useLibrary();
 
   const [projectTickets, setProjectTickets] = useState<Ticket[]>([]);
   const [selectedTicketId, setSelectedTicketId] = useState("");
@@ -56,7 +58,7 @@ export function AnalysisWorkspace() {
   const selectedTicket =
     projectTickets.find((ticket) => ticket.id === selectedTicketId) ??
     projectTickets[0];
-  const context = useAnalysisContext(selectedTicket);
+  const context = useAnalysisContext(articles, selectedTicket);
   const analysis =
     selectedTicket && activeProjectId
       ? getAnalysis(activeProjectId, selectedTicket.id)
