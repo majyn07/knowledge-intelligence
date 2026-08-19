@@ -5,4 +5,9 @@ export interface ProjectFormData {
   client: string;
   description: string;
   status: ProjectStatus;
+
+  product: string;
+  module: string;
+  goal: string;
+  owner: string;
 }

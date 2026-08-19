@@ -5,7 +5,7 @@ import { BrandEmptyState } from "@/components/brand/BrandEmptyState";
 import { MetricCard } from "@/components/common/cards/MetricCard";
 import { PageHeader } from "@/components/common/page/PageHeader";
 import { useKnowledgeLifecycle } from "@/features/analysis/providers/KnowledgeLifecycleProvider";
-import { useLibrary } from "@/features/library/hooks/useLibrary";
+import { useLibrary } from "@/features/library/providers/LibraryProvider";
 import { selectProjectMetrics } from "@/features/metrics/projectMetrics";
 import { usePlans } from "@/features/plans/providers/PlansProvider";
 import { useProject } from "@/providers/ProjectProvider";

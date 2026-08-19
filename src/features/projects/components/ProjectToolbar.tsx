@@ -1,6 +1,8 @@
 import { Search } from "lucide-react";
 
 import type { ProjectFilters } from "@/features/projects/types/ProjectFilters";
+import { PROJECT_PRODUCTS } from "@/features/projects/constants/products";
+import { projectStatusLabel, type ProjectStatus } from "@/models/Project";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,10 +10,14 @@ import { PageToolbar } from "@/components/common/page/PageToolbar";
 
 interface ProjectToolbarProps {
   filters: ProjectFilters;
-  onFiltersChange: (
-    filters: ProjectFilters
-  ) => void;
+  onFiltersChange: (filters: ProjectFilters) => void;
   onNewProject: () => void;
+}
+
+const statusFilters: (ProjectStatus | "all")[] = ["all", "active", "inactive", "archived"];
+
+function filterLabel(value: ProjectStatus | "all") {
+  return value === "all" ? "Todos" : projectStatusLabel[value];
 }
 
 export function ProjectToolbar({
@@ -19,15 +25,6 @@ export function ProjectToolbar({
   onFiltersChange,
   onNewProject,
 }: ProjectToolbarProps) {
-  function changeStatus(
-    status: ProjectFilters["status"]
-  ) {
-    onFiltersChange({
-      ...filters,
-      status,
-    });
-  }
-
   return (
     <PageToolbar
       start={
@@ -36,67 +33,53 @@ export function ProjectToolbar({
 
           <Input
             className="pl-9"
-            placeholder="Pesquisar projeto..."
+            placeholder="Buscar por nome, cliente, módulo ou responsável..."
             value={filters.search}
             onChange={(event) =>
-              onFiltersChange({
-                ...filters,
-                search: event.target.value,
-              })
+              onFiltersChange({ ...filters, search: event.target.value })
             }
           />
         </div>
       }
       end={
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="flex flex-wrap gap-1.5" role="group" aria-label="Filtrar por status">
+            {statusFilters.map((status) => (
+              <Button
+                key={status}
+                size="sm"
+                variant={filters.status === status ? "default" : "outline"}
+                onClick={() => onFiltersChange({ ...filters, status })}
+              >
+                {filterLabel(status)}
+              </Button>
+            ))}
+          </div>
 
-        <div className="flex flex-wrap gap-2">
-          <Button
-            variant={
-              filters.status === "all"
-                ? "default"
-                : "outline"
-            }
-            onClick={() => changeStatus("all")}
-          >
-            Todos
-          </Button>
+          <span className="hidden h-5 w-px bg-border sm:block" />
 
-          <Button
-            variant={
-              filters.status === "active"
-                ? "default"
-                : "outline"
-            }
-            onClick={() => changeStatus("active")}
-          >
-            Ativos
-          </Button>
+          <div className="flex flex-wrap gap-1.5" role="group" aria-label="Filtrar por produto">
+            <Button
+              size="sm"
+              variant={filters.product === "all" ? "default" : "outline"}
+              onClick={() => onFiltersChange({ ...filters, product: "all" })}
+            >
+              Todos os produtos
+            </Button>
 
-          <Button
-            variant={
-              filters.status === "inactive"
-                ? "default"
-                : "outline"
-            }
-            onClick={() => changeStatus("inactive")}
-          >
-            Inativos
-          </Button>
+            {PROJECT_PRODUCTS.map((product) => (
+              <Button
+                key={product}
+                size="sm"
+                variant={filters.product === product ? "default" : "outline"}
+                onClick={() => onFiltersChange({ ...filters, product })}
+              >
+                {product.replace("AltoQi ", "")}
+              </Button>
+            ))}
+          </div>
 
-          <Button
-            variant={
-              filters.status === "archived"
-                ? "default"
-                : "outline"
-            }
-            onClick={() => changeStatus("archived")}
-          >
-            Arquivados
-          </Button>
-
-          <Button onClick={onNewProject}>
-            Novo Projeto
-          </Button>
+          <Button onClick={onNewProject}>Novo Projeto</Button>
         </div>
       }
     />

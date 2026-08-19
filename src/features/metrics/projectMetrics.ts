@@ -2,12 +2,15 @@ import type { KnowledgeOpportunity, OpportunityStatus } from "@/features/analysi
 import type { PlanWorkspaceItem } from "@/features/plans/types/PlanWorkspace";
 import type { AnalysisRecord } from "@/models/KnowledgeLifecycle";
 import type { Library, LibraryStatus } from "@/models/Library";
+import type { Ticket } from "@/models/Ticket";
 
 export interface ProjectMetricsInput {
   projectId: string | null;
   analyses: AnalysisRecord[];
   plans: PlanWorkspaceItem[];
   articles: Library[];
+  /** Atendimentos do projeto, quando a tela precisa exibi-los. */
+  tickets?: Ticket[];
 }
 
 export interface ProjectOpportunity extends KnowledgeOpportunity {
@@ -21,7 +24,8 @@ export interface ProjectOpportunity extends KnowledgeOpportunity {
  * Coverage is the proportion of completed analyses classified as adequate.
  * Active plans are all plans not yet marked as published in the current plan workflow.
  */
-export function selectProjectMetrics({ projectId, analyses, plans, articles }: ProjectMetricsInput) {
+export function selectProjectMetrics({ projectId, analyses, plans, articles, tickets = [] }: ProjectMetricsInput) {
+  const projectTickets = projectId ? tickets.filter((ticket) => ticket.projectId === projectId) : [];
   const projectAnalyses = projectId ? analyses.filter((analysis) => analysis.projectId === projectId) : [];
   const projectPlans = projectId ? plans.filter((plan) => plan.projectId === projectId) : [];
   const projectArticles = projectId ? articles.filter((article) => article.projectId === projectId) : [];
@@ -41,11 +45,20 @@ export function selectProjectMetrics({ projectId, analyses, plans, articles }: P
     (analysis) => analysis.result.classification.documentationStatus === "adequate"
   );
 
+  const approvedWithoutPlan = opportunities.filter(
+    (opportunity) => opportunity.status === "approved" && !opportunity.planId
+  ).length;
+
   return {
     analyses: projectAnalyses,
     plans: projectPlans,
     articles: projectArticles,
+    tickets: projectTickets,
     opportunities,
+    ticket: {
+      total: projectTickets.length,
+      analyzed: new Set(projectAnalyses.map((analysis) => analysis.ticketId)).size,
+    },
     analysis: {
       total: projectAnalyses.length,
       open: projectAnalyses.filter((analysis) => analysis.status === "open").length,
@@ -60,6 +73,7 @@ export function selectProjectMetrics({ projectId, analyses, plans, articles }: P
       discarded: opportunityCount("discarded"),
       deferred: opportunityCount("deferred"),
       draft: opportunityCount("draft"),
+      approvedWithoutPlan,
     },
     plan: {
       total: projectPlans.length,

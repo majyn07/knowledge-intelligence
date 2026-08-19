@@ -4,6 +4,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import { Toaster } from "@/components/ui/sonner";
 
 import { PlansProvider } from "@/features/plans/providers/PlansProvider";
+import { LibraryProvider } from "@/features/library/providers/LibraryProvider";
 import { KnowledgeLifecycleProvider } from "@/features/analysis/providers/KnowledgeLifecycleProvider";
 import { ProjectProvider } from "@/providers/ProjectProvider";
 import { BrandThemeProvider } from "@/providers/BrandThemeProvider";
@@ -41,7 +42,9 @@ export default function RootLayout({
         <BrandThemeProvider>
           <ProjectProvider>
             <KnowledgeLifecycleProvider>
-              <PlansProvider>{children}</PlansProvider>
+              <PlansProvider>
+                <LibraryProvider>{children}</LibraryProvider>
+              </PlansProvider>
             </KnowledgeLifecycleProvider>
             
             <Toaster

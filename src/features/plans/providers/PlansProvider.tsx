@@ -1,6 +1,8 @@
 "use client";
 
-import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
+import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from "react";
+
+import { usePersistedState } from "@/hooks/usePersistedState";
 
 import { planWorkspaceMock } from "../mock/planWorkspace";
 import { planService, type CreatePlanFromOpportunityInput } from "../services/planService";
@@ -23,26 +25,15 @@ interface PlansContextValue {
 
 const PlansContext = createContext<PlansContextValue | null>(null);
 
-function loadPlans(): PlanWorkspaceItem[] {
-  if (typeof window === "undefined") return planWorkspaceMock;
-  try {
-    const stored = localStorage.getItem(STORAGE_KEY);
-    return stored ? JSON.parse(stored) as PlanWorkspaceItem[] : planWorkspaceMock;
-  } catch {
-    return planWorkspaceMock;
-  }
-}
-
 export function PlansProvider({ children }: { children: ReactNode }) {
-  const [plans, setPlans] = useState<PlanWorkspaceItem[]>(loadPlans);
-  const [selectedPlanId, setSelectedPlanId] = useState<string | undefined>(() => loadPlans()[0]?.id);
+  const [plans, setPlans] = usePersistedState<PlanWorkspaceItem[]>({
+    key: STORAGE_KEY,
+    fallback: planWorkspaceMock,
+  });
+  const [selectedPlanId, setSelectedPlanId] = useState<string | undefined>(undefined);
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState<PlanStatus | "all">("all");
   const selectedPlan = plans.find((plan) => plan.id === selectedPlanId) ?? plans[0];
-
-  useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(plans));
-  }, [plans]);
 
   const createPlanFromApprovedOpportunity = useCallback((input: CreatePlanFromOpportunityInput) => {
     const existing = plans.find((plan) =>
@@ -54,7 +45,7 @@ export function PlansProvider({ children }: { children: ReactNode }) {
     setPlans((current) => [plan, ...current]);
     setSelectedPlanId(plan.id);
     return { plan, created: true };
-  }, [plans]);
+  }, [plans, setPlans]);
 
   const linkPlanToArticle = useCallback((planId: string, articleId: string) => {
     setPlans((current) => current.map((plan) => plan.id !== planId ? plan : {
@@ -62,7 +53,11 @@ export function PlansProvider({ children }: { children: ReactNode }) {
       source: { ...plan.source, articleId },
       updatedAt: new Intl.DateTimeFormat("pt-BR", { dateStyle: "medium", timeStyle: "short" }).format(new Date()),
     }));
-  }, []);
+  }, [setPlans]);
+
+  const toggleTask = useCallback((planId: string, taskId: string) => {
+    setPlans((current) => current.map((plan) => plan.id !== planId ? plan : { ...plan, tasks: plan.tasks.map((task) => task.id !== taskId ? task : { ...task, completed: !task.completed }) }));
+  }, [setPlans]);
 
   const value = useMemo(() => ({
     plans,
@@ -72,10 +67,10 @@ export function PlansProvider({ children }: { children: ReactNode }) {
     setSearch,
     setStatus,
     selectPlan: setSelectedPlanId,
-    toggleTask: (planId: string, taskId: string) => setPlans((current) => current.map((plan) => plan.id !== planId ? plan : { ...plan, tasks: plan.tasks.map((task) => task.id !== taskId ? task : { ...task, completed: !task.completed }) })),
+    toggleTask,
     createPlanFromApprovedOpportunity,
     linkPlanToArticle,
-  }), [createPlanFromApprovedOpportunity, linkPlanToArticle, plans, search, selectedPlan, status]);
+  }), [createPlanFromApprovedOpportunity, linkPlanToArticle, plans, search, selectedPlan, status, toggleTask]);
 
   return <PlansContext.Provider value={value}>{children}</PlansContext.Provider>;
 }

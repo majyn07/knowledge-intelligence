@@ -8,7 +8,7 @@ export const projects: Project[] = [
     description:
       "Projeto principal destinado à evolução da Base de Conhecimento do Visus.",
     status: "active",
-    product: "Visus",
+    product: "AltoQi Visus",
     module: "Orçamento & IFC",
     goal: "Reduzir recorrência de chamados sobre importação IFC e estimativas de custos em 30%.",
     owner: "Equipe de Conhecimento Visus",
@@ -22,7 +22,7 @@ export const projects: Project[] = [
     description:
       "Padronização dos fluxos de atendimento e documentação técnica do módulo Elétrico do Builder.",
     status: "active",
-    product: "Builder",
+    product: "AltoQi Builder",
     module: "Instalações Elétricas",
     goal: "Mapear principais dúvidas sobre dimensionamento de circuitos e quadros de carga.",
     owner: "Especialistas Elétricos AltoQi",
@@ -36,7 +36,7 @@ export const projects: Project[] = [
     description:
       "Revisão da documentação e artigos relacionados ao módulo de análise estrutural do Eberick.",
     status: "active",
-    product: "Eberick",
+    product: "AltoQi Eberick",
     module: "Estruturas de Concreto",
     goal: "Eliminar gargalos documentais em verificações de estabilidade global (GAMA Z).",
     owner: "Engenharia de Estruturas",
@@ -50,7 +50,7 @@ export const projects: Project[] = [
     description:
       "Organização e categorização dos artigos técnicos da biblioteca de componentes BIM.",
     status: "inactive",
-    product: "Visus",
+    product: "AltoQi Visus",
     module: "Biblioteca BIM",
     goal: "Padronizar catálogo de propriedades e parâmetros IFC.",
     owner: "Equipe BIM AltoQi",
@@ -64,7 +64,7 @@ export const projects: Project[] = [
     description:
       "Projeto focado em melhorias dos processos de suporte e base de conhecimento geral.",
     status: "archived",
-    product: "AltoQi Suite",
+    product: "",
     module: "Gestão de Suporte",
     goal: "Consolidar base histórica de atendimentos migrados.",
     owner: "Gestão Operacional",

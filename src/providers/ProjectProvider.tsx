@@ -12,6 +12,8 @@ interface ProjectContextValue {
   projects: Project[];
   activeProject: Project | null;
   activeProjectId: string | null;
+  /** Falso até o estado guardado ser lido, após a montagem. */
+  isHydrated: boolean;
   selectProject: (id: string) => void;
   createProject: (data: ProjectFormData) => Project;
   updateProject: (id: string, data: ProjectFormData) => Project | undefined;
@@ -21,27 +23,31 @@ interface ProjectContextValue {
 const ProjectContext = createContext<ProjectContextValue | null>(null);
 
 export function ProjectProvider({ children }: { children: ReactNode }) {
-  const { projects, createProject, updateProject, deleteProject } = useProjects();
+  const { projects, isHydrated, createProject, updateProject, deleteProject } = useProjects();
+  // Parte da base canônica: mesmo valor no servidor e no primeiro render.
   const [activeProjectId, setActiveProjectId] = useState<string | null>(() => projects[0]?.id ?? null);
   const restoredSelection = useRef(false);
 
   useEffect(() => {
-    if (restoredSelection.current) return;
+    if (!isHydrated || restoredSelection.current) return;
     restoredSelection.current = true;
+
     const storedId = localStorage.getItem(STORAGE_KEY);
     if (storedId && projects.some((project) => project.id === storedId)) {
       setActiveProjectId(storedId);
     }
-  }, [projects]);
+  }, [isHydrated, projects]);
 
   useEffect(() => {
+    if (!isHydrated || !restoredSelection.current) return;
     setActiveProjectId((currentId) => currentId && projects.some((project) => project.id === currentId) ? currentId : projects[0]?.id ?? null);
-  }, [projects]);
+  }, [isHydrated, projects]);
 
   useEffect(() => {
+    if (!isHydrated || !restoredSelection.current) return;
     if (activeProjectId) localStorage.setItem(STORAGE_KEY, activeProjectId);
     else localStorage.removeItem(STORAGE_KEY);
-  }, [activeProjectId]);
+  }, [activeProjectId, isHydrated]);
 
   const selectProject = useCallback((id: string) => {
     if (projects.some((project) => project.id === id)) setActiveProjectId(id);
@@ -61,9 +67,9 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
   );
 
   const value = useMemo(() => ({
-    projects, activeProject, activeProjectId, selectProject,
+    projects, activeProject, activeProjectId, isHydrated, selectProject,
     createProject, updateProject, deleteProject: handleDeleteProject,
-  }), [activeProject, activeProjectId, createProject, handleDeleteProject, projects, selectProject, updateProject]);
+  }), [activeProject, activeProjectId, createProject, handleDeleteProject, isHydrated, projects, selectProject, updateProject]);
 
   return <ProjectContext.Provider value={value}>{children}</ProjectContext.Provider>;
 }

@@ -1,8 +1,9 @@
 "use client";
 
-import { FormEvent, useEffect, useState } from "react";
+import { FormEvent, useEffect, useState, type ReactNode } from "react";
 
 import type { ProjectFormData } from "@/features/projects/types/ProjectFormData";
+import { PROJECT_PRODUCTS, UNSET_PRODUCT } from "@/features/projects/constants/products";
 import { projectStatusLabel, type ProjectStatus } from "@/models/Project";
 
 import { Button } from "@/components/ui/button";
@@ -15,6 +16,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
 
 interface ProjectFormProps {
   initialData?: ProjectFormData;
@@ -28,9 +30,28 @@ const emptyForm: ProjectFormData = {
   client: "",
   description: "",
   status: "active",
+  product: UNSET_PRODUCT,
+  module: "",
+  goal: "",
+  owner: "",
 };
 
 const statusOptions: ProjectStatus[] = ["active", "inactive", "archived"];
+
+const PRODUCT_PLACEHOLDER = "Não definido";
+
+function Fieldset({ legend, hint, children }: { legend: string; hint: string; children: ReactNode }) {
+  return (
+    <fieldset className="space-y-4 border-t border-border/70 pt-5 first:border-t-0 first:pt-0">
+      <legend className="sr-only">{legend}</legend>
+      <div>
+        <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">{legend}</p>
+        <p className="mt-1 text-xs leading-5 text-muted-foreground">{hint}</p>
+      </div>
+      {children}
+    </fieldset>
+  );
+}
 
 export function ProjectForm({
   initialData,
@@ -38,19 +59,14 @@ export function ProjectForm({
   onSubmit,
   onCancel,
 }: ProjectFormProps) {
-  const [formData, setFormData] =
-    useState<ProjectFormData>(
-      initialData ?? emptyForm
-    );
+  const [formData, setFormData] = useState<ProjectFormData>(initialData ?? emptyForm);
 
   useEffect(() => {
     // Sincroniza o formulário quando o projeto em edição muda.
     setFormData(initialData ?? emptyForm);
   }, [initialData]);
 
-  function handleSubmit(
-    event: FormEvent<HTMLFormElement>
-  ) {
+  function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
     if (!formData.name.trim()) {
@@ -58,122 +74,140 @@ export function ProjectForm({
     }
 
     onSubmit(formData);
-
     setFormData(emptyForm);
   }
 
-  function handleChange(
-    field: "name" | "client" | "description",
-    value: string
-  ) {
-    setFormData((previous) => ({
-      ...previous,
-      [field]: value,
-    }));
+  function change<K extends keyof ProjectFormData>(field: K, value: ProjectFormData[K]) {
+    setFormData((previous) => ({ ...previous, [field]: value }));
   }
 
   return (
-    <form
-      onSubmit={handleSubmit}
-      className="space-y-6"
-    >
-      <div className="space-y-2">
-        <Label htmlFor="name">
-          Nome do projeto
-        </Label>
+    <form onSubmit={handleSubmit} className="space-y-6">
+      <Fieldset legend="Identidade" hint="Como este projeto é reconhecido na plataforma.">
+        <div className="space-y-2">
+          <Label htmlFor="name">Nome do projeto</Label>
+          <Input
+            id="name"
+            value={formData.name}
+            placeholder="Ex.: Base Visus Produção"
+            onChange={(event) => change("name", event.target.value)}
+          />
+        </div>
 
-        <Input
-          id="name"
-          value={formData.name}
-          placeholder="Ex.: Base Visus Produção"
-          onChange={(event) =>
-            handleChange(
-              "name",
-              event.target.value
-            )
-          }
-        />
-      </div>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div className="space-y-2">
+            <Label htmlFor="client">Cliente</Label>
+            <Input
+              id="client"
+              value={formData.client}
+              placeholder="Ex.: AltoQi"
+              onChange={(event) => change("client", event.target.value)}
+            />
+          </div>
 
-      <div className="space-y-2">
-        <Label htmlFor="client">
-          Cliente
-        </Label>
+          <div className="space-y-2">
+            <Label htmlFor="status">Status</Label>
+            <Select
+              value={formData.status}
+              onValueChange={(value) => change("status", value as ProjectStatus)}
+            >
+              <SelectTrigger id="status">
+                <SelectValue>
+                  {(status: ProjectStatus) => projectStatusLabel[status]}
+                </SelectValue>
+              </SelectTrigger>
 
-        <Input
-          id="client"
-          value={formData.client}
-          placeholder="Ex.: AltoQi"
-          onChange={(event) =>
-            handleChange(
-              "client",
-              event.target.value
-            )
-          }
-        />
-      </div>
+              <SelectContent>
+                {statusOptions.map((status) => (
+                  <SelectItem key={status} value={status}>
+                    {projectStatusLabel[status]}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+      </Fieldset>
 
-      <div className="space-y-2">
-        <Label htmlFor="description">
-          Descrição
-        </Label>
+      <Fieldset legend="Contexto AltoQi" hint="Qual solução e qual módulo este projeto cobre.">
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div className="space-y-2">
+            <Label htmlFor="product">Produto</Label>
+            <Select
+              value={formData.product}
+              onValueChange={(value) =>
+                change("product", !value || value === PRODUCT_PLACEHOLDER ? UNSET_PRODUCT : value)
+              }
+            >
+              <SelectTrigger id="product">
+                <SelectValue>
+                  {(product: string) => product || PRODUCT_PLACEHOLDER}
+                </SelectValue>
+              </SelectTrigger>
 
-        <Input
-          id="description"
-          value={formData.description}
-          placeholder="Descrição do projeto"
-          onChange={(event) =>
-            handleChange(
-              "description",
-              event.target.value
-            )
-          }
-        />
-      </div>
+              <SelectContent>
+                <SelectItem value={PRODUCT_PLACEHOLDER}>{PRODUCT_PLACEHOLDER}</SelectItem>
+                {PROJECT_PRODUCTS.map((product) => (
+                  <SelectItem key={product} value={product}>
+                    {product}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
 
-      <div className="space-y-2">
-        <Label htmlFor="status">
-          Status
-        </Label>
+          <div className="space-y-2">
+            <Label htmlFor="module">Módulo</Label>
+            <Input
+              id="module"
+              value={formData.module}
+              placeholder="Ex.: Cost Management"
+              onChange={(event) => change("module", event.target.value)}
+            />
+          </div>
+        </div>
+      </Fieldset>
 
-        <Select
-          value={formData.status}
-          onValueChange={(value) =>
-            setFormData((previous) => ({
-              ...previous,
-              status: value as ProjectStatus,
-            }))
-          }
-        >
-          <SelectTrigger id="status">
-            <SelectValue>
-              {(status: ProjectStatus) => projectStatusLabel[status]}
-            </SelectValue>
-          </SelectTrigger>
+      <Fieldset legend="Objetivo e condução" hint="Qual resultado documental o projeto persegue e quem conduz.">
+        <div className="space-y-2">
+          <Label htmlFor="goal">Objetivo</Label>
+          <Textarea
+            id="goal"
+            value={formData.goal}
+            rows={2}
+            placeholder="Ex.: Reduzir a recorrência de dúvidas sobre importação IFC."
+            onChange={(event) => change("goal", event.target.value)}
+          />
+        </div>
 
-          <SelectContent>
-            {statusOptions.map((status) => (
-              <SelectItem key={status} value={status}>
-                {projectStatusLabel[status]}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
+        <div className="space-y-2">
+          <Label htmlFor="owner">Responsável</Label>
+          <Input
+            id="owner"
+            value={formData.owner}
+            placeholder="Ex.: Equipe de Conhecimento Visus"
+            onChange={(event) => change("owner", event.target.value)}
+          />
+        </div>
 
-      <div className="flex justify-end gap-2">
-        <Button
-          type="button"
-          variant="outline"
-          onClick={onCancel}
-        >
+        <div className="space-y-2">
+          <Label htmlFor="description">Descrição</Label>
+          <Textarea
+            id="description"
+            value={formData.description}
+            rows={2}
+            placeholder="O que este projeto abrange."
+            onChange={(event) => change("description", event.target.value)}
+          />
+        </div>
+      </Fieldset>
+
+      <div className="flex justify-end gap-2 border-t border-border/70 pt-5">
+        <Button type="button" variant="outline" onClick={onCancel}>
           Cancelar
         </Button>
 
-        <Button
-          type="submit"
-          disabled={!formData.name.trim()}
-        >
+        <Button type="submit" disabled={!formData.name.trim()}>
           {submitLabel}
         </Button>
       </div>

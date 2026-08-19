@@ -14,7 +14,7 @@ import { LibraryForm } from "@/features/library/components/LibraryForm";
 import { LibraryGrid } from "@/features/library/components/LibraryGrid";
 import { LibraryToolbar } from "@/features/library/components/LibraryToolbar";
 
-import { useLibrary } from "@/features/library/hooks/useLibrary";
+import { useLibrary } from "@/features/library/providers/LibraryProvider";
 import { useLibraryDialogs } from "@/features/library/hooks/useLibraryDialogs";
 import { useLibraryFilters } from "@/features/library/hooks/useLibraryFilters";
 

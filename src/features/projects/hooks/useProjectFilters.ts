@@ -8,6 +8,7 @@ import type { ProjectFilters } from "../types/ProjectFilters";
 const defaultFilters: ProjectFilters = {
   search: "",
   status: "all",
+  product: "all",
 };
 
 export function useProjectFilters(
@@ -24,13 +25,19 @@ export function useProjectFilters(
       const matchesSearch =
         search === "" ||
         project.name.toLowerCase().includes(search) ||
-        project.client.toLowerCase().includes(search);
+        project.client.toLowerCase().includes(search) ||
+        project.module.toLowerCase().includes(search) ||
+        project.owner.toLowerCase().includes(search);
 
       const matchesStatus =
         filters.status === "all" ||
         project.status === filters.status;
 
-      return matchesSearch && matchesStatus;
+      const matchesProduct =
+        filters.product === "all" ||
+        project.product === filters.product;
+
+      return matchesSearch && matchesStatus && matchesProduct;
     });
   }, [projects, filters]);
 

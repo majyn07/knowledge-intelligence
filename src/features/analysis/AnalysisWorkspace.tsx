@@ -5,6 +5,7 @@ import { Sparkles } from "lucide-react";
 import { toast } from "sonner";
 
 import { PageHeader } from "@/components/common/page/PageHeader";
+import { usePersistedState } from "@/hooks/usePersistedState";
 import type { Ticket } from "@/models/Ticket";
 import { useProject } from "@/providers/ProjectProvider";
 
@@ -36,14 +37,10 @@ export function AnalysisWorkspace() {
   const [projectTickets, setProjectTickets] = useState<Ticket[]>([]);
   const [selectedTicketId, setSelectedTicketId] = useState("");
   const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState<boolean>(() => {
-    if (typeof window === "undefined") return false;
-    return localStorage.getItem(SIDEBAR_STORAGE_KEY) === "true";
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = usePersistedState<boolean>({
+    key: SIDEBAR_STORAGE_KEY,
+    fallback: false,
   });
-
-  useEffect(() => {
-    localStorage.setItem(SIDEBAR_STORAGE_KEY, String(isSidebarCollapsed));
-  }, [isSidebarCollapsed]);
 
   useEffect(() => {
     if (!activeProjectId) return;

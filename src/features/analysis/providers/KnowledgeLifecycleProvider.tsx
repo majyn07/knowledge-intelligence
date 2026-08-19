@@ -4,12 +4,11 @@ import {
   createContext,
   useCallback,
   useContext,
-  useEffect,
   useMemo,
-  useState,
   type ReactNode,
 } from "react";
 
+import { usePersistedState } from "@/hooks/usePersistedState";
 import type { AnalysisMessage } from "@/models/AnalysisMessage";
 import type { KnowledgeOpportunity } from "@/features/analysis/types/KnowledgeOpportunity";
 import type {
@@ -45,24 +44,18 @@ interface KnowledgeLifecycleValue {
 
 const KnowledgeLifecycleContext = createContext<KnowledgeLifecycleValue | null>(null);
 
-function loadAnalyses(): AnalysisRecord[] {
-  if (typeof window === "undefined") return [];
-
-  try {
-    const stored = JSON.parse(localStorage.getItem(STORAGE_KEY) ?? "[]") as AnalysisRecord[];
-    // Registros gravados antes da evidência ser persistida não possuem o campo.
-    return stored.map((record) => ({ ...record, relatedArticles: record.relatedArticles ?? [] }));
-  } catch {
-    return [];
-  }
+function parseAnalyses(raw: string): AnalysisRecord[] {
+  const stored = JSON.parse(raw) as AnalysisRecord[];
+  // Registros gravados antes da evidência ser persistida não possuem o campo.
+  return stored.map((record) => ({ ...record, relatedArticles: record.relatedArticles ?? [] }));
 }
 
 export function KnowledgeLifecycleProvider({ children }: { children: ReactNode }) {
-  const [analyses, setAnalyses] = useState<AnalysisRecord[]>(loadAnalyses);
-
-  useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(analyses));
-  }, [analyses]);
+  const [analyses, setAnalyses] = usePersistedState<AnalysisRecord[]>({
+    key: STORAGE_KEY,
+    fallback: [],
+    parse: parseAnalyses,
+  });
 
   const saveAnalysis = useCallback((input: Omit<AnalysisRecord, "id" | "startedAt" | "status">) => {
     const record: AnalysisRecord = {
@@ -73,11 +66,11 @@ export function KnowledgeLifecycleProvider({ children }: { children: ReactNode }
     };
     setAnalyses((current) => [record, ...current.filter((item) => !(item.projectId === record.projectId && item.ticketId === record.ticketId && item.status !== "completed"))]);
     return record;
-  }, []);
+  }, [setAnalyses]);
 
   const updateMessages = useCallback((analysisId: string, messages: AnalysisMessage[]) => {
     setAnalyses((current) => current.map((item) => item.id === analysisId ? { ...item, messages } : item));
-  }, []);
+  }, [setAnalyses]);
 
   const updateOpportunityStatus = useCallback((analysisId: string, opportunityId: string, status: OpportunityWorkflowStatus) => {
     setAnalyses((current) => current.map((item) => item.id !== analysisId ? item : {
@@ -87,7 +80,7 @@ export function KnowledgeLifecycleProvider({ children }: { children: ReactNode }
         opportunities: item.result.opportunities.map((opportunity) => opportunity.id !== opportunityId ? opportunity : { ...opportunity, status }),
       },
     }));
-  }, []);
+  }, [setAnalyses]);
 
   const updateOpportunity = useCallback((analysisId: string, opportunityId: string, changes: Pick<KnowledgeOpportunity, "title" | "description" | "justification">) => {
     setAnalyses((current) => current.map((item) => item.id !== analysisId ? item : {
@@ -97,7 +90,7 @@ export function KnowledgeLifecycleProvider({ children }: { children: ReactNode }
         opportunities: item.result.opportunities.map((opportunity) => opportunity.id !== opportunityId ? opportunity : { ...opportunity, ...changes }),
       },
     }));
-  }, []);
+  }, [setAnalyses]);
 
   const linkOpportunityToPlan = useCallback((analysisId: string, opportunityId: string, planId: string) => {
     setAnalyses((current) => current.map((item) => item.id !== analysisId ? item : {
@@ -107,7 +100,7 @@ export function KnowledgeLifecycleProvider({ children }: { children: ReactNode }
         opportunities: item.result.opportunities.map((opportunity) => opportunity.id !== opportunityId ? opportunity : { ...opportunity, planId }),
       },
     }));
-  }, []);
+  }, [setAnalyses]);
 
   const setAnalysisStatus = useCallback((analysisId: string, status: AnalysisStatus) => {
     setAnalyses((current) => current.map((item) => item.id !== analysisId ? item : {
@@ -115,7 +108,7 @@ export function KnowledgeLifecycleProvider({ children }: { children: ReactNode }
       status,
       completedAt: status === "completed" ? new Date().toISOString() : undefined,
     }));
-  }, []);
+  }, [setAnalyses]);
 
   const value = useMemo(() => ({
     analyses,

@@ -1,83 +1,98 @@
-import {
-  Building2,
-  Pencil,
-  Trash2,
-} from "lucide-react";
+"use client";
+
+import Link from "next/link";
+import { Boxes, Building2, Pencil, Target, Trash2, UserRound } from "lucide-react";
 
 import type { Project } from "@/models/Project";
 import { projectStatusLabel } from "@/models/Project";
 
+import { StatusBadge } from "@/components/common/status/StatusBadge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 
 interface ProjectCardProps {
   project: Project;
-  onClick?: (project: Project) => void;
+  isActive?: boolean;
   onEdit?: (project: Project) => void;
   onDelete?: (project: Project) => void;
 }
 
-const statusColor: Record<Project["status"], string> = {
-  active: "bg-emerald-500",
-  inactive: "bg-amber-500",
-  archived: "bg-slate-400",
+const statusVariant: Record<Project["status"], "success" | "warning" | "default"> = {
+  active: "success",
+  inactive: "warning",
+  archived: "default",
 };
 
-export function ProjectCard({
-  project,
-  onClick,
-  onEdit,
-  onDelete,
-}: ProjectCardProps) {
-  const createdAt =
-    project.createdAt.toLocaleDateString("pt-BR");
+export function ProjectCard({ project, isActive = false, onEdit, onDelete }: ProjectCardProps) {
+  const context = [project.product, project.module].filter(Boolean).join(" · ");
 
   return (
     <Card
-      className="cursor-pointer rounded-xl border-border/70 bg-card shadow-none transition-colors hover:border-primary/30 hover:bg-muted/20"
-      onClick={() => onClick?.(project)}
+      className={`relative rounded-xl bg-card shadow-none transition-colors ${
+        isActive ? "border-primary/45 bg-primary/[0.03]" : "border-border/70 hover:border-primary/30"
+      }`}
     >
-      <CardContent className="space-y-5 p-5">
-        <div className="flex items-start justify-between">
-          <div>
-            <h2 className="text-base font-semibold tracking-tight">
-              {project.name}
+      <CardContent className="flex h-full flex-col gap-5 p-5">
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0">
+            <div className="flex flex-wrap items-center gap-2">
+              <StatusBadge variant={statusVariant[project.status]}>
+                {projectStatusLabel[project.status]}
+              </StatusBadge>
+
+              {isActive && <StatusBadge variant="info">Projeto ativo</StatusBadge>}
+            </div>
+
+            <h2 className="mt-3 text-base font-semibold tracking-tight">
+              {/* O card inteiro é navegável pelo título, sem capturar os botões de ação. */}
+              <Link href={`/projects/${project.id}`} className="after:absolute after:inset-0 hover:underline">
+                {project.name}
+              </Link>
             </h2>
 
-            <div className="mt-2 flex items-center gap-2 text-sm text-muted-foreground">
-              <Building2 className="h-4 w-4" />
-              {project.client}
-            </div>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <span
-              className={`h-2.5 w-2.5 rounded-full ${statusColor[project.status]}`}
-            />
-
-            <span className="text-xs font-medium text-muted-foreground">
-              {projectStatusLabel[project.status]}
-            </span>
+            <p className="mt-1.5 flex items-center gap-2 text-sm text-muted-foreground">
+              <Building2 className="h-3.5 w-3.5 shrink-0" />
+              <span className="truncate">{project.client || "Cliente não informado"}</span>
+            </p>
           </div>
         </div>
 
-        <p className="text-sm text-muted-foreground">
-          {project.description}
-        </p>
+        <dl className="space-y-2 text-sm">
+          <div className="flex items-center gap-2 text-muted-foreground">
+            <dt className="sr-only">Contexto AltoQi</dt>
+            <Boxes className="h-3.5 w-3.5 shrink-0 text-primary" />
+            <dd className="truncate">{context || "Produto não definido"}</dd>
+          </div>
 
-        <div className="flex items-center justify-between border-t pt-4">
+          <div className="flex items-center gap-2 text-muted-foreground">
+            <dt className="sr-only">Responsável</dt>
+            <UserRound className="h-3.5 w-3.5 shrink-0 text-primary" />
+            <dd className="truncate">{project.owner || "Responsável não definido"}</dd>
+          </div>
+        </dl>
+
+        {project.goal ? (
+          <p className="flex gap-2 rounded-lg border-l-2 border-primary/30 bg-muted/25 px-3 py-2.5 text-sm leading-6">
+            <Target className="mt-1 h-3.5 w-3.5 shrink-0 text-primary" />
+            <span className="line-clamp-2">{project.goal}</span>
+          </p>
+        ) : (
+          <p className="text-sm leading-6 text-muted-foreground line-clamp-2">
+            {project.description || "Sem objetivo definido."}
+          </p>
+        )}
+
+        <div className="mt-auto flex items-center justify-between border-t pt-4">
           <span className="text-xs text-muted-foreground">
-            Criado em {createdAt}
+            Atualizado em {project.updatedAt.toLocaleDateString("pt-BR")}
           </span>
 
-          <div className="flex gap-2">
+          <div className="relative flex gap-2">
             <Button
               size="icon"
               variant="ghost"
-              onClick={(event) => {
-                event.stopPropagation();
-                onEdit?.(project);
-              }}
+              aria-label={`Editar ${project.name}`}
+              onClick={() => onEdit?.(project)}
             >
               <Pencil className="h-4 w-4" />
             </Button>
@@ -85,10 +100,8 @@ export function ProjectCard({
             <Button
               size="icon"
               variant="ghost"
-              onClick={(event) => {
-                event.stopPropagation();
-                onDelete?.(project);
-              }}
+              aria-label={`Excluir ${project.name}`}
+              onClick={() => onDelete?.(project)}
             >
               <Trash2 className="h-4 w-4" />
             </Button>

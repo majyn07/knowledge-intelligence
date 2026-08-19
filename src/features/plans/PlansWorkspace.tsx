@@ -4,7 +4,7 @@ import { ListTodo } from "lucide-react";
 
 import { PageHeader } from "@/components/common/page/PageHeader";
 import { useProject } from "@/providers/ProjectProvider";
-import { useLibrary } from "@/features/library/hooks/useLibrary";
+import { useLibrary } from "@/features/library/providers/LibraryProvider";
 
 import { PlanContextPanel } from "./components/PlanContextPanel";
 import { PlanDocument } from "./components/PlanDocument";

@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { toast } from "sonner";
 
@@ -10,7 +10,14 @@ import { projectService } from "../services/ProjectService";
 import type { ProjectFormData } from "../types/ProjectFormData";
 
 export function useProjects() {
-  const [projects, setProjects] = useState<Project[]>(() => projectService.getAll());
+  // Servidor e primeiro render do cliente partem da mesma base canônica.
+  const [projects, setProjects] = useState<Project[]>(() => projectService.getSeed());
+  const [isHydrated, setIsHydrated] = useState(false);
+
+  useEffect(() => {
+    setProjects(projectService.getAll());
+    setIsHydrated(true);
+  }, []);
 
   const createProject = useCallback((data: ProjectFormData): Project => {
     const project = projectService.create(data);
@@ -40,6 +47,7 @@ export function useProjects() {
 
   return {
     projects,
+    isHydrated,
     totalProjects: useMemo(() => projects.length, [projects]),
     createProject,
     updateProject,

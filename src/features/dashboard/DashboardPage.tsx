@@ -8,7 +8,7 @@ import { ProductGraphic } from "@/components/brand/ProductGraphic";
 import { PageHeader } from "@/components/common/page/PageHeader";
 import { Button } from "@/components/ui/button";
 import { useKnowledgeLifecycle } from "@/features/analysis/providers/KnowledgeLifecycleProvider";
-import { useLibrary } from "@/features/library/hooks/useLibrary";
+import { useLibrary } from "@/features/library/providers/LibraryProvider";
 import { selectProjectMetrics } from "@/features/metrics/projectMetrics";
 import { usePlans } from "@/features/plans/providers/PlansProvider";
 import { useBrandTheme } from "@/providers/BrandThemeProvider";
