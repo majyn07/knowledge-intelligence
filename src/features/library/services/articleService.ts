@@ -19,6 +19,7 @@ function normalize(data: LibraryFormData) {
     category: data.category.trim(),
     tags: data.tags,
     keywords: data.keywords,
+    author: data.author.trim(),
     url: data.url.trim() || undefined,
   };
 }
@@ -73,6 +74,7 @@ export const articleService = {
       category: "A definir",
       tags: [],
       keywords: [],
+      author: plan.owner,
       source: {
         projectId: plan.source.projectId,
         ticketId: plan.source.ticketId,
@@ -100,6 +102,7 @@ export const articleService = {
       category: article.category,
       tags: article.tags,
       keywords: article.keywords,
+      author: article.author,
       url: article.url ?? "",
     };
   },

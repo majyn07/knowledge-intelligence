@@ -19,5 +19,6 @@ export interface LibraryFormData {
 
   tags: string[];
   keywords: string[];
+  author: string;
   url: string;
 }

@@ -107,6 +107,8 @@ export default function LibraryPage() {
         >
           <LibraryForm
             projects={projectOptions}
+            articles={items}
+            editingId={selectedItem?.id}
             initialData={selectedItem ? articleService.toFormData(selectedItem) : undefined}
             submitLabel={selectedItem ? "Atualizar" : "Salvar"}
             onSubmit={handleSubmit}

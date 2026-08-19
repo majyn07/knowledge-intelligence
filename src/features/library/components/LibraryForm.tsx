@@ -1,9 +1,12 @@
 "use client";
 
-import { FormEvent, useEffect, useState, type ReactNode } from "react";
-import { Eye, PenLine } from "lucide-react";
+import { FormEvent, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { Eye, PenLine, Sparkles } from "lucide-react";
 
 import type { LibraryFormData } from "@/features/library/types/LibraryFormData";
+import { ARTICLE_CATEGORIES, UNSET_CATEGORY } from "@/features/library/constants/categories";
+import { articleTemplates } from "@/features/library/content/articleTemplates";
+import { findSimilarArticles } from "@/features/library/search/findSimilarArticles";
 import { PROJECT_PRODUCTS, UNSET_PRODUCT } from "@/features/projects/constants/products";
 import {
   allowedArticleTransitions,
@@ -11,6 +14,7 @@ import {
   articleTypeLabel,
   type ArticleStatus,
   type ArticleType,
+  type KnowledgeArticle,
 } from "@/models/KnowledgeArticle";
 
 import { MarkdownContent } from "@/components/common/MarkdownContent";
@@ -26,8 +30,14 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 
+import { DuplicateWarning } from "./DuplicateWarning";
+import { MarkdownToolbar } from "./MarkdownToolbar";
+
 interface LibraryFormProps {
   projects: { id: string; name: string }[];
+  /** Acervo usado para avisar sobre conteúdo duplicado. */
+  articles: KnowledgeArticle[];
+  editingId?: string;
   initialData?: LibraryFormData;
   submitLabel?: string;
   onSubmit: (data: LibraryFormData) => void;
@@ -43,14 +53,16 @@ const emptyForm: LibraryFormData = {
   status: "draft",
   product: UNSET_PRODUCT,
   module: "",
-  category: "",
+  category: UNSET_CATEGORY,
   tags: [],
   keywords: [],
+  author: "",
   url: "",
 };
 
 const articleTypes: ArticleType[] = ["article", "faq", "workflow", "document", "template"];
 const PRODUCT_PLACEHOLDER = "Não definido";
+const CATEGORY_PLACEHOLDER = "Não definida";
 
 function toList(value: string) {
   return value.split(",").map((item) => item.trim()).filter(Boolean);
@@ -71,6 +83,8 @@ function Fieldset({ legend, hint, children }: { legend: string; hint: string; ch
 
 export function LibraryForm({
   projects,
+  articles,
+  editingId,
   initialData,
   submitLabel = "Salvar",
   onSubmit,
@@ -80,12 +94,25 @@ export function LibraryForm({
   const [tags, setTags] = useState("");
   const [keywords, setKeywords] = useState("");
   const [isPreviewing, setIsPreviewing] = useState(false);
+  const contentRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
     setFormData(initialData ?? emptyForm);
     setTags(initialData?.tags.join(", ") ?? "");
     setKeywords(initialData?.keywords.join(", ") ?? "");
+    setIsPreviewing(false);
   }, [initialData]);
+
+  const similarArticles = useMemo(
+    () =>
+      findSimilarArticles({
+        articles,
+        text: `${formData.title} ${formData.summary}`,
+        projectId: formData.projectId || undefined,
+        excludeId: editingId,
+      }),
+    [articles, editingId, formData.projectId, formData.summary, formData.title]
+  );
 
   // Fora da edição, o status é sempre rascunho; na edição, só os destinos válidos.
   const statusOptions: ArticleStatus[] = initialData
@@ -108,6 +135,11 @@ export function LibraryForm({
     setFormData((previous) => ({ ...previous, [field]: value }));
   }
 
+  function applyTemplate() {
+    change("content", articleTemplates[formData.type]);
+    setIsPreviewing(false);
+  }
+
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <Fieldset legend="Artigo" hint="O que este conteúdo ensina e para quem.">
@@ -121,6 +153,8 @@ export function LibraryForm({
           />
         </div>
 
+        <DuplicateWarning results={similarArticles} />
+
         <div className="space-y-2">
           <Label htmlFor="summary">Resumo</Label>
           <Textarea
@@ -133,28 +167,37 @@ export function LibraryForm({
         </div>
       </Fieldset>
 
-      <Fieldset legend="Conteúdo" hint="Aceita Markdown: títulos, listas, tabelas e blocos de código.">
-        <div className="flex items-center justify-between">
+      <Fieldset legend="Conteúdo" hint="Escreva em Markdown. Os títulos viram o índice do artigo.">
+        <div className="flex flex-wrap items-center justify-between gap-2">
           <Label htmlFor="content">Corpo do artigo</Label>
 
-          <Button
-            type="button"
-            size="sm"
-            variant="ghost"
-            onClick={() => setIsPreviewing((previous) => !previous)}
-          >
-            {isPreviewing ? (
-              <>
-                <PenLine className="mr-1.5 h-3.5 w-3.5" />
-                Editar
-              </>
-            ) : (
-              <>
-                <Eye className="mr-1.5 h-3.5 w-3.5" />
-                Pré-visualizar
-              </>
+          <div className="flex gap-1">
+            {!formData.content.trim() && (
+              <Button type="button" size="sm" variant="ghost" onClick={applyTemplate}>
+                <Sparkles className="mr-1.5 h-3.5 w-3.5" />
+                Usar modelo de {articleTypeLabel[formData.type].toLowerCase()}
+              </Button>
             )}
-          </Button>
+
+            <Button
+              type="button"
+              size="sm"
+              variant="ghost"
+              onClick={() => setIsPreviewing((previous) => !previous)}
+            >
+              {isPreviewing ? (
+                <>
+                  <PenLine className="mr-1.5 h-3.5 w-3.5" />
+                  Editar
+                </>
+              ) : (
+                <>
+                  <Eye className="mr-1.5 h-3.5 w-3.5" />
+                  Pré-visualizar
+                </>
+              )}
+            </Button>
+          </div>
         </div>
 
         {isPreviewing ? (
@@ -166,14 +209,23 @@ export function LibraryForm({
             )}
           </div>
         ) : (
-          <Textarea
-            id="content"
-            rows={12}
-            className="font-mono text-sm"
-            placeholder={"## Passo a passo\n\n1. Primeiro passo\n2. Segundo passo"}
-            value={formData.content}
-            onChange={(event) => change("content", event.target.value)}
-          />
+          <div className="space-y-2">
+            <MarkdownToolbar
+              textareaRef={contentRef}
+              value={formData.content}
+              onChange={(value) => change("content", value)}
+            />
+
+            <Textarea
+              id="content"
+              ref={contentRef}
+              rows={14}
+              className="font-mono text-sm"
+              placeholder={"## Problema\n\nDescreva o sintoma como o cliente o relata."}
+              value={formData.content}
+              onChange={(event) => change("content", event.target.value)}
+            />
+          </div>
         )}
       </Fieldset>
 
@@ -255,13 +307,26 @@ export function LibraryForm({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="category">Categoria</Label>
-            <Input
-              id="category"
-              placeholder="Ex.: Instalação e acesso ao software"
+            <Label htmlFor="article-category">Categoria</Label>
+            <Select
               value={formData.category}
-              onChange={(event) => change("category", event.target.value)}
-            />
+              onValueChange={(value) =>
+                change("category", !value || value === CATEGORY_PLACEHOLDER ? UNSET_CATEGORY : value)
+              }
+            >
+              <SelectTrigger id="article-category">
+                <SelectValue>{(category: string) => category || CATEGORY_PLACEHOLDER}</SelectValue>
+              </SelectTrigger>
+
+              <SelectContent>
+                <SelectItem value={CATEGORY_PLACEHOLDER}>{CATEGORY_PLACEHOLDER}</SelectItem>
+                {ARTICLE_CATEGORIES.map((category) => (
+                  <SelectItem key={category} value={category}>
+                    {category}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="space-y-2">
@@ -286,14 +351,26 @@ export function LibraryForm({
           </div>
         </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="tags">Tags</Label>
-          <Input
-            id="tags"
-            placeholder="autenticação, acesso"
-            value={tags}
-            onChange={(event) => setTags(event.target.value)}
-          />
+        <div className="grid gap-4 md:grid-cols-2">
+          <div className="space-y-2">
+            <Label htmlFor="tags">Tags</Label>
+            <Input
+              id="tags"
+              placeholder="autenticação, acesso"
+              value={tags}
+              onChange={(event) => setTags(event.target.value)}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="author">Autor</Label>
+            <Input
+              id="author"
+              placeholder="Ex.: Equipe de Conhecimento Visus"
+              value={formData.author}
+              onChange={(event) => change("author", event.target.value)}
+            />
+          </div>
         </div>
 
         <div className="space-y-2">

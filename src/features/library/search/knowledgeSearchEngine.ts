@@ -2,6 +2,17 @@ import type { KnowledgeArticle } from "@/models/KnowledgeArticle";
 import type { KnowledgeQuery } from "@/models/KnowledgeQuery";
 import type { KnowledgeSearchResult } from "@/models/KnowledgeSearchResult";
 
+/**
+ * Palavras muito frequentes em português não indicam proximidade de assunto:
+ * sem esta lista, dois artigos passam a se relacionar por "para" ou "como".
+ */
+const STOPWORDS = new Set([
+  "para", "com", "que", "dos", "das", "por", "uma", "nao", "não", "como",
+  "mais", "sem", "sobre", "pode", "ser", "est", "esta", "este", "isso",
+  "quando", "onde", "apos", "após", "seu", "sua", "aos", "nas", "nos",
+  "foi", "são", "sao", "tem", "caso", "deve", "todos", "toda", "cada",
+]);
+
 const TITLE_WEIGHT = 10;
 const KEYWORD_WEIGHT = 8;
 const TAG_WEIGHT = 6;
@@ -20,7 +31,7 @@ export function searchKnowledge(
     .toLowerCase()
     .split(/\s+/)
     .map((term) => term.trim())
-    .filter((term) => term.length > 2);
+    .filter((term) => term.length > 2 && !STOPWORDS.has(term));
 
   const maxScore =
     terms.length *

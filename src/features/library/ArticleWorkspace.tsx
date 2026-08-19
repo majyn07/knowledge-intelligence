@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import Link from "next/link";
 import { ArrowLeft, ExternalLink, FileSearch, Link2, Sparkles } from "lucide-react";
 
@@ -19,8 +19,11 @@ import {
 } from "@/models/KnowledgeArticle";
 import { useProject } from "@/providers/ProjectProvider";
 
+import { ArticleTableOfContents } from "./components/ArticleTableOfContents";
 import { LibraryDialog } from "./components/LibraryDialog";
 import { LibraryForm } from "./components/LibraryForm";
+import { RelatedArticles } from "./components/RelatedArticles";
+import { findSimilarArticles } from "./search/findSimilarArticles";
 import { useLibrary } from "./providers/LibraryProvider";
 import { articleService } from "./services/articleService";
 import type { LibraryFormData } from "./types/LibraryFormData";
@@ -42,6 +45,19 @@ export function ArticleWorkspace({ articleId }: ArticleWorkspaceProps) {
   const [isEditing, setIsEditing] = useState(false);
 
   const article = items.find((item) => item.id === articleId);
+
+  const related = useMemo(
+    () =>
+      article
+        ? findSimilarArticles({
+            articles: items,
+            text: `${article.title} ${article.summary} ${article.keywords.join(" ")}`,
+            projectId: article.projectId,
+            excludeId: article.id,
+          })
+        : [],
+    [article, items]
+  );
 
   if (!article) {
     return (
@@ -121,6 +137,9 @@ export function ArticleWorkspace({ articleId }: ArticleWorkspaceProps) {
             { label: "Produto", value: article.product || "Não definido" },
             { label: "Módulo", value: article.module || "Não definido" },
             { label: "Categoria", value: article.category || "Não definida" },
+            { label: "Autor", value: article.author || "Não definido" },
+            { label: "Criado em", value: article.createdAt.toLocaleDateString("pt-BR") },
+            { label: "Atualizado em", value: article.updatedAt.toLocaleDateString("pt-BR") },
           ]}
         />
 
@@ -153,16 +172,22 @@ export function ArticleWorkspace({ articleId }: ArticleWorkspaceProps) {
       </section>
 
       <PageSection title="Conteúdo" description="Como o artigo será lido por quem procura ajuda.">
-        <div className="rounded-xl border border-border/70 bg-card p-6 sm:p-8">
-          {article.content.trim() ? (
-            <MarkdownContent content={article.content} />
-          ) : (
-            <p className="text-sm text-muted-foreground">
-              Este artigo ainda não tem conteúdo escrito. Edite para começar.
-            </p>
-          )}
+        <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(15rem,0.28fr)]">
+          <div className="min-w-0 rounded-xl border border-border/70 bg-card p-6 sm:p-8">
+            {article.content.trim() ? (
+              <MarkdownContent content={article.content} />
+            ) : (
+              <p className="text-sm text-muted-foreground">
+                Este artigo ainda não tem conteúdo escrito. Edite para começar.
+              </p>
+            )}
+          </div>
+
+          <ArticleTableOfContents content={article.content} />
         </div>
       </PageSection>
+
+      <RelatedArticles results={related} />
 
       {article.source && (
         <PageSection
@@ -206,6 +231,8 @@ export function ArticleWorkspace({ articleId }: ArticleWorkspaceProps) {
       >
         <LibraryForm
           projects={projects.map((project) => ({ id: project.id, name: project.name }))}
+          articles={items}
+          editingId={article.id}
           initialData={articleService.toFormData(article)}
           submitLabel="Atualizar"
           onSubmit={handleSubmit}

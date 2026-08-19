@@ -1,5 +1,7 @@
 import { Fragment, type ReactNode } from "react";
 
+import { headingId } from "@/features/library/content/headings";
+
 function inline(text: string): ReactNode[] {
   return text.split(/(\*\*[^*]+\*\*)/g).map((part, index) => part.startsWith("**") && part.endsWith("**") ? <strong key={index}>{part.slice(2, -2)}</strong> : <Fragment key={index}>{part}</Fragment>);
 }
@@ -18,7 +20,8 @@ export function MarkdownContent({ content }: { content: string }) {
     } else if (/^#{1,3}\s/.test(line)) {
       const level = line.match(/^#+/)?.[0].length ?? 1;
       const Tag = level === 1 ? "h2" : level === 2 ? "h3" : "h4";
-      nodes.push(<Tag key={index} className="mt-4 font-semibold first:mt-0">{inline(line.replace(/^#{1,3}\s/, ""))}</Tag>);
+      const headingText = line.replace(/^#{1,3}\s/, "");
+      nodes.push(<Tag key={index} id={headingId(headingText)} className="mt-4 scroll-mt-24 font-semibold first:mt-0">{inline(headingText)}</Tag>);
     } else if (/^[-*]\s+/.test(line)) {
       const items: string[] = [];
       while (index < lines.length && /^[-*]\s+/.test(lines[index])) items.push(lines[index++].replace(/^[-*]\s+/, ""));

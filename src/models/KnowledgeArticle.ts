@@ -45,6 +45,9 @@ export interface KnowledgeArticle {
   tags: string[];
   keywords: string[];
 
+  /** Quem conduz o conteúdo. Campo simples até existir sistema de usuários. */
+  author: string;
+
   /** Endereço público do artigo, quando já publicado fora da plataforma. */
   url?: string;
 

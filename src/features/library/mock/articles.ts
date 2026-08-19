@@ -9,26 +9,33 @@ export const knowledgeArticles: KnowledgeArticle[] = [
     id: "article-001",
     title: "Erro ao autenticar após atualização",
     summary: "Procedimento para resolver falhas de autenticação após atualização do sistema.",
-    content: `
-Após uma atualização do sistema, alguns usuários podem perder a autenticação.
+    content: `## Problema
 
-Verifique:
+Após uma atualização do sistema, alguns usuários deixam de conseguir autenticar e recebem mensagem de sessão inválida.
 
-- Token expirado
-- Permissões do usuário
-- Sessão inválida
-- Cache do navegador
+## Causa
 
-Caso necessário, solicite novo login.
-`.trim(),
+O processo de atualização pode invalidar o token da sessão anterior ou alterar a configuração do provedor de identidade.
+
+## Solução
+
+1. Confirme se o token da sessão expirou
+2. Verifique as permissões do usuário e o grupo ao qual ele pertence
+3. Limpe o cache do navegador
+4. Solicite novo login
+
+## Como validar
+
+O usuário conclui o login e acessa o módulo sem nova mensagem de erro.`.trim(),
     projectId: "project-001",
     type: "article",
     status: "published",
     product: "AltoQi Visus",
     module: "Workflow",
-    category: "Instalação e acesso ao software",
+    category: "Troubleshooting",
     tags: ["autenticação", "acesso"],
     keywords: ["login", "token", "sessão", "permissão", "atualização"],
+    author: "Equipe de Conhecimento Visus",
     createdAt: new Date("2026-05-10"),
     updatedAt: new Date("2026-06-18"),
   },
@@ -49,9 +56,10 @@ Verifique:
     status: "published",
     product: "AltoQi Visus",
     module: "Collab",
-    category: "Utilização do software",
+    category: "Utilização",
     tags: ["sincronização"],
     keywords: ["sincronizar", "conflito", "nuvem", "versão"],
+    author: "Equipe de Conhecimento Visus",
     createdAt: new Date("2026-04-22"),
     updatedAt: new Date("2026-05-30"),
   },
@@ -59,22 +67,29 @@ Verifique:
     id: "article-003",
     title: "Problemas de acesso ao Workflow",
     summary: "Erros comuns de acesso ao Workflow e como diagnosticá-los.",
-    content: `
-Confira:
+    content: `## Problema
 
-- usuário ativo
-- permissões
-- grupos
-- autenticação
-`.trim(),
+Usuários relatam erro ao abrir o Workflow, mesmo com credenciais corretas.
+
+## O que verificar
+
+- Usuário está ativo na conta
+- Permissões do perfil aplicado
+- Grupos aos quais o usuário pertence
+- Autenticação integrada configurada
+
+## Solução
+
+Ajuste o perfil de permissão e solicite que o usuário faça login novamente.`.trim(),
     projectId: "project-001",
     type: "article",
     status: "published",
     product: "AltoQi Visus",
     module: "Workflow",
-    category: "Instalação e acesso ao software",
+    category: "Troubleshooting",
     tags: ["acesso", "permissões"],
     keywords: ["workflow", "grupo", "perfil", "usuário"],
+    author: "Equipe de Conhecimento Visus",
     createdAt: new Date("2026-03-14"),
     updatedAt: new Date("2026-06-02"),
   },
@@ -95,9 +110,10 @@ Passo a passo para criar um novo fluxo:
     status: "published",
     product: "AltoQi Visus",
     module: "Workflow",
-    category: "Utilização do software",
+    category: "Utilização",
     tags: ["workflow", "configuração"],
     keywords: ["criar", "fluxo", "etapas", "modelo"],
+    author: "Equipe de Conhecimento Visus",
     createdAt: new Date("2026-07-15"),
     updatedAt: new Date("2026-07-15"),
   },
@@ -111,9 +127,10 @@ Passo a passo para criar um novo fluxo:
     status: "draft",
     product: "AltoQi Visus",
     module: "",
-    category: "Processos",
+    category: "Conceitos",
     tags: ["aprovação", "kb"],
     keywords: [],
+    author: "Equipe de Conhecimento Visus",
     createdAt: new Date("2026-07-10"),
     updatedAt: new Date("2026-07-12"),
   },
@@ -127,9 +144,10 @@ Passo a passo para criar um novo fluxo:
     status: "published",
     product: "AltoQi Visus",
     module: "Planning",
-    category: "Utilização do software",
+    category: "Utilização",
     tags: ["planning", "4d"],
     keywords: ["cronograma", "gantt"],
+    author: "Equipe de Conhecimento Visus",
     createdAt: new Date("2026-06-28"),
     updatedAt: new Date("2026-07-02"),
   },
