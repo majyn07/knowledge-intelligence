@@ -11,6 +11,7 @@ import { toast } from "sonner";
 
 import type { Library } from "@/models/Library";
 import type { LibraryFormData } from "@/features/library/types/LibraryFormData";
+import type { PlanWorkspaceItem } from "@/features/plans/types/PlanWorkspace";
 
 import { LibraryService } from "@/features/library/services/libraryService";
 
@@ -35,7 +36,8 @@ function loadLibrary(): Library[] {
 
     return parsedItems.map((item) => ({
       ...item,
-      status: (item.status as string) === "review" ? "draft" : item.status,
+      status: item.status,
+      content: item.content ?? "",
       createdAt: new Date(item.createdAt),
       updatedAt: new Date(item.updatedAt),
     }));
@@ -75,18 +77,35 @@ export function useLibrary() {
 
   const updateItem = useCallback(
     (id: string, data: LibraryFormData) => {
+      const currentItem = items.find((item) => item.id === id);
+      if (!currentItem || !LibraryService.canTransitionStatus(currentItem.status, data.status)) {
+        toast.error("Transição de status inválida para o ciclo de conhecimento.");
+        return undefined;
+      }
+
+      const updatedItem = LibraryService.update(currentItem, data);
       setItems((previous) =>
         previous.map((item) =>
           item.id === id
-            ? LibraryService.update(item, data)
+            ? updatedItem
             : item
         )
       );
 
       toast.success("Conteúdo atualizado com sucesso.");
     },
-    []
+    [items]
   );
+
+  const createItemFromPlan = useCallback((plan: PlanWorkspaceItem) => {
+    const existing = items.find((item) => item.source?.planId === plan.id);
+    if (existing) return { item: existing, created: false };
+
+    const newItem = LibraryService.createFromPlan(plan);
+    setItems((previous) => [newItem, ...previous]);
+    toast.success("Rascunho criado a partir do plano de melhoria.");
+    return { item: newItem, created: true };
+  }, [items]);
 
   const deleteItem = useCallback(
     (id: string) => {
@@ -112,5 +131,6 @@ export function useLibrary() {
     createItem,
     updateItem,
     deleteItem,
+    createItemFromPlan,
   };
 }

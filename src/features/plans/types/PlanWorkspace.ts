@@ -48,6 +48,17 @@ export interface PlanCopilotInsight {
   type: "suggestion" | "risk" | "duplicate";
 }
 
+/** References the decision that originated the plan without copying the analysis. */
+export interface PlanSource {
+  projectId: string;
+  ticketId: string;
+  analysisId: string;
+  opportunityId: string;
+  articleId?: string;
+  analysisLabel: string;
+  opportunityTitle: string;
+}
+
 export interface PlanWorkspaceItem {
   id: string;
   title: string;
@@ -58,11 +69,7 @@ export interface PlanWorkspaceItem {
   owner: string;
   createdAt: string;
   updatedAt: string;
-  source: {
-    ticketId: string;
-    analysisLabel: string;
-    opportunityTitle: string;
-  };
+  source: PlanSource;
   document: PlanDocument;
   tasks: PlanTask[];
   timeline: PlanTimelineItem[];

@@ -5,7 +5,7 @@ import { Toaster } from "@/components/ui/sonner";
 
 import { PlansProvider } from "@/features/plans/providers/PlansProvider";
 import { KnowledgeLifecycleProvider } from "@/features/analysis/providers/KnowledgeLifecycleProvider";
-import { AppProvider } from "@/providers/AppProvider";
+import { ProjectProvider } from "@/providers/ProjectProvider";
 import { BrandThemeProvider } from "@/providers/BrandThemeProvider";
 
 import "./globals.css";
@@ -21,7 +21,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Visus Knowledge Intelligence",
+  title: "Knowledge Intelligence",
   description:
     "Assistente inteligente para análise de atendimentos e evolução da Base de Conhecimento.",
 };
@@ -39,7 +39,7 @@ export default function RootLayout({
     >
       <body className="min-h-screen bg-background font-sans text-foreground antialiased">
         <BrandThemeProvider>
-          <AppProvider>
+          <ProjectProvider>
             <KnowledgeLifecycleProvider>
               <PlansProvider>{children}</PlansProvider>
             </KnowledgeLifecycleProvider>
@@ -49,7 +49,7 @@ export default function RootLayout({
             richColors
             closeButton
             />
-          </AppProvider>
+          </ProjectProvider>
         </BrandThemeProvider>
       </body>
     </html>

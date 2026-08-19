@@ -25,7 +25,7 @@ export function AppShell({
       <SidebarInset className="overflow-hidden">
         <AppHeader
           title="Workspace"
-          description="Visus Knowledge Intelligence"
+          description="Knowledge Intelligence"
         />
 
         <main className="technical-frame flex flex-1 flex-col overflow-hidden">

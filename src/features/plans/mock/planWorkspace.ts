@@ -11,7 +11,7 @@ export const planWorkspaceMock: PlanWorkspaceItem[] = [
     owner: "Mariana Costa",
     createdAt: "15 jul. 2026",
     updatedAt: "Hoje, 10:30",
-    source: { ticketId: "45812", analysisLabel: "Análise de autenticação", opportunityTitle: "Atualizar artigo de autenticação" },
+    source: { projectId: "project-001", ticketId: "45812", analysisId: "analysis-001", opportunityId: "opp-001", analysisLabel: "Análise de autenticação", opportunityTitle: "Atualizar artigo de autenticação" },
     document: {
       executiveSummary: "Atualizar a orientação de autenticação para refletir o fluxo após a atualização do sistema, reduzindo intervenções recorrentes do suporte.",
       context: "O atendimento revelou que o procedimento usado pela equipe não está documentado na Base de Conhecimento atual.",
@@ -61,7 +61,7 @@ export const planWorkspaceMock: PlanWorkspaceItem[] = [
     owner: "Rafael Lima",
     createdAt: "14 jul. 2026",
     updatedAt: "Ontem, 16:20",
-    source: { ticketId: "45812", analysisLabel: "Análise de autenticação", opportunityTitle: "Revisar documentação de permissões" },
+    source: { projectId: "project-001", ticketId: "45812", analysisId: "analysis-001", opportunityId: "opp-002", analysisLabel: "Análise de autenticação", opportunityTitle: "Revisar documentação de permissões" },
     document: { executiveSummary: "Consolidar a documentação dos novos perfis de acesso.", context: "A análise relacionou permissões ao fluxo de autenticação.", problem: "A documentação não diferencia os perfis atuais.", diagnosis: "Há conteúdos sobrepostos e terminologia inconsistente.", evidence: ["Perfis novos não aparecem no artigo principal."], decisions: ["Consolidar nomenclaturas."], proposal: "Atualizar a matriz de permissões e revisar exemplos.", acceptanceCriteria: ["Todos os perfis estão descritos."], notes: "Aguardando validação técnica.", references: ["Atendimento #45812"] },
     tasks: [{ id: "task-5", label: "Validar matriz de perfis", completed: true, owner: "Rafael Lima" }, { id: "task-6", label: "Revisar exemplos de acesso", completed: false, owner: "Suporte" }],
     timeline: [{ id: "timeline-6", label: "Criado", date: "14 jul.", completed: true }, { id: "timeline-7", label: "Em revisão", date: "Hoje", completed: true }, { id: "timeline-8", label: "Aprovado", date: "Pendente", completed: false }],

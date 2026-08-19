@@ -1,5 +1,6 @@
 export type LibraryStatus =
   | "draft"
+  | "review"
   | "published"
   | "archived";
 
@@ -15,6 +16,7 @@ export interface Library {
 
   title: string;
   description: string;
+  content: string;
 
   projectId: string;
 
@@ -23,7 +25,22 @@ export interface Library {
 
   category: string;
   tags: string[];
+  source?: KnowledgeContentSource;
 
   createdAt: Date;
   updatedAt: Date;
 }
+
+export interface KnowledgeContentSource {
+  projectId: string;
+  ticketId: string;
+  analysisId: string;
+  opportunityId: string;
+  planId: string;
+}
+
+export const nextLibraryStatus: Partial<Record<LibraryStatus, LibraryStatus>> = {
+  draft: "review",
+  review: "published",
+  published: "archived",
+};

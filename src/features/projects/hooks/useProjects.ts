@@ -1,113 +1,46 @@
 "use client";
 
-import {
-  useCallback,
-  useEffect,
-  useMemo,
-  useState,
-} from "react";
+import { useCallback, useMemo, useState } from "react";
 
 import { toast } from "sonner";
 
 import type { Project } from "@/models/Project";
-import type { ProjectFormData } from "@/features/projects/types/ProjectFormData";
 
-import { ProjectService } from "@/features/projects/services/ProjectService";
-
-const STORAGE_KEY = "visus-projects";
-
-function loadProjects(): Project[] {
-  if (typeof window === "undefined") {
-    return ProjectService.getAll();
-  }
-
-  const storedProjects =
-    localStorage.getItem(STORAGE_KEY);
-
-  if (!storedProjects) {
-    return ProjectService.getAll();
-  }
-
-  try {
-    const parsedProjects = JSON.parse(
-      storedProjects
-    ) as Project[];
-
-    return parsedProjects.map((project) => ({
-      ...project,
-      createdAt: new Date(project.createdAt),
-      updatedAt: new Date(project.updatedAt),
-    }));
-  } catch {
-    console.error(
-      "Erro ao carregar projetos do localStorage."
-    );
-
-    return ProjectService.getAll();
-  }
-}
+import { projectService } from "../services/ProjectService";
+import type { ProjectFormData } from "../types/ProjectFormData";
 
 export function useProjects() {
-  const [projects, setProjects] =
-    useState<Project[]>(loadProjects);
+  const [projects, setProjects] = useState<Project[]>(() => projectService.getAll());
 
-  useEffect(() => {
-    localStorage.setItem(
-      STORAGE_KEY,
-      JSON.stringify(projects)
-    );
+  const createProject = useCallback((data: ProjectFormData): Project => {
+    const project = projectService.create(data);
+    setProjects((current) => [project, ...current]);
+    toast.success("Projeto criado com sucesso.");
+    return project;
+  }, []);
+
+  const updateProject = useCallback((id: string, data: ProjectFormData): Project | undefined => {
+    const project = projects.find((current) => current.id === id);
+    if (!project) return undefined;
+
+    const updatedProject = projectService.update(project, data);
+    setProjects((current) => current.map((item) => item.id === id ? updatedProject : item));
+    toast.success("Projeto atualizado com sucesso.");
+    return updatedProject;
   }, [projects]);
 
-  const createProject = useCallback(
-    (data: ProjectFormData) => {
-      const newProject = ProjectService.create(data);
+  const deleteProject = useCallback((id: string): boolean => {
+    if (!projects.some((project) => project.id === id)) return false;
 
-      setProjects((previous) => [
-        newProject,
-        ...previous,
-      ]);
-
-      toast.success("Projeto criado com sucesso.");
-    },
-    []
-  );
-
-  const updateProject = useCallback(
-    (id: string, data: ProjectFormData) => {
-      setProjects((previous) =>
-        previous.map((project) =>
-          project.id === id
-            ? ProjectService.update(project, data)
-            : project
-        )
-      );
-
-      toast.success("Projeto atualizado com sucesso.");
-    },
-    []
-  );
-
-  const deleteProject = useCallback(
-    (id: string) => {
-      setProjects((previous) =>
-        previous.filter(
-          (project) => project.id !== id
-        )
-      );
-
-      toast.success("Projeto excluído com sucesso.");
-    },
-    []
-  );
-
-  const totalProjects = useMemo(
-    () => projects.length,
-    [projects]
-  );
+    projectService.delete(id);
+    setProjects((current) => current.filter((project) => project.id !== id));
+    toast.success("Projeto excluído com sucesso.");
+    return true;
+  }, [projects]);
 
   return {
     projects,
-    totalProjects,
+    totalProjects: useMemo(() => projects.length, [projects]),
     createProject,
     updateProject,
     deleteProject,

@@ -31,8 +31,7 @@ export const analysisService = {
 
   async sendMessage(
     context: AIContext,
-    messages: AnalysisMessage[],
-    message: string
+    messages: AnalysisMessage[]
   ): Promise<AnalysisMessage> {
     const response = await fetch(
       "/api/analysis/chat",
@@ -44,7 +43,6 @@ export const analysisService = {
         body: JSON.stringify({
           context,
           messages,
-          message,
         }),
       }
     );

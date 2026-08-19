@@ -2,15 +2,10 @@
 
 import { FolderKanban } from "lucide-react";
 
-import { projects } from "@/features/projects/mock/projects";
-import { useApp } from "@/providers/AppProvider";
+import { useProject } from "@/providers/ProjectProvider";
 
 export function CurrentProject() {
-  const { currentProjectId } = useApp();
-
-  const project = projects.find(
-    (item) => item.id === currentProjectId
-  );
+  const { activeProject: project } = useProject();
 
   if (!project) {
     return null;

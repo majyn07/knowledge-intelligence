@@ -1,0 +1,80 @@
+import type { KnowledgeOpportunity, OpportunityStatus } from "@/features/analysis/types/KnowledgeOpportunity";
+import type { PlanWorkspaceItem } from "@/features/plans/types/PlanWorkspace";
+import type { AnalysisRecord } from "@/models/KnowledgeLifecycle";
+import type { Library, LibraryStatus } from "@/models/Library";
+
+export interface ProjectMetricsInput {
+  projectId: string | null;
+  analyses: AnalysisRecord[];
+  plans: PlanWorkspaceItem[];
+  articles: Library[];
+}
+
+export interface ProjectOpportunity extends KnowledgeOpportunity {
+  analysisId: string;
+  ticketId: string;
+  analysisStartedAt: string;
+}
+
+/**
+ * Read-only project selector shared by Dashboard and Indicators.
+ * Coverage is the proportion of completed analyses classified as adequate.
+ * Active plans are all plans not yet marked as published in the current plan workflow.
+ */
+export function selectProjectMetrics({ projectId, analyses, plans, articles }: ProjectMetricsInput) {
+  const projectAnalyses = projectId ? analyses.filter((analysis) => analysis.projectId === projectId) : [];
+  const projectPlans = projectId ? plans.filter((plan) => plan.projectId === projectId) : [];
+  const projectArticles = projectId ? articles.filter((article) => article.projectId === projectId) : [];
+  const opportunities: ProjectOpportunity[] = projectAnalyses.flatMap((analysis) =>
+    analysis.result.opportunities.map((opportunity) => ({
+      ...opportunity,
+      analysisId: analysis.id,
+      ticketId: analysis.ticketId,
+      analysisStartedAt: analysis.startedAt,
+    }))
+  );
+
+  const opportunityCount = (status: OpportunityStatus) => opportunities.filter((opportunity) => opportunity.status === status).length;
+  const articleCount = (status: LibraryStatus) => projectArticles.filter((article) => article.status === status).length;
+  const completedAnalyses = projectAnalyses.filter((analysis) => analysis.status === "completed");
+  const adequateAnalyses = completedAnalyses.filter(
+    (analysis) => analysis.result.classification.documentationStatus === "adequate"
+  );
+
+  return {
+    analyses: projectAnalyses,
+    plans: projectPlans,
+    articles: projectArticles,
+    opportunities,
+    analysis: {
+      total: projectAnalyses.length,
+      open: projectAnalyses.filter((analysis) => analysis.status === "open").length,
+      inReview: projectAnalyses.filter((analysis) => analysis.status === "in_review").length,
+      completed: completedAnalyses.length,
+      coverage: completedAnalyses.length ? Math.round((adequateAnalyses.length / completedAnalyses.length) * 100) : 0,
+    },
+    opportunity: {
+      total: opportunities.length,
+      proposed: opportunityCount("proposed"),
+      approved: opportunityCount("approved"),
+      discarded: opportunityCount("discarded"),
+      deferred: opportunityCount("deferred"),
+      draft: opportunityCount("draft"),
+    },
+    plan: {
+      total: projectPlans.length,
+      active: projectPlans.filter((plan) => plan.status !== "published").length,
+      published: projectPlans.filter((plan) => plan.status === "published").length,
+    },
+    article: {
+      total: projectArticles.length,
+      draft: articleCount("draft"),
+      review: articleCount("review"),
+      published: articleCount("published"),
+      archived: articleCount("archived"),
+    },
+    isEmpty: projectAnalyses.length === 0 && projectPlans.length === 0 && projectArticles.length === 0,
+  };
+}
+
+export type ProjectMetrics = ReturnType<typeof selectProjectMetrics>;

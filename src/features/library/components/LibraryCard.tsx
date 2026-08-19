@@ -27,6 +27,10 @@ const statusMap = {
     label: "Rascunho",
     color: "bg-slate-400",
   },
+  review: {
+    label: "Em revisão",
+    color: "bg-amber-500",
+  },
   published: {
     label: "Publicado",
     color: "bg-emerald-500",
@@ -120,7 +124,7 @@ export function LibraryCard({
           ))}
         </div>
 
-        <div className="flex items-center justify-between border-t pt-4">
+        {item.source && <p className="text-xs text-muted-foreground">Origem: plano {item.source.planId}</p>}<div className="flex items-center justify-between border-t pt-4">
           <span className="text-xs text-muted-foreground">
             Atualizado em{" "}
             {item.updatedAt.toLocaleDateString(

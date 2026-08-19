@@ -64,8 +64,7 @@ export function AnalysisConversation({
       const assistantMessage =
         await sendAnalysisMessage(
           context,
-          updatedMessages,
-          prompt
+          updatedMessages
         );
 
       setMessages([...updatedMessages, assistantMessage]);

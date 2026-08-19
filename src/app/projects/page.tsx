@@ -16,7 +16,7 @@ import { ProjectToolbar } from "@/features/projects/components/ProjectToolbar";
 
 import { useProjectFilters } from "@/features/projects/hooks/useProjectFilters";
 import { useProjectDialogs } from "@/features/projects/hooks/useProjectDialogs";
-import { useProjects } from "@/features/projects/hooks/useProjects";
+import { useProject } from "@/providers/ProjectProvider";
 
 export default function ProjectsPage() {
   const {
@@ -24,7 +24,8 @@ export default function ProjectsPage() {
     createProject,
     updateProject,
     deleteProject,
-  } = useProjects();
+    selectProject,
+  } = useProject();
 
   const {
     filters,
@@ -86,7 +87,7 @@ export default function ProjectsPage() {
 
           <ProjectGrid
             projects={filteredProjects}
-            onProjectClick={openEditDialog}
+            onProjectClick={(project) => selectProject(project.id)}
             onProjectEdit={openEditDialog}
             onProjectDelete={openDeleteDialog}
           />

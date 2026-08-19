@@ -14,6 +14,8 @@ export type OpportunityStatus =
 
 export interface KnowledgeOpportunity {
   id: string;
+  /** Set only after an approved opportunity is materialized as a plan. */
+  planId?: string;
   type: OpportunityType;
   title: string;
   description: string;

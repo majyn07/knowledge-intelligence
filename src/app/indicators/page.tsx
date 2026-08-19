@@ -1,15 +1,41 @@
 "use client";
 
 import { AppShell } from "@/components/layout/AppShell";
+import { BrandEmptyState } from "@/components/brand/BrandEmptyState";
 import { MetricCard } from "@/components/common/cards/MetricCard";
 import { PageHeader } from "@/components/common/page/PageHeader";
 import { useKnowledgeLifecycle } from "@/features/analysis/providers/KnowledgeLifecycleProvider";
+import { useLibrary } from "@/features/library/hooks/useLibrary";
+import { selectProjectMetrics } from "@/features/metrics/projectMetrics";
+import { usePlans } from "@/features/plans/providers/PlansProvider";
+import { useProject } from "@/providers/ProjectProvider";
 
 export default function IndicatorsPage() {
   const { analyses } = useKnowledgeLifecycle();
-  const completed = analyses.filter((analysis) => analysis.status === "completed");
-  const opportunities = completed.flatMap((analysis) => analysis.result.opportunities);
-  const covered = completed.filter((analysis) => analysis.result.classification.documentationStatus === "adequate").length;
-  const coverage = completed.length ? Math.round((covered / completed.length) * 100) : 0;
-  return <AppShell><div className="space-y-8"><PageHeader overline="Gestão" title="Indicadores" description="Métricas calculadas somente a partir das análises finalizadas." /><section className="grid gap-px overflow-hidden rounded-xl border border-border/70 bg-border/70 sm:grid-cols-2 xl:grid-cols-4"><MetricCard label="Cobertura da Base" value={`${coverage}%`} description="Atendimentos com cobertura adequada" /><MetricCard label="Análises concluídas" value={completed.length} description="Consideradas neste painel" /><MetricCard label="Em revisão" value={analyses.filter((analysis) => analysis.status === "in_review").length} description="Ainda não afetam os indicadores" /><MetricCard label="Rascunhos em preparação" value={opportunities.filter((item) => item.status === "draft").length} description="Prontos para a Biblioteca" /></section></div></AppShell>;
+  const { plans } = usePlans();
+  const { items: articles } = useLibrary();
+  const { activeProject, activeProjectId } = useProject();
+  const metrics = selectProjectMetrics({ projectId: activeProjectId, analyses, plans, articles });
+
+  return (
+    <AppShell>
+      <div className="space-y-8">
+        <PageHeader overline="Gestão" title="Indicadores" description="Valores atuais calculados com as mesmas regras do Centro de Inteligência." />
+        {metrics.isEmpty ? (
+          <BrandEmptyState title={`Sem indicadores para ${activeProject?.name ?? "o projeto ativo"}`} description="Registre análises, planos ou conteúdos neste projeto para acompanhar o ciclo de conhecimento." />
+        ) : (
+          <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+            <MetricCard label="Análises realizadas" value={metrics.analysis.total} description={`${metrics.analysis.completed} concluída(s)`} />
+            <MetricCard label="Análises pendentes" value={metrics.analysis.open + metrics.analysis.inReview} description="Abertas ou em revisão" />
+            <MetricCard label="Cobertura da Base" value={`${metrics.analysis.coverage}%`} description="Concluídas com cobertura adequada" />
+            <MetricCard label="Oportunidades aprovadas" value={metrics.opportunity.approved} description={`${metrics.opportunity.discarded} descartada(s)`} />
+            <MetricCard label="Planos ativos" value={metrics.plan.active} description={`${metrics.plan.published} publicado(s)`} />
+            <MetricCard label="Artigos em rascunho" value={metrics.article.draft} description="Aguardando envio para revisão" />
+            <MetricCard label="Artigos em revisão" value={metrics.article.review} description="Aguardando publicação" />
+            <MetricCard label="Artigos publicados" value={metrics.article.published} description={`${metrics.article.archived} arquivado(s)`} />
+          </section>
+        )}
+      </div>
+    </AppShell>
+  );
 }

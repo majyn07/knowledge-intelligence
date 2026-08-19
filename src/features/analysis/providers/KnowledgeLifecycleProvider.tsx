@@ -34,6 +34,11 @@ interface KnowledgeLifecycleValue {
     opportunityId: string,
     changes: Pick<KnowledgeOpportunity, "title" | "description" | "justification">
   ) => void;
+  linkOpportunityToPlan: (
+    analysisId: string,
+    opportunityId: string,
+    planId: string
+  ) => void;
   setAnalysisStatus: (analysisId: string, status: AnalysisStatus) => void;
   getAnalysis: (projectId: string, ticketId: string) => AnalysisRecord | undefined;
 }
@@ -92,6 +97,16 @@ export function KnowledgeLifecycleProvider({ children }: { children: ReactNode }
     }));
   }, []);
 
+  const linkOpportunityToPlan = useCallback((analysisId: string, opportunityId: string, planId: string) => {
+    setAnalyses((current) => current.map((item) => item.id !== analysisId ? item : {
+      ...item,
+      result: {
+        ...item.result,
+        opportunities: item.result.opportunities.map((opportunity) => opportunity.id !== opportunityId ? opportunity : { ...opportunity, planId }),
+      },
+    }));
+  }, []);
+
   const setAnalysisStatus = useCallback((analysisId: string, status: AnalysisStatus) => {
     setAnalyses((current) => current.map((item) => item.id !== analysisId ? item : {
       ...item,
@@ -106,9 +121,10 @@ export function KnowledgeLifecycleProvider({ children }: { children: ReactNode }
     updateMessages,
     updateOpportunityStatus,
     updateOpportunity,
+    linkOpportunityToPlan,
     setAnalysisStatus,
     getAnalysis: (projectId: string, ticketId: string) => analyses.find((item) => item.projectId === projectId && item.ticketId === ticketId),
-  }), [analyses, saveAnalysis, setAnalysisStatus, updateMessages, updateOpportunity, updateOpportunityStatus]);
+  }), [analyses, linkOpportunityToPlan, saveAnalysis, setAnalysisStatus, updateMessages, updateOpportunity, updateOpportunityStatus]);
 
   return <KnowledgeLifecycleContext.Provider value={value}>{children}</KnowledgeLifecycleContext.Provider>;
 }

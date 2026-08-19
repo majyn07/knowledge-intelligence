@@ -7,6 +7,7 @@ export const library: Library[] = [
     description:
       "Guia para criação e configuração de workflows no Visus.",
     projectId: "project-001",
+    content: "",
     type: "article",
     status: "published",
     category: "Workflow",
@@ -20,6 +21,7 @@ export const library: Library[] = [
     description:
       "Documentação do processo de revisão e publicação da base de conhecimento.",
     projectId: "project-001",
+    content: "",
     type: "workflow",
     status: "draft",
     category: "Processos",
@@ -33,6 +35,7 @@ export const library: Library[] = [
     description:
       "Perguntas frequentes relacionadas ao módulo Planning 4D.",
     projectId: "project-003",
+    content: "",
     type: "faq",
     status: "published",
     category: "Planning 4D",
@@ -46,6 +49,7 @@ export const library: Library[] = [
     description:
       "Modelo padrão para criação de novos artigos da base.",
     projectId: "project-004",
+    content: "",
     type: "template",
     status: "draft",
     category: "Templates",

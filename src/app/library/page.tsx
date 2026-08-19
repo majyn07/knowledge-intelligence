@@ -18,9 +18,10 @@ import { useLibrary } from "@/features/library/hooks/useLibrary";
 import { useLibraryDialogs } from "@/features/library/hooks/useLibraryDialogs";
 import { useLibraryFilters } from "@/features/library/hooks/useLibraryFilters";
 
-import { projects } from "@/features/projects/mock/projects";
+import { useProject } from "@/providers/ProjectProvider";
 
 export default function LibraryPage() {
+  const { activeProjectId, projects } = useProject();
   const {
     items,
     createItem,
@@ -32,7 +33,9 @@ export default function LibraryPage() {
     filters,
     setFilters,
     filteredItems,
-  } = useLibraryFilters(items);
+  } = useLibraryFilters(
+    items.filter((item) => item.projectId === activeProjectId)
+  );
 
   const {
     dialogOpen,
@@ -121,6 +124,7 @@ export default function LibraryPage() {
                       title: selectedItem.title,
                       description:
                         selectedItem.description,
+                      content: selectedItem.content,
                       projectId:
                         selectedItem.projectId,
                       type: selectedItem.type,

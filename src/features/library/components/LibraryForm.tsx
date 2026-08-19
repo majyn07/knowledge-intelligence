@@ -31,6 +31,7 @@ interface LibraryFormProps {
 const emptyForm: LibraryFormData = {
   title: "",
   description: "",
+  content: "",
   projectId: "",
   type: "article",
   status: "draft",
@@ -133,6 +134,16 @@ export function LibraryForm({
         />
       </div>
 
+      <div className="space-y-2">
+        <Label htmlFor="content">Conteúdo</Label>
+        <Textarea
+          id="content"
+          placeholder="Escreva o conteúdo que será revisado antes da publicação..."
+          value={formData.content}
+          onChange={(event) => handleChange("content", event.target.value)}
+        />
+      </div>
+
       <div className="grid gap-4 md:grid-cols-3">
         <div className="space-y-2">
           <Label>Projeto</Label>
@@ -209,6 +220,7 @@ export function LibraryForm({
 
           <Select
             value={formData.status}
+            disabled={!initialData}
             onValueChange={(value) =>
               handleChange(
                 "status",
@@ -224,6 +236,10 @@ export function LibraryForm({
             <SelectContent>
               <SelectItem value="draft">
                 Rascunho
+              </SelectItem>
+
+              <SelectItem value="review">
+                Em revisão
               </SelectItem>
 
               <SelectItem value="published">

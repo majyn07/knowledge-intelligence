@@ -1,40 +1,39 @@
 import { NextResponse } from "next/server";
 
-import type { AIChatRequest } from "@/models/AIChatRequest";
-
+import { AIConfigurationError, AIProviderError } from "@/services/ai/analysis/analysisErrors";
+import { analysisChatRequestSchema } from "@/services/ai/analysis/analysisRequestSchema";
 import { analysisAIService } from "@/services/ai/analysis/analysisAIService";
 import { buildAIContext } from "@/services/ai/context/aiContextBuilder";
 
+function errorResponse(error: unknown) {
+  if (error instanceof AIConfigurationError) {
+    return NextResponse.json({ message: "O serviço de IA não está configurado." }, { status: 503 });
+  }
+  if (error instanceof AIProviderError) {
+    return NextResponse.json({ message: "O serviço de IA está indisponível. Tente novamente." }, { status: 503 });
+  }
+  console.error("ANALYSIS_CHAT_ERROR");
+  return NextResponse.json({ message: "Não foi possível processar a solicitação." }, { status: 500 });
+}
+
 export async function POST(request: Request) {
+  let body: unknown;
   try {
-    const body = await request.json();
-    const { context, messages } = body;
+    body = await request.json();
+  } catch {
+    return NextResponse.json({ message: "O corpo da solicitação deve ser um JSON válido." }, { status: 400 });
+  }
 
-    const chatRequest: AIChatRequest = {
-      context,
-      messages,
-    };
+  const parsedRequest = analysisChatRequestSchema.safeParse(body);
+  if (!parsedRequest.success) {
+    return NextResponse.json({ message: "Dados inválidos para a conversa com a IA." }, { status: 400 });
+  }
 
-    const enrichedContext = await buildAIContext(chatRequest);
-
-    const response = await analysisAIService.chat({
-      ...chatRequest,
-      context: enrichedContext,
-    });
-
-    return NextResponse.json({
-      message: response,
-    });
+  try {
+    const context = await buildAIContext(parsedRequest.data);
+    const message = await analysisAIService.chat({ ...parsedRequest.data, context });
+    return NextResponse.json({ message });
   } catch (error) {
-    console.error("ANALYSIS_CHAT_ERROR", error);
-
-    return NextResponse.json(
-      {
-        message: "Ocorreu um erro ao processar a solicitação. Tente novamente.",
-      },
-      {
-        status: 500,
-      }
-    );
+    return errorResponse(error);
   }
 }

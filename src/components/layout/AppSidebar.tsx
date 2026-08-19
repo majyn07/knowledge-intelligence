@@ -80,7 +80,7 @@ export function AppSidebar() {
     <Sidebar variant="sidebar" collapsible="icon">
       <SidebarHeader className="p-2">
   <div className="flex items-center gap-3 px-2 group-data-[collapsible=icon]:justify-center">
-    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-white shadow-sm">
+    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-x0 bg-white shadow-sm">
       <Image
         src="/logo-altoqi.png"
         alt="AltoQi"
@@ -93,11 +93,11 @@ export function AppSidebar() {
 
     <div className="min-w-0 group-data-[collapsible=icon]:hidden">
       <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-sidebar-foreground/50">
-        Powered by AltoQi
+        AltoQi
       </p>
 
       <h2 className="truncate text-lg font-semibold">
-        Knowledge Intelligence
+        KI AltoQi - V.0.7
       </h2>
 
       <p className="truncate text-sm text-sidebar-foreground/65">

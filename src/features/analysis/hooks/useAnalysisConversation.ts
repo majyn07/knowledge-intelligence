@@ -5,12 +5,10 @@ import { analysisService } from "../services/analysisService";
 
 export async function sendAnalysisMessage(
   context: AIContext,
-  messages: AnalysisMessage[],
-  message: string
+  messages: AnalysisMessage[]
 ): Promise<AnalysisMessage> {
   return analysisService.sendMessage(
     context,
-    messages,
-    message
+    messages
   );
 }

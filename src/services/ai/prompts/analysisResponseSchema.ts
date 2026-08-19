@@ -1,36 +1,58 @@
-export const ANALYSIS_RESPONSE_SCHEMA = {
-  schemaVersion: 1,
+import { z } from "zod";
 
-  identification: {
-    problem: null,
-    modules: [],
-    products: [],
-    disciplines: [],
-  },
+const opportunityTypes = [
+  "new_article",
+  "update_article",
+  "faq",
+  "tip",
+  "warning",
+] as const;
 
-  summary: {
-    description: null,
-    rootCause: null,
-    impact: null,
-  },
+const documentationStatuses = [
+  "adequate",
+  "partial",
+  "missing",
+  "outdated",
+] as const;
 
-  classification: {
-    documentationStatus: "missing",
-    confidenceLevel: "low",
-  },
+const confidenceLevels = ["high", "medium", "low"] as const;
 
-  confidence: 0,
+/**
+ * External contract requested from the AI provider. Workflow fields such as
+ * opportunity id and status are intentionally internal and added by the parser.
+ */
+export const analysisResponseSchema = z.object({
+  identification: z.object({
+    ticketId: z.string().min(1),
+    title: z.string().min(1),
+    company: z.string(),
+    solution: z.string().min(1),
+    analyst: z.string().min(1).optional(),
+    analyzedAt: z.string().datetime(),
+  }).strict(),
+  summary: z.object({
+    resume: z.string().min(1),
+    customerProblem: z.string().min(1),
+    rootCause: z.string().min(1),
+    supportAction: z.string().min(1),
+    outcome: z.string().min(1),
+  }).strict(),
+  classification: z.object({
+    documentationStatus: z.enum(documentationStatuses),
+    confidenceLevel: z.enum(confidenceLevels),
+  }).strict(),
+  confidence: z.number().min(0).max(100),
+  relatedArticles: z.number().int().nonnegative(),
+  opportunities: z.array(z.object({
+    type: z.enum(opportunityTypes),
+    title: z.string().min(1),
+    description: z.string().min(1),
+    justification: z.string().min(1),
+  }).strict()),
+}).strict();
 
-  relatedArticles: 0,
+export type GeneratedAnalysisResponse = z.infer<typeof analysisResponseSchema>;
 
-  opportunities: [
-    {
-      type: "new_article",
-      title: null,
-      description: null,
-      justification: null,
-    },
-  ],
-
-  assistantMessage: null,
-};
+export function getAnalysisResponseJsonSchema() {
+  return z.toJSONSchema(analysisResponseSchema);
+}

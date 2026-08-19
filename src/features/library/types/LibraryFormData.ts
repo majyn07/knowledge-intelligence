@@ -6,6 +6,7 @@ import type {
 export interface LibraryFormData {
   title: string;
   description: string;
+  content: string;
 
   projectId: string;
 

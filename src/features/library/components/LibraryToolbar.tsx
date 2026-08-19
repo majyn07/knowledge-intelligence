@@ -70,6 +70,13 @@ export function LibraryToolbar({
           </Button>
 
           <Button
+            variant={filters.status === "review" ? "default" : "outline"}
+            onClick={() => changeStatus("review")}
+          >
+            Em revisão
+          </Button>
+
+          <Button
             variant={filters.status === "archived" ? "default" : "outline"}
             onClick={() => changeStatus("archived")}
           >

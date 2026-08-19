@@ -1,46 +1,46 @@
 import type { Project } from "@/models/Project";
-import type { ProjectFormData } from "@/features/projects/types/ProjectFormData";
 
-import { projects } from "@/features/projects/mock/projects";
+import { projectRepository } from "../repository/projectRepository";
+import type { ProjectFormData } from "../types/ProjectFormData";
 
-export const ProjectService = {
+export const projectService = {
   getAll(): Project[] {
-    return projects;
-  },
-
-  getById(id: string): Project | undefined {
-    return projects.find(
-      (project) => project.id === id
-    );
+    return projectRepository.getAll();
   },
 
   create(data: ProjectFormData): Project {
     const now = new Date();
-
-    return {
+    const project: Project = {
       id: crypto.randomUUID(),
       name: data.name.trim(),
       client: "",
       description: data.description.trim(),
       status: "active",
+      product: "",
+      module: "",
+      goal: "",
+      owner: "",
+      ticketCount: 0,
+      analysisCount: 0,
+      planCount: 0,
+      articleCount: 0,
       createdAt: now,
       updatedAt: now,
     };
+
+    return projectRepository.create(project);
   },
 
-  update(
-    project: Project,
-    data: ProjectFormData
-  ): Project {
-    return {
+  update(project: Project, data: ProjectFormData): Project {
+    return projectRepository.update({
       ...project,
       name: data.name.trim(),
       description: data.description.trim(),
       updatedAt: new Date(),
-    };
+    });
   },
 
-  delete(): void {
-    throw new Error("Not implemented");
+  delete(id: string): void {
+    projectRepository.delete(id);
   },
 };
