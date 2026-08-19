@@ -14,7 +14,7 @@ import { usePlans } from "@/features/plans/providers/PlansProvider";
 import { useBrandTheme } from "@/providers/BrandThemeProvider";
 import { useProject } from "@/providers/ProjectProvider";
 
-import { AIInsights } from "./components/AIInsights";
+import { AnalysisReadings } from "./components/AnalysisReadings";
 import { DashboardIndicators } from "./components/DashboardIndicators";
 import { ImprovementBacklog } from "./components/ImprovementBacklog";
 import { NextPriority } from "./components/NextPriority";
@@ -42,7 +42,7 @@ export function DashboardPage() {
       ) : (
         <>
           <NextPriority analyses={metrics.analyses} />
-          <AIInsights metrics={metrics} />
+          <AnalysisReadings metrics={metrics} />
           <ImprovementBacklog analyses={metrics.analyses} />
           <DashboardIndicators metrics={metrics} />
         </>

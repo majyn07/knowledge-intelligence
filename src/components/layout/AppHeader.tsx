@@ -1,9 +1,7 @@
 "use client";
 
 import { ReactNode } from "react";
-import { Bell } from "lucide-react";
 
-import { Button } from "@/components/ui/button";
 import { BrandThemeSwitcher } from "@/components/common/BrandThemeSwitcher";
 
 import { SidebarTrigger } from "@/components/ui/sidebar";
@@ -41,14 +39,6 @@ export function AppHeader({
         <div className="flex items-center gap-2">
           {actions}
           <div className="hidden md:block"><BrandThemeSwitcher compact /></div>
-
-          <Button
-            variant="ghost"
-            size="icon-sm"
-            aria-label="Notificações"
-          >
-            <Bell className="h-4 w-4" />
-          </Button>
         </div>
       </div>
     </header>

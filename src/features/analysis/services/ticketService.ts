@@ -1,5 +1,7 @@
+import type { SupportConversation } from "@/models/SupportConversation";
 import type { Ticket } from "@/models/Ticket";
 
+import { conversations } from "../mock/conversations";
 import { tickets } from "../mock/tickets";
 
 export const ticketService = {
@@ -15,34 +17,11 @@ export const ticketService = {
     );
   },
 
-  createTicket(ticket: Ticket): Ticket {
-    tickets.push(ticket);
-
-    return ticket;
-  },
-
-  updateTicket(ticket: Ticket): Ticket {
-    const index = tickets.findIndex(
-      (currentTicket) =>
-        currentTicket.id === ticket.id
+  getConversation(
+    ticketId: string
+  ): SupportConversation | undefined {
+    return conversations.find(
+      (conversation) => conversation.ticketId === ticketId
     );
-
-    if (index === -1) {
-      throw new Error("Atendimento não encontrado.");
-    }
-
-    tickets[index] = ticket;
-
-    return ticket;
-  },
-
-  deleteTicket(id: string): void {
-    const index = tickets.findIndex(
-      (ticket) => ticket.id === id
-    );
-
-    if (index !== -1) {
-      tickets.splice(index, 1);
-    }
   },
 };

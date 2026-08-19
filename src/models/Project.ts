@@ -12,11 +12,12 @@ export interface Project {
   goal: string;
   owner: string;
 
-  ticketCount: number;
-  analysisCount: number;
-  planCount: number;
-  articleCount: number;
-
   createdAt: Date;
   updatedAt: Date;
 }
+
+export const projectStatusLabel: Record<ProjectStatus, string> = {
+  active: "Ativo",
+  inactive: "Inativo",
+  archived: "Arquivado",
+};

@@ -74,6 +74,7 @@ export function AnalysisWorkspace() {
         projectId: activeProjectId,
         ticketId: selectedTicket.id,
         result: response.analysisResult,
+        relatedArticles: response.context?.relatedArticles ?? [],
         messages: response.messages,
       });
       toast.success("Análise pronta para revisão humana.");
@@ -82,23 +83,6 @@ export function AnalysisWorkspace() {
       toast.error("Não foi possível concluir a análise. Tente novamente.");
     } finally {
       setIsAnalyzing(false);
-    }
-  }
-
-  function handleUpdateTicket(ticket: Ticket) {
-    ticketService.updateTicket(ticket);
-    if (activeProjectId) {
-      setProjectTickets(ticketService.getTickets(activeProjectId));
-    }
-  }
-
-  function handleDeleteTicket(ticketId: string) {
-    ticketService.deleteTicket(ticketId);
-    if (!activeProjectId) return;
-    const remaining = ticketService.getTickets(activeProjectId);
-    setProjectTickets(remaining);
-    if (selectedTicketId === ticketId) {
-      setSelectedTicketId(remaining[0]?.id ?? "");
     }
   }
 
@@ -172,8 +156,6 @@ export function AnalysisWorkspace() {
             ticket={selectedTicket}
             isAnalyzing={isAnalyzing}
             onAnalyze={handleAnalyze}
-            onSave={handleUpdateTicket}
-            onDelete={handleDeleteTicket}
             analysisStatus={analysis?.status}
           />
 

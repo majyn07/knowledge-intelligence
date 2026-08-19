@@ -13,17 +13,13 @@ export const projectService = {
     const project: Project = {
       id: crypto.randomUUID(),
       name: data.name.trim(),
-      client: "",
+      client: data.client.trim(),
       description: data.description.trim(),
-      status: "active",
+      status: data.status,
       product: "",
       module: "",
       goal: "",
       owner: "",
-      ticketCount: 0,
-      analysisCount: 0,
-      planCount: 0,
-      articleCount: 0,
       createdAt: now,
       updatedAt: now,
     };
@@ -35,7 +31,9 @@ export const projectService = {
     return projectRepository.update({
       ...project,
       name: data.name.trim(),
+      client: data.client.trim(),
       description: data.description.trim(),
+      status: data.status,
       updatedAt: new Date(),
     });
   },

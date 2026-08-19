@@ -5,6 +5,7 @@ import {
 } from "lucide-react";
 
 import type { Project } from "@/models/Project";
+import { projectStatusLabel } from "@/models/Project";
 
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -16,20 +17,11 @@ interface ProjectCardProps {
   onDelete?: (project: Project) => void;
 }
 
-const statusMap = {
-  active: {
-    label: "Ativo",
-    color: "bg-emerald-500",
-  },
-  inactive: {
-    label: "Inativo",
-    color: "bg-amber-500",
-  },
-  archived: {
-    label: "Arquivado",
-    color: "bg-slate-400",
-  },
-} as const;
+const statusColor: Record<Project["status"], string> = {
+  active: "bg-emerald-500",
+  inactive: "bg-amber-500",
+  archived: "bg-slate-400",
+};
 
 export function ProjectCard({
   project,
@@ -37,8 +29,6 @@ export function ProjectCard({
   onEdit,
   onDelete,
 }: ProjectCardProps) {
-  const status = statusMap[project.status];
-
   const createdAt =
     project.createdAt.toLocaleDateString("pt-BR");
 
@@ -62,11 +52,11 @@ export function ProjectCard({
 
           <div className="flex items-center gap-2">
             <span
-              className={`h-2.5 w-2.5 rounded-full ${status.color}`}
+              className={`h-2.5 w-2.5 rounded-full ${statusColor[project.status]}`}
             />
 
             <span className="text-xs font-medium text-muted-foreground">
-              {status.label}
+              {projectStatusLabel[project.status]}
             </span>
           </div>
         </div>

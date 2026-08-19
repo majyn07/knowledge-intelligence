@@ -3,10 +3,18 @@
 import { FormEvent, useEffect, useState } from "react";
 
 import type { ProjectFormData } from "@/features/projects/types/ProjectFormData";
+import { projectStatusLabel, type ProjectStatus } from "@/models/Project";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface ProjectFormProps {
   initialData?: ProjectFormData;
@@ -17,8 +25,12 @@ interface ProjectFormProps {
 
 const emptyForm: ProjectFormData = {
   name: "",
+  client: "",
   description: "",
+  status: "active",
 };
+
+const statusOptions: ProjectStatus[] = ["active", "inactive", "archived"];
 
 export function ProjectForm({
   initialData,
@@ -51,7 +63,7 @@ export function ProjectForm({
   }
 
   function handleChange(
-    field: keyof ProjectFormData,
+    field: "name" | "client" | "description",
     value: string
   ) {
     setFormData((previous) => ({
@@ -73,10 +85,28 @@ export function ProjectForm({
         <Input
           id="name"
           value={formData.name}
-          placeholder="Ex.: Edifício Comercial Alpha"
+          placeholder="Ex.: Base Visus Produção"
           onChange={(event) =>
             handleChange(
               "name",
+              event.target.value
+            )
+          }
+        />
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="client">
+          Cliente
+        </Label>
+
+        <Input
+          id="client"
+          value={formData.client}
+          placeholder="Ex.: AltoQi"
+          onChange={(event) =>
+            handleChange(
+              "client",
               event.target.value
             )
           }
@@ -99,6 +129,36 @@ export function ProjectForm({
             )
           }
         />
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="status">
+          Status
+        </Label>
+
+        <Select
+          value={formData.status}
+          onValueChange={(value) =>
+            setFormData((previous) => ({
+              ...previous,
+              status: value as ProjectStatus,
+            }))
+          }
+        >
+          <SelectTrigger id="status">
+            <SelectValue>
+              {(status: ProjectStatus) => projectStatusLabel[status]}
+            </SelectValue>
+          </SelectTrigger>
+
+          <SelectContent>
+            {statusOptions.map((status) => (
+              <SelectItem key={status} value={status}>
+                {projectStatusLabel[status]}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
       <div className="flex justify-end gap-2">

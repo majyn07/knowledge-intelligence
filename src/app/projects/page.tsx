@@ -111,8 +111,10 @@ export default function ProjectsPage() {
                 selectedProject
                   ? {
                       name: selectedProject.name,
+                      client: selectedProject.client,
                       description:
                         selectedProject.description,
+                      status: selectedProject.status,
                     }
                   : undefined
               }

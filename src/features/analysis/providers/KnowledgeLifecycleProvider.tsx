@@ -49,7 +49,9 @@ function loadAnalyses(): AnalysisRecord[] {
   if (typeof window === "undefined") return [];
 
   try {
-    return JSON.parse(localStorage.getItem(STORAGE_KEY) ?? "[]") as AnalysisRecord[];
+    const stored = JSON.parse(localStorage.getItem(STORAGE_KEY) ?? "[]") as AnalysisRecord[];
+    // Registros gravados antes da evidência ser persistida não possuem o campo.
+    return stored.map((record) => ({ ...record, relatedArticles: record.relatedArticles ?? [] }));
   } catch {
     return [];
   }

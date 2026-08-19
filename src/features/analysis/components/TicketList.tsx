@@ -1,15 +1,11 @@
 import { useMemo, useState } from "react";
-import { Building2, CheckCircle2, PanelLeftClose, PanelLeftOpen, Search, Ticket } from "lucide-react";
+import { Building2, PanelLeftClose, PanelLeftOpen, Search, Ticket as TicketIcon } from "lucide-react";
 
-import { tickets as TicketType } from "../mock/tickets";
-
-import { StatusBadge } from "@/components/common/status/StatusBadge";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-
-type Ticket = (typeof TicketType)[number];
+import type { Ticket } from "@/models/Ticket";
 
 interface TicketListProps {
   tickets: Ticket[];
@@ -178,7 +174,7 @@ export function TicketList({
                     </div>
 
                     <div className="flex items-center gap-1.5">
-                      <Ticket className="h-3.5 w-3.5" />
+                      <TicketIcon className="h-3.5 w-3.5" />
                       <span className="truncate">{ticket.solution}</span>
                     </div>
                   </div>
@@ -188,11 +184,6 @@ export function TicketList({
                   <Badge variant={selected ? "default" : "outline"}>
                     #{ticket.id}
                   </Badge>
-
-                  <StatusBadge variant="success">
-                    <CheckCircle2 className="mr-1 h-3 w-3" />
-                    Pronto
-                  </StatusBadge>
                 </div>
               </div>
             </button>

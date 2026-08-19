@@ -5,8 +5,6 @@ import { buildAIContext } from "../context/aiContextBuilder";
 import { parseAnalysisResponse } from "../parsers/analysisResponseParser";
 import { analysisAIService } from "./analysisAIService";
 
-import { analysisConversation } from "@/features/analysis/mock/analysisConversation";
-
 export const startAnalysisService = {
   async execute(
     request: AIChatRequest
@@ -21,7 +19,6 @@ export const startAnalysisService = {
     const analysisResult = parseAnalysisResponse(response);
 
     const messages = [
-      ...analysisConversation,
       {
         id: crypto.randomUUID(),
         author: "assistant" as const,

@@ -2,16 +2,15 @@ import { BookOpen, Search, Sparkles, Tag } from "lucide-react";
 
 import { StatusBadge } from "@/components/common/status/StatusBadge";
 
-import type { AIContext } from "@/models/AIContext";
+import type { KnowledgeSearchResult } from "@/models/KnowledgeSearchResult";
 
 interface RelatedArticlesPanelProps {
-  context: AIContext;
+  articles: KnowledgeSearchResult[];
 }
 
 export function RelatedArticlesPanel({
-  context,
+  articles,
 }: RelatedArticlesPanelProps) {
-  const articles = context.relatedArticles ?? [];
 
   return (
     <section className="border-t border-border/70 pt-8">
@@ -26,8 +25,7 @@ export function RelatedArticlesPanel({
           </h2>
 
           <p className="mt-1 text-sm leading-6 text-muted-foreground">
-            Conteúdo encontrado na Base de Conhecimento para auxiliar a
-            análise realizada pela IA.
+            Conteúdo da Base de Conhecimento que esta análise consultou.
           </p>
         </div>
       </div>
