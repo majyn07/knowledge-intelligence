@@ -6,6 +6,8 @@ import type { ProjectFormData } from "@/features/projects/types/ProjectFormData"
 import { PROJECT_PRODUCTS, UNSET_PRODUCT } from "@/features/projects/constants/products";
 import { projectStatusLabel, type ProjectStatus } from "@/models/Project";
 
+import { PersonSelect } from "@/features/people/components/PersonSelect";
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -182,11 +184,11 @@ export function ProjectForm({
 
         <div className="space-y-2">
           <Label htmlFor="owner">Responsável</Label>
-          <Input
+          <PersonSelect
             id="owner"
             value={formData.owner}
-            placeholder="Ex.: Equipe de Conhecimento Visus"
-            onChange={(event) => change("owner", event.target.value)}
+            onChange={(name) => change("owner", name)}
+            placeholder="Sem responsável"
           />
         </div>
 

@@ -17,6 +17,8 @@ import {
   type KnowledgeArticle,
 } from "@/models/KnowledgeArticle";
 
+import { PersonSelect } from "@/features/people/components/PersonSelect";
+
 import { MarkdownContent } from "@/components/common/MarkdownContent";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -364,11 +366,11 @@ export function LibraryForm({
 
           <div className="space-y-2">
             <Label htmlFor="author">Autor</Label>
-            <Input
+            <PersonSelect
               id="author"
-              placeholder="Ex.: Equipe de Conhecimento Visus"
               value={formData.author}
-              onChange={(event) => change("author", event.target.value)}
+              onChange={(name) => change("author", name)}
+              placeholder="Sem autor"
             />
           </div>
         </div>
