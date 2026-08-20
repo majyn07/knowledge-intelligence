@@ -52,11 +52,26 @@ export function SessionProvider({ children }: { children: ReactNode }) {
 
     let alive = true;
 
-    supabase.auth.getSession().then(({ data }) => {
-      if (!alive) return;
-      setSession(data.session);
-      setReady(true);
-    });
+    /*
+      O `catch` não é zelo excessivo: se a sessão guardada expirou, a rede
+      caiu ou o token de renovação foi revogado, esta promessa **rejeita** — e
+      sem tratamento `ready` ficava falso para sempre, o portão renderizava
+      nada, e o resultado era uma tela branca sem uma linha de erro.
+
+      Falhar aqui significa "não há sessão", que é um estado do produto e não
+      um impedimento.
+    */
+    supabase.auth
+      .getSession()
+      .then(({ data }) => {
+        if (alive) setSession(data.session);
+      })
+      .catch(() => {
+        if (alive) setSession(null);
+      })
+      .finally(() => {
+        if (alive) setReady(true);
+      });
 
     const { data: subscription } = supabase.auth.onAuthStateChange((_event, next) => {
       setSession(next);

@@ -54,6 +54,14 @@ export default function RootLayout({
   return (
     <html lang="pt-BR" className={poppins.variable}>
       <body className="min-h-screen bg-background font-sans text-foreground antialiased">
+        {/*
+          O aviso fica **fora** dos portões de acesso e de migração.
+          Estava dentro, e quando um deles não renderizava — leitura de sessão
+          falhando, verificação pendurada — o toast de erro não tinha onde
+          aparecer. O resultado era tela branca sem uma linha de explicação.
+        */}
+        <Toaster position="top-right" richColors closeButton />
+
         <BrandThemeProvider>
           {/*
             Sessão acima de tudo que lê dados: com as políticas do banco
@@ -74,11 +82,6 @@ export default function RootLayout({
             </KnowledgeLifecycleProvider>
             </TicketsProvider>
 
-            <Toaster
-            position="top-right"
-            richColors
-            closeButton
-            />
           </ProjectProvider>
           </ActivityProvider>
           </PeopleProvider>
