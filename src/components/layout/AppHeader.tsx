@@ -3,6 +3,7 @@
 import { ReactNode } from "react";
 
 import { BrandThemeSwitcher } from "@/components/common/BrandThemeSwitcher";
+import { GlobalSearchTrigger } from "@/features/search/components/GlobalSearchTrigger";
 
 import { SidebarTrigger } from "@/components/ui/sidebar";
 
@@ -37,6 +38,7 @@ export function AppHeader({
         </div>
 
         <div className="flex items-center gap-2">
+          <GlobalSearchTrigger />
           {actions}
           <div className="hidden md:block"><BrandThemeSwitcher compact /></div>
         </div>

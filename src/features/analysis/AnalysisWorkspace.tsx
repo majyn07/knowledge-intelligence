@@ -6,6 +6,7 @@ import { toast } from "sonner";
 
 import { PageHeader } from "@/components/common/page/PageHeader";
 import { usePersistedState } from "@/hooks/usePersistedState";
+import { useQueryParam } from "@/hooks/useQueryParam";
 import type { Ticket } from "@/models/Ticket";
 import { useProject } from "@/providers/ProjectProvider";
 
@@ -35,6 +36,7 @@ export function AnalysisWorkspace() {
   } = useKnowledgeLifecycle();
   const { createPlanFromApprovedOpportunity } = usePlans();
   const { items: articles } = useLibrary();
+  const requestedTicketId = useQueryParam("ticket");
 
   const [projectTickets, setProjectTickets] = useState<Ticket[]>([]);
   const [selectedTicketId, setSelectedTicketId] = useState("");
@@ -48,12 +50,14 @@ export function AnalysisWorkspace() {
     if (!activeProjectId) return;
     const tickets = ticketService.getTickets(activeProjectId);
     setProjectTickets(tickets);
-    setSelectedTicketId((current) =>
-      tickets.some((ticket) => ticket.id === current)
-        ? current
-        : tickets[0]?.id ?? ""
-    );
-  }, [activeProjectId]);
+    setSelectedTicketId((current) => {
+      // Um atendimento pedido pela busca tem precedência sobre a seleção atual.
+      if (requestedTicketId && tickets.some((ticket) => ticket.id === requestedTicketId)) {
+        return requestedTicketId;
+      }
+      return tickets.some((ticket) => ticket.id === current) ? current : tickets[0]?.id ?? "";
+    });
+  }, [activeProjectId, requestedTicketId]);
 
   const selectedTicket =
     projectTickets.find((ticket) => ticket.id === selectedTicketId) ??

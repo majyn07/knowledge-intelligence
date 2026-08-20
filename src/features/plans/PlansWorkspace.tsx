@@ -2,7 +2,10 @@
 
 import { ListTodo } from "lucide-react";
 
+import { useEffect } from "react";
+
 import { PageHeader } from "@/components/common/page/PageHeader";
+import { useQueryParam } from "@/hooks/useQueryParam";
 import { useProject } from "@/providers/ProjectProvider";
 import { useLibrary } from "@/features/library/providers/LibraryProvider";
 
@@ -24,6 +27,14 @@ export function PlansWorkspace() {
   } = usePlans();
   const { createItemFromPlan } = useLibrary();
   const { activeProject, activeProjectId } = useProject();
+  const requestedPlanId = useQueryParam("plan");
+
+  useEffect(() => {
+    // Abre o plano indicado pela busca, quando ele pertence ao projeto ativo.
+    if (requestedPlanId && plans.some((plan) => plan.id === requestedPlanId)) {
+      selectPlan(requestedPlanId);
+    }
+  }, [plans, requestedPlanId, selectPlan]);
 
   const projectPlans = plans.filter((plan) => plan.projectId === activeProjectId);
   const currentPlan = projectPlans.find((plan) => plan.id === selectedPlan?.id) ?? projectPlans[0];
