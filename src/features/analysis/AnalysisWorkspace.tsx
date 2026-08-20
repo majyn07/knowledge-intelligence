@@ -1,30 +1,35 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Sparkles } from "lucide-react";
+import { Plus, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 
 import { PageHeader } from "@/components/common/page/PageHeader";
+import { Button } from "@/components/ui/button";
 import { usePersistedState } from "@/hooks/usePersistedState";
 import { useQueryParam } from "@/hooks/useQueryParam";
-import type { Ticket } from "@/models/Ticket";
 import { useProject } from "@/providers/ProjectProvider";
 
 import { AnalysisPanel } from "./components/AnalysisPanel";
 import { AnalysisProgress } from "./components/AnalysisProgress";
 import { TicketDetails } from "./components/TicketDetails";
 import { TicketList } from "./components/TicketList";
+import { TicketForm } from "./components/TicketForm";
+import { TicketDeleteDialog, TicketDialog } from "./components/TicketDialogs";
 import { useAnalysisContext } from "./hooks/useAnalysisContext";
 import { useKnowledgeLifecycle } from "./providers/KnowledgeLifecycleProvider";
 import { analysisService } from "./services/analysisService";
 import { ticketService } from "./services/ticketService";
+import { useTickets } from "./providers/TicketsProvider";
+import type { TicketFormData } from "./types/TicketFormData";
 import { usePlans } from "../plans/providers/PlansProvider";
 import { useLibrary } from "../library/providers/LibraryProvider";
 
 const SIDEBAR_STORAGE_KEY = "visus-workspace-sidebar-collapsed";
 
 export function AnalysisWorkspace() {
-  const { activeProject, activeProjectId } = useProject();
+  const { activeProject, activeProjectId, projects } = useProject();
+  const { ticketsOf, conversationOf, createTicket, updateTicket, deleteTicket } = useTickets();
   const {
     getAnalysis,
     saveAnalysis,
@@ -38,35 +43,42 @@ export function AnalysisWorkspace() {
   const { items: articles } = useLibrary();
   const requestedTicketId = useQueryParam("ticket");
 
-  const [projectTickets, setProjectTickets] = useState<Ticket[]>([]);
   const [selectedTicketId, setSelectedTicketId] = useState("");
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [editingTicketId, setEditingTicketId] = useState<string | null>(null);
+  const [isCreating, setIsCreating] = useState(false);
+  const [deletingTicketId, setDeletingTicketId] = useState<string | null>(null);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = usePersistedState<boolean>({
     key: SIDEBAR_STORAGE_KEY,
     fallback: false,
   });
 
+  const projectTickets = ticketsOf(activeProjectId);
+
   useEffect(() => {
-    if (!activeProjectId) return;
-    const tickets = ticketService.getTickets(activeProjectId);
-    setProjectTickets(tickets);
     setSelectedTicketId((current) => {
       // Um atendimento pedido pela busca tem precedência sobre a seleção atual.
-      if (requestedTicketId && tickets.some((ticket) => ticket.id === requestedTicketId)) {
+      if (requestedTicketId && projectTickets.some((ticket) => ticket.id === requestedTicketId)) {
         return requestedTicketId;
       }
-      return tickets.some((ticket) => ticket.id === current) ? current : tickets[0]?.id ?? "";
+      return projectTickets.some((ticket) => ticket.id === current)
+        ? current
+        : projectTickets[0]?.id ?? "";
     });
-  }, [activeProjectId, requestedTicketId]);
+  }, [projectTickets, requestedTicketId]);
 
   const selectedTicket =
-    projectTickets.find((ticket) => ticket.id === selectedTicketId) ??
-    projectTickets[0];
-  const context = useAnalysisContext(articles, selectedTicket);
+    projectTickets.find((ticket) => ticket.id === selectedTicketId) ?? projectTickets[0];
+  const selectedConversation = selectedTicket ? conversationOf(selectedTicket.id) : undefined;
+  const context = useAnalysisContext(articles, selectedTicket, selectedConversation);
   const analysis =
     selectedTicket && activeProjectId
       ? getAnalysis(activeProjectId, selectedTicket.id)
       : undefined;
+
+  const editingTicket = projectTickets.find((ticket) => ticket.id === editingTicketId);
+  const deletingTicket = projectTickets.find((ticket) => ticket.id === deletingTicketId);
+  const projectOptions = projects.map((project) => ({ id: project.id, name: project.name }));
 
   async function handleAnalyze() {
     if (!selectedTicket || !activeProjectId) return;
@@ -113,11 +125,105 @@ export function AnalysisWorkspace() {
     );
   }
 
+  function handleCreate(data: TicketFormData) {
+    const ticket = createTicket(data);
+    setSelectedTicketId(ticket.id);
+    setIsCreating(false);
+  }
+
+  function handleUpdate(data: TicketFormData) {
+    if (!editingTicketId) return;
+    updateTicket(editingTicketId, data);
+    setEditingTicketId(null);
+  }
+
+  function handleDelete() {
+    if (!deletingTicketId) return;
+    deleteTicket(deletingTicketId);
+    setDeletingTicketId(null);
+  }
+
+  const dialogs = (
+    <>
+      <TicketDialog
+        open={isCreating}
+        onOpenChange={setIsCreating}
+        title="Novo atendimento"
+        description="Registre o caso e a conversa que o sustenta. É essa troca que a análise vai ler."
+      >
+        <TicketForm
+          key={isCreating ? "novo" : "fechado"}
+          projects={projectOptions}
+          initialData={
+            activeProjectId
+              ? {
+                  title: "",
+                  company: "",
+                  solution: "",
+                  date: new Intl.DateTimeFormat("pt-BR").format(new Date()),
+                  projectId: activeProjectId,
+                  messages: [],
+                }
+              : undefined
+          }
+          submitLabel="Criar atendimento"
+          onSubmit={handleCreate}
+          onCancel={() => setIsCreating(false)}
+        />
+      </TicketDialog>
+
+      <TicketDialog
+        open={Boolean(editingTicket)}
+        onOpenChange={(open) => { if (!open) setEditingTicketId(null); }}
+        title="Editar atendimento"
+        description="Atualize os dados do caso ou o registro da conversa."
+      >
+        {editingTicket && (
+          <TicketForm
+            key={editingTicket.id}
+            projects={projectOptions}
+            initialData={ticketService.toFormData(editingTicket, conversationOf(editingTicket.id))}
+            submitLabel="Atualizar"
+            onSubmit={handleUpdate}
+            onCancel={() => setEditingTicketId(null)}
+          />
+        )}
+      </TicketDialog>
+
+      <TicketDeleteDialog
+        open={Boolean(deletingTicket)}
+        ticketTitle={deletingTicket?.title ?? ""}
+        hasAnalysis={Boolean(
+          deletingTicket && activeProjectId && getAnalysis(activeProjectId, deletingTicket.id)
+        )}
+        onCancel={() => setDeletingTicketId(null)}
+        onConfirm={handleDelete}
+      />
+    </>
+  );
+
   if (!selectedTicket) {
     return (
-      <div className="flex min-h-96 items-center justify-center border-y border-dashed py-12 text-center text-sm text-muted-foreground">
-        Nenhum atendimento encontrado para o projeto ativo. Selecione outro
-        projeto quando houver novos atendimentos disponíveis.
+      <div className="w-full space-y-7">
+        <PageHeader
+          overline={`Projeto ativo${activeProject ? ` · ${activeProject.name}` : ""}`}
+          title="Conduza a evolução do conhecimento"
+          description="Do atendimento à decisão humana: valide as evidências da IA e encaminhe apenas as oportunidades que fazem sentido para este projeto."
+          icon={<Sparkles className="h-6 w-6" />}
+          actions={
+            <Button onClick={() => setIsCreating(true)} disabled={!activeProjectId}>
+              <Plus className="mr-1.5 h-4 w-4" />
+              Novo atendimento
+            </Button>
+          }
+        />
+
+        <div className="flex min-h-72 items-center justify-center rounded-xl border border-dashed px-6 py-12 text-center text-sm leading-6 text-muted-foreground">
+          Nenhum atendimento registrado em {activeProject?.name ?? "este projeto"}. Registre o
+          primeiro para começar o ciclo de conhecimento.
+        </div>
+
+        {dialogs}
       </div>
     );
   }
@@ -131,6 +237,12 @@ export function AnalysisWorkspace() {
         title="Conduza a evolução do conhecimento"
         description="Do atendimento à decisão humana: valide as evidências da IA e encaminhe apenas as oportunidades que fazem sentido para este projeto."
         icon={<Sparkles className="h-6 w-6" />}
+        actions={
+          <Button onClick={() => setIsCreating(true)}>
+            <Plus className="mr-1.5 h-4 w-4" />
+            Novo atendimento
+          </Button>
+        }
       />
 
       <AnalysisProgress analysis={analysis} />
@@ -157,8 +269,11 @@ export function AnalysisWorkspace() {
         <main className="min-w-0 space-y-8">
           <TicketDetails
             ticket={selectedTicket}
+            conversation={selectedConversation}
             isAnalyzing={isAnalyzing}
             onAnalyze={handleAnalyze}
+            onEdit={() => setEditingTicketId(selectedTicket.id)}
+            onDelete={() => setDeletingTicketId(selectedTicket.id)}
             analysisStatus={analysis?.status}
           />
 
@@ -178,6 +293,8 @@ export function AnalysisWorkspace() {
           />
         </main>
       </div>
+
+      {dialogs}
     </div>
   );
 }

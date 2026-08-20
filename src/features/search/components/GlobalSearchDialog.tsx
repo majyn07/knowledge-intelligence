@@ -18,7 +18,7 @@ import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { useActivity } from "@/features/activities/providers/ActivityProvider";
 import { useKnowledgeLifecycle } from "@/features/analysis/providers/KnowledgeLifecycleProvider";
-import { ticketService } from "@/features/analysis/services/ticketService";
+import { useTickets } from "@/features/analysis/providers/TicketsProvider";
 import { useLibrary } from "@/features/library/providers/LibraryProvider";
 import { usePlans } from "@/features/plans/providers/PlansProvider";
 import { useProject } from "@/providers/ProjectProvider";
@@ -53,15 +53,11 @@ export function GlobalSearchDialog({ open, onOpenChange }: GlobalSearchDialogPro
   const { plans } = usePlans();
   const { items: articles } = useLibrary();
   const { events } = useActivity();
+  const { tickets } = useTickets();
 
   const [query, setQuery] = useState("");
   const [highlighted, setHighlighted] = useState(0);
   const listRef = useRef<HTMLDivElement>(null);
-
-  const tickets = useMemo(
-    () => projects.flatMap((project) => ticketService.getTickets(project.id)),
-    [projects]
-  );
 
   const groups = useMemo(
     () => searchEverything({ projects, tickets, analyses, plans, articles, events }, query),

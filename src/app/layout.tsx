@@ -8,6 +8,7 @@ import { LibraryProvider } from "@/features/library/providers/LibraryProvider";
 import { PeopleProvider } from "@/features/people/providers/PeopleProvider";
 import { ActivityProvider } from "@/features/activities/providers/ActivityProvider";
 import { KnowledgeLifecycleProvider } from "@/features/analysis/providers/KnowledgeLifecycleProvider";
+import { TicketsProvider } from "@/features/analysis/providers/TicketsProvider";
 import { ProjectProvider } from "@/providers/ProjectProvider";
 import { BrandThemeProvider } from "@/providers/BrandThemeProvider";
 
@@ -45,12 +46,14 @@ export default function RootLayout({
           <PeopleProvider>
           <ActivityProvider>
           <ProjectProvider>
+            <TicketsProvider>
             <KnowledgeLifecycleProvider>
               <PlansProvider>
                 <LibraryProvider>{children}</LibraryProvider>
               </PlansProvider>
             </KnowledgeLifecycleProvider>
-            
+            </TicketsProvider>
+
             <Toaster
             position="top-right"
             richColors

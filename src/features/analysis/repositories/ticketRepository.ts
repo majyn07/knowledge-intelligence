@@ -1,0 +1,59 @@
+import type { SupportConversation } from "@/models/SupportConversation";
+import type { Ticket } from "@/models/Ticket";
+
+import { conversations as conversationSeed } from "../mock/conversations";
+import { tickets as ticketSeed } from "../mock/tickets";
+
+const TICKETS_KEY = "visus-tickets";
+const CONVERSATIONS_KEY = "visus-support-conversations";
+
+function read<T>(key: string, seed: T[]): T[] {
+  if (typeof window === "undefined") return seed;
+
+  const stored = localStorage.getItem(key);
+  if (!stored) return seed;
+
+  try {
+    return JSON.parse(stored) as T[];
+  } catch {
+    return seed;
+  }
+}
+
+function persist<T>(key: string, value: T[]): void {
+  if (typeof window !== "undefined") {
+    localStorage.setItem(key, JSON.stringify(value));
+  }
+}
+
+/**
+ * Fronteira local dos atendimentos e das conversas.
+ *
+ * Quando a origem passar a ser a HubSpot mediada pela Claude, é este arquivo
+ * que muda — o serviço, o provider e as telas continuam como estão.
+ */
+export const ticketRepository = {
+  getSeedTickets(): Ticket[] {
+    return ticketSeed;
+  },
+
+  getSeedConversations(): SupportConversation[] {
+    return conversationSeed;
+  },
+
+  getTickets(): Ticket[] {
+    return read(TICKETS_KEY, ticketSeed);
+  },
+
+  getConversations(): SupportConversation[] {
+    return read(CONVERSATIONS_KEY, conversationSeed);
+  },
+
+  saveTickets(tickets: Ticket[]): void {
+    persist(TICKETS_KEY, tickets);
+  },
+
+  saveConversations(conversations: SupportConversation[]): void {
+    persist(CONVERSATIONS_KEY, conversations);
+  },
+};

@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button";
 import { ActivityTimeline } from "@/features/activities/components/ActivityTimeline";
 import { useActivity } from "@/features/activities/providers/ActivityProvider";
 import { useKnowledgeLifecycle } from "@/features/analysis/providers/KnowledgeLifecycleProvider";
-import { ticketService } from "@/features/analysis/services/ticketService";
+import { useTickets } from "@/features/analysis/providers/TicketsProvider";
 import { useLibrary } from "@/features/library/providers/LibraryProvider";
 import { selectProjectMetrics } from "@/features/metrics/projectMetrics";
 import { usePlans } from "@/features/plans/providers/PlansProvider";
@@ -33,6 +33,7 @@ interface ProjectWorkspaceProps {
 export function ProjectWorkspace({ projectId }: ProjectWorkspaceProps) {
   const { projects, activeProjectId, isHydrated, selectProject, updateProject } = useProject();
   const { events } = useActivity();
+  const { ticketsOf } = useTickets();
   const { analyses } = useKnowledgeLifecycle();
   const { plans } = usePlans();
   const { items: articles } = useLibrary();
@@ -67,7 +68,7 @@ export function ProjectWorkspace({ projectId }: ProjectWorkspaceProps) {
     analyses,
     plans,
     articles,
-    tickets: ticketService.getTickets(project.id),
+    tickets: ticketsOf(project.id),
   });
 
   // Abrir um módulo a partir daqui garante que ele mostre este projeto, e não outro.

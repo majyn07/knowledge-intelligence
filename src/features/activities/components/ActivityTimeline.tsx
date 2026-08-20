@@ -6,6 +6,7 @@ import {
   FolderKanban,
   ListTodo,
   ScanSearch,
+  Ticket,
   UserRound,
   XCircle,
 } from "lucide-react";
@@ -24,6 +25,9 @@ interface ActivityTimelineProps {
 }
 
 const typeIcon: Record<ActivityType, typeof ScanSearch> = {
+  ticket_created: Ticket,
+  ticket_updated: Ticket,
+  ticket_deleted: XCircle,
   analysis_started: ScanSearch,
   analysis_completed: CheckCircle2,
   opportunity_approved: CheckCircle2,
@@ -40,6 +44,9 @@ const typeIcon: Record<ActivityType, typeof ScanSearch> = {
 };
 
 const typeVariant: Record<ActivityType, "success" | "danger" | "warning" | "info" | "default"> = {
+  ticket_created: "default",
+  ticket_updated: "default",
+  ticket_deleted: "danger",
   analysis_started: "info",
   analysis_completed: "success",
   opportunity_approved: "success",

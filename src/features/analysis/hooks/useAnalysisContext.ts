@@ -4,12 +4,11 @@ import { useMemo } from "react";
 
 import type { AIContext } from "@/models/AIContext";
 import type { KnowledgeArticle } from "@/models/KnowledgeArticle";
+import type { SupportConversation } from "@/models/SupportConversation";
 import type { Ticket } from "@/models/Ticket";
 
 import { buildKnowledgeQuery } from "@/features/library/builders/knowledgeQueryBuilder";
 import { searchRelatedArticles } from "@/features/library/services/articleSearchService";
-
-import { ticketService } from "../services/ticketService";
 
 /**
  * O acervo vive no navegador, então a busca acontece aqui e segue junto com o
@@ -18,12 +17,12 @@ import { ticketService } from "../services/ticketService";
  */
 export function useAnalysisContext(
   articles: KnowledgeArticle[],
-  ticket?: Ticket
+  ticket?: Ticket,
+  conversation?: SupportConversation
 ): AIContext {
   return useMemo(() => {
     if (!ticket) return {};
 
-    const conversation = ticketService.getConversation(ticket.id);
     const query = buildKnowledgeQuery(ticket, conversation);
 
     return {
@@ -32,5 +31,5 @@ export function useAnalysisContext(
       relatedArticles: searchRelatedArticles(articles, query),
       projectId: ticket.projectId,
     };
-  }, [articles, ticket]);
+  }, [articles, conversation, ticket]);
 }

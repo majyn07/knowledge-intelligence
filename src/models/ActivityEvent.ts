@@ -1,4 +1,7 @@
 export type ActivityType =
+  | "ticket_created"
+  | "ticket_updated"
+  | "ticket_deleted"
   | "analysis_started"
   | "analysis_completed"
   | "opportunity_approved"
@@ -47,6 +50,9 @@ export interface ActivityEvent {
 }
 
 export const activityTypeLabel: Record<ActivityType, string> = {
+  ticket_created: "Atendimento registrado",
+  ticket_updated: "Atendimento atualizado",
+  ticket_deleted: "Atendimento excluído",
   analysis_started: "Análise realizada",
   analysis_completed: "Análise concluída",
   opportunity_approved: "Oportunidade aprovada",
@@ -63,7 +69,10 @@ export const activityTypeLabel: Record<ActivityType, string> = {
 };
 
 /** Agrupamento usado para filtrar a linha do tempo por etapa do ciclo. */
-export const activityStage: Record<ActivityType, "analise" | "decisao" | "execucao" | "conhecimento" | "projeto"> = {
+export const activityStage: Record<ActivityType, "atendimento" | "analise" | "decisao" | "execucao" | "conhecimento" | "projeto"> = {
+  ticket_created: "atendimento",
+  ticket_updated: "atendimento",
+  ticket_deleted: "atendimento",
   analysis_started: "analise",
   analysis_completed: "analise",
   opportunity_approved: "decisao",
