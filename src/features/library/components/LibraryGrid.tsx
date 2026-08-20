@@ -1,4 +1,8 @@
+"use client";
+
 import type { KnowledgeArticle } from "@/models/KnowledgeArticle";
+import { sectionPath, type Taxonomy } from "@/models/Taxonomy";
+import { useTaxonomy } from "@/features/taxonomy/providers/TaxonomyProvider";
 import { BrandEmptyState } from "@/components/brand/BrandEmptyState";
 import { LibraryCard } from "./LibraryCard";
 
@@ -9,14 +13,14 @@ interface LibraryGridProps {
   onItemDelete?: (item: KnowledgeArticle) => void;
 }
 
-const UNGROUPED = "Sem produto definido";
+const UNGROUPED = "Sem seção";
 
-/** Agrupa por produto › módulo, a mesma hierarquia do portal de suporte. */
-function groupArticles(items: KnowledgeArticle[]) {
+/** Agrupa por categoria › seção, a mesma hierarquia do portal publicado. */
+function groupArticles(items: KnowledgeArticle[], taxonomy: Taxonomy) {
   const groups = new Map<string, KnowledgeArticle[]>();
 
   for (const item of items) {
-    const key = [item.product || UNGROUPED, item.module].filter(Boolean).join(" › ");
+    const key = sectionPath(taxonomy, item.sectionId) || UNGROUPED;
     groups.set(key, [...(groups.get(key) ?? []), item]);
   }
 
@@ -24,6 +28,9 @@ function groupArticles(items: KnowledgeArticle[]) {
 }
 
 export function LibraryGrid({ items, projects, onItemEdit, onItemDelete }: LibraryGridProps) {
+  // Antes do retorno antecipado: hook não pode ficar atrás de condição.
+  const { taxonomy } = useTaxonomy();
+
   if (items.length === 0) {
     return (
       <BrandEmptyState
@@ -33,7 +40,7 @@ export function LibraryGrid({ items, projects, onItemEdit, onItemDelete }: Libra
     );
   }
 
-  const groups = groupArticles(items);
+  const groups = groupArticles(items, taxonomy);
 
   return (
     <div className="space-y-10">

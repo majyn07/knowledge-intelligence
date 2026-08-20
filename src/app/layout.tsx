@@ -11,6 +11,7 @@ import { KnowledgeLifecycleProvider } from "@/features/analysis/providers/Knowle
 import { TicketsProvider } from "@/features/analysis/providers/TicketsProvider";
 import { ProjectProvider } from "@/providers/ProjectProvider";
 import { BrandThemeProvider } from "@/providers/BrandThemeProvider";
+import { TaxonomyProvider } from "@/features/taxonomy/providers/TaxonomyProvider";
 
 import "./globals.css";
 
@@ -51,6 +52,7 @@ export default function RootLayout({
     <html lang="pt-BR" className={poppins.variable}>
       <body className="min-h-screen bg-background font-sans text-foreground antialiased">
         <BrandThemeProvider>
+          <TaxonomyProvider>
           <PeopleProvider>
           <ActivityProvider>
           <ProjectProvider>
@@ -70,6 +72,7 @@ export default function RootLayout({
           </ProjectProvider>
           </ActivityProvider>
           </PeopleProvider>
+          </TaxonomyProvider>
         </BrandThemeProvider>
       </body>
     </html>

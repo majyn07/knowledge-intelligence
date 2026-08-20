@@ -8,6 +8,7 @@ import { BrandThemeSwitcher } from "@/components/common/BrandThemeSwitcher";
 import { PageHeader } from "@/components/common/page/PageHeader";
 import { PageSection } from "@/components/common/page/PageSection";
 import { PeopleManager } from "@/features/people/components/PeopleManager";
+import { TaxonomyManager } from "@/features/taxonomy/components/TaxonomyManager";
 import { brandThemes, useBrandTheme } from "@/providers/BrandThemeProvider";
 
 export default function SettingsPage() {
@@ -25,6 +26,8 @@ export default function SettingsPage() {
         />
 
         <PeopleManager />
+
+        <TaxonomyManager />
 
         <PageSection title="Produto ativo" description="Define a identidade visual do workspace.">
           <div className="relative overflow-hidden rounded-2xl border border-border/70 bg-card/85 p-6">

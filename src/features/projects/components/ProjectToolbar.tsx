@@ -1,7 +1,10 @@
+"use client";
+
 import { Search } from "lucide-react";
 
 import type { ProjectFilters } from "@/features/projects/types/ProjectFilters";
-import { PROJECT_PRODUCTS } from "@/features/projects/constants/products";
+import { productNamesFrom } from "@/features/projects/constants/products";
+import { useTaxonomy } from "@/features/taxonomy/providers/TaxonomyProvider";
 import { projectStatusLabel, type ProjectStatus } from "@/models/Project";
 
 import { Button } from "@/components/ui/button";
@@ -25,6 +28,9 @@ export function ProjectToolbar({
   onFiltersChange,
   onNewProject,
 }: ProjectToolbarProps) {
+  const { taxonomy } = useTaxonomy();
+  const productNames = productNamesFrom(taxonomy);
+
   return (
     <PageToolbar
       start={
@@ -67,7 +73,7 @@ export function ProjectToolbar({
               Todos os produtos
             </Button>
 
-            {PROJECT_PRODUCTS.map((product) => (
+            {productNames.map((product) => (
               <Button
                 key={product}
                 size="sm"

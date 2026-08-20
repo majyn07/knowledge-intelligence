@@ -3,6 +3,7 @@ import type { AnalysisRecord } from "@/models/KnowledgeLifecycle";
 import type { KnowledgeArticle } from "@/models/KnowledgeArticle";
 import type { PlanWorkspaceItem } from "@/features/plans/types/PlanWorkspace";
 import type { Project } from "@/models/Project";
+import { sectionPath, type Taxonomy } from "@/models/Taxonomy";
 import type { Ticket } from "@/models/Ticket";
 
 export type SearchResultKind =
@@ -36,6 +37,8 @@ export interface GlobalSearchInput {
   plans: PlanWorkspaceItem[];
   articles: KnowledgeArticle[];
   events: ActivityEvent[];
+  /** Vocabulário da classificação: sem ele a seção do artigo não tem nome. */
+  taxonomy: Taxonomy;
 }
 
 /** Ordem de exibição: do que o analista mais procura para o que menos procura. */
@@ -105,7 +108,7 @@ function push(
 }
 
 export function searchEverything(
-  { projects, tickets, analyses, plans, articles, events }: GlobalSearchInput,
+  { projects, tickets, analyses, plans, articles, events, taxonomy }: GlobalSearchInput,
   query: string
 ): SearchGroup[] {
   if (query.trim().length < 2) return [];
@@ -173,11 +176,11 @@ export function searchEverything(
   }
 
   for (const article of articles) {
-    push(results, score(query, [article.title, article.summary, article.keywords.join(" "), article.tags.join(" "), article.module, article.content]), {
+    push(results, score(query, [article.title, article.summary, article.keywords.join(" "), article.tags.join(" "), sectionPath(taxonomy, article.sectionId), article.content]), {
       kind: "article",
       id: article.id,
       title: article.title,
-      subtitle: [article.product, article.module, projectName(article.projectId)].filter(Boolean).join(" · "),
+      subtitle: [sectionPath(taxonomy, article.sectionId), projectName(article.projectId)].filter(Boolean).join(" · "),
       projectId: article.projectId,
       href: `/library/${article.id}`,
     });

@@ -13,6 +13,7 @@ import { toast } from "sonner";
 import { usePersistedState } from "@/hooks/usePersistedState";
 import { useActivity } from "@/features/activities/providers/ActivityProvider";
 import { usePeople } from "@/features/people/providers/PeopleProvider";
+import { useTaxonomy } from "@/features/taxonomy/providers/TaxonomyProvider";
 import { articleStatusLabel, type ArticleStatus, type KnowledgeArticle } from "@/models/KnowledgeArticle";
 import type { LibraryFormData } from "@/features/library/types/LibraryFormData";
 import type { PlanWorkspaceItem } from "@/features/plans/types/PlanWorkspace";
@@ -37,10 +38,12 @@ const LibraryContext = createContext<LibraryContextValue | null>(null);
 export function LibraryProvider({ children }: { children: ReactNode }) {
   const { record } = useActivity();
   const { currentPerson } = usePeople();
+  const { taxonomy } = useTaxonomy();
   const [items, setItems] = usePersistedState<KnowledgeArticle[]>({
     key: STORAGE_KEY,
     fallback: articleService.getSeed(),
-    parse: parseArticles,
+    // O vocabulário é capturado na montagem, que é quando a migração acontece.
+    parse: (raw) => parseArticles(raw, taxonomy),
   });
 
   const createItem = useCallback(

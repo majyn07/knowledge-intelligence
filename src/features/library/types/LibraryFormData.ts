@@ -1,7 +1,4 @@
-import type {
-  ArticleStatus,
-  ArticleType,
-} from "@/models/KnowledgeArticle";
+import type { ArticleStatus } from "@/models/KnowledgeArticle";
 
 export interface LibraryFormData {
   title: string;
@@ -10,12 +7,14 @@ export interface LibraryFormData {
 
   projectId: string;
 
-  type: ArticleType;
-  status: ArticleStatus;
+  /**
+   * Identificadores do cadastro, não texto livre. Vazio é estado válido:
+   * artigo novo antes de alguém classificar, ou migrado sem correspondência.
+   */
+  genreId: string;
+  sectionId: string;
 
-  product: string;
-  module: string;
-  category: string;
+  status: ArticleStatus;
 
   tags: string[];
   keywords: string[];

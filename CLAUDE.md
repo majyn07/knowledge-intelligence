@@ -29,8 +29,8 @@ src/services/ai  fronteira de IA, server-only
 src/hooks        utilitários de React sem domínio
 ```
 
-As nove features: `activities`, `analysis`, `dashboard`, `library`, `metrics`,
-`people`, `plans`, `projects`, `search`.
+As dez features: `activities`, `analysis`, `dashboard`, `library`, `metrics`,
+`people`, `plans`, `projects`, `search`, `taxonomy`.
 
 ### Cadeia de dados
 
@@ -63,9 +63,13 @@ exceção é o histórico de atividades, que tem limite por ser append-only.
 Ordem em `app/layout.tsx`, de fora para dentro:
 
 ```
-BrandTheme → People → Activity → Project
+BrandTheme → Taxonomy → People → Activity → Project
            → Tickets → KnowledgeLifecycle → Plans → Library
 ```
+
+`Taxonomy` fica logo abaixo do tema porque não depende de ninguém e quase todo
+mundo depende dela: a Biblioteca precisa do vocabulário para migrar o que leu
+do armazenamento, e os filtros de artigo e de projeto leem as opções dali.
 
 `Activity` fica acima dos domínios porque todos registram eventos nele e ele não
 depende de ninguém. `Tickets` fica acima de `KnowledgeLifecycle` porque a análise
@@ -146,6 +150,40 @@ princípio para o nosso ciclo.
 pedir antes. O acesso à HubSpot será mediado pela Claude, não por adapter REST
 direto — a fronteira será desenhada na sprint de Atendimentos remotos, contra a
 forma que a Claude realmente devolver.
+
+## Taxonomia
+
+O `suporte.altoqi.com.br` **é** a base de conhecimento publicada, em HubSpot
+Knowledge Base. A Biblioteca é o espelho local dele, não um acervo paralelo, e
+a estrutura é a dele: **categoria → seção → artigo**. O portal não tem campo
+de tipo.
+
+O artigo aponta para `sectionId`, e a categoria vem da seção — guardar as duas
+permitiria que divergissem. `portalArticleId` guarda a identidade no portal,
+sem a qual sincronizar criaria duplicata a cada importação.
+
+**Nada de classificação é fixo no código.** Categoria, seção, gênero e tipo de
+oportunidade são cadastro, editável em Configurações. A semente é a estrutura
+do portal como levantada — 13 categorias e 146 seções —, mas o portal muda e
+ninguém vai abrir o código para acompanhar.
+
+Disso decorre uma regra: **filtro lê do cadastro, nunca de constante**. Vale
+para a Biblioteca e para Projetos. Antes eram listas fixas, e o formulário
+podia discordar do filtro sobre quais produtos existem.
+
+Vazio é estado legítimo em `sectionId` e `genreId`. Quando a migração de um
+registro antigo não encontra correspondência, ela **deixa vazio em vez de
+chutar**: encaixar na seção mais parecida seria classificação inventada, e
+ninguém saberia que foi palpite. O artigo aparece no filtro "Sem seção" e
+alguém decide.
+
+Renomear preserva o id — o vínculo com o artigo é o identificador, não o
+texto. Remover categoria leva junto as seções dela e deixa os artigos
+apontando para o vazio, de propósito, pelo mesmo motivo.
+
+Máquina de estado **não** é lista de preenchimento: o estágio do artigo e do
+plano continua fixo no código, porque tem transição, teste e indicador
+amarrados. O status da oportunidade também.
 
 ## Identidade visual
 
@@ -239,7 +277,8 @@ segundo plano após edições em `.ts`/`.tsx`, avisando só quando algo quebra.
 Testes cobrem lógica pura, nunca componentes: motor de busca e busca
 transversal, transições de artigo e de plano, métricas por projeto e por
 período, parsing da resposta da IA, índice do artigo, critérios de publicação,
-fronteira de armazenamento e os normalizadores de artigo, plano e atendimento.
+fronteira de armazenamento, o cadastro de taxonomia com a migração da
+classificação antiga, e os normalizadores de artigo, plano e atendimento.
 Ao mexer em qualquer uma delas, o teste vem junto.
 
 Dois cuidados que já custaram tempo: `npm test` **não** faz typecheck — só o

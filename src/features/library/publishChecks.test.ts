@@ -11,14 +11,12 @@ function article(overrides: Partial<KnowledgeArticle> = {}): KnowledgeArticle {
     summary: "Como resolver",
     content: "## Problema\n\nDetalhe.",
     projectId: "p1",
-    type: "article",
+    genreId: "gen-artigo",
     status: "review",
-    product: "AltoQi Visus",
-    module: "Workflow",
-    category: "Troubleshooting",
+    sectionId: "sec-altoqi-visus-workflow",
     tags: [],
     keywords: ["login"],
-    author: "Mariana Costa",
+    author: "Raoni Milioli da Silva",
     createdAt: new Date(),
     updatedAt: new Date(),
     ...overrides,
@@ -41,15 +39,14 @@ describe("articlePublishChecks", () => {
     expect(failing(article({ content: "" }))).toContain("Tem conteúdo escrito");
   });
 
-  it("exige produto e módulo juntos", () => {
-    expect(failing(article({ module: "" }))).toContain("Produto e módulo definidos");
-    expect(failing(article({ product: "" }))).toContain("Produto e módulo definidos");
+  it("exige seção, que é para onde o artigo vai ser publicado", () => {
+    expect(failing(article({ sectionId: "" }))).toContain("Seção definida");
   });
 
-  it("aponta categoria e palavras-chave ausentes", () => {
-    const pendencias = failing(article({ category: "", keywords: [] }));
+  it("aponta gênero e palavras-chave ausentes", () => {
+    const pendencias = failing(article({ genreId: "", keywords: [] }));
 
-    expect(pendencias).toContain("Categoria definida");
+    expect(pendencias).toContain("Gênero definido");
     expect(pendencias).toContain("Tem palavras-chave");
   });
 
@@ -61,9 +58,8 @@ describe("articlePublishChecks", () => {
     const vazio = article({
       summary: "",
       content: "",
-      product: "",
-      module: "",
-      category: "",
+      sectionId: "",
+      genreId: "",
       keywords: [],
       author: "",
     });

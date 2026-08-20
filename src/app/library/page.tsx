@@ -26,7 +26,7 @@ export default function LibraryPage() {
   const { activeProject, activeProjectId, projects } = useProject();
   const { items, createItem, updateItem, deleteItem } = useLibrary();
 
-  const { filters, setFilters, filteredItems } = useLibraryFilters(
+  const { filters, setFilters, filteredItems, unclassifiedCount } = useLibraryFilters(
     items.filter((item) => item.projectId === activeProjectId)
   );
 
@@ -83,6 +83,7 @@ export default function LibraryPage() {
           filters={filters}
           onFiltersChange={setFilters}
           onNewItem={openCreateDialog}
+          unclassifiedCount={unclassifiedCount}
         />
 
         {filteredItems.length > 0 && (

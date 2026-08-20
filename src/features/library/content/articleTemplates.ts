@@ -1,11 +1,14 @@
-import type { ArticleType } from "@/models/KnowledgeArticle";
 
 /**
- * Esqueleto inicial por tipo. O tipo deixa de ser apenas um rótulo e passa a
- * definir como o conteúdo começa estruturado.
+ * Esqueleto inicial por gênero.
+ *
+ * A chave é o **nome** do gênero, não um identificador: o gênero virou
+ * cadastro, e quem cria um gênero novo não tem como registrar modelo aqui.
+ * Nome conhecido traz o esqueleto; nome novo cai no modelo geral, que ainda é
+ * melhor que uma página em branco.
  */
-export const articleTemplates: Record<ArticleType, string> = {
-  article: `## Problema
+const templates: Record<string, string> = {
+  Artigo: `## Problema
 
 Descreva o sintoma como o cliente o relata.
 
@@ -22,7 +25,7 @@ O que provoca o comportamento.
 
 Como confirmar que o problema foi resolvido.`,
 
-  faq: `## Pergunta
+  FAQ: `## Pergunta
 
 Como o cliente formula a dúvida.
 
@@ -34,7 +37,7 @@ Outra dúvida frequente sobre o mesmo tema.
 
 **Resposta:** resposta direta.`,
 
-  workflow: `## Quando usar
+  Workflow: `## Quando usar
 
 Situação em que este fluxo se aplica.
 
@@ -53,7 +56,7 @@ Situação em que este fluxo se aplica.
 
 O que deve acontecer ao final.`,
 
-  document: `## Contexto
+  Documento: `## Contexto
 
 Por que este documento existe.
 
@@ -65,7 +68,7 @@ Desenvolva o assunto.
 
 - Referência`,
 
-  template: `## Como usar este modelo
+  Template: `## Como usar este modelo
 
 Instruções de preenchimento.
 
@@ -73,3 +76,8 @@ Instruções de preenchimento.
 
 Conteúdo a ser copiado e adaptado.`,
 };
+
+/** Modelo do gênero, ou o geral quando o gênero é novo ou não foi escolhido. */
+export function templateFor(genreName: string): string {
+  return templates[genreName] ?? templates.Artigo;
+}

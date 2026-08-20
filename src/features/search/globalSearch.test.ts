@@ -1,9 +1,12 @@
 import { describe, expect, it } from "vitest";
 
+import { buildPortalTaxonomy } from "@/features/taxonomy/mock/portalTaxonomy";
+
 import type { GlobalSearchInput } from "./globalSearch";
 import { flattenGroups, searchEverything } from "./globalSearch";
 
 const base: GlobalSearchInput = {
+  taxonomy: buildPortalTaxonomy(),
   projects: [
     {
       id: "p1",
@@ -14,7 +17,7 @@ const base: GlobalSearchInput = {
       product: "AltoQi Visus",
       module: "Workflow",
       goal: "Reduzir chamados de autenticação",
-      owner: "Mariana Costa",
+      owner: "Raoni Milioli da Silva",
       createdAt: new Date(),
       updatedAt: new Date(),
     },
@@ -31,11 +34,9 @@ const base: GlobalSearchInput = {
       summary: "Como resolver falhas de login",
       content: "",
       projectId: "p1",
-      type: "article",
+      genreId: "gen-artigo",
       status: "published",
-      product: "AltoQi Visus",
-      module: "Workflow",
-      category: "Troubleshooting",
+      sectionId: "sec-altoqi-visus-workflow",
       tags: [],
       keywords: ["token"],
       author: "",

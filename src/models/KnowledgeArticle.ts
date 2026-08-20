@@ -4,13 +4,6 @@ export type ArticleStatus =
   | "published"
   | "archived";
 
-export type ArticleType =
-  | "article"
-  | "faq"
-  | "workflow"
-  | "document"
-  | "template";
-
 /** Origem do conteúdo, quando ele nasceu de uma decisão do ciclo de conhecimento. */
 export interface KnowledgeContentSource {
   projectId: string;
@@ -34,13 +27,28 @@ export interface KnowledgeArticle {
 
   projectId: string;
 
-  type: ArticleType;
+  /** Gênero editorial, vindo do cadastro. Vazio enquanto ninguém escolheu. */
+  genreId: string;
   status: ArticleStatus;
 
-  /** Taxonomia alinhada à usada no atendimento e no portal de suporte. */
-  product: string;
-  module: string;
-  category: string;
+  /**
+   * Seção do portal onde o artigo mora. A categoria vem dela — guardar as
+   * duas permitiria que divergissem.
+   *
+   * Vazio é estado legítimo: artigo recém-criado, ou migrado de um registro
+   * antigo cuja classificação não encontrou correspondência. Nesse caso ele
+   * aparece em "Sem seção" para ser reclassificado, em vez de ser encaixado
+   * por adivinhação.
+   */
+  sectionId: string;
+
+  /**
+   * Identificador do artigo no portal, quando ele veio de lá.
+   *
+   * Sem isso, sincronizar criaria duplicata a cada importação em vez de
+   * atualizar o que já existe.
+   */
+  portalArticleId?: string;
 
   tags: string[];
   keywords: string[];
@@ -64,13 +72,10 @@ export const articleStatusLabel: Record<ArticleStatus, string> = {
   archived: "Arquivado",
 };
 
-export const articleTypeLabel: Record<ArticleType, string> = {
-  article: "Artigo",
-  faq: "FAQ",
-  workflow: "Workflow",
-  document: "Documento",
-  template: "Template",
-};
+/*
+ * O gênero deixou de ter rótulo aqui: virou cadastro. Quem precisa do texto
+ * lê da taxonomia, porque a lista agora é da equipe e não do código.
+ */
 
 /**
  * Transições permitidas do ciclo editorial. Além de avançar, o conteúdo pode

@@ -92,7 +92,7 @@ export function PeopleManager() {
               <Input
                 id="person-name"
                 value={name}
-                placeholder="Ex.: Mariana Costa"
+                placeholder="Ex.: Raoni Milioli da Silva"
                 onChange={(event) => setName(event.target.value)}
                 onKeyDown={(event) => {
                   if (event.key === "Enter") {
