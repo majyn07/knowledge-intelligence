@@ -31,6 +31,7 @@ import {
   type SearchResult,
   type SearchResultKind,
 } from "../globalSearch";
+import { commandGroup } from "../commands";
 
 interface GlobalSearchDialogProps {
   open: boolean;
@@ -38,6 +39,7 @@ interface GlobalSearchDialogProps {
 }
 
 const kindIcon: Record<SearchResultKind, typeof Search> = {
+  command: CornerDownLeft,
   project: FolderKanban,
   ticket: Ticket,
   analysis: ScanSearch,
@@ -61,10 +63,21 @@ export function GlobalSearchDialog({ open, onOpenChange }: GlobalSearchDialogPro
   const [highlighted, setHighlighted] = useState(0);
   const listRef = useRef<HTMLDivElement>(null);
 
-  const groups = useMemo(
-    () => searchEverything({ projects, tickets, analyses, plans, articles, events, taxonomy }, query),
-    [analyses, articles, events, plans, projects, query, taxonomy, tickets]
-  );
+  const groups = useMemo(() => {
+    const found = searchEverything(
+      { projects, tickets, analyses, plans, articles, events, taxonomy },
+      query
+    );
+
+    /*
+      Comandos entram fora de `searchEverything` de propósito: aquela função é
+      pura sobre as entidades do ciclo, e comando não é entidade. Aqui eles são
+      prefixados para a navegação por teclado tratar tudo como uma lista só.
+    */
+    const commands = commandGroup(query);
+
+    return commands ? [commands, ...found] : found;
+  }, [analyses, articles, events, plans, projects, query, taxonomy, tickets]);
 
   const flat = useMemo(() => flattenGroups(groups), [groups]);
 
@@ -137,8 +150,9 @@ export function GlobalSearchDialog({ open, onOpenChange }: GlobalSearchDialogPro
 
         <div ref={listRef} className="max-h-[60vh] overflow-y-auto p-2">
           {query.trim().length < 2 && (
-            <p className="px-3 py-8 text-center text-sm text-muted-foreground">
-              Digite ao menos dois caracteres. A busca alcança todos os projetos.
+            <p className="px-3 pb-2 pt-3 text-center text-xs text-muted-foreground">
+              Digite ao menos dois caracteres para buscar registros — a busca
+              alcança todos os projetos.
             </p>
           )}
 

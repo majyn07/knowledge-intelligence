@@ -21,6 +21,7 @@ import { useTaxonomy } from "@/features/taxonomy/providers/TaxonomyProvider";
 import { StatusBadge } from "@/components/common/status/StatusBadge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { RelativeDate } from "@/components/common/RelativeDate";
 
 interface LibraryCardProps {
   item: KnowledgeArticle;
@@ -106,7 +107,7 @@ export function LibraryCard({ item, projectName, onEdit, onDelete }: LibraryCard
 
         <div className="mt-auto flex items-center justify-between border-t pt-4">
           <span className="truncate text-xs text-muted-foreground">
-            {projectName} · {item.updatedAt.toLocaleDateString("pt-BR")}
+            {projectName} · <RelativeDate value={item.updatedAt} />
           </span>
 
           <div className="relative flex gap-2">

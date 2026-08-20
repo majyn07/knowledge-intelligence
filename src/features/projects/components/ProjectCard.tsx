@@ -10,6 +10,7 @@ import { StatusBadge } from "@/components/common/status/StatusBadge";
 import { Card, CardContent } from "@/components/ui/card";
 import { AssigneeName } from "@/features/people/components/AssigneeName";
 import { Button } from "@/components/ui/button";
+import { RelativeDate } from "@/components/common/RelativeDate";
 
 interface ProjectCardProps {
   project: Project;
@@ -87,7 +88,7 @@ export function ProjectCard({ project, isActive = false, onEdit, onDelete }: Pro
 
         <div className="mt-auto flex items-center justify-between border-t pt-4">
           <span className="text-xs text-muted-foreground">
-            Atualizado em {project.updatedAt.toLocaleDateString("pt-BR")}
+            Atualizado <RelativeDate value={project.updatedAt} />
           </span>
 
           <div className="relative flex gap-2">
