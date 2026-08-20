@@ -18,6 +18,7 @@ import { AnalysisReadings } from "./components/AnalysisReadings";
 import { DashboardIndicators } from "./components/DashboardIndicators";
 import { ImprovementBacklog } from "./components/ImprovementBacklog";
 import { NextPriority } from "./components/NextPriority";
+import { MyWork } from "@/features/plans/components/MyWork";
 
 export function DashboardPage() {
   const { analyses } = useKnowledgeLifecycle();
@@ -36,6 +37,12 @@ export function DashboardPage() {
         icon={<ProductGraphic product={theme} className="h-10 w-12" />}
         actions={<Button size="lg" render={<Link href="/analysis" />} nativeButton={false}><Sparkles className="mr-2 h-4 w-4" />Nova análise</Button>}
       />
+
+      {/*
+        Fora do bloco de vazio: "meu trabalho" atravessa projetos, então ele
+        tem o que mostrar mesmo quando o projeto ativo ainda não tem nada.
+      */}
+      <MyWork />
 
       {metrics.isEmpty ? (
         <BrandEmptyState title={`Sem dados para ${activeProject?.name ?? "o projeto ativo"}`} description="Este projeto ainda não possui análises, oportunidades, planos ou conteúdos de conhecimento." />

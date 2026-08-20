@@ -13,6 +13,7 @@ import { useActivity } from "@/features/activities/providers/ActivityProvider";
 import { useKnowledgeLifecycle } from "@/features/analysis/providers/KnowledgeLifecycleProvider";
 import { useTickets } from "@/features/analysis/providers/TicketsProvider";
 import { useLibrary } from "@/features/library/providers/LibraryProvider";
+import { CoverageMap } from "@/features/library/components/CoverageMap";
 import { PeriodMetricCard } from "@/features/metrics/components/PeriodMetricCard";
 import { selectPeriodMetrics, type MetricPeriod } from "@/features/metrics/periodMetrics";
 import { selectProjectMetrics } from "@/features/metrics/projectMetrics";
@@ -155,6 +156,12 @@ export default function IndicatorsPage() {
             </div>
           )}
         </PageSection>
+
+        {/*
+          O mapa fecha a tela porque responde a pergunta inversa das de cima:
+          os cartões contam o que existe, ele mostra o que falta.
+        */}
+        <CoverageMap />
       </div>
     </AppShell>
   );
