@@ -10,11 +10,10 @@ import {
 
 import { toast } from "sonner";
 
-import { usePersistedState } from "@/hooks/usePersistedState";
 import type { Taxonomy } from "@/models/Taxonomy";
 
 import { buildPortalTaxonomy } from "../mock/portalTaxonomy";
-import { parseTaxonomy } from "../normalizeTaxonomy";
+import { useTaxonomyState } from "../hooks/useTaxonomyState";
 import {
   addCategory,
   addEntry,
@@ -27,8 +26,6 @@ import {
   renameEntry,
   renameSection,
 } from "../taxonomyService";
-
-const STORAGE_KEY = "visus-taxonomy";
 
 interface TaxonomyContextValue {
   taxonomy: Taxonomy;
@@ -61,11 +58,7 @@ const TaxonomyContext = createContext<TaxonomyContextValue | null>(null);
  * aparece e some sozinho nas telas.
  */
 export function TaxonomyProvider({ children }: { children: ReactNode }) {
-  const [taxonomy, setTaxonomy, isHydrated] = usePersistedState<Taxonomy>({
-    key: STORAGE_KEY,
-    fallback: buildPortalTaxonomy(),
-    parse: parseTaxonomy,
-  });
+  const [taxonomy, setTaxonomy, isHydrated] = useTaxonomyState();
 
   /**
    * As operações são puras e devolvem a taxonomia inalterada quando recusam —

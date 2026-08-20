@@ -20,8 +20,23 @@ import type { Database } from "./types";
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
 const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "";
 
+/**
+ * O banco existir não basta para o produto passar a usá-lo.
+ *
+ * A integração da Vercel injeta as variáveis do Supabase em todos os
+ * ambientes assim que é provisionada. Se só a presença delas decidisse, o
+ * primeiro deploy passaria a exigir login com a camada de dados ainda pela
+ * metade — todo mundo trancado do lado de fora de um produto sem conteúdo.
+ *
+ * Por isso a virada é uma decisão declarada, não um efeito colateral de
+ * provisionar. Definir `NEXT_PUBLIC_SHARED_WORKSPACE=on` liga o modo
+ * compartilhado; sem ela, o produto roda sobre o `localStorage` como sempre.
+ */
+const sharedEnabled =
+  (process.env.NEXT_PUBLIC_SHARED_WORKSPACE ?? "").trim().toLowerCase() === "on";
+
 export function isBackendConfigured(): boolean {
-  return url !== "" && anonKey !== "";
+  return sharedEnabled && url !== "" && anonKey !== "";
 }
 
 let client: SupabaseClient<Database> | null = null;

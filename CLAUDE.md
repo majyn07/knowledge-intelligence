@@ -151,6 +151,38 @@ pedir antes. O acesso à HubSpot será mediado pela Claude, não por adapter RES
 direto — a fronteira será desenhada na sprint de Atendimentos remotos, contra a
 forma que a Claude realmente devolver.
 
+## Fundação compartilhada
+
+O produto tem **dois modos**, e a diferença é declarada, não deduzida.
+
+Sem `NEXT_PUBLIC_SHARED_WORKSPACE=on`, tudo roda sobre o `localStorage` como
+sempre rodou. Com ela, e com o Supabase configurado, o acesso passa a exigir
+e-mail `@altoqi.com.br` e os dados vêm do banco.
+
+A virada é uma variável própria porque a integração da Vercel injeta as
+credenciais do Supabase em todos os ambientes assim que é provisionada. Se a
+presença delas decidisse, o primeiro deploy trancaria todo mundo numa tela de
+login com a camada de dados pela metade.
+
+`getSupabase()` devolve `null` quando não há backend. Ausência de servidor é
+estado previsto, não erro: nenhuma variável faltando vira exceção dentro de um
+efeito.
+
+A restrição de domínio vive **no banco** — `check constraint` na tabela de
+perfis e gatilho em `auth.users`. A conferência na interface existe só para
+dar erro legível. Não há senha em lugar nenhum: o acesso é por link no e-mail.
+
+A chave de serviço está no ambiente e **não é usada em lugar nenhum**. Ela
+ignora as políticas de acesso, e nenhuma operação do produto precisa disso.
+
+Schema em `supabase/migrations`, aplicado por `npm run db:migrate`. Coluna de
+verdade para o que é filtrado, ordenado ou contado; `jsonb` para o conteúdo
+profundo que só é lido inteiro.
+
+Tabela nova precisa de `grant` explícito para `authenticated`: RLS decide
+quais linhas aparecem depois que a tabela é alcançável, não se ela é
+alcançável.
+
 ## Taxonomia
 
 O `suporte.altoqi.com.br` **é** a base de conhecimento publicada, em HubSpot

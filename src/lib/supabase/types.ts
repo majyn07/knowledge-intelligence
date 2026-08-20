@@ -10,37 +10,37 @@
  * modelo espera — a mesma disciplina que valia para o `localStorage`.
  */
 
-export interface ProfileRow {
+export type ProfileRow = {
   id: string;
   email: string;
   name: string;
   role: string;
   avatar_url: string | null;
   created_at: string;
-}
+};
 
-export interface TaxonomyCategoryRow {
+export type TaxonomyCategoryRow = {
   id: string;
   name: string;
   is_product: boolean;
   position: number;
-}
+};
 
-export interface TaxonomySectionRow {
+export type TaxonomySectionRow = {
   id: string;
   category_id: string;
   name: string;
   position: number;
-}
+};
 
-export interface TaxonomyEntryRow {
+export type TaxonomyEntryRow = {
   id: string;
   list: "genres" | "opportunity_types";
   name: string;
   position: number;
-}
+};
 
-export interface ProjectRow {
+export type ProjectRow = {
   id: string;
   name: string;
   client: string;
@@ -52,9 +52,9 @@ export interface ProjectRow {
   owner: string;
   created_at: string;
   updated_at: string;
-}
+};
 
-export interface TicketRow {
+export type TicketRow = {
   id: string;
   project_id: string;
   title: string;
@@ -62,17 +62,17 @@ export interface TicketRow {
   company: string;
   occurred_on: string;
   source: unknown;
-}
+};
 
-export interface AnalysisRow {
+export type AnalysisRow = {
   id: string;
   project_id: string;
   ticket_id: string;
   result: unknown;
   created_at: string;
-}
+};
 
-export interface PlanRow {
+export type PlanRow = {
   id: string;
   project_id: string;
   title: string;
@@ -85,9 +85,9 @@ export interface PlanRow {
   comments: unknown;
   created_at: string;
   updated_at: string;
-}
+};
 
-export interface ArticleRow {
+export type ArticleRow = {
   id: string;
   project_id: string;
   title: string;
@@ -104,9 +104,9 @@ export interface ArticleRow {
   source: unknown;
   created_at: string;
   updated_at: string;
-}
+};
 
-export interface ActivityEventRow {
+export type ActivityEventRow = {
   id: string;
   at: string;
   type: string;
@@ -114,22 +114,81 @@ export interface ActivityEventRow {
   actor: string;
   subject: unknown;
   detail: string;
-}
+};
 
+/**
+ * Forma que o cliente tipado do Supabase espera. `Relationships`, `Views`,
+ * `Functions`, `Enums` e `CompositeTypes` são obrigatórios mesmo vazios:
+ * sem eles o tipo da linha esperada em `insert` colapsa para `never`.
+ */
 export interface Database {
   public: {
     Tables: {
-      profiles: { Row: ProfileRow; Insert: Partial<ProfileRow> & { id: string; email: string }; Update: Partial<ProfileRow> };
-      taxonomy_categories: { Row: TaxonomyCategoryRow; Insert: TaxonomyCategoryRow; Update: Partial<TaxonomyCategoryRow> };
-      taxonomy_sections: { Row: TaxonomySectionRow; Insert: TaxonomySectionRow; Update: Partial<TaxonomySectionRow> };
-      taxonomy_entries: { Row: TaxonomyEntryRow; Insert: TaxonomyEntryRow; Update: Partial<TaxonomyEntryRow> };
-      projects: { Row: ProjectRow; Insert: ProjectRow; Update: Partial<ProjectRow> };
-      tickets: { Row: TicketRow; Insert: TicketRow; Update: Partial<TicketRow> };
-      analyses: { Row: AnalysisRow; Insert: AnalysisRow; Update: Partial<AnalysisRow> };
-      plans: { Row: PlanRow; Insert: PlanRow; Update: Partial<PlanRow> };
-      articles: { Row: ArticleRow; Insert: ArticleRow; Update: Partial<ArticleRow> };
-      activity_events: { Row: ActivityEventRow; Insert: ActivityEventRow; Update: Partial<ActivityEventRow> };
+      profiles: {
+        Row: ProfileRow;
+        Insert: Partial<ProfileRow> & { id: string; email: string };
+        Update: Partial<ProfileRow>;
+        Relationships: [];
+      };
+      taxonomy_categories: {
+        Row: TaxonomyCategoryRow;
+        Insert: TaxonomyCategoryRow;
+        Update: Partial<TaxonomyCategoryRow>;
+        Relationships: [];
+      };
+      taxonomy_sections: {
+        Row: TaxonomySectionRow;
+        Insert: TaxonomySectionRow;
+        Update: Partial<TaxonomySectionRow>;
+        Relationships: [];
+      };
+      taxonomy_entries: {
+        Row: TaxonomyEntryRow;
+        Insert: TaxonomyEntryRow;
+        Update: Partial<TaxonomyEntryRow>;
+        Relationships: [];
+      };
+      projects: {
+        Row: ProjectRow;
+        Insert: ProjectRow;
+        Update: Partial<ProjectRow>;
+        Relationships: [];
+      };
+      tickets: {
+        Row: TicketRow;
+        Insert: TicketRow;
+        Update: Partial<TicketRow>;
+        Relationships: [];
+      };
+      analyses: {
+        Row: AnalysisRow;
+        Insert: AnalysisRow;
+        Update: Partial<AnalysisRow>;
+        Relationships: [];
+      };
+      plans: {
+        Row: PlanRow;
+        Insert: PlanRow;
+        Update: Partial<PlanRow>;
+        Relationships: [];
+      };
+      articles: {
+        Row: ArticleRow;
+        Insert: ArticleRow;
+        Update: Partial<ArticleRow>;
+        Relationships: [];
+      };
+      activity_events: {
+        Row: ActivityEventRow;
+        Insert: ActivityEventRow;
+        Update: Partial<ActivityEventRow>;
+        Relationships: [];
+      };
     };
+    Views: { [_ in never]: never };
+    Functions: { [_ in never]: never };
+    Enums: { [_ in never]: never };
+    CompositeTypes: { [_ in never]: never };
   };
 }
 
