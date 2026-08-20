@@ -200,6 +200,12 @@ npm run build
 Um hook `PostToolUse` em `.claude/settings.json` roda `typecheck` e `test` em
 segundo plano após edições em `.ts`/`.tsx`, avisando só quando algo quebra.
 
-Testes cobrem lógica pura — motor de busca, busca transversal, transições de
-artigo e de plano, métricas por projeto e por período, parsing da resposta da IA
-e normalização de atendimento. Ao mexer em qualquer uma delas, o teste vem junto.
+Testes cobrem lógica pura, nunca componentes: motor de busca e busca
+transversal, transições de artigo e de plano, métricas por projeto e por
+período, parsing da resposta da IA, índice do artigo, critérios de publicação,
+fronteira de armazenamento e os normalizadores de artigo, plano e atendimento.
+Ao mexer em qualquer uma delas, o teste vem junto.
+
+Dois cuidados que já custaram tempo: `npm test` **não** faz typecheck — só o
+`typecheck` pega erro de tipo em arquivo de teste; e o hook roda em segundo
+plano, então o aviso de falha chega depois da edição, não junto dela.
