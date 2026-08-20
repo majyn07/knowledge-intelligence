@@ -3,6 +3,20 @@ import type { AnalysisResult } from "./AnalysisResult";
 import type { KnowledgeSearchResult } from "./KnowledgeSearchResult";
 
 export type AnalysisStatus = "open" | "in_review" | "completed";
+
+/**
+ * Rótulo do estágio da análise.
+ *
+ * Vivia dentro de um componente do painel inicial. Virou vocabulário
+ * compartilhado quando os painéis personalizados passaram a quebrar por
+ * estágio: duas cópias do mesmo texto divergem, e a divergência aparece como
+ * duas linhas para o mesmo estado.
+ */
+export const analysisStatusLabel: Record<AnalysisStatus, string> = {
+  open: "Aberta",
+  in_review: "Em revisão",
+  completed: "Concluída",
+};
 export type OpportunityWorkflowStatus =
   | "proposed"
   | "approved"
