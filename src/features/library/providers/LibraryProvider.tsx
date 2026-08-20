@@ -27,6 +27,8 @@ const STORAGE_KEY = STORAGE_KEYS.articles;
 
 interface LibraryContextValue {
   items: KnowledgeArticle[];
+  /** Falso até o conteúdo guardado ser lido, após a montagem. */
+  isHydrated: boolean;
   totalItems: number;
   createItem: (data: LibraryFormData) => void;
   updateItem: (id: string, data: LibraryFormData) => void;
@@ -41,7 +43,7 @@ export function LibraryProvider({ children }: { children: ReactNode }) {
   const { record } = useActivity();
   const { currentPerson } = usePeople();
   const { taxonomy } = useTaxonomy();
-  const [items, setItems] = useSharedCollection<KnowledgeArticle>({
+  const [items, setItems, isHydrated] = useSharedCollection<KnowledgeArticle>({
     key: STORAGE_KEY,
     table: "articles",
     fallback: articleService.getSeed(),
@@ -163,13 +165,14 @@ export function LibraryProvider({ children }: { children: ReactNode }) {
     () => ({
       items,
       totalItems: items.length,
+      isHydrated,
       createItem,
       updateItem,
       changeStatus,
       deleteItem,
       createItemFromPlan,
     }),
-    [changeStatus, createItem, createItemFromPlan, deleteItem, items, updateItem]
+    [changeStatus, createItem, createItemFromPlan, deleteItem, isHydrated, items, updateItem]
   );
 
   return <LibraryContext.Provider value={value}>{children}</LibraryContext.Provider>;

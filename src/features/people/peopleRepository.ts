@@ -26,6 +26,7 @@ export function toPerson(raw: unknown): Person {
     role: text(row.role),
     email: text(row.email),
     teamId: text(row.team_id),
+    avatarUrl: text(row.avatar_url),
     // Perfis criados antes da coluna existir não têm o campo; ativo é o padrão.
     isActive: row.is_active === undefined ? true : flag(row.is_active),
   };
@@ -75,13 +76,15 @@ export async function readPeopleAndTeams(
 export async function updateProfile(
   client: Client,
   id: string,
-  fields: { name?: string; role?: string; teamId?: string }
+  fields: { name?: string; role?: string; teamId?: string; avatarUrl?: string }
 ): Promise<void> {
   const payload: Partial<ProfileRow> = {};
 
   if (fields.name !== undefined) payload.name = fields.name.trim();
   if (fields.role !== undefined) payload.role = fields.role.trim();
   if (fields.teamId !== undefined) payload.team_id = fields.teamId || null;
+  // Vazio limpa o retrato, e limpar é uma operação legítima.
+  if (fields.avatarUrl !== undefined) payload.avatar_url = fields.avatarUrl || null;
 
   if (Object.keys(payload).length === 0) return;
 

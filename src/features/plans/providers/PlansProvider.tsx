@@ -24,12 +24,15 @@ import { STORAGE_KEYS } from "@/lib/storage";
 
 const STORAGE_KEY = STORAGE_KEYS.plans;
 
-function nowLabel() {
-  return new Intl.DateTimeFormat("pt-BR", { dateStyle: "medium", timeStyle: "short" }).format(new Date());
+/** O carimbo de alteração, em ISO. Quem formata é a tela. */
+function nowIso() {
+  return new Date().toISOString();
 }
 
 interface PlansContextValue {
   plans: PlanWorkspaceItem[];
+  /** Falso até o conteúdo guardado ser lido, após a montagem. */
+  isHydrated: boolean;
   selectedPlan: PlanWorkspaceItem | undefined;
   search: string;
   status: PlanStatus | "all";
@@ -54,7 +57,7 @@ const PlansContext = createContext<PlansContextValue | null>(null);
 export function PlansProvider({ children }: { children: ReactNode }) {
   const { record } = useActivity();
   const { currentPerson } = usePeople();
-  const [plans, setPlans] = useSharedCollection<PlanWorkspaceItem>({
+  const [plans, setPlans, isHydrated] = useSharedCollection<PlanWorkspaceItem>({
     key: STORAGE_KEY,
     table: "plans",
     fallback: planWorkspaceMock,
@@ -72,7 +75,7 @@ export function PlansProvider({ children }: { children: ReactNode }) {
   const patchPlan = useCallback(
     (planId: string, patch: (plan: PlanWorkspaceItem) => PlanWorkspaceItem) => {
       setPlans((current) =>
-        current.map((plan) => (plan.id === planId ? { ...patch(plan), updatedAt: nowLabel() } : plan))
+        current.map((plan) => (plan.id === planId ? { ...patch(plan), updatedAt: nowIso() } : plan))
       );
     },
     [setPlans]
@@ -205,7 +208,13 @@ export function PlansProvider({ children }: { children: ReactNode }) {
     patchPlan(planId, (current) => ({
       ...current,
       comments: [
-        { id: crypto.randomUUID(), author: author || "Sem autor", message: trimmed, date: nowLabel() },
+        /*
+          ISO, e não texto de exibição. O comentário gravado como "20 de ago.
+          de 2026, 18:23" não se ordena nem se compara, e a tela já mostrava
+          duas formas na mesma lista: o texto dos novos e o ISO cru da
+          semente. Quem formata é `RelativeDate`, na leitura.
+        */
+        { id: crypto.randomUUID(), author: author || "Sem autor", message: trimmed, date: new Date().toISOString() },
         ...current.comments,
       ],
     }));
@@ -221,6 +230,7 @@ export function PlansProvider({ children }: { children: ReactNode }) {
 
   const value = useMemo(() => ({
     plans,
+    isHydrated,
     selectedPlan,
     search,
     status,
@@ -238,7 +248,7 @@ export function PlansProvider({ children }: { children: ReactNode }) {
     updateDocument,
     createPlanFromApprovedOpportunity,
     linkPlanToArticle,
-  }), [addComment, addTask, assignPlan, changeStatus, createPlanFromApprovedOpportunity, linkPlanToArticle, plans, removeTask, search, selectedPlan, setDueDate, setPriority, status, toggleTask, updateDocument]);
+  }), [addComment, addTask, assignPlan, changeStatus, createPlanFromApprovedOpportunity, isHydrated, linkPlanToArticle, plans, removeTask, search, selectedPlan, setDueDate, setPriority, status, toggleTask, updateDocument]);
 
   return <PlansContext.Provider value={value}>{children}</PlansContext.Provider>;
 }

@@ -6,6 +6,7 @@ import { parseEvents } from "@/features/activities/normalizeEvent";
 import { parseAnalyses } from "@/features/analysis/normalizeAnalysis";
 import { parseConversations, parseTickets } from "@/features/analysis/normalizeSupport";
 import { parseArticles } from "@/features/library/normalizeArticle";
+import { fromFollow, parseFollows } from "@/features/people/follows";
 import { defaultPanels } from "@/features/metrics/panels/defaultPanels";
 import { fromPanel, parsePanels } from "@/features/metrics/panels/normalizePanel";
 import { parsePlans } from "@/features/plans/normalizePlan";
@@ -38,6 +39,7 @@ export interface LocalWorkspace {
   articles: number;
   events: number;
   panels: number;
+  follows: number;
 }
 
 /**
@@ -86,6 +88,7 @@ function readLocal(taxonomy: Taxonomy) {
     ),
     events: parse(STORAGE_KEYS.activity, parseEvents),
     panels: parse(STORAGE_KEYS.panels, parsePanels, defaultPanels),
+    follows: parse(STORAGE_KEYS.follows, parseFollows),
   };
 }
 
@@ -101,6 +104,7 @@ export function countLocal(taxonomy: Taxonomy): LocalWorkspace {
     articles: local.articles.length,
     events: local.events.length,
     panels: local.panels.length,
+    follows: local.follows.length,
   };
 }
 
@@ -114,6 +118,7 @@ const tables: Record<keyof LocalWorkspace, keyof Database["public"]["Tables"]> =
   articles: "articles",
   events: "activity_events",
   panels: "dashboard_panels",
+  follows: "follows",
 };
 
 /**
@@ -201,4 +206,5 @@ export async function pushLocalWorkspace(
 
   // Painéis não referenciam ninguém, então ficam por último sem consequência.
   await send("dashboard_panels", local.panels.map(fromPanel));
+  await send("follows", local.follows.map(fromFollow));
 }

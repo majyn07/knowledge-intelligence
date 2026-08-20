@@ -45,6 +45,7 @@ function base(): PanelData {
         role: "Suporte",
         email: "r@altoqi.com.br",
         teamId: "eq-visus",
+        avatarUrl: "",
         isActive: true,
       },
     ],
@@ -316,6 +317,64 @@ describe("quebras", () => {
   });
 });
 
+describe("cruzamento de duas dimensões", () => {
+  function acervo() {
+    const data = base();
+    data.articles = [
+      artigo({ id: "a", status: "published", sectionId: "sec-eletrica" }),
+      artigo({ id: "b", status: "published", sectionId: "sec-eletrica" }),
+      artigo({ id: "c", status: "draft", sectionId: "sec-hidraulica" }),
+      artigo({ id: "d", status: "draft", sectionId: "" }),
+    ];
+    return data;
+  }
+
+  const cruzado = spec({
+    breakdown: "status",
+    breakdown2: "section",
+    visual: "table",
+    window: null,
+  });
+
+  it("a tabela soma o mesmo que a lista simples", () => {
+    /*
+      A linha cruzada é apurada sobre as mesmas linhas de \`group\`, e não
+      recalculada: apurar duas vezes é exatamente como as duas deixam de bater.
+    */
+    const result = runPanel(cruzado, acervo(), agora);
+
+    expect(result.total).toBe(4);
+    expect(result.matrix).toBeDefined();
+
+    for (const row of result.matrix!.rows) {
+      expect(row.values.reduce((soma, valor) => soma + valor, 0)).toBe(row.total);
+    }
+  });
+
+  it("cada célula conta o cruzamento certo", () => {
+    const matrix = runPanel(cruzado, acervo(), agora).matrix!;
+
+    const publicado = matrix.rows.find((row) => row.key === "published")!;
+    const elétrica = matrix.columns.findIndex((column) => column.key === "sec-eletrica");
+
+    expect(publicado.values[elétrica]).toBe(2);
+  });
+
+  it("a coluna sem classificação vai para o fim, e não some", () => {
+    // Ela costuma ser a maior enquanto a classificação está incompleta, e na
+    // frente empurraria para a direita justamente as colunas que importam.
+    const matrix = runPanel(cruzado, acervo(), agora).matrix!;
+
+    expect(matrix.columns[matrix.columns.length - 1].label).toBe("Não definido");
+  });
+
+  it("sem segunda quebra não há tabela cruzada", () => {
+    const result = runPanel(spec({ breakdown: "status", visual: "bar" }), acervo(), agora);
+
+    expect(result.matrix).toBeUndefined();
+  });
+});
+
 describe("oportunidades", () => {
   it("conta as oportunidades dentro das análises da janela", () => {
     const data = base();
@@ -458,6 +517,78 @@ describe("reconcileSpec", () => {
     });
 
     expect(corrigido.stage).toBe("published");
+  });
+
+  it("segunda quebra sem a primeira é descartada", () => {
+    // Sem a primeira ela seria a primeira, e não um cruzamento.
+    const corrigido = reconcileSpec({
+      id: "s",
+      title: "t",
+      source: "articles",
+      breakdown: "none",
+      breakdown2: "status",
+      visual: "table",
+      window: 30,
+      scopedToProject: false,
+      order: 0,
+    });
+
+    expect(corrigido.breakdown2).toBeUndefined();
+  });
+
+  it("cruzar uma dimensão com ela mesma é descartado", () => {
+    // Produziria uma diagonal: uma coluna útil e o resto zerado.
+    const corrigido = reconcileSpec({
+      id: "s",
+      title: "t",
+      source: "articles",
+      breakdown: "status",
+      breakdown2: "status",
+      visual: "table",
+      window: 30,
+      scopedToProject: false,
+      order: 0,
+    });
+
+    expect(corrigido.breakdown2).toBeUndefined();
+  });
+
+  it("cruzamento força tabela", () => {
+    // Barra empilhada esconderia metade dos números.
+    const corrigido = reconcileSpec({
+      id: "s",
+      title: "t",
+      source: "articles",
+      breakdown: "status",
+      breakdown2: "genre",
+      visual: "bar",
+      window: 30,
+      scopedToProject: false,
+      order: 0,
+    });
+
+    expect(corrigido.visual).toBe("table");
+    expect(corrigido.breakdown2).toBe("genre");
+  });
+
+  it("trocar a origem remove o cruzamento que ela não responde", () => {
+    /*
+      A segunda quebra precisa sair do resultado, e não só ser sobrescrita: o
+      espalhamento do registro anterior a traria de volta.
+    */
+    const corrigido = reconcileSpec({
+      id: "s",
+      title: "t",
+      source: "tickets",
+      breakdown: "project",
+      breakdown2: "genre",
+      visual: "table",
+      window: 30,
+      scopedToProject: false,
+      order: 0,
+    });
+
+    expect("breakdown2" in corrigido).toBe(false);
   });
 
   it("estágio só sobrevive na origem que o usa", () => {

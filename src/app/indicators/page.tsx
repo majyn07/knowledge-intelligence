@@ -16,9 +16,12 @@ import { useLibrary } from "@/features/library/providers/LibraryProvider";
 import { CoverageMap } from "@/features/library/components/CoverageMap";
 import { CycleFunnel } from "@/features/metrics/components/CycleFunnel";
 import { PeriodMetricCard } from "@/features/metrics/components/PeriodMetricCard";
+import { TeamFilter, TeamScopeNotice } from "@/features/metrics/components/TeamFilter";
+import { scopeToTeam } from "@/features/metrics/teamScope";
 import { PanelBoard } from "@/features/metrics/panels/components/PanelBoard";
 import { selectPeriodMetrics, type MetricPeriod } from "@/features/metrics/periodMetrics";
 import { selectProjectMetrics } from "@/features/metrics/projectMetrics";
+import { usePeople } from "@/features/people/providers/PeopleProvider";
 import { usePlans } from "@/features/plans/providers/PlansProvider";
 import { useProject } from "@/providers/ProjectProvider";
 
@@ -40,14 +43,25 @@ export default function IndicatorsPage() {
   const { plans } = usePlans();
   const { items: articles } = useLibrary();
   const { ticketsOf } = useTickets();
+  const { people, teams } = usePeople();
   const { activeProject, activeProjectId } = useProject();
   const [days, setDays] = useState<MetricPeriod>(30);
+  const [teamId, setTeamId] = useState<string | null>(null);
+
+  /*
+    O recorte entra antes do seletor, e não depois: os números derivam de
+    plano e artigo, e filtrar o resultado pronto exigiria refazer a conta.
+  */
+  const scope = useMemo(
+    () => scopeToTeam({ teamId, plans, articles, people, teams }),
+    [articles, people, plans, teamId, teams]
+  );
 
   const metrics = selectProjectMetrics({
     projectId: activeProjectId,
     analyses,
-    plans,
-    articles,
+    plans: scope.plans,
+    articles: scope.articles,
     tickets: ticketsOf(activeProjectId),
   });
 
@@ -139,7 +153,11 @@ export default function IndicatorsPage() {
         <PageSection
           title="Estado atual"
           description="O retrato de agora, com as mesmas regras do Centro de Inteligência."
+          actions={<TeamFilter teams={teams} value={teamId} onChange={setTeamId} />}
         >
+          <TeamScopeNotice scope={scope} />
+
+          <div className={scope.isScoped ? "mt-4" : undefined}>
           {metrics.isEmpty ? (
             <BrandEmptyState
               title={`Sem dados para ${activeProject?.name ?? "o projeto ativo"}`}
@@ -157,6 +175,7 @@ export default function IndicatorsPage() {
               <MetricCard label="Artigos publicados" value={metrics.article.published} description={`${metrics.article.archived} arquivado(s)`} />
             </div>
           )}
+          </div>
         </PageSection>
 
         {/*

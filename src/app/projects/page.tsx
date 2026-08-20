@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 
 import { AppShell } from "@/components/layout/AppShell";
 import { PageHeader } from "@/components/common/page/PageHeader";
+import { CardsSkeleton } from "@/components/common/page/LoadingSkeleton";
 
 import { ProjectDeleteDialog } from "@/features/projects/components/ProjectDeleteDialog";
 import { ProjectDialog } from "@/features/projects/components/ProjectDialog";
@@ -21,6 +22,7 @@ import { useProject } from "@/providers/ProjectProvider";
 export default function ProjectsPage() {
   const {
     projects,
+    isHydrated,
     activeProjectId,
     createProject,
     updateProject,
@@ -79,18 +81,24 @@ export default function ProjectsPage() {
           }
         />
 
-        <ProjectToolbar
-          filters={filters}
-          onFiltersChange={setFilters}
-          onNewProject={openCreateDialog}
-        />
+        {!isHydrated ? (
+          <CardsSkeleton />
+        ) : (
+          <>
+            <ProjectToolbar
+              filters={filters}
+              onFiltersChange={setFilters}
+              onNewProject={openCreateDialog}
+            />
 
-        <ProjectGrid
-          projects={filteredProjects}
-          activeProjectId={activeProjectId}
-          onProjectEdit={openEditDialog}
-          onProjectDelete={openDeleteDialog}
-        />
+            <ProjectGrid
+              projects={filteredProjects}
+              activeProjectId={activeProjectId}
+              onProjectEdit={openEditDialog}
+              onProjectDelete={openDeleteDialog}
+            />
+          </>
+        )}
 
         <ProjectDialog
           open={dialogOpen}

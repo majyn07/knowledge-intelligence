@@ -20,6 +20,7 @@ const people: Person[] = [
     role: "Conhecimento",
     email: "raoni.silva@altoqi.com.br",
     teamId: "team-suporte-visus",
+    avatarUrl: "",
     isActive: true,
   },
 ];

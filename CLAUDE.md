@@ -64,7 +64,8 @@ Ordem em `app/layout.tsx`, de fora para dentro:
 
 ```
 BrandTheme → Taxonomy → People → Activity → Project
-           → Tickets → KnowledgeLifecycle → Plans → Library → Panels
+           → Tickets → KnowledgeLifecycle → Plans → Library
+           → Panels → Follows
 ```
 
 `Taxonomy` fica logo abaixo do tema porque não depende de ninguém e quase todo
@@ -90,6 +91,19 @@ partir da semente canônica. O valor guardado entra num efeito após a montagem.
 Vale para qualquer coisa que só o navegador conhece — `localStorage`,
 `window.innerWidth`, `matchMedia`, parâmetros de URL (`useQueryParam`). Nunca
 resolva com `suppressHydrationWarning` nem `dynamic({ ssr: false })`.
+
+Há **uma** exceção, no `<html>`: o script de aparência escreve
+`data-appearance` antes da primeira pintura, e o servidor não tem como saber a
+preferência de quem vai abrir. A supressão vale só para os atributos daquele
+elemento — nada dentro dele deixa de ser comparado — e sem ela o console
+acusava divergência em toda página.
+
+**Enquanto o dado não chegou, a tela mostra esqueleto.** Os providers de
+coleção devolvem `isHydrated`, e a semente não deve ser exibida como se fosse
+o acervo de quem abriu: piscar conteúdo falso é pior que dizer "ainda não
+sei". Os esqueletos vivem em `components/common/page/LoadingSkeleton`, um por
+forma de conteúdo, e servidor e primeiro render produzem o mesmo — a regra
+acima continua valendo.
 
 ### Formulários
 
@@ -142,6 +156,19 @@ pessoas é quem entrou — não há cadastro manual, e nenhum nome de colaborado
 vive no código. Enquanto um colega não acessa, a equipe dele recebe a
 atribuição. Sem servidor não há login, e o campo "atuando como" volta a ser
 texto: melhor um nome digitado que histórico com autoria vazia.
+
+**Acompanhar não é assumir.** Quem abriu o atendimento que originou o plano
+quer saber quando ele publica, e não vai virar responsável por isso. O
+acompanhamento é a única coleção **por pessoa** do produto — o resto descreve
+trabalho, ele descreve interesse — e fica numa lista separada de "Meu
+trabalho": juntar as duas faria a fila de alguém crescer por interesse dos
+outros. A política do banco continua a mesma; quem filtra por pessoa é a tela.
+
+**Menção guarda identificador, como a atribuição.** O comentário grava
+`@[Nome](id)`; quem exibe resolve o id e mostra o nome de hoje. O rótulo vai
+junto porque é o que sobra quando a conta some — e sobrar "@Raoni" é melhor
+que sobrar "@pes-7f3a". Menção que não resolve mais **não é apagada**: o
+comentário é registro do que foi dito, e não se reescreve.
 
 **Não há papéis, por decisão.** A equipe é treinada e o histórico responde por
 quem fez o quê. A política do banco é a mesma em todas as tabelas; se um dia
@@ -328,6 +355,12 @@ Data só é data em **ISO 8601**, e a leitura recusa o resto. `new Date("15 jul.
 mesmo registro mostrando prazos diferentes em máquinas diferentes, sem nada
 indicando o problema.
 
+Isso vale para o que o produto **grava**, e não só para o que ele lê: o plano
+nascia com `createdAt` em texto de exibição — "20 de ago. de 2026, 18:23" —
+apesar de o modelo dizer ISO, e por isso o painel de planos por mês não
+contava nenhum plano criado dentro do produto. Quem formata é a tela, na
+leitura, com `RelativeDate`.
+
 A conferência de transbordo vale só para `YYYY-MM-DD`: `2026-02-30` viraria
 2 de março em silêncio. Com hora e sem fuso a leitura é local, e comparar
 componentes UTC recusaria datas legítimas do fim do dia a oeste de Greenwich.
@@ -389,6 +422,17 @@ Painel é **compartilhado**, como o resto do produto: não há papéis, e invent
 semente editável, com `defaultPanels` de volta pelo botão de restaurar — e os
 que a equipe criou continuam onde estavam.
 
+A quebra para em **duas dimensões**. Três não cabem numa tabela que se lê de
+relance, e a leitura passaria a exigir girar um cubo — que é outro tipo de
+ferramenta, não uma versão mais completa desta. Cruzamento só sai em tabela:
+barra empilhada esconderia metade dos números.
+
+A imagem é desenhada por `panelToSvg`, que é **puro** — o mesmo painel produz
+sempre o mesmo arquivo, e o desenho é conferido por teste em vez de olhado. Só
+a rasterização para PNG precisa do navegador. As cores vão escritas no
+arquivo: a imagem sai daqui para uma apresentação, onde não existe `:root`
+para resolver `var(--primary)`.
+
 Classificação vazia vira "Não definido" e **continua na tabela**: escondê-la
 faria a soma das linhas não bater com o total, sem ninguém saber por quê.
 
@@ -437,6 +481,16 @@ Data na tela é `RelativeDate`: relativo no texto, instante exato no título.
 O valor relativo entra depois da montagem — servidor e cliente têm relógios
 diferentes, e "há 2 minutos" divergiria na hidratação.
 
+A trilha de navegação sai do **mesmo cadastro de rotas** do menu
+(`components/layout/navigation`): duas listas do mesmo vocabulário divergem, e
+a divergência apareceria como o menu dizendo "Métricas" e a trilha dizendo
+outra coisa. O identificador do registro só vira degrau quando a tela passa o
+nome — `uuid` na trilha é pior que trilha curta.
+
+Indicador tem **recorte por equipe**, e ele vale só para plano e artigo, que
+têm responsável. Atendimento e análise não têm atribuição, e a tela diz isso
+em vez de deixar supor que tudo foi recortado.
+
 `Ctrl+K` abre busca, comandos e "onde você estava". Comando é navegação;
 publicar, aprovar e excluir ficam de fora, porque pedem intenção e uma lista
 percorrida com a seta não é lugar para isso. `/` faz o mesmo e `?` lista os
@@ -454,7 +508,9 @@ Testes cobrem lógica pura, nunca componentes: motor de busca e busca
 transversal, transições de artigo e de plano, métricas por projeto e por
 período, parsing da resposta da IA, índice do artigo, critérios de publicação,
 fronteira de armazenamento, o cadastro de taxonomia com a migração da
-classificação antiga, e os normalizadores de artigo, plano e atendimento.
+classificação antiga, os normalizadores de artigo, plano e atendimento, o motor
+e o desenho dos painéis, a trilha de navegação, o recorte por equipe, as
+menções e o que se acompanha.
 Ao mexer em qualquer uma delas, o teste vem junto.
 
 Dois cuidados que já custaram tempo: `npm test` **não** faz typecheck — só o

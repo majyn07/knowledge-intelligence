@@ -28,6 +28,8 @@ const CONVERSATIONS_KEY = STORAGE_KEYS.conversations;
 
 interface TicketsContextValue {
   tickets: Ticket[];
+  /** Falso até o conteúdo guardado ser lido, após a montagem. */
+  isHydrated: boolean;
   conversations: SupportConversation[];
   ticketsOf: (projectId: string | null) => Ticket[];
   conversationOf: (ticketId: string) => SupportConversation | undefined;
@@ -42,7 +44,7 @@ export function TicketsProvider({ children }: { children: ReactNode }) {
   const { record } = useActivity();
   const { currentPerson } = usePeople();
 
-  const [tickets, setTickets] = useSharedCollection<Ticket>({
+  const [tickets, setTickets, isHydrated] = useSharedCollection<Ticket>({
     key: TICKETS_KEY,
     table: "tickets",
     fallback: ticketRepository.getSeedTickets(),
@@ -148,13 +150,14 @@ export function TicketsProvider({ children }: { children: ReactNode }) {
     () => ({
       tickets,
       conversations,
+      isHydrated,
       ticketsOf,
       conversationOf,
       createTicket,
       updateTicket,
       deleteTicket,
     }),
-    [conversationOf, conversations, createTicket, deleteTicket, ticketsOf, tickets, updateTicket]
+    [conversationOf, conversations, createTicket, deleteTicket, isHydrated, ticketsOf, tickets, updateTicket]
   );
 
   return <TicketsContext.Provider value={value}>{children}</TicketsContext.Provider>;

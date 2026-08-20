@@ -8,6 +8,7 @@ import { AppShell } from "@/components/layout/AppShell";
 import { DiscardChangesDialog } from "@/components/common/DiscardChangesDialog";
 import { useUnsavedGuard } from "@/hooks/useUnsavedGuard";
 import { PageHeader } from "@/components/common/page/PageHeader";
+import { ListSkeleton } from "@/components/common/page/LoadingSkeleton";
 
 import { LibraryDeleteDialog } from "@/features/library/components/LibraryDeleteDialog";
 import { LibraryDialog } from "@/features/library/components/LibraryDialog";
@@ -24,7 +25,7 @@ import { useProject } from "@/providers/ProjectProvider";
 
 export default function LibraryPage() {
   const { activeProject, activeProjectId, projects } = useProject();
-  const { items, createItem, updateItem, deleteItem } = useLibrary();
+  const { items, isHydrated, createItem, updateItem, deleteItem } = useLibrary();
 
   const { filters, setFilters, filteredItems, unclassifiedCount } = useLibraryFilters(
     items.filter((item) => item.projectId === activeProjectId)
@@ -79,25 +80,36 @@ export default function LibraryPage() {
           }
         />
 
-        <LibraryToolbar
-          filters={filters}
-          onFiltersChange={setFilters}
-          onNewItem={openCreateDialog}
-          unclassifiedCount={unclassifiedCount}
-        />
+        {/*
+          Enquanto o acervo não é lido, a barra de filtros e a contagem também
+          esperam: filtrar sobre a semente e anunciar "4 artigos" que não são os
+          desta pessoa é afirmar o que ainda não se sabe.
+        */}
+        {!isHydrated ? (
+          <ListSkeleton />
+        ) : (
+          <>
+            <LibraryToolbar
+              filters={filters}
+              onFiltersChange={setFilters}
+              onNewItem={openCreateDialog}
+              unclassifiedCount={unclassifiedCount}
+            />
 
-        {filteredItems.length > 0 && (
-          <p className="text-sm text-muted-foreground">
-            {filteredItems.length} artigo(s) · {publishedCount} publicado(s) e visível(is) para a análise.
-          </p>
+            {filteredItems.length > 0 && (
+              <p className="text-sm text-muted-foreground">
+                {filteredItems.length} artigo(s) · {publishedCount} publicado(s) e visível(is) para a análise.
+              </p>
+            )}
+
+            <LibraryGrid
+              items={filteredItems}
+              projects={projectOptions}
+              onItemEdit={openEditDialog}
+              onItemDelete={openDeleteDialog}
+            />
+          </>
         )}
-
-        <LibraryGrid
-          items={filteredItems}
-          projects={projectOptions}
-          onItemEdit={openEditDialog}
-          onItemDelete={openDeleteDialog}
-        />
 
         <LibraryDialog
           open={dialogOpen}

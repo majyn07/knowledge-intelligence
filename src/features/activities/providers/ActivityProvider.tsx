@@ -22,6 +22,8 @@ export type ActivityInput = Omit<ActivityEvent, "id" | "at">;
 
 interface ActivityContextValue {
   events: ActivityEvent[];
+  /** Falso até o conteúdo guardado ser lido, após a montagem. */
+  isHydrated: boolean;
   record: (input: ActivityInput) => void;
   /** Eventos de uma entidade específica, do mais recente ao mais antigo. */
   eventsFor: (kind: ActivityEvent["subject"]["kind"], id: string) => ActivityEvent[];
@@ -30,7 +32,7 @@ interface ActivityContextValue {
 const ActivityContext = createContext<ActivityContextValue | null>(null);
 
 export function ActivityProvider({ children }: { children: ReactNode }) {
-  const [events, setEvents] = useSharedCollection<ActivityEvent>({
+  const [events, setEvents, isHydrated] = useSharedCollection<ActivityEvent>({
     key: STORAGE_KEY,
     table: "activity_events",
     fallback: [],
@@ -59,7 +61,10 @@ export function ActivityProvider({ children }: { children: ReactNode }) {
     [events]
   );
 
-  const value = useMemo(() => ({ events, record, eventsFor }), [events, eventsFor, record]);
+  const value = useMemo(
+    () => ({ events, isHydrated, record, eventsFor }),
+    [events, eventsFor, isHydrated, record]
+  );
 
   return <ActivityContext.Provider value={value}>{children}</ActivityContext.Provider>;
 }

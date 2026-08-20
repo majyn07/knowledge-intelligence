@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Download, Plus, RotateCcw } from "lucide-react";
+import { Download, Image as ImageIcon, Plus, RotateCcw } from "lucide-react";
 
 import { BrandEmptyState } from "@/components/brand/BrandEmptyState";
 import { PageSection } from "@/components/common/page/PageSection";
@@ -18,15 +18,16 @@ import { useProject } from "@/providers/ProjectProvider";
 
 import { usePanels } from "../PanelsProvider";
 import { panelFileName, panelToCsv } from "../panelCsv";
+import { panelToPng } from "../panelImage";
 import type { PanelSpec } from "../panelSpec";
 import { runPanel, type PanelData } from "../runPanel";
 
 import { PanelCard } from "./PanelCard";
 import { PanelEditorDialog } from "./PanelEditorDialog";
 
-/** Entrega o arquivo ao navegador. Existe só para não repetir em dois lugares. */
-function download(name: string, content: string) {
-  const url = URL.createObjectURL(new Blob([content], { type: "text/csv;charset=utf-8" }));
+/** Entrega o arquivo ao navegador. Existe só para não repetir em três lugares. */
+function download(name: string, content: Blob) {
+  const url = URL.createObjectURL(content);
 
   const link = document.createElement("a");
   link.href = url;
@@ -93,7 +94,20 @@ export function PanelBoard() {
 
   const exportAll = () => {
     for (const { spec, result } of results) {
-      download(panelFileName(spec), panelToCsv(spec, result));
+      download(
+        panelFileName(spec),
+        new Blob([panelToCsv(spec, result)], { type: "text/csv;charset=utf-8" })
+      );
+    }
+  };
+
+  const exportImages = async () => {
+    for (const { spec, result } of results) {
+      const png = await panelToPng(spec, result);
+
+      // Um painel que não rasterizou não interrompe os outros: o botão vale
+      // para o quadro inteiro, e falhar em silêncio no meio seria pior.
+      if (png) download(panelFileName(spec).replace(/\.csv$/, ".png"), png);
     }
   };
 
@@ -116,6 +130,16 @@ export function PanelBoard() {
           >
             <Download className="h-3.5 w-3.5" />
             Exportar CSV
+          </Button>
+
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => void exportImages()}
+            disabled={results.length === 0}
+          >
+            <ImageIcon className="h-3.5 w-3.5" />
+            Exportar imagem
           </Button>
 
           <Button size="sm" onClick={openNew}>

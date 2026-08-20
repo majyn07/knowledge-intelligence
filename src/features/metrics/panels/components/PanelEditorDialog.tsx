@@ -91,6 +91,14 @@ export function PanelEditorDialog({ spec, open, onOpenChange, onSave }: PanelEdi
 
   const breakdowns = allowedBreakdowns[form.source];
 
+  /*
+    A segunda quebra não pode repetir a primeira: cruzar algo consigo mesmo
+    produziria uma diagonal, com uma coluna útil e o resto zerado.
+  */
+  const cruzamentos = breakdowns.filter(
+    (breakdown) => breakdown === "none" || breakdown !== form.breakdown
+  );
+
   const submit = () => {
     onSave(reconcileSpec({ ...form, title: form.title.trim() || "Painel sem título" }));
     onOpenChange(false);
@@ -195,6 +203,40 @@ export function PanelEditorDialog({ spec, open, onOpenChange, onSave }: PanelEdi
             </Select>
           </div>
 
+          {form.breakdown !== "none" && (
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="panel-breakdown-2">Cruzar com</Label>
+
+              <Select
+                value={form.breakdown2 ?? "none"}
+                onValueChange={(value) =>
+                  patch({
+                    breakdown2: (value ?? "none") as PanelSpec["breakdown"],
+                  })
+                }
+              >
+                <SelectTrigger id="panel-breakdown-2">
+                  <SelectValue>
+                    {(value: PanelSpec["breakdown"]) => panelBreakdownLabel[value]}
+                  </SelectValue>
+                </SelectTrigger>
+
+                <SelectContent>
+                  {cruzamentos.map((breakdown) => (
+                    <SelectItem key={breakdown} value={breakdown}>
+                      {breakdown === "none" ? "Não cruzar" : panelBreakdownLabel[breakdown]}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
+              <p className="text-xs text-muted-foreground">
+                Cruzar produz uma tabela. Para em duas dimensões: três não cabem
+                numa tabela que se lê de relance.
+              </p>
+            </div>
+          )}
+
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="flex flex-col gap-1.5">
               <Label htmlFor="panel-window">Janela</Label>
@@ -237,7 +279,17 @@ export function PanelEditorDialog({ spec, open, onOpenChange, onSave }: PanelEdi
                       value={visual}
                       // Número único não comporta quebra: seria um número por
                       // linha, sem linha.
-                      disabled={visual === "number" && form.breakdown !== "none"}
+                      /*
+                        Com cruzamento só a tabela serve — barra empilhada
+                        esconderia metade dos números. Sem ele, número único
+                        não comporta quebra: seria um número por linha, sem
+                        linha.
+                      */
+                      disabled={
+                        form.breakdown2
+                          ? visual !== "table"
+                          : visual === "number" && form.breakdown !== "none"
+                      }
                     >
                       {panelVisualLabel[visual]}
                     </SelectItem>

@@ -1,5 +1,6 @@
 import { ReactNode } from "react";
 import { cn } from "@/lib/utils";
+import { Breadcrumbs } from "@/components/common/page/Breadcrumbs";
 import { ProductAccent } from "@/components/brand/ProductAccent";
 
 interface PageHeaderProps {
@@ -9,6 +10,13 @@ interface PageHeaderProps {
   actions?: ReactNode;
   icon?: ReactNode;
   className?: string;
+  /**
+   * Nome do registro aberto, para a trilha de navegação.
+   *
+   * Só as telas de detalhe passam: nas de listagem a trilha já se resolve
+   * pelo caminho.
+   */
+  trailLeaf?: string;
 }
 
 export function PageHeader({
@@ -18,6 +26,7 @@ export function PageHeader({
   actions,
   icon,
   className,
+  trailLeaf,
 }: PageHeaderProps) {
   return (
     <header
@@ -35,8 +44,14 @@ export function PageHeader({
         )}
 
         <div className="min-w-0">
+          {/*
+            A trilha vem antes do rótulo da seção: é a resposta para "onde eu
+            estou", e ela precede a resposta para "o que é isto".
+          */}
+          <Breadcrumbs leaf={trailLeaf} />
+
           {overline && (
-            <p className="text-xs font-semibold uppercase tracking-[0.22em] text-muted-foreground">
+            <p className="mt-2 text-xs font-semibold uppercase tracking-[0.22em] text-muted-foreground">
               {overline}
             </p>
           )}

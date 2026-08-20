@@ -3,6 +3,7 @@
 import { Search } from "lucide-react";
 
 import { Input } from "@/components/ui/input";
+import { RelativeDate } from "@/components/common/RelativeDate";
 import { StatusBadge } from "@/components/common/status/StatusBadge";
 import { Button } from "@/components/ui/button";
 
@@ -116,8 +117,10 @@ export function PlansNavigator({
 
               <p className="mt-3 text-xs tabular-nums text-muted-foreground">
                 {plan.tasks.length > 0
-                  ? `${completed}/${plan.tasks.length} atividade(s) · atualizado ${plan.updatedAt}`
-                  : `Sem atividades · atualizado ${plan.updatedAt}`}
+                  ? `${completed}/${plan.tasks.length} atividade(s)`
+                  : "Sem atividades"}
+                {" · atualizado "}
+                <RelativeDate value={plan.updatedAt} />
               </p>
             </button>
           );

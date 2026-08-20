@@ -51,7 +51,7 @@ describe("countLocal com nenhuma chave gravada", () => {
 describe("pendingCollections", () => {
   const vazio: LocalWorkspace = {
     projects: 0, tickets: 0, conversations: 0,
-    analyses: 0, plans: 0, articles: 0, events: 0, panels: 0,
+    analyses: 0, plans: 0, articles: 0, events: 0, panels: 0, follows: 0,
   };
 
   it("aponta o que existe aqui e não existe lá", () => {

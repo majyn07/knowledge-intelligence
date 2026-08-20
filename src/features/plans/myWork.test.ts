@@ -18,6 +18,7 @@ const eu: Person = {
   role: "",
   email: "raoni.silva@altoqi.com.br",
   teamId: "team-suporte-visus",
+  avatarUrl: "",
   isActive: true,
 };
 

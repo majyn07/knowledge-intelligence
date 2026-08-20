@@ -21,9 +21,16 @@ const STORAGE_KEY = "visus-appearance";
  *
  * Sem ele a tela abre clara e escurece — o clarão que denuncia tema escuro mal
  * feito. Ele roda antes do React justamente por isso, e escreve num atributo
- * que o React não renderiza, para não haver divergência de hidratação. É
- * também o motivo de a preferência ser lida com `try`: modo privado e
- * armazenamento bloqueado não podem impedir a página de abrir.
+ * em vez de numa classe — mexer em `className` do `<html>` produziria
+ * divergência de conteúdo, que é bem pior.
+ *
+ * A divergência de **atributo** continua existindo, e é por isso que o `<html>`
+ * leva `suppressHydrationWarning`: o servidor não tem como saber a preferência
+ * de quem vai abrir a página. É a única supressão do produto, e ela vale só
+ * para os atributos deste elemento — nada dentro dele deixa de ser comparado.
+ *
+ * A preferência é lida com `try` porque modo privado e armazenamento bloqueado
+ * não podem impedir a página de abrir.
  */
 export const appearanceScript = `
 (function () {

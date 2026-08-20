@@ -21,8 +21,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
 
+import { RelativeDate } from "@/components/common/RelativeDate";
+import { AssigneeName } from "@/features/people/components/AssigneeName";
+import { CommentAvatar } from "@/features/people/components/CommentAvatar";
+import { FollowButton } from "@/features/people/components/FollowButton";
+
+import { MentionField } from "./MentionField";
+import { MentionText } from "./MentionText";
 import { usePlans } from "../providers/PlansProvider";
 import { planPublishChecks } from "../publishChecks";
 import {
@@ -80,6 +86,13 @@ export function PlanContextPanel({ plan }: PlanContextPanelProps) {
         </div>
 
         <div className="mt-4 flex flex-wrap gap-2">
+          <FollowButton
+            kind="plan"
+            subjectId={plan.id}
+            subjectLabel={plan.title}
+            projectId={plan.projectId}
+          />
+
           {transitions.map((next) =>
             next === "published" ? (
               <Button key={next} size="sm" onClick={() => setIsPublishing(true)}>
@@ -162,7 +175,7 @@ export function PlanContextPanel({ plan }: PlanContextPanelProps) {
               <dt className="text-xs text-muted-foreground">Atualizado</dt>
               <dd className="mt-1 flex items-center gap-2">
                 <CalendarDays className="h-3.5 w-3.5 text-primary" />
-                {plan.updatedAt}
+                <RelativeDate value={plan.updatedAt} />
               </dd>
             </div>
 
@@ -235,11 +248,14 @@ export function PlanContextPanel({ plan }: PlanContextPanelProps) {
         <div className="mt-4 space-y-3">
           <PersonSelect id="comment-author" value={author} onChange={setAuthor} placeholder="Quem comenta" />
 
-          <Textarea
-            rows={3}
+          {/*
+            Arroba menciona pessoa ou equipe. A menção guarda o identificador,
+            então renomear-se não quebra o vínculo — mesma regra da atribuição.
+          */}
+          <MentionField
             value={message}
-            placeholder="Registre uma observação sobre a execução."
-            onChange={(event) => setMessage(event.target.value)}
+            placeholder="Registre uma observação. Use @ para mencionar alguém."
+            onChange={setMessage}
           />
 
           <Button size="sm" className="w-full" onClick={submitComment} disabled={!message.trim()}>
@@ -254,11 +270,20 @@ export function PlanContextPanel({ plan }: PlanContextPanelProps) {
           ) : (
             plan.comments.map((comment) => (
               <article key={comment.id}>
-                <p className="text-xs font-medium">
-                  {comment.author}
-                  <span className="font-normal text-muted-foreground"> · {comment.date}</span>
+                <p className="flex items-center gap-2 text-xs font-medium">
+                  <CommentAvatar author={comment.author} />
+
+                  <span className="min-w-0 truncate">
+                    <AssigneeName value={comment.author} fallback="Sem autoria" />
+                    <span className="font-normal text-muted-foreground">
+                      {" · "}
+                      <RelativeDate value={comment.date} />
+                    </span>
+                  </span>
                 </p>
-                <p className="mt-1 text-sm leading-6 text-muted-foreground">{comment.message}</p>
+                <p className="mt-1 text-sm leading-6 text-muted-foreground">
+                  <MentionText text={comment.message} />
+                </p>
               </article>
             ))
           )}

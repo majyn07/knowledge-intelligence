@@ -26,7 +26,15 @@ interface PanelCardProps {
 function subtitle(spec: PanelSpec): string {
   const partes = [panelSourceLabel[spec.source], panelWindowLabel(spec.window)];
 
-  if (spec.breakdown !== "none") partes.push(panelBreakdownLabel[spec.breakdown].toLowerCase());
+  if (spec.breakdown !== "none") {
+    const quebra = panelBreakdownLabel[spec.breakdown].toLowerCase();
+
+    partes.push(
+      spec.breakdown2
+        ? `${quebra} × ${panelBreakdownLabel[spec.breakdown2].toLowerCase()}`
+        : quebra
+    );
+  }
   if (spec.scopedToProject) partes.push("só o projeto ativo");
 
   return partes.join(" · ");
@@ -53,6 +61,71 @@ function Bars({ rows }: { rows: PanelResult["rows"] }) {
         </li>
       ))}
     </ul>
+  );
+}
+
+/**
+ * A tabela cruzada.
+ *
+ * Rola dentro do cartão porque o número de colunas é do dado, não do desenho:
+ * cruzar por seção do portal pode render dezenas, e deixar a página rolar na
+ * horizontal por causa disso quebraria o resto da tela.
+ */
+function Matrix({ matrix, total }: { matrix: NonNullable<PanelResult["matrix"]>; total: number }) {
+  return (
+    <div className="-mx-1 overflow-x-auto px-1">
+      <table className="w-full text-sm">
+        <thead>
+          <tr className="border-b border-border">
+            <th className="py-1.5 pr-3 text-left text-xs font-medium text-muted-foreground">
+              &nbsp;
+            </th>
+
+            {matrix.columns.map((column) => (
+              <th
+                key={column.key}
+                className="max-w-[8rem] truncate px-2 py-1.5 text-right text-xs font-medium text-muted-foreground"
+                title={column.label}
+              >
+                {column.label}
+              </th>
+            ))}
+
+            <th className="py-1.5 pl-3 text-right text-xs font-medium text-muted-foreground">
+              Total
+            </th>
+          </tr>
+        </thead>
+
+        <tbody>
+          {matrix.rows.map((row) => (
+            <tr key={row.key} className="border-b border-border/60 last:border-0">
+              <td className="max-w-[10rem] truncate py-1.5 pr-3" title={row.label}>
+                {row.label}
+              </td>
+
+              {row.values.map((value, index) => (
+                <td
+                  key={matrix.columns[index]?.key ?? index}
+                  /* Zero fica apagado: destaca onde há dado sem escondê-lo. */
+                  className={`px-2 py-1.5 text-right tabular-nums ${
+                    value === 0 ? "text-muted-foreground/50" : ""
+                  }`}
+                >
+                  {value}
+                </td>
+              ))}
+
+              <td className="py-1.5 pl-3 text-right font-semibold tabular-nums">{row.total}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+
+      <p className="mt-3 text-xs text-muted-foreground">
+        Total: <strong className="tabular-nums">{total}</strong>
+      </p>
+    </div>
   );
 }
 
@@ -155,6 +228,8 @@ export function PanelCard({
             Nada neste recorte. Amplie a janela ou tire o filtro de projeto para
             conferir se existe fora dele.
           </p>
+        ) : result.matrix ? (
+          <Matrix matrix={result.matrix} total={result.total} />
         ) : spec.visual === "number" ? (
           <p className="text-3xl font-semibold tabular-nums tracking-tight">{result.total}</p>
         ) : spec.visual === "bar" ? (
@@ -164,7 +239,7 @@ export function PanelCard({
         )}
       </div>
 
-      {spec.visual !== "number" && !vazio && (
+      {spec.visual !== "number" && !vazio && !result.matrix && (
         <p className="mt-4 border-t border-border/60 pt-3 text-xs text-muted-foreground">
           Total: <strong className="tabular-nums">{result.total}</strong>
         </p>
