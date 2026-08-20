@@ -23,17 +23,25 @@ function isFinished(plan: PlanWorkspaceItem) {
 }
 
 /**
- * Último instante em que algo aconteceu com o plano.
+ * Último instante em que algo aconteceu com o registro.
  *
  * Vem do histórico e não de `updatedAt`: o histórico registra o que aconteceu,
  * enquanto `updatedAt` muda também por gravação incidental — e uma delas faria
  * um plano parado há um mês parecer recém-tocado.
+ *
+ * O tipo do assunto é parâmetro e não constante. Ele estava fixo em "plan", e
+ * o mesmo id de um artigo devolvia "sem histórico" — parada nunca detectada,
+ * silenciosamente.
  */
-export function lastActivityOf(planId: string, events: ActivityEvent[]): string | undefined {
+export function lastActivityOf(
+  id: string,
+  events: ActivityEvent[],
+  kind: ActivityEvent["subject"]["kind"] = "plan"
+): string | undefined {
   let latest: string | undefined;
 
   for (const event of events) {
-    if (event.subject.kind !== "plan" || event.subject.id !== planId) continue;
+    if (event.subject.kind !== kind || event.subject.id !== id) continue;
     if (latest === undefined || event.at > latest) latest = event.at;
   }
 
