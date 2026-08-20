@@ -123,6 +123,8 @@ export function LibraryProvider({ children }: { children: ReactNode }) {
         actor: currentPerson || currentItem.author,
         subject: { kind: "article", id: currentItem.id, label: currentItem.title },
         detail: articleStatusLabel[currentItem.status] + " → " + articleStatusLabel[status],
+        // Chave e não rótulo: rótulo é apresentação e muda; chave é contrato.
+        transition: { from: currentItem.status, to: status },
       });
       toast.success(`Artigo movido para "${articleStatusLabel[status]}".`);
     },

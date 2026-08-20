@@ -10,6 +10,7 @@ import { useActivity } from "@/features/activities/providers/ActivityProvider";
 import { useLibrary } from "@/features/library/providers/LibraryProvider";
 import { usePeople } from "@/features/people/providers/PeopleProvider";
 import { useProject } from "@/providers/ProjectProvider";
+import { useNow } from "@/hooks/useNow";
 import { articleStatusLabel } from "@/models/KnowledgeArticle";
 
 import { usePlans } from "../providers/PlansProvider";
@@ -31,9 +32,11 @@ export function MyWork() {
   const { me, people, teams } = usePeople();
   const { projects } = useProject();
 
+  const now = useNow();
+
   const items = useMemo(
-    () => buildMyWork({ plans, articles, events, me, people, teams }, new Date()),
-    [articles, events, me, people, plans, teams]
+    () => (now ? buildMyWork({ plans, articles, events, me, people, teams }, now) : []),
+    [articles, events, me, now, people, plans, teams]
   );
 
   const projectName = (id: string) =>

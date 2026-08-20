@@ -14,6 +14,7 @@ import { useKnowledgeLifecycle } from "@/features/analysis/providers/KnowledgeLi
 import { useTickets } from "@/features/analysis/providers/TicketsProvider";
 import { useLibrary } from "@/features/library/providers/LibraryProvider";
 import { CoverageMap } from "@/features/library/components/CoverageMap";
+import { CycleFunnel } from "@/features/metrics/components/CycleFunnel";
 import { PeriodMetricCard } from "@/features/metrics/components/PeriodMetricCard";
 import { selectPeriodMetrics, type MetricPeriod } from "@/features/metrics/periodMetrics";
 import { selectProjectMetrics } from "@/features/metrics/projectMetrics";
@@ -158,9 +159,11 @@ export default function IndicatorsPage() {
         </PageSection>
 
         {/*
-          O mapa fecha a tela porque responde a pergunta inversa das de cima:
-          os cartões contam o que existe, ele mostra o que falta.
+          O funil responde onde o fluxo trava; o mapa, o que falta cobrir. Os
+          cartões acima contam o que existe — as três perguntas são diferentes.
         */}
+        <CycleFunnel />
+
         <CoverageMap />
       </div>
     </AppShell>

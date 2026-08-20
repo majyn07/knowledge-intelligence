@@ -30,6 +30,15 @@ export function normalizeEvent(raw: unknown): ActivityEvent {
       label: text(subject.label),
     },
     detail: text(value.detail),
+    ...(record(value.transition).to !== undefined &&
+    text(record(value.transition).to) !== ""
+      ? {
+          transition: {
+            from: text(record(value.transition).from),
+            to: text(record(value.transition).to),
+          },
+        }
+      : {}),
   };
 }
 

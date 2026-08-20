@@ -348,8 +348,24 @@ própria feature. Eventos são **acrescentados, nunca editados**: registram o qu
 aconteceu, não o estado atual. O evento guarda o rótulo do assunto, então o
 registro sobrevive à exclusão do registro original.
 
-Os indicadores temporais leem esse log. Só reporte o que o evento expressa sem
-ambiguidade — o destino de uma transição vive no texto e inferi-lo é adivinhação.
+Mudança de estágio grava `transition: { from, to }` em **chave**, não em
+rótulo: rótulo é apresentação e muda, chave é contrato. Antes disso o destino
+vivia só no texto do `detail`, e "quantos artigos foram publicados neste mês"
+não tinha resposta sem interpretar frase.
+
+Eventos anteriores ao campo não têm transição e ficam de fora das contagens por
+destino — **a tela diz isso**. Preenchê-los exigiria interpretar o texto, que é
+o problema que o campo resolve; e número parcial apresentado como completo é
+pior que número com ressalva.
+
+O funil conta **chegadas**, não registros parados no estágio: um artigo que
+passou por revisão e foi publicado passou pelos dois, e contar só onde ele está
+agora esconderia metade do caminho.
+
+Média de nada é `null`, nunca zero — zero diria "chega instantaneamente".
+
+Relógio nunca é lido durante o render. Use `useNow`: ler no render é impuro e
+diverge na hidratação, porque servidor e cliente têm horas diferentes.
 
 ## Convenções
 

@@ -193,6 +193,7 @@ export function toEvent(raw: unknown): ActivityEvent {
     actor: row.actor,
     subject: row.subject,
     detail: row.detail,
+    transition: row.transition,
   });
 }
 
@@ -205,5 +206,6 @@ export function fromEvent(event: ActivityEvent): Record<string, unknown> {
     actor: event.actor,
     subject: event.subject,
     detail: event.detail,
+    transition: event.transition ?? null,
   };
 }
