@@ -1,5 +1,7 @@
 import type { Project } from "@/models/Project";
 
+import { readJSON, writeJSON } from "@/lib/storage";
+
 import { projects as projectMocks } from "../mock/projects";
 
 const STORAGE_KEY = "visus-projects";
@@ -25,26 +27,15 @@ function getSeedProjects(): Project[] {
 }
 
 function loadProjects(): Project[] {
-  if (typeof window === "undefined") {
-    return getSeedProjects();
-  }
+  if (typeof window === "undefined") return getSeedProjects();
 
-  const storedProjects = localStorage.getItem(STORAGE_KEY);
-  if (!storedProjects) {
-    return getSeedProjects();
-  }
-
-  try {
-    return (JSON.parse(storedProjects) as Project[]).map(cloneProject);
-  } catch {
-    return getSeedProjects();
-  }
+  return readJSON<Project[]>(STORAGE_KEY, getSeedProjects(), (raw) =>
+    (JSON.parse(raw) as Project[]).map(cloneProject)
+  );
 }
 
 function persist(projects: Project[]): void {
-  if (typeof window !== "undefined") {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(projects));
-  }
+  writeJSON(STORAGE_KEY, projects);
 }
 
 /** Local data boundary, ready to be replaced by a future remote repository. */

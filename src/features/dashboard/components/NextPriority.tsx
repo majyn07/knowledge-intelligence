@@ -72,7 +72,7 @@ export function NextPriority({ analyses }: NextPriorityProps) {
                 </div>
               </div>
 
-              <Button className="shrink-0" render={<Link href="/analysis" />}>
+              <Button className="shrink-0" render={<Link href="/analysis" />} nativeButton={false}>
                 Continuar revisão
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
@@ -85,7 +85,7 @@ export function NextPriority({ analyses }: NextPriorityProps) {
             title="Nenhuma análise pendente"
             description="A equipe concluiu as revisões em andamento. Inicie uma nova análise para identificar a próxima oportunidade de evolução."
           />
-          <Button className="mt-6" render={<Link href="/analysis" />}>
+          <Button className="mt-6" render={<Link href="/analysis" />} nativeButton={false}>
             <Sparkles className="mr-2 h-4 w-4" />
             Iniciar nova análise
           </Button>

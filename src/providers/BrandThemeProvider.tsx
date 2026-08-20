@@ -11,19 +11,21 @@ export const brandThemes: Record<BrandTheme, { name: string }> = {
 };
 
 const BrandThemeContext = createContext<{ theme: BrandTheme; setTheme: (theme: BrandTheme) => void } | null>(null);
+import { readRaw, writeRaw } from "@/lib/storage";
+
 const STORAGE_KEY = "visus-brand-theme";
 
 export function BrandThemeProvider({ children }: { children: ReactNode }) {
   const [theme, setTheme] = useState<BrandTheme>("visus");
 
   useEffect(() => {
-    const stored = localStorage.getItem(STORAGE_KEY) as BrandTheme | null;
+    const stored = readRaw(STORAGE_KEY) as BrandTheme | null;
     if (stored && stored in brandThemes) setTheme(stored);
   }, []);
 
   useEffect(() => {
     document.documentElement.dataset.brand = theme;
-    localStorage.setItem(STORAGE_KEY, theme);
+    writeRaw(STORAGE_KEY, theme);
   }, [theme]);
 
   return <BrandThemeContext.Provider value={{ theme, setTheme }}>{children}</BrandThemeContext.Provider>;

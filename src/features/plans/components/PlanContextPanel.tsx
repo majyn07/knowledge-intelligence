@@ -175,8 +175,7 @@ export function PlanContextPanel({ plan }: PlanContextPanelProps) {
               size="sm"
               variant="outline"
               className="w-full"
-              render={<Link href={`/library/${plan.source.articleId}`} />}
-              nativeButton={false}
+              render={<Link href={`/library/${plan.source.articleId}`} />} nativeButton={false}
             >
               <BookOpen className="mr-1.5 h-3.5 w-3.5" />
               Ver conteúdo na Biblioteca

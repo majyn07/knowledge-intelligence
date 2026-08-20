@@ -4,6 +4,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useRef, use
 
 import { useActivity } from "@/features/activities/providers/ActivityProvider";
 import { useProjects } from "@/features/projects/hooks/useProjects";
+import { readRaw, remove, writeRaw } from "@/lib/storage";
 import type { ProjectFormData } from "@/features/projects/types/ProjectFormData";
 import type { Project } from "@/models/Project";
 
@@ -34,7 +35,7 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
     if (!isHydrated || restoredSelection.current) return;
     restoredSelection.current = true;
 
-    const storedId = localStorage.getItem(STORAGE_KEY);
+    const storedId = readRaw(STORAGE_KEY);
     if (storedId && projects.some((project) => project.id === storedId)) {
       setActiveProjectId(storedId);
     }
@@ -47,8 +48,8 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (!isHydrated || !restoredSelection.current) return;
-    if (activeProjectId) localStorage.setItem(STORAGE_KEY, activeProjectId);
-    else localStorage.removeItem(STORAGE_KEY);
+    if (activeProjectId) writeRaw(STORAGE_KEY, activeProjectId);
+    else remove(STORAGE_KEY);
   }, [activeProjectId, isHydrated]);
 
   const selectProject = useCallback((id: string) => {

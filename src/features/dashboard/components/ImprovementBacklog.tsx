@@ -59,7 +59,7 @@ export function ImprovementBacklog({ analyses }: ImprovementBacklogProps) {
       title="Fila de trabalho"
       description="Oportunidades já identificadas, prontas para revisão e evolução da Base de Conhecimento."
       actions={
-        <Button variant="ghost" size="sm" render={<Link href="/improvement-plan" />}>
+        <Button variant="ghost" size="sm" render={<Link href="/improvement-plan" />} nativeButton={false}>
           Ver fila completa
           <ArrowRight className="ml-1.5 h-3.5 w-3.5" />
         </Button>
@@ -91,7 +91,7 @@ export function ImprovementBacklog({ analyses }: ImprovementBacklogProps) {
                     <div className="flex shrink-0 flex-wrap items-center gap-2 lg:justify-end">
                       <StatusBadge variant={priority.variant}>Prioridade {priority.label}</StatusBadge>
                       <StatusBadge variant={statusVariant[opportunity.status]}>{OpportunityStatusLabel[opportunity.status]}</StatusBadge>
-                      <Button size="sm" variant="outline" render={<Link href="/improvement-plan" />}>Ver ação</Button>
+                      <Button size="sm" variant="outline" render={<Link href="/improvement-plan" />} nativeButton={false}>Ver ação</Button>
                     </div>
                   </div>
                 </article>
@@ -105,7 +105,7 @@ export function ImprovementBacklog({ analyses }: ImprovementBacklogProps) {
             title="A fila de trabalho está vazia"
             description="Ainda não há oportunidades aprovadas para evolução. Conclua uma análise e revise suas recomendações para formar o próximo backlog."
           />
-          <Button className="mt-6" variant="outline" render={<Link href="/analysis" />}>Abrir Workspace</Button>
+          <Button className="mt-6" variant="outline" render={<Link href="/analysis" />} nativeButton={false}>Abrir Workspace</Button>
         </div>
       )}
     </PageSection>

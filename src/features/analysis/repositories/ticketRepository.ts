@@ -1,6 +1,8 @@
 import type { SupportConversation } from "@/models/SupportConversation";
 import type { Ticket } from "@/models/Ticket";
 
+import { readJSON, writeJSON } from "@/lib/storage";
+
 import { conversations as conversationSeed } from "../mock/conversations";
 import { tickets as ticketSeed } from "../mock/tickets";
 
@@ -8,22 +10,11 @@ const TICKETS_KEY = "visus-tickets";
 const CONVERSATIONS_KEY = "visus-support-conversations";
 
 function read<T>(key: string, seed: T[]): T[] {
-  if (typeof window === "undefined") return seed;
-
-  const stored = localStorage.getItem(key);
-  if (!stored) return seed;
-
-  try {
-    return JSON.parse(stored) as T[];
-  } catch {
-    return seed;
-  }
+  return readJSON<T[]>(key, seed);
 }
 
 function persist<T>(key: string, value: T[]): void {
-  if (typeof window !== "undefined") {
-    localStorage.setItem(key, JSON.stringify(value));
-  }
+  writeJSON(key, value);
 }
 
 /**

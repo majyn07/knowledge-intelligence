@@ -2,6 +2,10 @@
 
 import { useEffect, useRef, useState } from "react";
 
+import { toast } from "sonner";
+
+import { readRaw, writeJSON } from "@/lib/storage";
+
 interface UsePersistedStateOptions<T> {
   /** Chave do localStorage. */
   key: string;
@@ -11,6 +15,9 @@ interface UsePersistedStateOptions<T> {
   parse?: (raw: string) => T;
 }
 
+/** Um aviso por sessão: repetir a cada tecla digitada seria pior que o problema. */
+let quotaWarned = false;
+
 /**
  * Estado persistido sem divergência de hidratação.
  *
@@ -18,6 +25,9 @@ interface UsePersistedStateOptions<T> {
  * partir de `fallback`. O valor guardado só entra depois da montagem, e a
  * escrita só começa quando a leitura terminou — assim o fallback nunca
  * sobrescreve o que já estava salvo.
+ *
+ * Falha de escrita não derruba a aplicação: o estado continua em memória e o
+ * usuário é avisado de que a sessão deixou de ser gravada.
  */
 export function usePersistedState<T>({
   key,
@@ -30,7 +40,7 @@ export function usePersistedState<T>({
   const parseRef = useRef(parse);
 
   useEffect(() => {
-    const raw = localStorage.getItem(key);
+    const raw = readRaw(key);
 
     if (raw !== null) {
       try {
@@ -52,7 +62,14 @@ export function usePersistedState<T>({
       return;
     }
 
-    localStorage.setItem(key, JSON.stringify(value));
+    const result = writeJSON(key, value);
+
+    if (result === "quota" && !quotaWarned) {
+      quotaWarned = true;
+      toast.error(
+        "O armazenamento deste navegador encheu. O trabalho continua na tela, mas parou de ser gravado."
+      );
+    }
   }, [isHydrated, key, value]);
 
   return [value, setValue, isHydrated] as const;
