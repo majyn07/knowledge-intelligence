@@ -32,6 +32,7 @@ import {
   type SearchResultKind,
 } from "../globalSearch";
 import { commandGroup } from "../commands";
+import { useRecentlyViewed } from "../useRecentlyViewed";
 
 interface GlobalSearchDialogProps {
   open: boolean;
@@ -39,6 +40,7 @@ interface GlobalSearchDialogProps {
 }
 
 const kindIcon: Record<SearchResultKind, typeof Search> = {
+  recent: History,
   command: CornerDownLeft,
   project: FolderKanban,
   ticket: Ticket,
@@ -58,6 +60,7 @@ export function GlobalSearchDialog({ open, onOpenChange }: GlobalSearchDialogPro
   const { events } = useActivity();
   const { tickets } = useTickets();
   const { taxonomy } = useTaxonomy();
+  const { recent, record: rememberVisit } = useRecentlyViewed();
 
   const [query, setQuery] = useState("");
   const [highlighted, setHighlighted] = useState(0);
@@ -76,8 +79,31 @@ export function GlobalSearchDialog({ open, onOpenChange }: GlobalSearchDialogPro
     */
     const commands = commandGroup(query);
 
-    return commands ? [commands, ...found] : found;
-  }, [analyses, articles, events, plans, projects, query, taxonomy, tickets]);
+    /*
+      Recentes só com o campo vazio. Assim que a pessoa digita, ela está
+      procurando outra coisa — e a lista de onde ela esteve viraria estorvo no
+      caminho do resultado.
+    */
+    const recents =
+      query.trim() === "" && recent.length > 0
+        ? [{
+            kind: "recent" as const,
+            // O item guarda o tipo de origem: ver que era artigo ou plano faz
+            // parte da informação, e o ícone vem daí.
+            results: recent.map((entry) => ({
+              kind: entry.kind,
+              id: entry.id,
+              title: entry.title,
+              subtitle: "",
+              projectId: "",
+              href: entry.href,
+              score: 1,
+            })),
+          }]
+        : [];
+
+    return [...recents, ...(commands ? [commands] : []), ...found];
+  }, [analyses, articles, events, plans, projects, query, recent, taxonomy, tickets]);
 
   const flat = useMemo(() => flattenGroups(groups), [groups]);
 
@@ -100,6 +126,14 @@ export function GlobalSearchDialog({ open, onOpenChange }: GlobalSearchDialogPro
     if (result.projectId && result.projectId !== activeProjectId) {
       selectProject(result.projectId);
     }
+
+    // Guarda antes de sair: reabrir precisa ser mais barato que buscar de novo.
+    rememberVisit({
+      kind: result.kind,
+      id: result.id,
+      title: result.title,
+      href: result.href,
+    });
 
     onOpenChange(false);
     router.push(result.href);
@@ -163,7 +197,7 @@ export function GlobalSearchDialog({ open, onOpenChange }: GlobalSearchDialogPro
           )}
 
           {groups.map((group, groupPosition) => {
-            const Icon = kindIcon[group.kind];
+            const groupIcon = kindIcon[group.kind];
 
             return (
               <section key={group.kind} className="mb-2 last:mb-0">
@@ -187,7 +221,12 @@ export function GlobalSearchDialog({ open, onOpenChange }: GlobalSearchDialogPro
                       }`}
                     >
                       <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                        <Icon className="h-3.5 w-3.5" />
+                        {(() => {
+                          // O ícone vem do item, não do grupo: em "onde você
+                          // estava" cada linha mostra o que ela é.
+                          const ItemIcon = kindIcon[result.kind] ?? groupIcon;
+                          return <ItemIcon className="h-3.5 w-3.5" />;
+                        })()}
                       </span>
 
                       <span className="min-w-0 flex-1">

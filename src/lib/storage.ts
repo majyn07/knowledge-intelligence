@@ -85,6 +85,7 @@ export const STORAGE_KEYS = {
   people: "visus-people",
   currentPerson: "visus-current-person",
   activity: "visus-activity",
+  recent: "visus-recently-viewed",
   sidebar: "visus-workspace-sidebar-collapsed",
   brandTheme: "visus-brand-theme",
 } as const;
