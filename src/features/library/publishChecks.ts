@@ -15,14 +15,14 @@ export function articlePublishChecks(article: KnowledgeArticle): PublishCheck[] 
       hint: "Publicar sem corpo entrega uma página vazia a quem procura ajuda.",
     },
     {
-      label: "Produto e módulo definidos",
-      ok: article.product.trim().length > 0 && article.module.trim().length > 0,
-      hint: "Sem eles o artigo não aparece agrupado nem nos filtros por produto.",
+      label: "Seção definida",
+      ok: article.sectionId.trim().length > 0,
+      hint: "É a seção do portal onde o artigo vai morar. Sem ela não há para onde publicar.",
     },
     {
-      label: "Categoria definida",
-      ok: article.category.trim().length > 0,
-      hint: "A categoria diz que tipo de ajuda o artigo oferece.",
+      label: "Gênero definido",
+      ok: article.genreId.trim().length > 0,
+      hint: "Diz que tipo de ajuda o texto oferece a quem chega nele.",
     },
     {
       label: "Tem palavras-chave",

@@ -21,6 +21,7 @@ import { useKnowledgeLifecycle } from "@/features/analysis/providers/KnowledgeLi
 import { useTickets } from "@/features/analysis/providers/TicketsProvider";
 import { useLibrary } from "@/features/library/providers/LibraryProvider";
 import { usePlans } from "@/features/plans/providers/PlansProvider";
+import { useTaxonomy } from "@/features/taxonomy/providers/TaxonomyProvider";
 import { useProject } from "@/providers/ProjectProvider";
 
 import {
@@ -54,14 +55,15 @@ export function GlobalSearchDialog({ open, onOpenChange }: GlobalSearchDialogPro
   const { items: articles } = useLibrary();
   const { events } = useActivity();
   const { tickets } = useTickets();
+  const { taxonomy } = useTaxonomy();
 
   const [query, setQuery] = useState("");
   const [highlighted, setHighlighted] = useState(0);
   const listRef = useRef<HTMLDivElement>(null);
 
   const groups = useMemo(
-    () => searchEverything({ projects, tickets, analyses, plans, articles, events }, query),
-    [analyses, articles, events, plans, projects, query, tickets]
+    () => searchEverything({ projects, tickets, analyses, plans, articles, events, taxonomy }, query),
+    [analyses, articles, events, plans, projects, query, taxonomy, tickets]
   );
 
   const flat = useMemo(() => flattenGroups(groups), [groups]);

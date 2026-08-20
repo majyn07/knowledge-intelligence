@@ -4,18 +4,16 @@ import { FormEvent, useMemo, useState, type ReactNode } from "react";
 import { Sparkles } from "lucide-react";
 
 import type { LibraryFormData } from "@/features/library/types/LibraryFormData";
-import { ARTICLE_CATEGORIES, UNSET_CATEGORY } from "@/features/library/constants/categories";
-import { articleTemplates } from "@/features/library/content/articleTemplates";
+import { templateFor } from "@/features/library/content/articleTemplates";
 import { findSimilarArticles } from "@/features/library/search/findSimilarArticles";
-import { PROJECT_PRODUCTS, UNSET_PRODUCT } from "@/features/projects/constants/products";
 import {
   allowedArticleTransitions,
   articleStatusLabel,
-  articleTypeLabel,
   type ArticleStatus,
-  type ArticleType,
   type KnowledgeArticle,
 } from "@/models/KnowledgeArticle";
+import { findSection, sectionsOf } from "@/models/Taxonomy";
+import { useTaxonomy } from "@/features/taxonomy/providers/TaxonomyProvider";
 
 import { PersonSelect } from "@/features/people/components/PersonSelect";
 
@@ -52,20 +50,21 @@ const emptyForm: LibraryFormData = {
   summary: "",
   content: "",
   projectId: "",
-  type: "article",
+  genreId: "",
   status: "draft",
-  product: UNSET_PRODUCT,
-  module: "",
-  category: UNSET_CATEGORY,
+  sectionId: "",
   tags: [],
   keywords: [],
   author: "",
   url: "",
 };
 
-const articleTypes: ArticleType[] = ["article", "faq", "workflow", "document", "template"];
-const PRODUCT_PLACEHOLDER = "Não definido";
-const CATEGORY_PLACEHOLDER = "Não definida";
+/**
+ * Valor sentinela do seletor. Um `<SelectItem>` não aceita valor vazio, então
+ * "sem escolha" precisa de um texto próprio que nunca colide com um id do
+ * cadastro — todos eles começam com `cat-`, `sec-` ou `gen-`.
+ */
+const UNSET = "—";
 
 function toList(value: string) {
   return value.split(",").map((item) => item.trim()).filter(Boolean);
@@ -99,6 +98,25 @@ export function LibraryForm({
   const [formData, setFormData] = useState<LibraryFormData>(initialData ?? emptyForm);
   const [tags, setTags] = useState(initialData?.tags.join(", ") ?? "");
   const [keywords, setKeywords] = useState(initialData?.keywords.join(", ") ?? "");
+
+  const { taxonomy } = useTaxonomy();
+
+  /*
+    A categoria não é guardada no artigo — ela é a metade de cima da cascata e
+    existe só para filtrar as seções. Ao abrir um artigo já classificado, ela é
+    deduzida da seção dele; a partir daí é escolha de quem edita.
+  */
+  const [categoryId, setCategoryId] = useState(
+    () => findSection(taxonomy, initialData?.sectionId ?? "")?.categoryId ?? ""
+  );
+
+  const sections = useMemo(
+    () => (categoryId === "" ? [] : sectionsOf(taxonomy, categoryId)),
+    [categoryId, taxonomy]
+  );
+
+  const genreName = (id: string) =>
+    taxonomy.genres.find((genre) => genre.id === id)?.name ?? "Não definido";
 
   const similarArticles = useMemo(
     () =>
@@ -134,7 +152,7 @@ export function LibraryForm({
   }
 
   function applyTemplate() {
-    change("content", articleTemplates[formData.type]);
+    change("content", templateFor(genreName(formData.genreId)));
   }
 
   return (
@@ -176,7 +194,7 @@ export function LibraryForm({
             !formData.content.trim() ? (
               <Button type="button" size="sm" variant="ghost" onClick={applyTemplate}>
                 <Sparkles className="mr-1.5 h-3.5 w-3.5" />
-                Usar modelo de {articleTypeLabel[formData.type].toLowerCase()}
+                Usar modelo de {genreName(formData.genreId).toLowerCase()}
               </Button>
             ) : undefined
           }
@@ -208,79 +226,98 @@ export function LibraryForm({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="article-type">Tipo</Label>
+            <Label htmlFor="article-genre">Gênero</Label>
             <Select
-              value={formData.type}
-              onValueChange={(value) => change("type", (value ?? "article") as ArticleType)}
+              value={formData.genreId || UNSET}
+              onValueChange={(value) => change("genreId", value === UNSET ? "" : (value ?? ""))}
             >
-              <SelectTrigger id="article-type">
-                <SelectValue>{(type: ArticleType) => articleTypeLabel[type]}</SelectValue>
+              <SelectTrigger id="article-genre">
+                <SelectValue>
+                  {(id: string) => genreName(id)}
+                </SelectValue>
               </SelectTrigger>
 
               <SelectContent>
-                {articleTypes.map((type) => (
-                  <SelectItem key={type} value={type}>
-                    {articleTypeLabel[type]}
+                <SelectItem value={UNSET}>Não definido</SelectItem>
+
+                {taxonomy.genres.map((genre) => (
+                  <SelectItem key={genre.id} value={genre.id}>
+                    {genre.name}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="article-product">Produto</Label>
-            <Select
-              value={formData.product}
-              onValueChange={(value) =>
-                change("product", !value || value === PRODUCT_PLACEHOLDER ? UNSET_PRODUCT : value)
-              }
-            >
-              <SelectTrigger id="article-product">
-                <SelectValue>{(product: string) => product || PRODUCT_PLACEHOLDER}</SelectValue>
-              </SelectTrigger>
-
-              <SelectContent>
-                <SelectItem value={PRODUCT_PLACEHOLDER}>{PRODUCT_PLACEHOLDER}</SelectItem>
-                {PROJECT_PRODUCTS.map((product) => (
-                  <SelectItem key={product} value={product}>
-                    {product}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="module">Módulo</Label>
-            <Input
-              id="module"
-              placeholder="Ex.: Cost Management"
-              value={formData.module}
-              onChange={(event) => change("module", event.target.value)}
-            />
-          </div>
-
+          {/*
+            Categoria e seção são cascata, como no portal: a categoria só
+            filtra, e o que fica guardado no artigo é a seção. Guardar as duas
+            permitiria que divergissem.
+          */}
           <div className="space-y-2">
             <Label htmlFor="article-category">Categoria</Label>
             <Select
-              value={formData.category}
-              onValueChange={(value) =>
-                change("category", !value || value === CATEGORY_PLACEHOLDER ? UNSET_CATEGORY : value)
-              }
+              value={categoryId || UNSET}
+              onValueChange={(value) => {
+                const next = value === UNSET ? "" : (value ?? "");
+                setCategoryId(next);
+                // Trocar de categoria invalida a seção escolhida na anterior.
+                if (formData.sectionId) change("sectionId", "");
+              }}
             >
               <SelectTrigger id="article-category">
-                <SelectValue>{(category: string) => category || CATEGORY_PLACEHOLDER}</SelectValue>
+                <SelectValue>
+                  {(id: string) =>
+                    taxonomy.categories.find((item) => item.id === id)?.name ?? "Não definida"
+                  }
+                </SelectValue>
               </SelectTrigger>
 
               <SelectContent>
-                <SelectItem value={CATEGORY_PLACEHOLDER}>{CATEGORY_PLACEHOLDER}</SelectItem>
-                {ARTICLE_CATEGORIES.map((category) => (
-                  <SelectItem key={category} value={category}>
-                    {category}
+                <SelectItem value={UNSET}>Não definida</SelectItem>
+
+                {taxonomy.categories.map((category) => (
+                  <SelectItem key={category.id} value={category.id}>
+                    {category.name}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="article-section">Seção</Label>
+            <Select
+              value={formData.sectionId || UNSET}
+              onValueChange={(value) => change("sectionId", value === UNSET ? "" : (value ?? ""))}
+              disabled={categoryId === ""}
+            >
+              <SelectTrigger id="article-section">
+                <SelectValue>
+                  {(id: string) =>
+                    taxonomy.sections.find((item) => item.id === id)?.name ?? "Não definida"
+                  }
+                </SelectValue>
+              </SelectTrigger>
+
+              <SelectContent>
+                <SelectItem value={UNSET}>Não definida</SelectItem>
+
+                {sections.map((section) => (
+                  <SelectItem key={section.id} value={section.id}>
+                    {section.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            <p className="text-xs text-muted-foreground">
+              {categoryId === ""
+                ? "Escolha a categoria para ver as seções dela."
+                : `${sections.length} seções em ${
+                    taxonomy.categories.find((item) => item.id === categoryId)?.name ?? ""
+                  }.`}
+            </p>
           </div>
 
           <div className="space-y-2">

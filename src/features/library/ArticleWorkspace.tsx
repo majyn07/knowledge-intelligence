@@ -16,9 +16,10 @@ import { Button } from "@/components/ui/button";
 import {
   allowedArticleTransitions,
   articleStatusLabel,
-  articleTypeLabel,
   type ArticleStatus,
 } from "@/models/KnowledgeArticle";
+import { findCategory, findSection } from "@/models/Taxonomy";
+import { useTaxonomy } from "@/features/taxonomy/providers/TaxonomyProvider";
 import { useProject } from "@/providers/ProjectProvider";
 
 import { PublishConfirmDialog } from "@/components/common/PublishConfirmDialog";
@@ -48,6 +49,7 @@ export function ArticleWorkspace({ articleId }: ArticleWorkspaceProps) {
   const { items, updateItem, changeStatus } = useLibrary();
   const { eventsFor } = useActivity();
   const { projects } = useProject();
+  const { taxonomy } = useTaxonomy();
   const [isEditing, setIsEditing] = useState(false);
   const [isPublishing, setIsPublishing] = useState(false);
 
@@ -85,6 +87,15 @@ export function ArticleWorkspace({ articleId }: ArticleWorkspaceProps) {
   const projectName =
     projects.find((project) => project.id === article.projectId)?.name ?? "Projeto não encontrado";
   const transitions = allowedArticleTransitions[article.status];
+
+  /*
+    Classificação resolvida contra o cadastro. Quando a seção não existe mais
+    — categoria removida, ou artigo migrado sem correspondência — o resultado
+    é vazio, e a tela diz "não definida" em vez de mostrar um id solto.
+  */
+  const section = findSection(taxonomy, article.sectionId);
+  const categoryName = section ? findCategory(taxonomy, section.categoryId)?.name ?? "" : "";
+  const genreName = taxonomy.genres.find((entry) => entry.id === article.genreId)?.name ?? "";
   const history = eventsFor("article", article.id);
 
   function handleSubmit(data: LibraryFormData) {
@@ -100,7 +111,7 @@ export function ArticleWorkspace({ articleId }: ArticleWorkspaceProps) {
       </Button>
 
       <PageHeader
-        overline={`Base de Conhecimento · ${articleTypeLabel[article.type]}`}
+        overline={`Base de Conhecimento · ${genreName || "Sem gênero"}`}
         title={article.title}
         description={article.summary || "Sem resumo registrado."}
         actions={
@@ -148,9 +159,9 @@ export function ArticleWorkspace({ articleId }: ArticleWorkspaceProps) {
           columns={4}
           items={[
             { label: "Projeto", value: projectName },
-            { label: "Produto", value: article.product || "Não definido" },
-            { label: "Módulo", value: article.module || "Não definido" },
-            { label: "Categoria", value: article.category || "Não definida" },
+            { label: "Categoria", value: categoryName || "Não definida" },
+            { label: "Seção", value: section?.name || "Não definida" },
+            { label: "Gênero", value: genreName || "Não definido" },
             { label: "Autor", value: article.author || "Não definido" },
             { label: "Criado em", value: article.createdAt.toLocaleDateString("pt-BR") },
             { label: "Atualizado em", value: article.updatedAt.toLocaleDateString("pt-BR") },

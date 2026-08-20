@@ -13,8 +13,10 @@ import {
   Trash2,
 } from "lucide-react";
 
-import type { ArticleStatus, ArticleType, KnowledgeArticle } from "@/models/KnowledgeArticle";
-import { articleStatusLabel, articleTypeLabel } from "@/models/KnowledgeArticle";
+import type { ArticleStatus, KnowledgeArticle } from "@/models/KnowledgeArticle";
+import { articleStatusLabel } from "@/models/KnowledgeArticle";
+import { sectionPath } from "@/models/Taxonomy";
+import { useTaxonomy } from "@/features/taxonomy/providers/TaxonomyProvider";
 
 import { StatusBadge } from "@/components/common/status/StatusBadge";
 import { Button } from "@/components/ui/button";
@@ -34,17 +36,25 @@ const statusVariant: Record<ArticleStatus, "default" | "warning" | "success"> = 
   archived: "default",
 };
 
-const typeIcon: Record<ArticleType, typeof FileText> = {
-  article: FileText,
-  faq: HelpCircle,
-  workflow: GitBranch,
-  document: BookOpen,
-  template: LayoutTemplate,
+/*
+  Ícone por nome de gênero. O gênero virou cadastro, então a lista não é
+  fechada: nome conhecido ganha o ícone dele, gênero criado pela equipe cai no
+  genérico em vez de quebrar.
+*/
+const genreIcon: Record<string, typeof FileText> = {
+  Artigo: FileText,
+  FAQ: HelpCircle,
+  Workflow: GitBranch,
+  Documento: BookOpen,
+  Template: LayoutTemplate,
 };
 
 export function LibraryCard({ item, projectName, onEdit, onDelete }: LibraryCardProps) {
-  const Icon = typeIcon[item.type];
-  const context = [item.product, item.module].filter(Boolean).join(" · ");
+  const { taxonomy } = useTaxonomy();
+
+  const genre = taxonomy.genres.find((entry) => entry.id === item.genreId)?.name ?? "";
+  const Icon = genreIcon[genre] ?? FileText;
+  const context = sectionPath(taxonomy, item.sectionId);
 
   return (
     <Card className="relative rounded-xl border-border/70 bg-card shadow-none transition-colors hover:border-primary/30">
@@ -56,7 +66,7 @@ export function LibraryCard({ item, projectName, onEdit, onDelete }: LibraryCard
 
           <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
             <Icon className="h-3.5 w-3.5" />
-            {articleTypeLabel[item.type]}
+            {genre || "Sem gênero"}
           </span>
 
           {item.source && (
@@ -81,7 +91,7 @@ export function LibraryCard({ item, projectName, onEdit, onDelete }: LibraryCard
 
         <p className="flex items-center gap-2 text-sm text-muted-foreground">
           <Boxes className="h-3.5 w-3.5 shrink-0 text-primary" />
-          <span className="truncate">{context || "Produto não definido"}</span>
+          <span className="truncate">{context || "Sem seção"}</span>
         </p>
 
         {item.tags.length > 0 && (

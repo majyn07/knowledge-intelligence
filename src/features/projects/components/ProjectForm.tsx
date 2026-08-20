@@ -3,7 +3,8 @@
 import { FormEvent, useState, type ReactNode } from "react";
 
 import type { ProjectFormData } from "@/features/projects/types/ProjectFormData";
-import { PROJECT_PRODUCTS, UNSET_PRODUCT } from "@/features/projects/constants/products";
+import { productNamesFrom, UNSET_PRODUCT } from "@/features/projects/constants/products";
+import { useTaxonomy } from "@/features/taxonomy/providers/TaxonomyProvider";
 import { projectStatusLabel, type ProjectStatus } from "@/models/Project";
 
 import { PersonSelect } from "@/features/people/components/PersonSelect";
@@ -64,6 +65,9 @@ export function ProjectForm({
   // O estado nasce do prop e não é sincronizado depois: quem troca o registro
   // em edição remonta o formulário por chave.
   const [formData, setFormData] = useState<ProjectFormData>(initialData ?? emptyForm);
+
+  const { taxonomy } = useTaxonomy();
+  const productNames = productNamesFrom(taxonomy);
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -146,7 +150,7 @@ export function ProjectForm({
 
               <SelectContent>
                 <SelectItem value={PRODUCT_PLACEHOLDER}>{PRODUCT_PLACEHOLDER}</SelectItem>
-                {PROJECT_PRODUCTS.map((product) => (
+                {productNames.map((product) => (
                   <SelectItem key={product} value={product}>
                     {product}
                   </SelectItem>
