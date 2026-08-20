@@ -18,23 +18,9 @@ import type { LibraryFormData } from "@/features/library/types/LibraryFormData";
 import type { PlanWorkspaceItem } from "@/features/plans/types/PlanWorkspace";
 
 import { articleService } from "@/features/library/services/articleService";
+import { parseArticles } from "@/features/library/normalizeArticle";
 
 const STORAGE_KEY = "visus-library";
-
-function parseArticles(raw: string): KnowledgeArticle[] {
-  return (JSON.parse(raw) as KnowledgeArticle[]).map((article) => ({
-    ...article,
-    // Conteúdos gravados antes da unificação não possuem estes campos.
-    summary: article.summary ?? "",
-    content: article.content ?? "",
-    product: article.product ?? "",
-    module: article.module ?? "",
-    keywords: article.keywords ?? [],
-    tags: article.tags ?? [],
-    createdAt: new Date(article.createdAt),
-    updatedAt: new Date(article.updatedAt),
-  }));
-}
 
 interface LibraryContextValue {
   items: KnowledgeArticle[];

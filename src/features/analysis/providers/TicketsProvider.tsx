@@ -16,6 +16,7 @@ import { usePeople } from "@/features/people/providers/PeopleProvider";
 import type { SupportConversation } from "@/models/SupportConversation";
 import type { Ticket } from "@/models/Ticket";
 
+import { parseConversations, parseTickets } from "../normalizeSupport";
 import { ticketRepository } from "../repositories/ticketRepository";
 import { ticketService } from "../services/ticketService";
 import type { TicketFormData } from "../types/TicketFormData";
@@ -42,11 +43,13 @@ export function TicketsProvider({ children }: { children: ReactNode }) {
   const [tickets, setTickets] = usePersistedState<Ticket[]>({
     key: TICKETS_KEY,
     fallback: ticketRepository.getSeedTickets(),
+    parse: parseTickets,
   });
 
   const [conversations, setConversations] = usePersistedState<SupportConversation[]>({
     key: CONVERSATIONS_KEY,
     fallback: ticketRepository.getSeedConversations(),
+    parse: parseConversations,
   });
 
   const ticketsOf = useCallback(

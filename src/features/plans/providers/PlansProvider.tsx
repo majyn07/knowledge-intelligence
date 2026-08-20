@@ -9,6 +9,7 @@ import { useActivity } from "@/features/activities/providers/ActivityProvider";
 import { usePeople } from "@/features/people/providers/PeopleProvider";
 
 import { planWorkspaceMock } from "../mock/planWorkspace";
+import { parsePlans } from "../normalizePlan";
 import { planService, type CreatePlanFromOpportunityInput } from "../services/planService";
 import {
   canTransitionPlan,
@@ -53,6 +54,7 @@ export function PlansProvider({ children }: { children: ReactNode }) {
   const [plans, setPlans] = usePersistedState<PlanWorkspaceItem[]>({
     key: STORAGE_KEY,
     fallback: planWorkspaceMock,
+    parse: parsePlans,
   });
   const [selectedPlanId, setSelectedPlanId] = useState<string | undefined>(undefined);
   const [search, setSearch] = useState("");

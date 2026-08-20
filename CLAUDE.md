@@ -47,6 +47,13 @@ cota estourada, modo privado, acesso negado — e sem tratamento o erro sobe de
 dentro de um efeito e derruba a aplicação inteira. Ali a falha vira resultado,
 nunca exceção. Não chame `localStorage` diretamente em lugar nenhum.
 
+**Todo dado lido do armazenamento passa por um normalizador.** Um registro foi
+gravado por alguma versão do produto, possivelmente anterior à atual, e não
+conhece campos que vieram depois. O normalizador recebe `unknown` e garante a
+forma completa do modelo, usando os utilitários de `lib/shape`. Sem isso, a
+primeira leitura de um campo ausente derruba a tela — foi o que aconteceu com
+`author` na Biblioteca. Campo novo no modelo é campo novo no normalizador.
+
 Acervos não têm teto artificial. Cortar análises ou artigos antigos para caber
 seria apagar trabalho do usuário em silêncio: preferimos falhar avisando. A
 exceção é o histórico de atividades, que tem limite por ser append-only.
