@@ -8,8 +8,8 @@
   --color-background: var(--background);
   --color-foreground: var(--foreground);
 
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-poppins), "Segoe UI", system-ui, sans-serif;
+  --font-mono: ui-monospace, "Cascadia Mono", "Segoe UI Mono", monospace;
   --font-heading: var(--font-sans);
 
   --color-card: var(--card);
@@ -76,11 +76,19 @@
   /* ========= Brand ========= */
 
   /*
-    Inspirado na identidade AltoQi.
-    Não é uma cópia do verde institucional.
+    Verde institucional AltoQi (#00CC78) e cinza da marca (#60606C), medidos
+    dos arquivos do kit e convertidos para oklch. Antes daqui havia uma cor
+    "inspirada na" identidade; o que a marca é não se aproxima, se usa.
+
+    O verde tem luminosidade alta demais para carregar texto branco, então
+    `--primary` escurece o suficiente para o contraste fechar, e `--brand`
+    guarda o tom exato para quando ele aparece como marca e não como fundo.
   */
 
-  --primary: oklch(0.67 0.14 180);
+  --brand: oklch(0.743 0.182 155.6);
+  --brand-gray: oklch(0.493 0.019 285.7);
+
+  --primary: oklch(0.539 0.155 156);
   --primary-foreground: oklch(1 0 0);
 
   /* ========= Neutros ========= */
@@ -91,7 +99,7 @@
   --muted: oklch(0.966 0.004 220);
   --muted-foreground: oklch(0.47 0.018 220);
 
-  --accent: oklch(0.95 0.018 185);
+  --accent: oklch(0.95 0.025 156);
   --accent-foreground: var(--foreground);
 
   /* ========= Feedback ========= */
@@ -107,11 +115,12 @@
 
   /* ========= Charts ========= */
 
-  --chart-1: oklch(0.67 0.14 180);
-  --chart-2: oklch(0.63 0.13 210);
-  --chart-3: oklch(0.72 0.11 150);
-  --chart-4: oklch(0.78 0.11 110);
-  --chart-5: oklch(0.68 0.18 270);
+  /* Série a partir do verde da marca, girando o matiz e não só a saturação. */
+  --chart-1: oklch(0.66 0.16 156);
+  --chart-2: oklch(0.60 0.13 200);
+  --chart-3: oklch(0.55 0.17 300);
+  --chart-4: oklch(0.70 0.16 60);
+  --chart-5: oklch(0.63 0.11 218);
 
   /* ========= Radius ========= */
 
@@ -119,47 +128,63 @@
 
   /* ========= Sidebar ========= */
 
-  --sidebar: oklch(0.29 0.03 205);
+  /* Escuro derivado do cinza da marca, para o lockup branco assentar nele. */
+  --sidebar: oklch(0.28 0.015 286);
   --sidebar-foreground: oklch(0.985 0 0);
 
-  --sidebar-primary: var(--primary);
-  --sidebar-primary-foreground: oklch(1 0 0);
+  --sidebar-primary: var(--brand);
+  --sidebar-primary-foreground: oklch(0.2 0.01 286);
 
-  --sidebar-accent: oklch(0.35 0.03 205);
+  --sidebar-accent: oklch(0.35 0.018 286);
   --sidebar-accent-foreground: oklch(1 0 0);
 
-  --sidebar-border: oklch(0.38 0.02 205);
+  --sidebar-border: oklch(0.38 0.015 286);
 
-  --sidebar-ring: var(--primary);
+  --sidebar-ring: var(--brand);
 }
 
-/* Produto: Visus — leitura de dados e contexto. */
+/*
+  Temas de produto.
+
+  Cada um tem duas cores e não uma: `--brand` é o tom exato da marca do
+  produto, medido do arquivo do kit, e vale onde a cor aparece como
+  identidade — marca, realce, foco. `--primary` é esse mesmo tom escurecido
+  até o texto branco fechar contraste, e vale onde a cor vira fundo de botão.
+
+  Sem essa separação, ou a marca sai errada ou o botão fica ilegível.
+*/
+
+/* Produto: Visus — leitura de dados e contexto. #783CB4 */
 :root[data-brand="visus"] {
-  --primary: oklch(0.48 0.16 300);
-  --accent: oklch(0.95 0.035 300);
-  --sidebar: oklch(0.22 0.055 300);
-  --sidebar-accent: oklch(0.30 0.065 300);
-  --sidebar-border: oklch(0.36 0.05 300);
+  --brand: oklch(0.493 0.183 303.2);
+  --primary: oklch(0.493 0.183 303.2);
+  --accent: oklch(0.95 0.035 303);
+  --sidebar: oklch(0.22 0.055 303);
+  --sidebar-accent: oklch(0.30 0.065 303);
+  --sidebar-border: oklch(0.36 0.05 303);
+  --chart-1: oklch(0.55 0.18 303);
 }
 
-/* Produto: Builder — planejamento, avanço e execução. */
+/* Produto: Builder — planejamento, avanço e execução. #E68200 */
 :root[data-brand="builder"] {
-  --primary: oklch(0.66 0.16 72);
-  --accent: oklch(0.96 0.045 78);
-  --sidebar: oklch(0.24 0.04 72);
-  --sidebar-accent: oklch(0.32 0.05 72);
-  --sidebar-border: oklch(0.38 0.04 72);
-  --chart-1: oklch(0.66 0.16 72);
+  --brand: oklch(0.701 0.164 60.5);
+  --primary: oklch(0.573 0.145 60.5);
+  --accent: oklch(0.96 0.045 60);
+  --sidebar: oklch(0.26 0.045 60);
+  --sidebar-accent: oklch(0.33 0.055 60);
+  --sidebar-border: oklch(0.39 0.045 60);
+  --chart-1: oklch(0.70 0.16 60);
 }
 
-/* Produto: Eberick — estruturas, cálculo e precisão. */
+/* Produto: Eberick — estruturas, cálculo e precisão. #14A0BE */
 :root[data-brand="eberick"] {
-  --primary: oklch(0.52 0.12 225);
-  --accent: oklch(0.95 0.03 225);
-  --sidebar: oklch(0.22 0.04 225);
-  --sidebar-accent: oklch(0.30 0.05 225);
-  --sidebar-border: oklch(0.36 0.04 225);
-  --chart-1: oklch(0.52 0.12 225);
+  --brand: oklch(0.653 0.114 218);
+  --primary: oklch(0.55 0.105 218);
+  --accent: oklch(0.95 0.03 218);
+  --sidebar: oklch(0.23 0.045 219);
+  --sidebar-accent: oklch(0.31 0.05 219);
+  --sidebar-border: oklch(0.37 0.04 219);
+  --chart-1: oklch(0.63 0.11 218);
 }
 
 .dark {
@@ -173,7 +198,11 @@
   --popover: var(--card);
   --popover-foreground: var(--foreground);
 
-  --primary: oklch(0.70 0.14 180);
+  /* No escuro o verde da marca já contrasta, então marca e primária coincidem. */
+  --brand: oklch(0.743 0.182 155.6);
+  --brand-gray: oklch(0.68 0.015 286);
+
+  --primary: oklch(0.743 0.182 155.6);
   --primary-foreground: oklch(0.18 0.01 220);
 
   --secondary: oklch(0.26 0.01 220);
@@ -192,13 +221,13 @@
 
   --ring: var(--primary);
 
-  --chart-1: oklch(0.70 0.14 180);
-  --chart-2: oklch(0.65 0.13 210);
-  --chart-3: oklch(0.74 0.11 150);
-  --chart-4: oklch(0.80 0.11 110);
-  --chart-5: oklch(0.70 0.18 270);
+  --chart-1: oklch(0.74 0.18 156);
+  --chart-2: oklch(0.68 0.13 200);
+  --chart-3: oklch(0.66 0.17 300);
+  --chart-4: oklch(0.76 0.15 60);
+  --chart-5: oklch(0.70 0.11 218);
 
-  --sidebar: oklch(0.21 0.02 220);
+  --sidebar: oklch(0.21 0.015 286);
   --sidebar-foreground: oklch(0.985 0 0);
 
   --sidebar-primary: var(--primary);
@@ -220,6 +249,44 @@
 
   html {
     @apply font-sans antialiased;
+  }
+
+  /*
+    Poppins é geométrica e larga: no corpo isso ajuda, em título atrapalha.
+    Fechar o espacejamento conforme o tamanho cresce devolve a densidade que
+    a fonte perde, e é o que separa hierarquia de "texto maior".
+  */
+  h1, h2, h3, h4 {
+    font-family: var(--font-heading);
+    text-wrap: balance;
+  }
+
+  h1 { letter-spacing: -0.022em; }
+  h2 { letter-spacing: -0.016em; }
+  h3 { letter-spacing: -0.011em; }
+  h4 { letter-spacing: -0.006em; }
+
+  /* Rótulo em caixa alta precisa do movimento contrário para respirar. */
+  .tracking-\[0\.12em\], .tracking-\[0\.18em\] { font-weight: 600; }
+
+  /*
+    Foco visível em tudo que recebe teclado. Antes disso o contorno existia
+    como token e nunca era aplicado — navegar por Tab não mostrava onde se
+    estava, que é o defeito de acessibilidade mais barato de corrigir.
+  */
+  :focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+    border-radius: calc(var(--radius) * 0.4);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
   }
 
   body {
