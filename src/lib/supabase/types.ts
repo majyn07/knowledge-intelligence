@@ -16,7 +16,15 @@ export type ProfileRow = {
   name: string;
   role: string;
   avatar_url: string | null;
+  team_id: string | null;
+  is_active: boolean;
   created_at: string;
+};
+
+export type TeamRow = {
+  id: string;
+  name: string;
+  position: number;
 };
 
 export type TaxonomyCategoryRow = {
@@ -191,6 +199,12 @@ export interface Database {
         Update: Partial<ActivityEventRow>;
         Relationships: [];
       };
+      teams: {
+        Row: TeamRow;
+        Insert: TeamRow;
+        Update: Partial<TeamRow>;
+        Relationships: [];
+      };
       support_conversations: {
         Row: SupportConversationRow;
         Insert: SupportConversationRow;
@@ -217,6 +231,8 @@ export const REALTIME_TABLES = [
   "articles",
   "activity_events",
   "support_conversations",
+  "teams",
+  "profiles",
 ] as const;
 
 export type RealtimeTable = (typeof REALTIME_TABLES)[number];

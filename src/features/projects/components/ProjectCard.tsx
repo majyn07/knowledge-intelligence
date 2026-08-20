@@ -8,6 +8,7 @@ import { projectStatusLabel } from "@/models/Project";
 
 import { StatusBadge } from "@/components/common/status/StatusBadge";
 import { Card, CardContent } from "@/components/ui/card";
+import { AssigneeName } from "@/features/people/components/AssigneeName";
 import { Button } from "@/components/ui/button";
 
 interface ProjectCardProps {
@@ -67,7 +68,9 @@ export function ProjectCard({ project, isActive = false, onEdit, onDelete }: Pro
           <div className="flex items-center gap-2 text-muted-foreground">
             <dt className="sr-only">Responsável</dt>
             <UserRound className="h-3.5 w-3.5 shrink-0 text-primary" />
-            <dd className="truncate">{project.owner || "Responsável não definido"}</dd>
+            <dd className="truncate">
+              <AssigneeName value={project.owner} fallback="Responsável não definido" />
+            </dd>
           </div>
         </dl>
 

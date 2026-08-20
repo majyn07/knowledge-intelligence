@@ -7,6 +7,7 @@ import { StatusBadge } from "@/components/common/status/StatusBadge";
 import { Button } from "@/components/ui/button";
 
 import { planStatusLabel, type PlanStatus, type PlanWorkspaceItem } from "../types/PlanWorkspace";
+import { AssigneeName, useAssigneeName } from "@/features/people/components/AssigneeName";
 
 interface PlansNavigatorProps {
   plans: PlanWorkspaceItem[];
@@ -44,11 +45,15 @@ export function PlansNavigator({
   onStatusChange,
   onSelectPlan,
 }: PlansNavigatorProps) {
+  const assigneeName = useAssigneeName();
+
   const term = search.toLocaleLowerCase("pt-BR");
   const filteredPlans = plans.filter(
     (plan) =>
       (status === "all" || plan.status === status) &&
-      `${plan.title} ${plan.projectName} ${plan.owner}`.toLocaleLowerCase("pt-BR").includes(term)
+      `${plan.title} ${plan.projectName} ${assigneeName(plan.owner, "")}`
+        .toLocaleLowerCase("pt-BR")
+        .includes(term)
   );
 
   return (
@@ -100,7 +105,7 @@ export function PlansNavigator({
                 <div className="min-w-0">
                   <h3 className="line-clamp-2 text-sm font-medium leading-5">{plan.title}</h3>
                   <p className="mt-2 text-xs text-muted-foreground">
-                    {plan.owner || "Sem responsável"}
+                    <AssigneeName value={plan.owner} />
                   </p>
                 </div>
 

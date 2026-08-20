@@ -136,11 +136,24 @@ só avança esconde o erro em vez de corrigi-lo.
 próprios campos — e o efeito da publicação. Nada bloqueia: a equipe é treinada e
 decide. Fricção que informa, não que atrapalha.
 
-**Não há autenticação, e nada finge que há.** O seletor "atuando como" no
-cabeçalho registra quem está operando, para o histórico ter autoria em vez de
-autor vazio. Não construa permissões sobre isso — seriam ficção enquanto
-qualquer um puder escolher qualquer pessoa. O `actor` do evento é quem executou
-a ação, caindo para a autoria do registro quando ninguém se identificou.
+**Pessoa é conta; equipe é cadastro.** No modo compartilhado a lista de
+pessoas é quem entrou — não há cadastro manual, e nenhum nome de colaborador
+vive no código. Enquanto um colega não acessa, a equipe dele recebe a
+atribuição. Sem servidor não há login, e o campo "atuando como" volta a ser
+texto: melhor um nome digitado que histórico com autoria vazia.
+
+**Não há papéis, por decisão.** A equipe é treinada e o histórico responde por
+quem fez o quê. A política do banco é a mesma em todas as tabelas; se um dia
+houver papéis, ela muda ali e em nenhum outro lugar.
+
+**Atribuição guarda identificador, não nome.** Era nome, com a justificativa de
+que remover alguém não apagaria o registro de quem conduziu. Com conta, o nome
+passou a ser editável pela própria pessoa, e renomear orfanaria tudo. Quem
+preserva o passado é o histórico, que guarda o rótulo do evento.
+
+O resolvedor reconhece nome também, então registro anterior continua legível e
+vira identificador sozinho na próxima gravação — sem migração de dados. O que
+não resolve é exibido como veio, nunca como "sem responsável".
 
 **Referências a HubSpot, Zendesk, Vercel e CRMs são pedidos de maturidade**
 funcional e de UX, nunca de integração ou de importar o domínio deles. Traduza o
