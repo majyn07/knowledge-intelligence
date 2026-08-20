@@ -11,6 +11,7 @@ import {
 import { toast } from "sonner";
 
 import { usePersistedState } from "@/hooks/usePersistedState";
+import { useActivity } from "@/features/activities/providers/ActivityProvider";
 import { articleStatusLabel, type ArticleStatus, type KnowledgeArticle } from "@/models/KnowledgeArticle";
 import type { LibraryFormData } from "@/features/library/types/LibraryFormData";
 import type { PlanWorkspaceItem } from "@/features/plans/types/PlanWorkspace";
@@ -47,6 +48,7 @@ interface LibraryContextValue {
 const LibraryContext = createContext<LibraryContextValue | null>(null);
 
 export function LibraryProvider({ children }: { children: ReactNode }) {
+  const { record } = useActivity();
   const [items, setItems] = usePersistedState<KnowledgeArticle[]>({
     key: STORAGE_KEY,
     fallback: articleService.getSeed(),
@@ -57,9 +59,16 @@ export function LibraryProvider({ children }: { children: ReactNode }) {
     (data: LibraryFormData) => {
       const newItem = articleService.create(data);
       setItems((previous) => [newItem, ...previous]);
+      record({
+        type: "article_created",
+        projectId: newItem.projectId,
+        actor: newItem.author,
+        subject: { kind: "article", id: newItem.id, label: newItem.title },
+        detail: "Artigo criado como rascunho.",
+      });
       toast.success("Artigo criado como rascunho.");
     },
-    [setItems]
+    [record, setItems]
   );
 
   const updateItem = useCallback(
@@ -79,9 +88,18 @@ export function LibraryProvider({ children }: { children: ReactNode }) {
         previous.map((item) => (item.id === id ? updatedItem : item))
       );
 
+      record({
+        type: updatedItem.status === currentItem.status ? "article_updated" : "article_status_changed",
+        projectId: updatedItem.projectId,
+        actor: updatedItem.author,
+        subject: { kind: "article", id: updatedItem.id, label: updatedItem.title },
+        detail: updatedItem.status === currentItem.status
+          ? "Conteúdo ou classificação alterados."
+          : articleStatusLabel[currentItem.status] + " → " + articleStatusLabel[updatedItem.status],
+      });
       toast.success("Artigo atualizado.");
     },
-    [items, setItems]
+    [items, record, setItems]
   );
 
   const changeStatus = useCallback(
@@ -102,9 +120,16 @@ export function LibraryProvider({ children }: { children: ReactNode }) {
         )
       );
 
+      record({
+        type: "article_status_changed",
+        projectId: currentItem.projectId,
+        actor: currentItem.author,
+        subject: { kind: "article", id: currentItem.id, label: currentItem.title },
+        detail: articleStatusLabel[currentItem.status] + " → " + articleStatusLabel[status],
+      });
       toast.success(`Artigo movido para "${articleStatusLabel[status]}".`);
     },
-    [items, setItems]
+    [items, record, setItems]
   );
 
   const createItemFromPlan = useCallback(
@@ -114,10 +139,17 @@ export function LibraryProvider({ children }: { children: ReactNode }) {
 
       const newItem = articleService.createFromPlan(plan);
       setItems((previous) => [newItem, ...previous]);
+      record({
+        type: "article_created",
+        projectId: newItem.projectId,
+        actor: newItem.author,
+        subject: { kind: "article", id: newItem.id, label: newItem.title },
+        detail: "Rascunho gerado a partir do plano de melhoria.",
+      });
       toast.success("Rascunho criado a partir do plano de melhoria.");
       return { item: newItem, created: true };
     },
-    [items, setItems]
+    [items, record, setItems]
   );
 
   const deleteItem = useCallback(

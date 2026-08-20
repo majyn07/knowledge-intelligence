@@ -6,6 +6,7 @@ import { Toaster } from "@/components/ui/sonner";
 import { PlansProvider } from "@/features/plans/providers/PlansProvider";
 import { LibraryProvider } from "@/features/library/providers/LibraryProvider";
 import { PeopleProvider } from "@/features/people/providers/PeopleProvider";
+import { ActivityProvider } from "@/features/activities/providers/ActivityProvider";
 import { KnowledgeLifecycleProvider } from "@/features/analysis/providers/KnowledgeLifecycleProvider";
 import { ProjectProvider } from "@/providers/ProjectProvider";
 import { BrandThemeProvider } from "@/providers/BrandThemeProvider";
@@ -42,6 +43,7 @@ export default function RootLayout({
       <body className="min-h-screen bg-background font-sans text-foreground antialiased">
         <BrandThemeProvider>
           <PeopleProvider>
+          <ActivityProvider>
           <ProjectProvider>
             <KnowledgeLifecycleProvider>
               <PlansProvider>
@@ -55,6 +57,7 @@ export default function RootLayout({
             closeButton
             />
           </ProjectProvider>
+          </ActivityProvider>
           </PeopleProvider>
         </BrandThemeProvider>
       </body>

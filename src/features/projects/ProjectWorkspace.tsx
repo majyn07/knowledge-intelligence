@@ -6,7 +6,10 @@ import { ArrowLeft, CheckCircle2, FolderKanban } from "lucide-react";
 
 import { BrandEmptyState } from "@/components/brand/BrandEmptyState";
 import { PageHeader } from "@/components/common/page/PageHeader";
+import { PageSection } from "@/components/common/page/PageSection";
 import { Button } from "@/components/ui/button";
+import { ActivityTimeline } from "@/features/activities/components/ActivityTimeline";
+import { useActivity } from "@/features/activities/providers/ActivityProvider";
 import { useKnowledgeLifecycle } from "@/features/analysis/providers/KnowledgeLifecycleProvider";
 import { ticketService } from "@/features/analysis/services/ticketService";
 import { useLibrary } from "@/features/library/providers/LibraryProvider";
@@ -29,6 +32,7 @@ interface ProjectWorkspaceProps {
 
 export function ProjectWorkspace({ projectId }: ProjectWorkspaceProps) {
   const { projects, activeProjectId, isHydrated, selectProject, updateProject } = useProject();
+  const { events } = useActivity();
   const { analyses } = useKnowledgeLifecycle();
   const { plans } = usePlans();
   const { items: articles } = useLibrary();
@@ -57,6 +61,7 @@ export function ProjectWorkspace({ projectId }: ProjectWorkspaceProps) {
   }
 
   const isActive = project.id === activeProjectId;
+  const projectEvents = events.filter((event) => event.projectId === project.id).slice(0, 5);
   const metrics = selectProjectMetrics({
     projectId: project.id,
     analyses,
@@ -112,6 +117,14 @@ export function ProjectWorkspace({ projectId }: ProjectWorkspaceProps) {
       <ProjectAttention metrics={metrics} onNavigate={activateProject} />
 
       <ProjectModuleLinks metrics={metrics} onNavigate={activateProject} />
+
+      <PageSection title="Atividade recente" description="Os últimos fatos registrados neste projeto." actions={projectEvents.length > 0 ? <Button size="sm" variant="outline" render={<Link href="/activities" />} nativeButton={false} onClick={activateProject}>Ver histórico completo</Button> : undefined}>
+        {projectEvents.length === 0 ? (
+          <p className="rounded-xl border border-dashed border-border px-5 py-8 text-center text-sm text-muted-foreground">Nada aconteceu neste projeto ainda.</p>
+        ) : (
+          <ActivityTimeline events={projectEvents} />
+        )}
+      </PageSection>
 
       <ProjectDialog
         open={isEditing}

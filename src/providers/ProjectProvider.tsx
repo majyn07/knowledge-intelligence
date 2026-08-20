@@ -2,6 +2,7 @@
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 
+import { useActivity } from "@/features/activities/providers/ActivityProvider";
 import { useProjects } from "@/features/projects/hooks/useProjects";
 import type { ProjectFormData } from "@/features/projects/types/ProjectFormData";
 import type { Project } from "@/models/Project";
@@ -23,6 +24,7 @@ interface ProjectContextValue {
 const ProjectContext = createContext<ProjectContextValue | null>(null);
 
 export function ProjectProvider({ children }: { children: ReactNode }) {
+  const { record } = useActivity();
   const { projects, isHydrated, createProject, updateProject, deleteProject } = useProjects();
   // Parte da base canônica: mesmo valor no servidor e no primeiro render.
   const [activeProjectId, setActiveProjectId] = useState<string | null>(() => projects[0]?.id ?? null);
@@ -66,10 +68,36 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
     [activeProjectId, projects]
   );
 
+  const handleCreateProject = useCallback((data: ProjectFormData) => {
+    const project = createProject(data);
+    record({
+      type: "project_created",
+      projectId: project.id,
+      actor: project.owner,
+      subject: { kind: "project", id: project.id, label: project.name },
+      detail: "Projeto criado.",
+    });
+    return project;
+  }, [createProject, record]);
+
+  const handleUpdateProject = useCallback((id: string, data: ProjectFormData) => {
+    const project = updateProject(id, data);
+    if (project) {
+      record({
+        type: "project_updated",
+        projectId: project.id,
+        actor: project.owner,
+        subject: { kind: "project", id: project.id, label: project.name },
+        detail: "Identidade, contexto ou objetivo atualizados.",
+      });
+    }
+    return project;
+  }, [record, updateProject]);
+
   const value = useMemo(() => ({
     projects, activeProject, activeProjectId, isHydrated, selectProject,
-    createProject, updateProject, deleteProject: handleDeleteProject,
-  }), [activeProject, activeProjectId, createProject, handleDeleteProject, isHydrated, projects, selectProject, updateProject]);
+    createProject: handleCreateProject, updateProject: handleUpdateProject, deleteProject: handleDeleteProject,
+  }), [activeProject, activeProjectId, handleCreateProject, handleDeleteProject, handleUpdateProject, isHydrated, projects, selectProject]);
 
   return <ProjectContext.Provider value={value}>{children}</ProjectContext.Provider>;
 }

@@ -7,6 +7,7 @@ import {
   BookOpen,
   FileSearch,
   FolderKanban,
+  History,
   Home,
   Plug,
   Settings,
@@ -59,6 +60,11 @@ const managementItems = [
     title: "Plano de Melhorias",
     icon: FileSearch,
     href: "/improvement-plan",
+  },
+  {
+    title: "Atividades",
+    icon: History,
+    href: "/activities",
   },
 ];
 

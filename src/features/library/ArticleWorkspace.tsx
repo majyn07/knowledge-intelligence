@@ -4,6 +4,8 @@ import { useMemo, useState } from "react";
 import Link from "next/link";
 import { ArrowLeft, ExternalLink, FileSearch, Link2, Sparkles } from "lucide-react";
 
+import { ActivityTimeline } from "@/features/activities/components/ActivityTimeline";
+import { useActivity } from "@/features/activities/providers/ActivityProvider";
 import { BrandEmptyState } from "@/components/brand/BrandEmptyState";
 import { MarkdownContent } from "@/components/common/MarkdownContent";
 import { PageHeader } from "@/components/common/page/PageHeader";
@@ -41,6 +43,7 @@ const statusVariant: Record<ArticleStatus, "default" | "warning" | "success"> = 
 
 export function ArticleWorkspace({ articleId }: ArticleWorkspaceProps) {
   const { items, updateItem, changeStatus } = useLibrary();
+  const { eventsFor } = useActivity();
   const { projects } = useProject();
   const [isEditing, setIsEditing] = useState(false);
 
@@ -78,6 +81,7 @@ export function ArticleWorkspace({ articleId }: ArticleWorkspaceProps) {
   const projectName =
     projects.find((project) => project.id === article.projectId)?.name ?? "Projeto não encontrado";
   const transitions = allowedArticleTransitions[article.status];
+  const history = eventsFor("article", article.id);
 
   function handleSubmit(data: LibraryFormData) {
     updateItem(article!.id, data);
@@ -185,6 +189,14 @@ export function ArticleWorkspace({ articleId }: ArticleWorkspaceProps) {
 
           <ArticleTableOfContents content={article.content} />
         </div>
+      </PageSection>
+
+      <PageSection title="Histórico do artigo" description="Cada mudança de conteúdo e de estágio, na ordem em que aconteceu.">
+        {history.length === 0 ? (
+          <p className="rounded-xl border border-dashed border-border px-5 py-8 text-center text-sm text-muted-foreground">Nenhuma alteração registrada desde que o histórico passou a ser guardado.</p>
+        ) : (
+          <ActivityTimeline events={history} hideSubject />
+        )}
       </PageSection>
 
       <RelatedArticles results={related} />

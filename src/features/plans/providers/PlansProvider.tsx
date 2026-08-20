@@ -3,6 +3,7 @@
 import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from "react";
 
 import { usePersistedState } from "@/hooks/usePersistedState";
+import { useActivity } from "@/features/activities/providers/ActivityProvider";
 
 import { planWorkspaceMock } from "../mock/planWorkspace";
 import { planService, type CreatePlanFromOpportunityInput } from "../services/planService";
@@ -26,6 +27,7 @@ interface PlansContextValue {
 const PlansContext = createContext<PlansContextValue | null>(null);
 
 export function PlansProvider({ children }: { children: ReactNode }) {
+  const { record } = useActivity();
   const [plans, setPlans] = usePersistedState<PlanWorkspaceItem[]>({
     key: STORAGE_KEY,
     fallback: planWorkspaceMock,
@@ -44,8 +46,15 @@ export function PlansProvider({ children }: { children: ReactNode }) {
     const plan = planService.createFromApprovedOpportunity(input);
     setPlans((current) => [plan, ...current]);
     setSelectedPlanId(plan.id);
+    record({
+      type: "plan_created",
+      projectId: plan.projectId,
+      actor: plan.owner,
+      subject: { kind: "plan", id: plan.id, label: plan.title },
+      detail: "Plano criado a partir de oportunidade aprovada na revisão humana.",
+    });
     return { plan, created: true };
-  }, [plans, setPlans]);
+  }, [plans, record, setPlans]);
 
   const linkPlanToArticle = useCallback((planId: string, articleId: string) => {
     setPlans((current) => current.map((plan) => plan.id !== planId ? plan : {

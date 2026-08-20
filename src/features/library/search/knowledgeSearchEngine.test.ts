@@ -1,0 +1,122 @@
+import { describe, expect, it } from "vitest";
+
+import type { KnowledgeArticle } from "@/models/KnowledgeArticle";
+
+import { searchKnowledge } from "./knowledgeSearchEngine";
+
+function article(overrides: Partial<KnowledgeArticle> = {}): KnowledgeArticle {
+  return {
+    id: "a1",
+    title: "Erro ao autenticar",
+    summary: "Falhas de login após atualização",
+    content: "Verifique o token e as permissões.",
+    projectId: "p1",
+    type: "article",
+    status: "published",
+    product: "AltoQi Visus",
+    module: "Workflow",
+    category: "Troubleshooting",
+    tags: ["acesso"],
+    keywords: ["login"],
+    author: "",
+    createdAt: new Date("2026-01-01"),
+    updatedAt: new Date("2026-01-01"),
+    ...overrides,
+  };
+}
+
+const query = (text: string, extra = {}) => ({ text, ...extra });
+
+describe("searchKnowledge", () => {
+  it("considera apenas artigos publicados", () => {
+    const articles = [
+      article({ id: "publicado", status: "published" }),
+      article({ id: "rascunho", status: "draft" }),
+      article({ id: "revisao", status: "review" }),
+      article({ id: "arquivado", status: "archived" }),
+    ];
+
+    const results = searchKnowledge(articles, query("autenticar"));
+
+    expect(results.map((result) => result.article.id)).toEqual(["publicado"]);
+  });
+
+  it("restringe ao projeto quando a consulta define um", () => {
+    const articles = [
+      article({ id: "mesmo", projectId: "p1" }),
+      article({ id: "outro", projectId: "p2" }),
+    ];
+
+    const results = searchKnowledge(articles, query("autenticar", { projectId: "p1" }));
+
+    expect(results.map((result) => result.article.id)).toEqual(["mesmo"]);
+  });
+
+  it("ignora palavras vazias do português", () => {
+    const articles = [article({ title: "Guia", summary: "", content: "", keywords: [], tags: [] })];
+
+    expect(searchKnowledge(articles, query("para com que uma"))).toHaveLength(0);
+  });
+
+  it("descarta termos de até duas letras e mantém os de três", () => {
+    const articles = [article({ title: "ab abc", summary: "", content: "", keywords: [], tags: [] })];
+
+    expect(searchKnowledge(articles, query("ab"))).toHaveLength(0);
+    expect(searchKnowledge(articles, query("abc"))).toHaveLength(1);
+  });
+
+  it("pontua título acima de conteúdo", () => {
+    const noTitulo = article({
+      id: "titulo",
+      title: "sincronizacao",
+      summary: "",
+      content: "",
+      keywords: [],
+      tags: [],
+    });
+    const noConteudo = article({
+      id: "conteudo",
+      title: "Outro",
+      summary: "",
+      content: "sincronizacao",
+      keywords: [],
+      tags: [],
+    });
+
+    const results = searchKnowledge([noConteudo, noTitulo], query("sincronizacao"));
+
+    expect(results[0].article.id).toBe("titulo");
+    expect(results[0].score).toBeGreaterThan(results[1].score);
+  });
+
+  it("devolve os termos que casaram", () => {
+    const results = searchKnowledge([article()], query("autenticar login inexistente"));
+
+    expect(results[0].matchedTerms).toContain("autenticar");
+    expect(results[0].matchedTerms).toContain("login");
+    expect(results[0].matchedTerms).not.toContain("inexistente");
+  });
+
+  it("respeita o limite e ordena por relevância", () => {
+    const articles = [
+      article({ id: "fraco", title: "Outro", content: "autenticar", summary: "", keywords: [], tags: [] }),
+      article({ id: "forte", title: "autenticar", summary: "autenticar", keywords: ["autenticar"], tags: [] }),
+      article({ id: "medio", title: "Outro", summary: "autenticar", content: "", keywords: [], tags: [] }),
+    ];
+
+    const results = searchKnowledge(articles, query("autenticar", { limit: 2 }));
+
+    expect(results).toHaveLength(2);
+    expect(results[0].article.id).toBe("forte");
+  });
+
+  it("não devolve nada quando a consulta não tem termo útil", () => {
+    expect(searchKnowledge([article()], query("   "))).toHaveLength(0);
+  });
+
+  it("expõe apenas a identificação do artigo, não o conteúdo inteiro", () => {
+    const [result] = searchKnowledge([article()], query("autenticar"));
+
+    expect(Object.keys(result.article).sort()).toEqual(["id", "summary", "title"]);
+  });
+});

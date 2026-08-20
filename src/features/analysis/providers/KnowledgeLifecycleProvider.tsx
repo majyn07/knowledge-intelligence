@@ -9,6 +9,7 @@ import {
 } from "react";
 
 import { usePersistedState } from "@/hooks/usePersistedState";
+import { useActivity } from "@/features/activities/providers/ActivityProvider";
 import type { AnalysisMessage } from "@/models/AnalysisMessage";
 import type { KnowledgeOpportunity } from "@/features/analysis/types/KnowledgeOpportunity";
 import type {
@@ -51,6 +52,7 @@ function parseAnalyses(raw: string): AnalysisRecord[] {
 }
 
 export function KnowledgeLifecycleProvider({ children }: { children: ReactNode }) {
+  const { record } = useActivity();
   const [analyses, setAnalyses] = usePersistedState<AnalysisRecord[]>({
     key: STORAGE_KEY,
     fallback: [],
@@ -58,15 +60,22 @@ export function KnowledgeLifecycleProvider({ children }: { children: ReactNode }
   });
 
   const saveAnalysis = useCallback((input: Omit<AnalysisRecord, "id" | "startedAt" | "status">) => {
-    const record: AnalysisRecord = {
+    const analysis: AnalysisRecord = {
       ...input,
       id: crypto.randomUUID(),
       startedAt: new Date().toISOString(),
       status: "in_review",
     };
-    setAnalyses((current) => [record, ...current.filter((item) => !(item.projectId === record.projectId && item.ticketId === record.ticketId && item.status !== "completed"))]);
-    return record;
-  }, [setAnalyses]);
+    setAnalyses((current) => [analysis, ...current.filter((item) => !(item.projectId === analysis.projectId && item.ticketId === analysis.ticketId && item.status !== "completed"))]);
+    record({
+      type: "analysis_started",
+      projectId: analysis.projectId,
+      actor: "",
+      subject: { kind: "analysis", id: analysis.id, label: analysis.result.identification.title },
+      detail: `Atendimento #${analysis.ticketId} analisado, com ${analysis.result.opportunities.length} oportunidade(s) proposta(s).`,
+    });
+    return analysis;
+  }, [record, setAnalyses]);
 
   const updateMessages = useCallback((analysisId: string, messages: AnalysisMessage[]) => {
     setAnalyses((current) => current.map((item) => item.id === analysisId ? { ...item, messages } : item));
@@ -80,7 +89,27 @@ export function KnowledgeLifecycleProvider({ children }: { children: ReactNode }
         opportunities: item.result.opportunities.map((opportunity) => opportunity.id !== opportunityId ? opportunity : { ...opportunity, status }),
       },
     }));
-  }, [setAnalyses]);
+
+    const decisionType = {
+      approved: "opportunity_approved",
+      discarded: "opportunity_discarded",
+      deferred: "opportunity_deferred",
+    }[status as string];
+
+    if (!decisionType) return;
+
+    const analysis = analyses.find((item) => item.id === analysisId);
+    const opportunity = analysis?.result.opportunities.find((item) => item.id === opportunityId);
+    if (!analysis || !opportunity) return;
+
+    record({
+      type: decisionType as "opportunity_approved" | "opportunity_discarded" | "opportunity_deferred",
+      projectId: analysis.projectId,
+      actor: "",
+      subject: { kind: "opportunity", id: opportunity.id, label: opportunity.title },
+      detail: `Decisão humana registrada na análise do atendimento #${analysis.ticketId}.`,
+    });
+  }, [analyses, record, setAnalyses]);
 
   const updateOpportunity = useCallback((analysisId: string, opportunityId: string, changes: Pick<KnowledgeOpportunity, "title" | "description" | "justification">) => {
     setAnalyses((current) => current.map((item) => item.id !== analysisId ? item : {
@@ -108,7 +137,21 @@ export function KnowledgeLifecycleProvider({ children }: { children: ReactNode }
       status,
       completedAt: status === "completed" ? new Date().toISOString() : undefined,
     }));
-  }, [setAnalyses]);
+
+    if (status !== "completed") return;
+
+    const analysis = analyses.find((item) => item.id === analysisId);
+    if (!analysis) return;
+
+    const approved = analysis.result.opportunities.filter((item) => item.status === "approved").length;
+    record({
+      type: "analysis_completed",
+      projectId: analysis.projectId,
+      actor: "",
+      subject: { kind: "analysis", id: analysis.id, label: analysis.result.identification.title },
+      detail: `Revisão finalizada com ${approved} oportunidade(s) aprovada(s).`,
+    });
+  }, [analyses, record, setAnalyses]);
 
   const value = useMemo(() => ({
     analyses,
