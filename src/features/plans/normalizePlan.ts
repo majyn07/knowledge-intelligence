@@ -24,6 +24,7 @@ export function normalizePlan(raw: unknown): PlanWorkspaceItem {
     status: oneOf(value.status, STATUSES, "analysis"),
     priority: oneOf(value.priority, PRIORITIES, "normal"),
     owner: text(value.owner),
+    ...(text(value.dueDate) ? { dueDate: text(value.dueDate) } : {}),
     createdAt: text(value.createdAt),
     updatedAt: text(value.updatedAt),
     source: {
@@ -54,6 +55,7 @@ export function normalizePlan(raw: unknown): PlanWorkspaceItem {
         label: text(task.label),
         completed: flag(task.completed),
         owner: text(task.owner),
+        ...(text(task.dueDate) ? { dueDate: text(task.dueDate) } : {}),
       };
     }),
     comments: items(value.comments).map((entry) => {

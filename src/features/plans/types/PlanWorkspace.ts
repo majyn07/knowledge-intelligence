@@ -6,6 +6,8 @@ export interface PlanTask {
   label: string;
   completed: boolean;
   owner: string;
+  /** Prazo em ISO. Ausente é ausente — a tarefa simplesmente não tem data. */
+  dueDate?: string;
 }
 
 export interface PlanComment {
@@ -47,6 +49,24 @@ export interface PlanWorkspaceItem {
   status: PlanStatus;
   priority: PlanPriority;
   owner: string;
+
+  /**
+   * Prazo do plano, em ISO.
+   *
+   * Separado do prazo das tarefas de propósito: o plano vence quando o
+   * trabalho precisa estar entregue, e as tarefas dentro dele têm o próprio
+   * ritmo. Amarrar um ao outro obrigaria a inventar datas para as tarefas.
+   */
+  dueDate?: string;
+
+  /**
+   * Criado e atualizado, em ISO.
+   *
+   * Eram texto de exibição — "15 jul. 2026", "Ontem, 16:20" — o que impedia
+   * ordenar, comparar e calcular atraso. Registros anteriores continuam com o
+   * texto original: a tela mostra o que tem, e o cálculo simplesmente não
+   * acontece para eles, porque converter exigiria inventar o instante.
+   */
   createdAt: string;
   updatedAt: string;
   source: PlanSource;

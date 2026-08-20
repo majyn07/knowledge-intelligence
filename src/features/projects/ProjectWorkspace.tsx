@@ -18,6 +18,7 @@ import { usePlans } from "@/features/plans/providers/PlansProvider";
 import { useProject } from "@/providers/ProjectProvider";
 
 import { ProjectAttention } from "./components/ProjectAttention";
+import { AttentionQueue } from "@/features/plans/components/AttentionQueue";
 import { ProjectDialog } from "./components/ProjectDialog";
 import { ProjectForm } from "./components/ProjectForm";
 import { ProjectIdentity } from "./components/ProjectIdentity";
@@ -116,6 +117,12 @@ export function ProjectWorkspace({ projectId }: ProjectWorkspaceProps) {
       <ProjectOperationalSummary metrics={metrics} />
 
       <ProjectAttention metrics={metrics} onNavigate={activateProject} />
+
+      {/*
+        O contador acima diz que existe trabalho; a fila abaixo diz por onde
+        começar. São perguntas diferentes e por isso convivem.
+      */}
+      <AttentionQueue projectId={project.id} />
 
       <ProjectModuleLinks metrics={metrics} onNavigate={activateProject} />
 

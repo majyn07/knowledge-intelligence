@@ -7,6 +7,8 @@ import { BookOpen, CalendarDays, Link2, MessageSquareText, Send } from "lucide-r
 import { ActivityTimeline } from "@/features/activities/components/ActivityTimeline";
 import { useActivity } from "@/features/activities/providers/ActivityProvider";
 import { PersonSelect } from "@/features/people/components/PersonSelect";
+import { Input } from "@/components/ui/input";
+import { deadlineLabel } from "../deadlines";
 import { PublishConfirmDialog } from "@/components/common/PublishConfirmDialog";
 import { useLibrary } from "@/features/library/providers/LibraryProvider";
 import { StatusBadge } from "@/components/common/status/StatusBadge";
@@ -46,7 +48,7 @@ const statusVariant: Record<PlanWorkspaceItem["status"], "info" | "warning" | "s
 };
 
 export function PlanContextPanel({ plan }: PlanContextPanelProps) {
-  const { changeStatus, assignPlan, setPriority, addComment } = usePlans();
+  const { changeStatus, assignPlan, setPriority, setDueDate, addComment } = usePlans();
   const { eventsFor } = useActivity();
   const { items: articles } = useLibrary();
   const [isPublishing, setIsPublishing] = useState(false);
@@ -106,6 +108,28 @@ export function PlanContextPanel({ plan }: PlanContextPanelProps) {
               onChange={(name) => assignPlan(plan.id, name)}
               placeholder="Sem responsável"
             />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="plan-due">Prazo</Label>
+
+            <Input
+              id="plan-due"
+              type="date"
+              /*
+                O campo de data devolve "YYYY-MM-DD", que é exatamente a forma
+                que a leitura aceita. Nada de conversão no meio: é onde datas
+                costumam se perder.
+              */
+              value={(plan.dueDate ?? "").slice(0, 10)}
+              onChange={(event) => setDueDate(plan.id, event.target.value)}
+            />
+
+            {plan.dueDate && (
+              <p className="text-xs text-muted-foreground">
+                {deadlineLabel(plan.dueDate, new Date()) || "Data não interpretável"}
+              </p>
+            )}
           </div>
 
           <div className="space-y-2">
