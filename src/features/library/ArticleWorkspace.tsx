@@ -21,6 +21,7 @@ import {
 import { findCategory, findSection } from "@/models/Taxonomy";
 import { useTaxonomy } from "@/features/taxonomy/providers/TaxonomyProvider";
 import { useProject } from "@/providers/ProjectProvider";
+import { useStaleRecordWarning } from "@/hooks/useStaleRecordWarning";
 
 import { PublishConfirmDialog } from "@/components/common/PublishConfirmDialog";
 
@@ -54,6 +55,12 @@ export function ArticleWorkspace({ articleId }: ArticleWorkspaceProps) {
   const [isPublishing, setIsPublishing] = useState(false);
 
   const article = items.find((item) => item.id === articleId);
+
+  /*
+    Com o trabalho compartilhado, duas pessoas podem abrir o mesmo artigo. A
+    decisão foi avisar e deixar decidir, em vez de sobrescrever em silêncio.
+  */
+  const { isStale, acceptRemote } = useStaleRecordWarning(article, isEditing);
 
   const related = useMemo(
     () =>
@@ -276,6 +283,30 @@ export function ArticleWorkspace({ articleId }: ArticleWorkspaceProps) {
         title="Editar artigo"
         description="Atualize o conteúdo, a classificação e o estágio editorial."
       >
+        {isStale && (
+          <div
+            role="alert"
+            className="mb-4 rounded-lg border border-[var(--ring)] bg-accent p-4 text-sm"
+          >
+            <p className="font-semibold">Este artigo mudou no servidor.</p>
+
+            <p className="mt-1 text-muted-foreground">
+              Alguém salvou uma versão enquanto você edita. Se continuar e
+              salvar, o trabalho dessa pessoa será substituído pelo seu.
+            </p>
+
+            <div className="mt-3 flex flex-wrap gap-2">
+              <Button size="sm" variant="outline" onClick={() => window.location.reload()}>
+                Recarregar e perder o que digitei
+              </Button>
+
+              <Button size="sm" variant="ghost" onClick={acceptRemote}>
+                Continuar assim mesmo
+              </Button>
+            </div>
+          </div>
+        )}
+
         <LibraryForm
           key={article.id}
           projects={projects.map((project) => ({ id: project.id, name: project.name }))}
