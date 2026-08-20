@@ -7,6 +7,8 @@ import { BookOpen, CalendarDays, Link2, MessageSquareText, Send } from "lucide-r
 import { ActivityTimeline } from "@/features/activities/components/ActivityTimeline";
 import { useActivity } from "@/features/activities/providers/ActivityProvider";
 import { PersonSelect } from "@/features/people/components/PersonSelect";
+import { PublishConfirmDialog } from "@/components/common/PublishConfirmDialog";
+import { useLibrary } from "@/features/library/providers/LibraryProvider";
 import { StatusBadge } from "@/components/common/status/StatusBadge";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -20,6 +22,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 
 import { usePlans } from "../providers/PlansProvider";
+import { planPublishChecks } from "../publishChecks";
 import {
   allowedPlanTransitions,
   planPriorityLabel,
@@ -45,6 +48,8 @@ const statusVariant: Record<PlanWorkspaceItem["status"], "info" | "warning" | "s
 export function PlanContextPanel({ plan }: PlanContextPanelProps) {
   const { changeStatus, assignPlan, setPriority, addComment } = usePlans();
   const { eventsFor } = useActivity();
+  const { items: articles } = useLibrary();
+  const [isPublishing, setIsPublishing] = useState(false);
   const [message, setMessage] = useState("");
   const [author, setAuthor] = useState(plan.owner);
 
@@ -73,11 +78,17 @@ export function PlanContextPanel({ plan }: PlanContextPanelProps) {
         </div>
 
         <div className="mt-4 flex flex-wrap gap-2">
-          {transitions.map((next) => (
-            <Button key={next} size="sm" variant="outline" onClick={() => changeStatus(plan.id, next)}>
-              Mover para {planStatusLabel[next].toLowerCase()}
-            </Button>
-          ))}
+          {transitions.map((next) =>
+            next === "published" ? (
+              <Button key={next} size="sm" onClick={() => setIsPublishing(true)}>
+                Publicar plano
+              </Button>
+            ) : (
+              <Button key={next} size="sm" variant="outline" onClick={() => changeStatus(plan.id, next)}>
+                Mover para {planStatusLabel[next].toLowerCase()}
+              </Button>
+            )
+          )}
         </div>
 
         {plan.status === "approved" && !plan.source.articleId && (
@@ -230,6 +241,19 @@ export function PlanContextPanel({ plan }: PlanContextPanelProps) {
           )}
         </div>
       </section>
+      <PublishConfirmDialog
+        open={isPublishing}
+        title="Publicar plano de melhoria"
+        subject={plan.title}
+        consequence="Publicar encerra a execução: o plano sai da fila de trabalho e o ciclo se fecha no conteúdo que ele gerou."
+        checks={planPublishChecks(plan, articles.find((item) => item.id === plan.source.articleId))}
+        confirmLabel="Publicar plano"
+        onCancel={() => setIsPublishing(false)}
+        onConfirm={() => {
+          changeStatus(plan.id, "published");
+          setIsPublishing(false);
+        }}
+      />
     </aside>
   );
 }

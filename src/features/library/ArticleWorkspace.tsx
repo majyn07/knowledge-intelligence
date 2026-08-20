@@ -21,11 +21,14 @@ import {
 } from "@/models/KnowledgeArticle";
 import { useProject } from "@/providers/ProjectProvider";
 
+import { PublishConfirmDialog } from "@/components/common/PublishConfirmDialog";
+
 import { ArticleTableOfContents } from "./components/ArticleTableOfContents";
 import { LibraryDialog } from "./components/LibraryDialog";
 import { LibraryForm } from "./components/LibraryForm";
 import { RelatedArticles } from "./components/RelatedArticles";
 import { findSimilarArticles } from "./search/findSimilarArticles";
+import { articlePublishChecks } from "./publishChecks";
 import { useLibrary } from "./providers/LibraryProvider";
 import { articleService } from "./services/articleService";
 import type { LibraryFormData } from "./types/LibraryFormData";
@@ -46,6 +49,7 @@ export function ArticleWorkspace({ articleId }: ArticleWorkspaceProps) {
   const { eventsFor } = useActivity();
   const { projects } = useProject();
   const [isEditing, setIsEditing] = useState(false);
+  const [isPublishing, setIsPublishing] = useState(false);
 
   const article = items.find((item) => item.id === articleId);
 
@@ -101,15 +105,21 @@ export function ArticleWorkspace({ articleId }: ArticleWorkspaceProps) {
         description={article.summary || "Sem resumo registrado."}
         actions={
           <div className="flex flex-wrap gap-2">
-            {transitions.map((status) => (
-              <Button
-                key={status}
-                variant="outline"
-                onClick={() => changeStatus(article.id, status)}
-              >
-                Mover para {articleStatusLabel[status].toLowerCase()}
-              </Button>
-            ))}
+            {transitions.map((status) =>
+              status === "published" ? (
+                <Button key={status} onClick={() => setIsPublishing(true)}>
+                  Publicar artigo
+                </Button>
+              ) : (
+                <Button
+                  key={status}
+                  variant="outline"
+                  onClick={() => changeStatus(article.id, status)}
+                >
+                  Mover para {articleStatusLabel[status].toLowerCase()}
+                </Button>
+              )
+            )}
 
             <Button onClick={() => setIsEditing(true)}>Editar artigo</Button>
           </div>
@@ -234,6 +244,20 @@ export function ArticleWorkspace({ articleId }: ArticleWorkspaceProps) {
           </div>
         </PageSection>
       )}
+
+      <PublishConfirmDialog
+        open={isPublishing}
+        title="Publicar na Base de Conhecimento"
+        subject={article.title}
+        consequence="A partir daí o artigo passa a contar como cobertura documental: a análise vai considerá-lo ao avaliar se um atendimento já está documentado."
+        checks={articlePublishChecks(article)}
+        confirmLabel="Publicar artigo"
+        onCancel={() => setIsPublishing(false)}
+        onConfirm={() => {
+          changeStatus(article.id, "published");
+          setIsPublishing(false);
+        }}
+      />
 
       <LibraryDialog
         open={isEditing}

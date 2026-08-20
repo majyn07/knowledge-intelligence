@@ -43,6 +43,8 @@ interface LibraryFormProps {
   submitLabel?: string;
   onSubmit: (data: LibraryFormData) => void;
   onCancel?: () => void;
+  /** Avisa o diálogo de que há alteração pendente. */
+  onDirty?: () => void;
 }
 
 const emptyForm: LibraryFormData = {
@@ -90,6 +92,7 @@ export function LibraryForm({
   submitLabel = "Salvar",
   onSubmit,
   onCancel,
+  onDirty,
 }: LibraryFormProps) {
   // O estado nasce do prop e não é sincronizado depois: quem troca o registro
   // em edição remonta o formulário por chave.
@@ -126,6 +129,7 @@ export function LibraryForm({
   }
 
   function change<K extends keyof LibraryFormData>(field: K, value: LibraryFormData[K]) {
+    onDirty?.();
     setFormData((previous) => ({ ...previous, [field]: value }));
   }
 
@@ -308,7 +312,7 @@ export function LibraryForm({
               id="tags"
               placeholder="autenticação, acesso"
               value={tags}
-              onChange={(event) => setTags(event.target.value)}
+              onChange={(event) => { onDirty?.(); setTags(event.target.value); }}
             />
           </div>
 
@@ -329,7 +333,7 @@ export function LibraryForm({
             id="keywords"
             placeholder="login, token, sessão"
             value={keywords}
-            onChange={(event) => setKeywords(event.target.value)}
+            onChange={(event) => { onDirty?.(); setKeywords(event.target.value); }}
           />
           <p className="text-xs text-muted-foreground">
             Termos que os clientes usam ao descrever o problema. Têm peso alto na busca da análise.

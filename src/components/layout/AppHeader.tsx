@@ -4,6 +4,7 @@ import { ReactNode } from "react";
 
 import { BrandThemeSwitcher } from "@/components/common/BrandThemeSwitcher";
 import { GlobalSearchTrigger } from "@/features/search/components/GlobalSearchTrigger";
+import { ActingAsSelect } from "@/features/people/components/ActingAsSelect";
 
 import { SidebarTrigger } from "@/components/ui/sidebar";
 
@@ -38,6 +39,7 @@ export function AppHeader({
         </div>
 
         <div className="flex items-center gap-2">
+          <div className="hidden lg:block"><ActingAsSelect /></div>
           <GlobalSearchTrigger />
           {actions}
           <div className="hidden md:block"><BrandThemeSwitcher compact /></div>

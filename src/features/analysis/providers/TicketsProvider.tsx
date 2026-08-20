@@ -12,6 +12,7 @@ import { toast } from "sonner";
 
 import { usePersistedState } from "@/hooks/usePersistedState";
 import { useActivity } from "@/features/activities/providers/ActivityProvider";
+import { usePeople } from "@/features/people/providers/PeopleProvider";
 import type { SupportConversation } from "@/models/SupportConversation";
 import type { Ticket } from "@/models/Ticket";
 
@@ -36,6 +37,7 @@ const TicketsContext = createContext<TicketsContextValue | null>(null);
 
 export function TicketsProvider({ children }: { children: ReactNode }) {
   const { record } = useActivity();
+  const { currentPerson } = usePeople();
 
   const [tickets, setTickets] = usePersistedState<Ticket[]>({
     key: TICKETS_KEY,
@@ -68,7 +70,7 @@ export function TicketsProvider({ children }: { children: ReactNode }) {
       record({
         type: "ticket_created",
         projectId: ticket.projectId,
-        actor: "",
+        actor: currentPerson,
         subject: { kind: "ticket", id: ticket.id, label: ticket.title },
         detail: `Atendimento registrado com ${conversation.messages.length} mensagem(ns) de evidência.`,
       });
@@ -76,7 +78,7 @@ export function TicketsProvider({ children }: { children: ReactNode }) {
       toast.success(`Atendimento #${ticket.id} criado.`);
       return ticket;
     },
-    [record, setConversations, setTickets, tickets]
+    [currentPerson, record, setConversations, setTickets, tickets]
   );
 
   const updateTicket = useCallback(
@@ -97,14 +99,14 @@ export function TicketsProvider({ children }: { children: ReactNode }) {
       record({
         type: "ticket_updated",
         projectId: ticket.projectId,
-        actor: "",
+        actor: currentPerson,
         subject: { kind: "ticket", id: ticket.id, label: ticket.title },
         detail: "Dados do atendimento ou o registro da conversa foram alterados.",
       });
 
       toast.success("Atendimento atualizado.");
     },
-    [conversationOf, record, setConversations, setTickets, tickets]
+    [conversationOf, currentPerson, record, setConversations, setTickets, tickets]
   );
 
   const deleteTicket = useCallback(
@@ -119,14 +121,14 @@ export function TicketsProvider({ children }: { children: ReactNode }) {
       record({
         type: "ticket_deleted",
         projectId: ticket.projectId,
-        actor: "",
+        actor: currentPerson,
         subject: { kind: "ticket", id: ticket.id, label: ticket.title },
         detail: `Atendimento #${ticket.id} e seu registro de conversa foram excluídos.`,
       });
 
       toast.success("Atendimento excluído.");
     },
-    [record, setConversations, setTickets, tickets]
+    [currentPerson, record, setConversations, setTickets, tickets]
   );
 
   const value = useMemo(

@@ -6,6 +6,7 @@ import { toast } from "sonner";
 
 import { usePersistedState } from "@/hooks/usePersistedState";
 import { useActivity } from "@/features/activities/providers/ActivityProvider";
+import { usePeople } from "@/features/people/providers/PeopleProvider";
 
 import { planWorkspaceMock } from "../mock/planWorkspace";
 import { planService, type CreatePlanFromOpportunityInput } from "../services/planService";
@@ -48,6 +49,7 @@ const PlansContext = createContext<PlansContextValue | null>(null);
 
 export function PlansProvider({ children }: { children: ReactNode }) {
   const { record } = useActivity();
+  const { currentPerson } = usePeople();
   const [plans, setPlans] = usePersistedState<PlanWorkspaceItem[]>({
     key: STORAGE_KEY,
     fallback: planWorkspaceMock,
@@ -79,12 +81,12 @@ export function PlansProvider({ children }: { children: ReactNode }) {
     record({
       type: "plan_created",
       projectId: plan.projectId,
-      actor: plan.owner,
+      actor: currentPerson || plan.owner,
       subject: { kind: "plan", id: plan.id, label: plan.title },
       detail: "Plano criado a partir de oportunidade aprovada na revisão humana.",
     });
     return { plan, created: true };
-  }, [plans, record, setPlans]);
+  }, [currentPerson, plans, record, setPlans]);
 
   const changeStatus = useCallback((planId: string, next: PlanStatus) => {
     const plan = plans.find((item) => item.id === planId);
@@ -107,12 +109,12 @@ export function PlansProvider({ children }: { children: ReactNode }) {
     record({
       type: "plan_status_changed",
       projectId: plan.projectId,
-      actor: plan.owner,
+      actor: currentPerson || plan.owner,
       subject: { kind: "plan", id: plan.id, label: plan.title },
       detail: `${planStatusLabel[plan.status]} → ${planStatusLabel[next]}`,
     });
     toast.success(`Plano movido para "${planStatusLabel[next]}".`);
-  }, [patchPlan, plans, record]);
+  }, [currentPerson, patchPlan, plans, record]);
 
   const assignPlan = useCallback((planId: string, owner: string) => {
     const plan = plans.find((item) => item.id === planId);
@@ -122,11 +124,11 @@ export function PlansProvider({ children }: { children: ReactNode }) {
     record({
       type: "plan_updated",
       projectId: plan.projectId,
-      actor: owner,
+      actor: currentPerson || owner,
       subject: { kind: "plan", id: plan.id, label: plan.title },
       detail: owner ? `Responsável definido: ${owner}.` : "Responsável removido.",
     });
-  }, [patchPlan, plans, record]);
+  }, [currentPerson, patchPlan, plans, record]);
 
   const setPriority = useCallback((planId: string, priority: PlanPriority) => {
     patchPlan(planId, (current) => ({ ...current, priority }));

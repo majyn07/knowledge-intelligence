@@ -16,9 +16,14 @@ import type { Person } from "@/models/Person";
 import { people as seedPeople } from "../mock/people";
 
 const STORAGE_KEY = "visus-people";
+const CURRENT_KEY = "visus-current-person";
 
 interface PeopleContextValue {
   people: Person[];
+  /** Quem está operando agora. Não é sessão autenticada: serve para o
+   *  histórico registrar autoria em vez de gravar um autor vazio. */
+  currentPerson: string;
+  setCurrentPerson: (name: string) => void;
   addPerson: (name: string, role: string) => Person | undefined;
   removePerson: (id: string) => void;
   renamePerson: (id: string, name: string, role: string) => void;
@@ -30,6 +35,11 @@ export function PeopleProvider({ children }: { children: ReactNode }) {
   const [people, setPeople] = usePersistedState<Person[]>({
     key: STORAGE_KEY,
     fallback: seedPeople,
+  });
+
+  const [currentPerson, setCurrentPerson] = usePersistedState<string>({
+    key: CURRENT_KEY,
+    fallback: "",
   });
 
   const addPerson = useCallback(
@@ -84,8 +94,8 @@ export function PeopleProvider({ children }: { children: ReactNode }) {
   );
 
   const value = useMemo(
-    () => ({ people, addPerson, removePerson, renamePerson }),
-    [addPerson, people, removePerson, renamePerson]
+    () => ({ people, currentPerson, setCurrentPerson, addPerson, removePerson, renamePerson }),
+    [addPerson, currentPerson, people, removePerson, renamePerson, setCurrentPerson]
   );
 
   return <PeopleContext.Provider value={value}>{children}</PeopleContext.Provider>;

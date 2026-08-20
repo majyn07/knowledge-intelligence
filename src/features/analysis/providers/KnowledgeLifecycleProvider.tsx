@@ -10,6 +10,7 @@ import {
 
 import { usePersistedState } from "@/hooks/usePersistedState";
 import { useActivity } from "@/features/activities/providers/ActivityProvider";
+import { usePeople } from "@/features/people/providers/PeopleProvider";
 import type { AnalysisMessage } from "@/models/AnalysisMessage";
 import type { KnowledgeOpportunity } from "@/features/analysis/types/KnowledgeOpportunity";
 import type {
@@ -53,6 +54,7 @@ function parseAnalyses(raw: string): AnalysisRecord[] {
 
 export function KnowledgeLifecycleProvider({ children }: { children: ReactNode }) {
   const { record } = useActivity();
+  const { currentPerson } = usePeople();
   const [analyses, setAnalyses] = usePersistedState<AnalysisRecord[]>({
     key: STORAGE_KEY,
     fallback: [],
@@ -70,12 +72,12 @@ export function KnowledgeLifecycleProvider({ children }: { children: ReactNode }
     record({
       type: "analysis_started",
       projectId: analysis.projectId,
-      actor: "",
+      actor: currentPerson,
       subject: { kind: "analysis", id: analysis.id, label: analysis.result.identification.title },
       detail: `Atendimento #${analysis.ticketId} analisado, com ${analysis.result.opportunities.length} oportunidade(s) proposta(s).`,
     });
     return analysis;
-  }, [record, setAnalyses]);
+  }, [currentPerson, record, setAnalyses]);
 
   const updateMessages = useCallback((analysisId: string, messages: AnalysisMessage[]) => {
     setAnalyses((current) => current.map((item) => item.id === analysisId ? { ...item, messages } : item));
@@ -105,11 +107,11 @@ export function KnowledgeLifecycleProvider({ children }: { children: ReactNode }
     record({
       type: decisionType as "opportunity_approved" | "opportunity_discarded" | "opportunity_deferred",
       projectId: analysis.projectId,
-      actor: "",
+      actor: currentPerson,
       subject: { kind: "opportunity", id: opportunity.id, label: opportunity.title },
       detail: `Decisão humana registrada na análise do atendimento #${analysis.ticketId}.`,
     });
-  }, [analyses, record, setAnalyses]);
+  }, [analyses, currentPerson, record, setAnalyses]);
 
   const updateOpportunity = useCallback((analysisId: string, opportunityId: string, changes: Pick<KnowledgeOpportunity, "title" | "description" | "justification">) => {
     setAnalyses((current) => current.map((item) => item.id !== analysisId ? item : {
@@ -147,11 +149,11 @@ export function KnowledgeLifecycleProvider({ children }: { children: ReactNode }
     record({
       type: "analysis_completed",
       projectId: analysis.projectId,
-      actor: "",
+      actor: currentPerson,
       subject: { kind: "analysis", id: analysis.id, label: analysis.result.identification.title },
       detail: `Revisão finalizada com ${approved} oportunidade(s) aprovada(s).`,
     });
-  }, [analyses, record, setAnalyses]);
+  }, [analyses, currentPerson, record, setAnalyses]);
 
   const value = useMemo(() => ({
     analyses,

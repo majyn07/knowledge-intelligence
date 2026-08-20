@@ -6,7 +6,9 @@ import { toast } from "sonner";
 
 import { PageHeader } from "@/components/common/page/PageHeader";
 import { Button } from "@/components/ui/button";
+import { DiscardChangesDialog } from "@/components/common/DiscardChangesDialog";
 import { usePersistedState } from "@/hooks/usePersistedState";
+import { useUnsavedGuard } from "@/hooks/useUnsavedGuard";
 import { useQueryParam } from "@/hooks/useQueryParam";
 import { useProject } from "@/providers/ProjectProvider";
 
@@ -52,6 +54,9 @@ export function AnalysisWorkspace() {
     key: SIDEBAR_STORAGE_KEY,
     fallback: false,
   });
+
+  const createGuard = useUnsavedGuard(() => setIsCreating(false));
+  const editGuard = useUnsavedGuard(() => setEditingTicketId(null));
 
   const projectTickets = ticketsOf(activeProjectId);
 
@@ -147,7 +152,7 @@ export function AnalysisWorkspace() {
     <>
       <TicketDialog
         open={isCreating}
-        onOpenChange={setIsCreating}
+        onOpenChange={(open) => { if (!open) createGuard.requestClose(); }}
         title="Novo atendimento"
         description="Registre o caso e a conversa que o sustenta. É essa troca que a análise vai ler."
       >
@@ -167,14 +172,15 @@ export function AnalysisWorkspace() {
               : undefined
           }
           submitLabel="Criar atendimento"
-          onSubmit={handleCreate}
-          onCancel={() => setIsCreating(false)}
+          onSubmit={(data) => { createGuard.reset(); handleCreate(data); }}
+          onCancel={createGuard.requestClose}
+          onDirty={createGuard.markDirty}
         />
       </TicketDialog>
 
       <TicketDialog
         open={Boolean(editingTicket)}
-        onOpenChange={(open) => { if (!open) setEditingTicketId(null); }}
+        onOpenChange={(open) => { if (!open) editGuard.requestClose(); }}
         title="Editar atendimento"
         description="Atualize os dados do caso ou o registro da conversa."
       >
@@ -184,11 +190,18 @@ export function AnalysisWorkspace() {
             projects={projectOptions}
             initialData={ticketService.toFormData(editingTicket, conversationOf(editingTicket.id))}
             submitLabel="Atualizar"
-            onSubmit={handleUpdate}
-            onCancel={() => setEditingTicketId(null)}
+            onSubmit={(data) => { editGuard.reset(); handleUpdate(data); }}
+            onCancel={editGuard.requestClose}
+            onDirty={editGuard.markDirty}
           />
         )}
       </TicketDialog>
+
+      <DiscardChangesDialog
+        open={createGuard.isConfirming || editGuard.isConfirming}
+        onKeepEditing={createGuard.isConfirming ? createGuard.keepEditing : editGuard.keepEditing}
+        onDiscard={createGuard.isConfirming ? createGuard.confirmDiscard : editGuard.confirmDiscard}
+      />
 
       <TicketDeleteDialog
         open={Boolean(deletingTicket)}

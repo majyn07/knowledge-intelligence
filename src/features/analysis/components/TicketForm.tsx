@@ -23,6 +23,8 @@ interface TicketFormProps {
   submitLabel?: string;
   onSubmit: (data: TicketFormData) => void;
   onCancel?: () => void;
+  /** Avisa o diálogo de que há alteração pendente. */
+  onDirty?: () => void;
 }
 
 function emptyForm(projectId: string): TicketFormData {
@@ -55,6 +57,7 @@ export function TicketForm({
   submitLabel = "Salvar",
   onSubmit,
   onCancel,
+  onDirty,
 }: TicketFormProps) {
   // O estado nasce do prop e não é sincronizado depois: quem troca o registro
   // em edição remonta o formulário por chave, evitando que um novo objeto de
@@ -64,10 +67,12 @@ export function TicketForm({
   );
 
   function change<K extends keyof TicketFormData>(field: K, value: TicketFormData[K]) {
+    onDirty?.();
     setFormData((previous) => ({ ...previous, [field]: value }));
   }
 
   function changeMessage(id: string, patch: Partial<TicketMessageFormData>) {
+    onDirty?.();
     setFormData((previous) => ({
       ...previous,
       messages: previous.messages.map((message) =>
@@ -77,6 +82,7 @@ export function TicketForm({
   }
 
   function addMessage(author: string) {
+    onDirty?.();
     setFormData((previous) => ({
       ...previous,
       messages: [
@@ -95,6 +101,7 @@ export function TicketForm({
   }
 
   function removeMessage(id: string) {
+    onDirty?.();
     setFormData((previous) => ({
       ...previous,
       messages: previous.messages.filter((message) => message.id !== id),

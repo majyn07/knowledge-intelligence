@@ -5,6 +5,8 @@ import type { LibraryFormData } from "@/features/library/types/LibraryFormData";
 import { Button } from "@/components/ui/button";
 
 import { AppShell } from "@/components/layout/AppShell";
+import { DiscardChangesDialog } from "@/components/common/DiscardChangesDialog";
+import { useUnsavedGuard } from "@/hooks/useUnsavedGuard";
 import { PageHeader } from "@/components/common/page/PageHeader";
 
 import { LibraryDeleteDialog } from "@/features/library/components/LibraryDeleteDialog";
@@ -32,7 +34,6 @@ export default function LibraryPage() {
     dialogOpen,
     deleteDialogOpen,
     selectedItem,
-    setDialogOpen,
     openCreateDialog,
     openEditDialog,
     openDeleteDialog,
@@ -44,6 +45,8 @@ export default function LibraryPage() {
     id: project.id,
     name: project.name,
   }));
+
+  const guard = useUnsavedGuard(closeDialog);
 
   const publishedCount = filteredItems.filter((item) => item.status === "published").length;
 
@@ -97,7 +100,7 @@ export default function LibraryPage() {
 
         <LibraryDialog
           open={dialogOpen}
-          onOpenChange={setDialogOpen}
+          onOpenChange={(open) => { if (!open) guard.requestClose(); }}
           title={selectedItem ? "Editar artigo" : "Novo artigo"}
           description={
             selectedItem
@@ -111,11 +114,18 @@ export default function LibraryPage() {
             articles={items}
             editingId={selectedItem?.id}
             initialData={selectedItem ? articleService.toFormData(selectedItem) : undefined}
-            submitLabel={selectedItem ? "Atualizar" : "Salvar"}
-            onSubmit={handleSubmit}
-            onCancel={closeDialog}
+            submitLabel={selectedItem ? "Atualizar" : "Salvar como rascunho"}
+            onSubmit={(data) => { guard.reset(); handleSubmit(data); }}
+            onCancel={guard.requestClose}
+            onDirty={guard.markDirty}
           />
         </LibraryDialog>
+
+        <DiscardChangesDialog
+          open={guard.isConfirming}
+          onKeepEditing={guard.keepEditing}
+          onDiscard={guard.confirmDiscard}
+        />
 
         <LibraryDeleteDialog
           open={deleteDialogOpen}
