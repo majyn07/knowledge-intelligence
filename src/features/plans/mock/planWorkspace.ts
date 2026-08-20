@@ -1,5 +1,19 @@
 import type { PlanWorkspaceItem } from "../types/PlanWorkspace";
 
+/**
+ * Data relativa ao momento da leitura.
+ *
+ * A semente guardava "Hoje, 10:30" e "15 jul. 2026". O primeiro deixa de ser
+ * verdade amanhã; o segundo não é interpretável de forma confiável entre
+ * motores. Calcular na leitura mantém a demonstração coerente sem fingir
+ * precisão: são datas de exemplo, e se comportam como tal.
+ *
+ * Negativo é futuro, que é como um prazo a vencer se escreve.
+ */
+function diasAtras(dias: number): string {
+  return new Date(Date.now() - dias * 24 * 60 * 60 * 1000).toISOString();
+}
+
 export const planWorkspaceMock: PlanWorkspaceItem[] = [
   {
     id: "plan-001",
@@ -9,8 +23,9 @@ export const planWorkspaceMock: PlanWorkspaceItem[] = [
     status: "development",
     priority: "high",
     owner: "Raoni Milioli da Silva",
-    createdAt: "15 jul. 2026",
-    updatedAt: "Hoje, 10:30",
+    createdAt: diasAtras(36),
+    updatedAt: diasAtras(0),
+    dueDate: diasAtras(-2),
     source: { projectId: "project-001", ticketId: "45812", analysisId: "analysis-001", opportunityId: "opp-001", analysisLabel: "Análise de autenticação", opportunityTitle: "Atualizar artigo de autenticação" },
     document: {
       executiveSummary: "Atualizar a orientação de autenticação para refletir o fluxo após a atualização do sistema, reduzindo intervenções recorrentes do suporte.",
@@ -31,8 +46,8 @@ export const planWorkspaceMock: PlanWorkspaceItem[] = [
       { id: "task-4", label: "Publicar na Biblioteca", completed: false, owner: "Raoni Milioli da Silva" },
     ],
     comments: [
-      { id: "comment-1", author: "Raoni Milioli da Silva", message: "O novo fluxo precisa deixar explícita a validação após o login.", date: "Hoje, 09:40" },
-      { id: "comment-2", author: "Suporte", message: "Confirmamos que este é o principal ponto de dúvida dos últimos atendimentos.", date: "Hoje, 10:05" },
+      { id: "comment-1", author: "Raoni Milioli da Silva", message: "O novo fluxo precisa deixar explícita a validação após o login.", date: diasAtras(0) },
+      { id: "comment-2", author: "Suporte", message: "Confirmamos que este é o principal ponto de dúvida dos últimos atendimentos.", date: diasAtras(0) },
     ],
   },
   {
@@ -43,11 +58,12 @@ export const planWorkspaceMock: PlanWorkspaceItem[] = [
     status: "review",
     priority: "medium",
     owner: "Raoni Milioli da Silva",
-    createdAt: "14 jul. 2026",
-    updatedAt: "Ontem, 16:20",
+    createdAt: diasAtras(37),
+    updatedAt: diasAtras(9),
+    dueDate: diasAtras(3),
     source: { projectId: "project-001", ticketId: "45812", analysisId: "analysis-001", opportunityId: "opp-002", analysisLabel: "Análise de autenticação", opportunityTitle: "Revisar documentação de permissões" },
     document: { executiveSummary: "Consolidar a documentação dos novos perfis de acesso.", context: "A análise relacionou permissões ao fluxo de autenticação.", problem: "A documentação não diferencia os perfis atuais.", diagnosis: "Há conteúdos sobrepostos e terminologia inconsistente.", evidence: ["Perfis novos não aparecem no artigo principal."], decisions: ["Consolidar nomenclaturas."], proposal: "Atualizar a matriz de permissões e revisar exemplos.", acceptanceCriteria: ["Todos os perfis estão descritos."], notes: "Aguardando validação técnica.", references: ["Atendimento #45812"] },
     tasks: [{ id: "task-5", label: "Validar matriz de perfis", completed: true, owner: "Raoni Milioli da Silva" }, { id: "task-6", label: "Revisar exemplos de acesso", completed: false, owner: "Suporte" }],
-    comments: [{ id: "comment-3", author: "Raoni Milioli da Silva", message: "A matriz revisada está pronta para validação do time.", date: "Ontem, 16:20" }],
+    comments: [{ id: "comment-3", author: "Raoni Milioli da Silva", message: "A matriz revisada está pronta para validação do time.", date: diasAtras(1) }],
   },
 ];

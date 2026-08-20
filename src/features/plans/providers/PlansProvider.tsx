@@ -39,6 +39,7 @@ interface PlansContextValue {
   changeStatus: (planId: string, status: PlanStatus) => void;
   assignPlan: (planId: string, owner: string) => void;
   setPriority: (planId: string, priority: PlanPriority) => void;
+  setDueDate: (planId: string, dueDate: string) => void;
   addTask: (planId: string, label: string, owner: string) => void;
   toggleTask: (planId: string, taskId: string) => void;
   removeTask: (planId: string, taskId: string) => void;
@@ -142,6 +143,36 @@ export function PlansProvider({ children }: { children: ReactNode }) {
     patchPlan(planId, (current) => ({ ...current, priority }));
   }, [patchPlan]);
 
+  /*
+    Prazo entra no histórico, ao contrário da prioridade. Mudar o prazo é uma
+    decisão que afeta quem espera o trabalho, e "por que isso mudou de data"
+    precisa ter resposta depois.
+  */
+  const setDueDate = useCallback((planId: string, dueDate: string) => {
+    const plan = plans.find((item) => item.id === planId);
+    if (!plan || (plan.dueDate ?? "") === dueDate) return;
+
+    patchPlan(planId, (current) => {
+      if (dueDate) return { ...current, dueDate };
+
+      // Sem prazo é ausência do campo, e não string vazia: a leitura trata os
+      // dois igual, mas gravar "" deixaria lixo no registro.
+      const semPrazo = { ...current };
+      delete semPrazo.dueDate;
+      return semPrazo;
+    });
+
+    record({
+      type: "plan_updated",
+      projectId: plan.projectId,
+      actor: currentPerson || plan.owner,
+      subject: { kind: "plan", id: plan.id, label: plan.title },
+      detail: dueDate
+        ? `Prazo definido para ${new Date(dueDate).toLocaleDateString("pt-BR")}.`
+        : "Prazo removido.",
+    });
+  }, [currentPerson, patchPlan, plans, record]);
+
   const addTask = useCallback((planId: string, label: string, owner: string) => {
     const trimmed = label.trim();
     if (!trimmed) return;
@@ -198,6 +229,7 @@ export function PlansProvider({ children }: { children: ReactNode }) {
     changeStatus,
     assignPlan,
     setPriority,
+    setDueDate,
     addTask,
     toggleTask,
     removeTask,
@@ -205,7 +237,7 @@ export function PlansProvider({ children }: { children: ReactNode }) {
     updateDocument,
     createPlanFromApprovedOpportunity,
     linkPlanToArticle,
-  }), [addComment, addTask, assignPlan, changeStatus, createPlanFromApprovedOpportunity, linkPlanToArticle, plans, removeTask, search, selectedPlan, setPriority, status, toggleTask, updateDocument]);
+  }), [addComment, addTask, assignPlan, changeStatus, createPlanFromApprovedOpportunity, linkPlanToArticle, plans, removeTask, search, selectedPlan, setDueDate, setPriority, status, toggleTask, updateDocument]);
 
   return <PlansContext.Provider value={value}>{children}</PlansContext.Provider>;
 }

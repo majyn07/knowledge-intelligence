@@ -319,6 +319,28 @@ artigos relacionados. O servidor valida com schema estrito
 validada (`analysisResponseSchema`); id e status de oportunidade são atribuídos
 internamente, **nunca pelo modelo** — quem decide é a revisão humana.
 
+## Prazos
+
+Data só é data em **ISO 8601**, e a leitura recusa o resto. `new Date("15 jul.
+2026")` funciona em alguns motores e falha em outros — aceitar significaria o
+mesmo registro mostrando prazos diferentes em máquinas diferentes, sem nada
+indicando o problema.
+
+A conferência de transbordo vale só para `YYYY-MM-DD`: `2026-02-30` viraria
+2 de março em silêncio. Com hora e sem fuso a leitura é local, e comparar
+componentes UTC recusaria datas legítimas do fim do dia a oeste de Greenwich.
+
+**Atrasado e parado são perguntas separadas.** Um plano sem prazo pode estar
+parado; um com prazo distante também. Juntar as duas esconderia metade do
+problema.
+
+Parada se mede pelo último evento do histórico, nunca por `updatedAt`: o
+histórico registra o que aconteceu, e `updatedAt` muda por gravação
+incidental — uma delas faria um plano parado há um mês parecer recém-tocado.
+
+Contador e fila convivem porque respondem coisas diferentes: um diz que existe
+trabalho, a outra diz por onde começar.
+
 ## Histórico
 
 Todo fato relevante do ciclo vira um `ActivityEvent`, gravado pelo provider da

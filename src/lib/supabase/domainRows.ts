@@ -35,6 +35,7 @@ export function toProject(raw: unknown): Project {
     module: row.module,
     goal: row.goal,
     owner: row.owner,
+    dueDate: row.due_date,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   });
@@ -169,6 +170,7 @@ export function fromPlan(plan: PlanWorkspaceItem): Record<string, unknown> {
     status: plan.status,
     priority: plan.priority,
     owner: plan.owner,
+    due_date: plan.dueDate ?? null,
     source: plan.source,
     document: plan.document,
     tasks: plan.tasks,
