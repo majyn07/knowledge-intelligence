@@ -1,15 +1,17 @@
 "use client";
 
 import { useState } from "react";
-import { CheckCircle2, Circle, ListTodo, Plus, Trash2 } from "lucide-react";
+import { CheckCircle2, Circle, ListTodo, Pencil, Plus, Trash2 } from "lucide-react";
 
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { MarkdownContent } from "@/components/common/MarkdownContent";
 import { PageSection } from "@/components/common/page/PageSection";
 import { PersonSelect } from "@/features/people/components/PersonSelect";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
 import { usePlans } from "../providers/PlansProvider";
+import { PlanDocumentEditor } from "./PlanDocumentEditor";
 import type { PlanWorkspaceItem } from "../types/PlanWorkspace";
 
 interface PlanDocumentProps {
@@ -22,6 +24,7 @@ export function PlanDocument({ plan, onCreateKnowledgeContent }: PlanDocumentPro
   const [taskLabel, setTaskLabel] = useState("");
   const [taskOwner, setTaskOwner] = useState(plan.owner);
   const [criterion, setCriterion] = useState("");
+  const [isEditingDocument, setIsEditingDocument] = useState(false);
 
   const completedTasks = plan.tasks.filter((task) => task.completed).length;
   const sections: [string, string][] = [
@@ -68,6 +71,11 @@ export function PlanDocument({ plan, onCreateKnowledgeContent }: PlanDocumentPro
         </p>
 
         <div className="mt-4">
+          <Button size="sm" variant="outline" className="mr-2" onClick={() => setIsEditingDocument(true)}>
+            <Pencil className="mr-1.5 h-3.5 w-3.5" />
+            Editar documento
+          </Button>
+
           <Button
             size="sm"
             variant={plan.source.articleId ? "outline" : "default"}
@@ -88,7 +96,7 @@ export function PlanDocument({ plan, onCreateKnowledgeContent }: PlanDocumentPro
                   {title}
                 </AccordionTrigger>
                 <AccordionContent className="pb-4 text-sm leading-7 text-muted-foreground">
-                  {content || "Não preenchido."}
+                  {content ? <MarkdownContent content={content} /> : "Não preenchido."}
                 </AccordionContent>
               </AccordionItem>
             ))}
@@ -259,6 +267,13 @@ export function PlanDocument({ plan, onCreateKnowledgeContent }: PlanDocumentPro
           </div>
         </PageSection>
       </div>
+
+      <PlanDocumentEditor
+        open={isEditingDocument}
+        document={plan.document}
+        onOpenChange={setIsEditingDocument}
+        onSave={(changes) => updateDocument(plan.id, changes)}
+      />
     </article>
   );
 }

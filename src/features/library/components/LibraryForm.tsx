@@ -1,7 +1,7 @@
 "use client";
 
-import { FormEvent, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
-import { Eye, PenLine, Sparkles } from "lucide-react";
+import { FormEvent, useEffect, useMemo, useState, type ReactNode } from "react";
+import { Sparkles } from "lucide-react";
 
 import type { LibraryFormData } from "@/features/library/types/LibraryFormData";
 import { ARTICLE_CATEGORIES, UNSET_CATEGORY } from "@/features/library/constants/categories";
@@ -19,7 +19,7 @@ import {
 
 import { PersonSelect } from "@/features/people/components/PersonSelect";
 
-import { MarkdownContent } from "@/components/common/MarkdownContent";
+import { MarkdownField } from "@/components/common/markdown/MarkdownField";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -33,7 +33,6 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 
 import { DuplicateWarning } from "./DuplicateWarning";
-import { MarkdownToolbar } from "./MarkdownToolbar";
 
 interface LibraryFormProps {
   projects: { id: string; name: string }[];
@@ -95,14 +94,11 @@ export function LibraryForm({
   const [formData, setFormData] = useState<LibraryFormData>(initialData ?? emptyForm);
   const [tags, setTags] = useState("");
   const [keywords, setKeywords] = useState("");
-  const [isPreviewing, setIsPreviewing] = useState(false);
-  const contentRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
     setFormData(initialData ?? emptyForm);
     setTags(initialData?.tags.join(", ") ?? "");
     setKeywords(initialData?.keywords.join(", ") ?? "");
-    setIsPreviewing(false);
   }, [initialData]);
 
   const similarArticles = useMemo(
@@ -139,7 +135,6 @@ export function LibraryForm({
 
   function applyTemplate() {
     change("content", articleTemplates[formData.type]);
-    setIsPreviewing(false);
   }
 
   return (
@@ -170,65 +165,22 @@ export function LibraryForm({
       </Fieldset>
 
       <Fieldset legend="Conteúdo" hint="Escreva em Markdown. Os títulos viram o índice do artigo.">
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <Label htmlFor="content">Corpo do artigo</Label>
-
-          <div className="flex gap-1">
-            {!formData.content.trim() && (
+        <MarkdownField
+          id="content"
+          label="Corpo do artigo"
+          rows={14}
+          value={formData.content}
+          onChange={(value) => change("content", value)}
+          placeholder={"## Problema\n\nDescreva o sintoma como o cliente o relata."}
+          actions={
+            !formData.content.trim() ? (
               <Button type="button" size="sm" variant="ghost" onClick={applyTemplate}>
                 <Sparkles className="mr-1.5 h-3.5 w-3.5" />
                 Usar modelo de {articleTypeLabel[formData.type].toLowerCase()}
               </Button>
-            )}
-
-            <Button
-              type="button"
-              size="sm"
-              variant="ghost"
-              onClick={() => setIsPreviewing((previous) => !previous)}
-            >
-              {isPreviewing ? (
-                <>
-                  <PenLine className="mr-1.5 h-3.5 w-3.5" />
-                  Editar
-                </>
-              ) : (
-                <>
-                  <Eye className="mr-1.5 h-3.5 w-3.5" />
-                  Pré-visualizar
-                </>
-              )}
-            </Button>
-          </div>
-        </div>
-
-        {isPreviewing ? (
-          <div className="min-h-56 rounded-lg border border-border/70 bg-muted/20 p-5">
-            {formData.content.trim() ? (
-              <MarkdownContent content={formData.content} />
-            ) : (
-              <p className="text-sm text-muted-foreground">Nada escrito ainda.</p>
-            )}
-          </div>
-        ) : (
-          <div className="space-y-2">
-            <MarkdownToolbar
-              textareaRef={contentRef}
-              value={formData.content}
-              onChange={(value) => change("content", value)}
-            />
-
-            <Textarea
-              id="content"
-              ref={contentRef}
-              rows={14}
-              className="font-mono text-sm"
-              placeholder={"## Problema\n\nDescreva o sintoma como o cliente o relata."}
-              value={formData.content}
-              onChange={(event) => change("content", event.target.value)}
-            />
-          </div>
-        )}
+            ) : undefined
+          }
+        />
       </Fieldset>
 
       <Fieldset legend="Classificação" hint="Como este artigo é encontrado — pela busca e pela análise.">
