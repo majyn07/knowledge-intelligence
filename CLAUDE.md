@@ -42,6 +42,15 @@ Persistência sempre atrás de um provider ou repository. **Nunca** leia ou
 escreva `localStorage` direto num componente, e nunca mute um array de mock
 importado — o mock é semente, não banco.
 
+Todo acesso ao armazenamento passa por `lib/storage`. Escrever pode falhar —
+cota estourada, modo privado, acesso negado — e sem tratamento o erro sobe de
+dentro de um efeito e derruba a aplicação inteira. Ali a falha vira resultado,
+nunca exceção. Não chame `localStorage` diretamente em lugar nenhum.
+
+Acervos não têm teto artificial. Cortar análises ou artigos antigos para caber
+seria apagar trabalho do usuário em silêncio: preferimos falhar avisando. A
+exceção é o histórico de atividades, que tem limite por ser append-only.
+
 ### Providers
 
 Ordem em `app/layout.tsx`, de fora para dentro:
@@ -82,6 +91,20 @@ sendo digitado. Esse defeito já custou uma sessão de depuração.
 Campos de texto longo usam `MarkdownField` de `components/common/markdown`, que
 já traz barra de formatação e pré-visualização.
 
+Fechar um formulário com alteração pendente pede confirmação. Use
+`useUnsavedGuard`: o formulário avisa que ficou sujo via `onDirty`, o diálogo
+consulta antes de fechar. Descartar trabalho em silêncio não é opção.
+
+### Falhas
+
+`app/error.tsx`, `app/global-error.tsx` e `app/not-found.tsx` existem. Um erro
+de render não pode deixar a tela em branco.
+
+Como os dados vivem no navegador, a causa provável de um erro de render é
+conteúdo guardado em formato inesperado — por isso a tela de falha oferece
+apagar o armazenamento e voltar à semente, com a consequência escrita antes do
+clique.
+
 ## Regras de produto
 
 **Nada inventado.** Se um número não pode ser derivado dos dados reais, ele não
@@ -96,6 +119,17 @@ análise não enxerga rascunho nem revisão.
 **Máquinas de estado têm caminho de volta.** Artigo e plano podem retroceder:
 revisão reprovada volta para rascunho, publicado pode ser recolhido. Um fluxo que
 só avança esconde o erro em vez de corrigi-lo.
+
+**Publicar exige intenção, não permissão.** Artigo e plano passam por
+`PublishConfirmDialog`, que mostra o que continua incompleto — medido nos
+próprios campos — e o efeito da publicação. Nada bloqueia: a equipe é treinada e
+decide. Fricção que informa, não que atrapalha.
+
+**Não há autenticação, e nada finge que há.** O seletor "atuando como" no
+cabeçalho registra quem está operando, para o histórico ter autoria em vez de
+autor vazio. Não construa permissões sobre isso — seriam ficção enquanto
+qualquer um puder escolher qualquer pessoa. O `actor` do evento é quem executou
+a ação, caindo para a autoria do registro quando ninguém se identificou.
 
 **Referências a HubSpot, Zendesk, Vercel e CRMs são pedidos de maturidade**
 funcional e de UX, nunca de integração ou de importar o domínio deles. Traduza o
