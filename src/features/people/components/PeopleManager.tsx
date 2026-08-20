@@ -1,127 +1,244 @@
 "use client";
 
 import { useState } from "react";
-import { Plus, Trash2, UserRound } from "lucide-react";
+import { UserRound, Users } from "lucide-react";
 
 import { PageSection } from "@/components/common/page/PageSection";
 import { StatusBadge } from "@/components/common/status/StatusBadge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useLibrary } from "@/features/library/providers/LibraryProvider";
+import { usePlans } from "@/features/plans/providers/PlansProvider";
 import { useProject } from "@/providers/ProjectProvider";
+import { migrateAssignment } from "@/models/Assignment";
 
 import { usePeople } from "../providers/PeopleProvider";
 
+const NO_TEAM = "__none__";
+
+/**
+ * Pessoas e equipes.
+ *
+ * Não há cadastro de pessoa: quem existe é quem entrou. Isso é decisão, não
+ * limitação — uma lista de nomes digitados não corresponde a ninguém que possa
+ * ser responsabilizado, e era exatamente o que o produto tinha antes.
+ */
 export function PeopleManager() {
-  const { people, addPerson, removePerson } = usePeople();
+  const { people, teams, me, updateMe, deactivate } = usePeople();
   const { projects } = useProject();
+  const { plans } = usePlans();
   const { items: articles } = useLibrary();
-  const [name, setName] = useState("");
-  const [role, setRole] = useState("");
 
-  /** Quantas atribuições existentes apontam para esta pessoa. */
-  function assignmentCount(personName: string) {
+  const [name, setName] = useState(me?.name ?? "");
+  const [role, setRole] = useState(me?.role ?? "");
+
+  /**
+   * Quanto trabalho aponta para esta pessoa ou equipe.
+   *
+   * Compara identidade resolvida, não texto: registros anteriores guardam o
+   * nome, e contar por igualdade crua deixaria de fora justamente o trabalho
+   * que já existia.
+   */
+  function workload(ref: string) {
+    const same = (stored: string) => migrateAssignment(stored, people, teams) === ref;
+
     return (
-      projects.filter((project) => project.owner === personName).length +
-      articles.filter((article) => article.author === personName).length
+      projects.filter((project) => same(project.owner)).length +
+      plans.filter((plan) => same(plan.owner)).length +
+      articles.filter((article) => same(article.author)).length
     );
-  }
-
-  function handleAdd() {
-    if (addPerson(name, role)) {
-      setName("");
-      setRole("");
-    }
   }
 
   return (
     <PageSection
-      title="Pessoas"
-      description="Quem pode ser atribuído como responsável de projeto ou autor de artigo. Não é um sistema de acesso: ninguém faz login aqui."
+      title="Pessoas e equipes"
+      description="Quem conduz o trabalho. A lista é formada por quem acessou — não há cadastro manual."
     >
-      <div className="space-y-5">
-        <ul className="divide-y divide-border/70 rounded-xl border border-border/70 bg-card">
-          {people.map((person) => {
-            const assignments = assignmentCount(person.name);
+      <div className="flex flex-col gap-6">
+        {me ? (
+          <div className="rounded-xl border bg-card p-5">
+            <h3 className="font-semibold tracking-tight">Meu perfil</h3>
 
-            return (
-              <li key={person.id} className="flex items-center justify-between gap-4 p-4">
-                <div className="flex min-w-0 items-center gap-3">
-                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                    <UserRound className="h-4 w-4" />
-                  </span>
+            <p className="mt-1 text-xs text-muted-foreground">
+              {me.email} · entrou por link, sem senha
+            </p>
 
-                  <div className="min-w-0">
-                    <p className="truncate text-sm font-medium">{person.name}</p>
-                    <p className="truncate text-xs text-muted-foreground">
-                      {person.role || "Sem papel definido"}
-                    </p>
-                  </div>
-                </div>
+            <div className="mt-4 grid gap-4 md:grid-cols-3">
+              <div className="space-y-2">
+                <Label htmlFor="me-name">Nome</Label>
 
-                <div className="flex shrink-0 items-center gap-3">
-                  {assignments > 0 && (
-                    <StatusBadge variant="info">{assignments} atribuição(ões)</StatusBadge>
-                  )}
+                <Input
+                  id="me-name"
+                  value={name}
+                  onChange={(event) => setName(event.target.value)}
+                  placeholder="Como você aparece nas atribuições"
+                />
+              </div>
 
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    aria-label={`Remover ${person.name}`}
-                    onClick={() => removePerson(person.id)}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </div>
-              </li>
-            );
-          })}
+              <div className="space-y-2">
+                <Label htmlFor="me-role">Cargo</Label>
 
-          {people.length === 0 && (
-            <li className="p-6 text-center text-sm text-muted-foreground">
-              Nenhuma pessoa cadastrada. Adicione alguém para poder atribuir responsáveis.
-            </li>
-          )}
-        </ul>
+                <Input
+                  id="me-role"
+                  value={role}
+                  onChange={(event) => setRole(event.target.value)}
+                  placeholder="Ex.: Analista de suporte"
+                />
+              </div>
 
-        <div className="rounded-xl border border-dashed border-border p-4">
-          <div className="grid gap-3 sm:grid-cols-[1fr_1fr_auto] sm:items-end">
-            <div className="space-y-2">
-              <Label htmlFor="person-name">Nome</Label>
-              <Input
-                id="person-name"
-                value={name}
-                placeholder="Ex.: Raoni Milioli da Silva"
-                onChange={(event) => setName(event.target.value)}
-                onKeyDown={(event) => {
-                  if (event.key === "Enter") {
-                    event.preventDefault();
-                    handleAdd();
+              <div className="space-y-2">
+                <Label htmlFor="me-team">Equipe</Label>
+
+                <Select
+                  value={me.teamId || NO_TEAM}
+                  onValueChange={(value) =>
+                    void updateMe({ teamId: value === NO_TEAM ? "" : (value ?? "") })
                   }
-                }}
-              />
+                >
+                  <SelectTrigger id="me-team">
+                    <SelectValue>
+                      {(id: string) =>
+                        teams.find((team) => team.id === id)?.name ?? "Sem equipe"
+                      }
+                    </SelectValue>
+                  </SelectTrigger>
+
+                  <SelectContent>
+                    <SelectItem value={NO_TEAM}>Sem equipe</SelectItem>
+
+                    {teams.map((team) => (
+                      <SelectItem key={team.id} value={team.id}>
+                        {team.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="person-role">Papel</Label>
-              <Input
-                id="person-role"
-                value={role}
-                placeholder="Ex.: Analista de conhecimento"
-                onChange={(event) => setRole(event.target.value)}
-              />
-            </div>
-
-            <Button onClick={handleAdd} disabled={!name.trim()}>
-              <Plus className="mr-1.5 h-4 w-4" />
-              Adicionar
+            <Button
+              className="mt-4"
+              size="sm"
+              disabled={name.trim() === "" || (name === me.name && role === me.role)}
+              onClick={() => void updateMe({ name, role })}
+            >
+              Salvar meu perfil
             </Button>
           </div>
+        ) : (
+          <div className="rounded-xl border bg-card p-5">
+            <p className="text-sm text-muted-foreground">
+              Sem servidor configurado, não há conta — e o histórico registra
+              autoria pelo nome escolhido no cabeçalho.
+            </p>
+          </div>
+        )}
+
+        <div className="rounded-xl border bg-card p-5">
+          <h3 className="font-semibold tracking-tight">Equipes</h3>
+
+          <p className="mt-1 text-xs text-muted-foreground">
+            Quatro equipes do suporte AltoQi. Uma pessoa pertence a uma delas, e
+            atribuir à equipe é o caminho enquanto alguém não entrou.
+          </p>
+
+          <ul className="mt-4 flex flex-col gap-1.5">
+            {teams.map((team) => {
+              const membros = people.filter(
+                (person) => person.isActive && person.teamId === team.id
+              );
+
+              return (
+                <li
+                  key={team.id}
+                  className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-border/60 px-3 py-2"
+                >
+                  <span className="flex min-w-0 items-center gap-2 text-sm">
+                    <Users className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+                    <span className="truncate font-medium">{team.name}</span>
+                  </span>
+
+                  <span className="flex shrink-0 items-center gap-2 text-xs text-muted-foreground">
+                    <span>
+                      {membros.length === 0
+                        ? "ninguém entrou ainda"
+                        : `${membros.length} ${membros.length === 1 ? "pessoa" : "pessoas"}`}
+                    </span>
+
+                    {workload(team.id) > 0 && (
+                      <StatusBadge variant="default">
+                        {workload(team.id)} atribuições
+                      </StatusBadge>
+                    )}
+                  </span>
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+
+        <div className="rounded-xl border bg-card p-5">
+          <h3 className="font-semibold tracking-tight">Quem já acessou</h3>
+
+          {people.length === 0 ? (
+            <p className="mt-3 text-sm text-muted-foreground">
+              Ninguém entrou ainda. A lista se forma sozinha conforme a equipe
+              acessa pela primeira vez.
+            </p>
+          ) : (
+            <ul className="mt-4 flex flex-col gap-1.5">
+              {people.map((person) => (
+                <li
+                  key={person.id}
+                  className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-border/60 px-3 py-2"
+                >
+                  <span className="flex min-w-0 items-center gap-2 text-sm">
+                    <UserRound className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+
+                    <span className="min-w-0">
+                      <span className="truncate font-medium">{person.name}</span>
+
+                      <span className="ml-2 text-xs text-muted-foreground">
+                        {teams.find((team) => team.id === person.teamId)?.name ?? "sem equipe"}
+                      </span>
+                    </span>
+                  </span>
+
+                  <span className="flex shrink-0 items-center gap-2">
+                    {!person.isActive && <StatusBadge variant="default">Inativa</StatusBadge>}
+
+                    {workload(person.id) > 0 && (
+                      <StatusBadge variant="default">
+                        {workload(person.id)} atribuições
+                      </StatusBadge>
+                    )}
+
+                    {person.id !== me?.id && (
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => void deactivate(person.id, !person.isActive)}
+                      >
+                        {person.isActive ? "Desativar" : "Reativar"}
+                      </Button>
+                    )}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          )}
 
           <p className="mt-3 text-xs text-muted-foreground">
-            Remover alguém tira o nome das próximas atribuições, mas preserva as já registradas —
-            o histórico de quem conduziu o trabalho não é reescrito.
+            Desativar não remove: o histórico já registrou o que a pessoa fez, e
+            apagar deixaria esses registros apontando para o vazio.
           </p>
         </div>
       </div>

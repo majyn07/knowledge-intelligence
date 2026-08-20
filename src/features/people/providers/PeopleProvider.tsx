@@ -4,101 +4,218 @@ import {
   createContext,
   useCallback,
   useContext,
+  useEffect,
   useMemo,
+  useState,
   type ReactNode,
 } from "react";
 
 import { toast } from "sonner";
 
+import { useSession } from "@/features/auth/providers/SessionProvider";
 import { usePersistedState } from "@/hooks/usePersistedState";
-import type { Person } from "@/models/Person";
+import { getSupabase } from "@/lib/supabase/client";
+import { STORAGE_KEYS } from "@/lib/storage";
+import type { Person, Team } from "@/models/Assignment";
 
-import { people as seedPeople } from "../mock/people";
-
-const STORAGE_KEY = "visus-people";
-const CURRENT_KEY = "visus-current-person";
+import { seedTeams } from "../mock/teams";
+import {
+  readPeopleAndTeams,
+  setPersonActive,
+  updateProfile,
+} from "../peopleRepository";
 
 interface PeopleContextValue {
   people: Person[];
-  /** Quem está operando agora. Não é sessão autenticada: serve para o
-   *  histórico registrar autoria em vez de gravar um autor vazio. */
+  teams: Team[];
+  isHydrated: boolean;
+
+  /** Quem está operando agora, ou `null` quando ninguém se identificou. */
+  me: Person | null;
+  /** Nome de quem opera, para o histórico registrar autoria. */
   currentPerson: string;
+  /** Só faz sentido sem servidor: com conta, quem opera é quem entrou. */
   setCurrentPerson: (name: string) => void;
-  addPerson: (name: string, role: string) => Person | undefined;
-  removePerson: (id: string) => void;
-  renamePerson: (id: string, name: string, role: string) => void;
+
+  updateMe: (fields: { name?: string; role?: string; teamId?: string }) => Promise<void>;
+  deactivate: (id: string, isActive: boolean) => Promise<void>;
+
+  /** Pessoas ativas de uma equipe. */
+  peopleOfTeam: (teamId: string) => Person[];
 }
 
 const PeopleContext = createContext<PeopleContextValue | null>(null);
 
+/**
+ * Pessoas e equipes.
+ *
+ * Com servidor, pessoa é conta: a lista é quem entrou, e ninguém é cadastrado
+ * à mão. Sem servidor, não há login — a lista fica vazia e o seletor de
+ * "atuando como" continua sendo texto, como sempre foi.
+ *
+ * As equipes existem nos dois modos, porque classificam o trabalho e não
+ * dependem de identidade.
+ */
 export function PeopleProvider({ children }: { children: ReactNode }) {
-  const [people, setPeople] = usePersistedState<Person[]>({
-    key: STORAGE_KEY,
-    fallback: seedPeople,
-  });
+  const { state, email } = useSession();
 
-  const [currentPerson, setCurrentPerson] = usePersistedState<string>({
-    key: CURRENT_KEY,
-    fallback: "",
-  });
+  const [people, setPeople] = useState<Person[]>([]);
+  const [teams, setTeams] = useState<Team[]>(seedTeams);
+  const [isHydrated, setIsHydrated] = useState(false);
 
-  const addPerson = useCallback(
-    (name: string, role: string) => {
-      const trimmedName = name.trim();
-      if (!trimmedName) return undefined;
+  /*
+    Sem servidor não há sessão, e o histórico ficaria com autor vazio. O
+    seletor manual continua existindo só para esse caso — e desaparece assim
+    que há conta, porque aí quem opera é fato, não escolha.
+  */
+  const [localActor, setLocalActor] = useSharedActor();
 
-      if (people.some((person) => person.name.toLowerCase() === trimmedName.toLowerCase())) {
-        toast.error("Já existe alguém com este nome na lista.");
-        return undefined;
-      }
+  const supabase = getSupabase();
 
-      const person: Person = {
-        id: crypto.randomUUID(),
-        name: trimmedName,
-        role: role.trim(),
-      };
+  useEffect(() => {
+    if (!supabase || state !== "conectado") {
+      setIsHydrated(true);
+      return;
+    }
 
-      setPeople((current) => [...current, person]);
-      toast.success(`${trimmedName} adicionado(a) à lista.`);
-      return person;
-    },
-    [people, setPeople]
+    let alive = true;
+
+    readPeopleAndTeams(supabase)
+      .then((data) => {
+        if (!alive) return;
+        setPeople(data.people);
+        if (data.teams.length > 0) setTeams(data.teams);
+      })
+      .catch((error: unknown) => {
+        toast.error(
+          `Não foi possível carregar pessoas e equipes: ${
+            error instanceof Error ? error.message : "erro desconhecido"
+          }`
+        );
+      })
+      .finally(() => {
+        if (alive) setIsHydrated(true);
+      });
+
+    return () => {
+      alive = false;
+    };
+  }, [state, supabase]);
+
+  // Tempo real: alguém entrando pela primeira vez aparece na lista sem recarregar.
+  useEffect(() => {
+    if (!supabase || state !== "conectado" || !isHydrated) return;
+
+    const channel = supabase.channel("sync:people");
+
+    for (const table of ["profiles", "teams"] as const) {
+      channel.on("postgres_changes", { event: "*", schema: "public", table }, async () => {
+        const data = await readPeopleAndTeams(supabase).catch(() => null);
+
+        if (data) {
+          setPeople(data.people);
+          if (data.teams.length > 0) setTeams(data.teams);
+        }
+      });
+    }
+
+    channel.subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [isHydrated, state, supabase]);
+
+  const me = useMemo(
+    () => people.find((person) => person.email === email) ?? null,
+    [email, people]
   );
 
-  const removePerson = useCallback(
-    (id: string) => {
-      const person = people.find((item) => item.id === id);
-      setPeople((current) => current.filter((item) => item.id !== id));
+  const currentPerson = me?.name ?? localActor;
 
-      if (person) {
-        toast.success(
-          `${person.name} removido(a) da lista. As atribuições já registradas continuam como estão.`
+  const updateMe = useCallback(
+    async (fields: { name?: string; role?: string; teamId?: string }) => {
+      if (!supabase || !me) return;
+
+      try {
+        await updateProfile(supabase, me.id, fields);
+        toast.success("Perfil atualizado.");
+      } catch (error) {
+        toast.error(
+          `Não foi possível salvar: ${
+            error instanceof Error ? error.message : "erro desconhecido"
+          }`
         );
       }
     },
-    [people, setPeople]
+    [me, supabase]
   );
 
-  const renamePerson = useCallback(
-    (id: string, name: string, role: string) => {
-      const trimmedName = name.trim();
-      if (!trimmedName) return;
+  const deactivate = useCallback(
+    async (id: string, isActive: boolean) => {
+      if (!supabase) return;
 
-      setPeople((current) =>
-        current.map((person) =>
-          person.id === id ? { ...person, name: trimmedName, role: role.trim() } : person
-        )
-      );
+      try {
+        await setPersonActive(supabase, id, isActive);
+        toast.success(
+          isActive
+            ? "Pessoa reativada."
+            : "Pessoa desativada. As atribuições já registradas continuam como estão."
+        );
+      } catch (error) {
+        toast.error(
+          `Não foi possível alterar: ${
+            error instanceof Error ? error.message : "erro desconhecido"
+          }`
+        );
+      }
     },
-    [setPeople]
+    [supabase]
+  );
+
+  const peopleOfTeam = useCallback(
+    (teamId: string) => people.filter((person) => person.isActive && person.teamId === teamId),
+    [people]
   );
 
   const value = useMemo(
-    () => ({ people, currentPerson, setCurrentPerson, addPerson, removePerson, renamePerson }),
-    [addPerson, currentPerson, people, removePerson, renamePerson, setCurrentPerson]
+    () => ({
+      people,
+      teams,
+      isHydrated,
+      me,
+      currentPerson,
+      setCurrentPerson: setLocalActor,
+      updateMe,
+      deactivate,
+      peopleOfTeam,
+    }),
+    [
+      currentPerson,
+      deactivate,
+      isHydrated,
+      me,
+      people,
+      peopleOfTeam,
+      setLocalActor,
+      teams,
+      updateMe,
+    ]
   );
 
   return <PeopleContext.Provider value={value}>{children}</PeopleContext.Provider>;
+}
+
+/** Autor manual, usado apenas quando não há conta. */
+function useSharedActor() {
+  const [value, setValue] = usePersistedState<string>({
+    key: STORAGE_KEYS.currentPerson,
+    fallback: "",
+  });
+
+  const set = useCallback((name: string) => setValue(name), [setValue]);
+
+  return [value, set] as const;
 }
 
 export function usePeople() {

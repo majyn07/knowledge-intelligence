@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/input";
 
 import { usePlans } from "../providers/PlansProvider";
 import { PlanDocumentEditor } from "./PlanDocumentEditor";
+import { AssigneeName } from "@/features/people/components/AssigneeName";
 import type { PlanWorkspaceItem } from "../types/PlanWorkspace";
 
 interface PlanDocumentProps {
@@ -159,7 +160,11 @@ export function PlanDocument({ plan, onCreateKnowledgeContent }: PlanDocumentPro
                     {task.label}
                   </span>
                   <span className="mt-1 block text-xs text-muted-foreground">
-                    {task.owner ? `Responsável: ${task.owner}` : "Sem responsável"}
+                    {task.owner ? (
+                      <>Responsável: <AssigneeName value={task.owner} /></>
+                    ) : (
+                      "Sem responsável"
+                    )}
                   </span>
                 </span>
 

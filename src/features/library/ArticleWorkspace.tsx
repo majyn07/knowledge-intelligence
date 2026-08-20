@@ -20,6 +20,7 @@ import {
 } from "@/models/KnowledgeArticle";
 import { findCategory, findSection } from "@/models/Taxonomy";
 import { useTaxonomy } from "@/features/taxonomy/providers/TaxonomyProvider";
+import { useAssigneeName } from "@/features/people/components/AssigneeName";
 import { useProject } from "@/providers/ProjectProvider";
 import { useStaleRecordWarning } from "@/hooks/useStaleRecordWarning";
 
@@ -51,6 +52,7 @@ export function ArticleWorkspace({ articleId }: ArticleWorkspaceProps) {
   const { eventsFor } = useActivity();
   const { projects } = useProject();
   const { taxonomy } = useTaxonomy();
+  const assigneeName = useAssigneeName();
   const [isEditing, setIsEditing] = useState(false);
   const [isPublishing, setIsPublishing] = useState(false);
 
@@ -169,7 +171,7 @@ export function ArticleWorkspace({ articleId }: ArticleWorkspaceProps) {
             { label: "Categoria", value: categoryName || "Não definida" },
             { label: "Seção", value: section?.name || "Não definida" },
             { label: "Gênero", value: genreName || "Não definido" },
-            { label: "Autor", value: article.author || "Não definido" },
+            { label: "Autor", value: assigneeName(article.author, "Não definido") },
             { label: "Criado em", value: article.createdAt.toLocaleDateString("pt-BR") },
             { label: "Atualizado em", value: article.updatedAt.toLocaleDateString("pt-BR") },
           ]}
