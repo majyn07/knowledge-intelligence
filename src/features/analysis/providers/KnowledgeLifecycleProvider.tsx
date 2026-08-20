@@ -8,7 +8,9 @@ import {
   type ReactNode,
 } from "react";
 
-import { usePersistedState } from "@/hooks/usePersistedState";
+import { useSharedCollection } from "@/hooks/useSharedCollection";
+import { parseAnalyses } from "../normalizeAnalysis";
+import { fromAnalysis, toAnalysis } from "@/lib/supabase/domainRows";
 import { useActivity } from "@/features/activities/providers/ActivityProvider";
 import { usePeople } from "@/features/people/providers/PeopleProvider";
 import type { AnalysisMessage } from "@/models/AnalysisMessage";
@@ -18,8 +20,9 @@ import type {
   AnalysisStatus,
   OpportunityWorkflowStatus,
 } from "@/models/KnowledgeLifecycle";
+import { STORAGE_KEYS } from "@/lib/storage";
 
-const STORAGE_KEY = "visus-knowledge-lifecycle";
+const STORAGE_KEY = STORAGE_KEYS.analyses;
 
 interface KnowledgeLifecycleValue {
   analyses: AnalysisRecord[];
@@ -46,19 +49,17 @@ interface KnowledgeLifecycleValue {
 
 const KnowledgeLifecycleContext = createContext<KnowledgeLifecycleValue | null>(null);
 
-function parseAnalyses(raw: string): AnalysisRecord[] {
-  const stored = JSON.parse(raw) as AnalysisRecord[];
-  // Registros gravados antes da evidência ser persistida não possuem o campo.
-  return stored.map((record) => ({ ...record, relatedArticles: record.relatedArticles ?? [] }));
-}
-
 export function KnowledgeLifecycleProvider({ children }: { children: ReactNode }) {
   const { record } = useActivity();
   const { currentPerson } = usePeople();
-  const [analyses, setAnalyses] = usePersistedState<AnalysisRecord[]>({
+  const [analyses, setAnalyses] = useSharedCollection<AnalysisRecord>({
     key: STORAGE_KEY,
+    table: "analyses",
     fallback: [],
-    parse: parseAnalyses,
+    parseLocal: parseAnalyses,
+    fromRows: (rows) => rows.map(toAnalysis),
+    toRow: fromAnalysis,
+    identify: (analysis) => analysis.id,
   });
 
   const saveAnalysis = useCallback((input: Omit<AnalysisRecord, "id" | "startedAt" | "status">) => {

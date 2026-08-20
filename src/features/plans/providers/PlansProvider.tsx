@@ -4,7 +4,8 @@ import { createContext, useCallback, useContext, useMemo, useState, type ReactNo
 
 import { toast } from "sonner";
 
-import { usePersistedState } from "@/hooks/usePersistedState";
+import { useSharedCollection } from "@/hooks/useSharedCollection";
+import { fromPlan, toPlan } from "@/lib/supabase/domainRows";
 import { useActivity } from "@/features/activities/providers/ActivityProvider";
 import { usePeople } from "@/features/people/providers/PeopleProvider";
 
@@ -19,8 +20,9 @@ import {
   type PlanStatus,
   type PlanWorkspaceItem,
 } from "../types/PlanWorkspace";
+import { STORAGE_KEYS } from "@/lib/storage";
 
-const STORAGE_KEY = "visus-improvement-plans";
+const STORAGE_KEY = STORAGE_KEYS.plans;
 
 function nowLabel() {
   return new Intl.DateTimeFormat("pt-BR", { dateStyle: "medium", timeStyle: "short" }).format(new Date());
@@ -51,10 +53,14 @@ const PlansContext = createContext<PlansContextValue | null>(null);
 export function PlansProvider({ children }: { children: ReactNode }) {
   const { record } = useActivity();
   const { currentPerson } = usePeople();
-  const [plans, setPlans] = usePersistedState<PlanWorkspaceItem[]>({
+  const [plans, setPlans] = useSharedCollection<PlanWorkspaceItem>({
     key: STORAGE_KEY,
+    table: "plans",
     fallback: planWorkspaceMock,
-    parse: parsePlans,
+    parseLocal: parsePlans,
+    fromRows: (rows) => rows.map(toPlan),
+    toRow: fromPlan,
+    identify: (plan) => plan.id,
   });
   const [selectedPlanId, setSelectedPlanId] = useState<string | undefined>(undefined);
   const [search, setSearch] = useState("");

@@ -8,10 +8,13 @@ import {
   type ReactNode,
 } from "react";
 
-import { usePersistedState } from "@/hooks/usePersistedState";
+import { useSharedCollection } from "@/hooks/useSharedCollection";
+import { parseEvents } from "../normalizeEvent";
+import { fromEvent, toEvent } from "@/lib/supabase/domainRows";
 import type { ActivityEvent } from "@/models/ActivityEvent";
+import { STORAGE_KEYS } from "@/lib/storage";
 
-const STORAGE_KEY = "visus-activity";
+const STORAGE_KEY = STORAGE_KEYS.activity;
 /** Limite defensivo: o histórico vive no navegador e não pode crescer sem fim. */
 const MAX_EVENTS = 500;
 
@@ -27,9 +30,14 @@ interface ActivityContextValue {
 const ActivityContext = createContext<ActivityContextValue | null>(null);
 
 export function ActivityProvider({ children }: { children: ReactNode }) {
-  const [events, setEvents] = usePersistedState<ActivityEvent[]>({
+  const [events, setEvents] = useSharedCollection<ActivityEvent>({
     key: STORAGE_KEY,
+    table: "activity_events",
     fallback: [],
+    parseLocal: parseEvents,
+    fromRows: (rows) => rows.map(toEvent),
+    toRow: fromEvent,
+    identify: (event) => event.id,
   });
 
   const record = useCallback(

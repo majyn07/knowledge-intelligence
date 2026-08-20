@@ -106,6 +106,13 @@ export type ArticleRow = {
   updated_at: string;
 };
 
+export type SupportConversationRow = {
+  id: string;
+  ticket_id: string;
+  messages: unknown;
+  source: unknown;
+};
+
 export type ActivityEventRow = {
   id: string;
   at: string;
@@ -184,6 +191,12 @@ export interface Database {
         Update: Partial<ActivityEventRow>;
         Relationships: [];
       };
+      support_conversations: {
+        Row: SupportConversationRow;
+        Insert: SupportConversationRow;
+        Update: Partial<SupportConversationRow>;
+        Relationships: [];
+      };
     };
     Views: { [_ in never]: never };
     Functions: { [_ in never]: never };
@@ -203,6 +216,7 @@ export const REALTIME_TABLES = [
   "plans",
   "articles",
   "activity_events",
+  "support_conversations",
 ] as const;
 
 export type RealtimeTable = (typeof REALTIME_TABLES)[number];

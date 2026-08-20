@@ -20,6 +20,11 @@ import { TicketForm } from "./components/TicketForm";
 import { TicketDeleteDialog, TicketDialog } from "./components/TicketDialogs";
 import { useAnalysisContext } from "./hooks/useAnalysisContext";
 import { useKnowledgeLifecycle } from "./providers/KnowledgeLifecycleProvider";
+import {
+  aiOpportunityName,
+  type AIOpportunityKey,
+} from "@/features/analysis/types/KnowledgeOpportunity";
+import { useTaxonomy } from "@/features/taxonomy/providers/TaxonomyProvider";
 import { analysisService } from "./services/analysisService";
 import { ticketService } from "./services/ticketService";
 import { useTickets } from "./providers/TicketsProvider";
@@ -83,6 +88,8 @@ export function AnalysisWorkspace() {
 
   const editingTicket = projectTickets.find((ticket) => ticket.id === editingTicketId);
   const deletingTicket = projectTickets.find((ticket) => ticket.id === deletingTicketId);
+  const { taxonomy } = useTaxonomy();
+
   const projectOptions = projects.map((project) => ({ id: project.id, name: project.name }));
 
   async function handleAnalyze() {
@@ -90,10 +97,33 @@ export function AnalysisWorkspace() {
     setIsAnalyzing(true);
     try {
       const response = await analysisService.startAnalysis(context);
+
+      /*
+        O modelo devolve as chaves que ele conhece; o produto trabalha com o
+        cadastro da equipe. A tradução é por nome, e chave sem correspondência
+        vira tipo vazio — a revisão humana decide, que é a regra do ciclo.
+
+        Enquanto isso, id e status continuam atribuídos aqui e nunca pelo modelo.
+      */
+      const opportunityTypeId = (key: string) => {
+        const name = aiOpportunityName[key as AIOpportunityKey];
+        if (!name) return "";
+
+        return (
+          taxonomy.opportunityTypes.find((entry) => entry.name === name)?.id ?? ""
+        );
+      };
+
       saveAnalysis({
         projectId: activeProjectId,
         ticketId: selectedTicket.id,
-        result: response.analysisResult,
+        result: {
+          ...response.analysisResult,
+          opportunities: response.analysisResult.opportunities.map((opportunity) => ({
+            ...opportunity,
+            type: opportunityTypeId(opportunity.type),
+          })),
+        },
         relatedArticles: response.context?.relatedArticles ?? [],
         messages: response.messages,
       });

@@ -10,7 +10,9 @@ import {
 
 import { toast } from "sonner";
 
-import { usePersistedState } from "@/hooks/usePersistedState";
+import { useSharedCollection } from "@/hooks/useSharedCollection";
+import { fromConversation, fromTicket, toConversation, toTicket } from "@/lib/supabase/domainRows";
+import { STORAGE_KEYS } from "@/lib/storage";
 import { useActivity } from "@/features/activities/providers/ActivityProvider";
 import { usePeople } from "@/features/people/providers/PeopleProvider";
 import type { SupportConversation } from "@/models/SupportConversation";
@@ -21,8 +23,8 @@ import { ticketRepository } from "../repositories/ticketRepository";
 import { ticketService } from "../services/ticketService";
 import type { TicketFormData } from "../types/TicketFormData";
 
-const TICKETS_KEY = "visus-tickets";
-const CONVERSATIONS_KEY = "visus-support-conversations";
+const TICKETS_KEY = STORAGE_KEYS.tickets;
+const CONVERSATIONS_KEY = STORAGE_KEYS.conversations;
 
 interface TicketsContextValue {
   tickets: Ticket[];
@@ -40,16 +42,24 @@ export function TicketsProvider({ children }: { children: ReactNode }) {
   const { record } = useActivity();
   const { currentPerson } = usePeople();
 
-  const [tickets, setTickets] = usePersistedState<Ticket[]>({
+  const [tickets, setTickets] = useSharedCollection<Ticket>({
     key: TICKETS_KEY,
+    table: "tickets",
     fallback: ticketRepository.getSeedTickets(),
-    parse: parseTickets,
+    parseLocal: parseTickets,
+    fromRows: (rows) => rows.map(toTicket),
+    toRow: fromTicket,
+    identify: (ticket) => ticket.id,
   });
 
-  const [conversations, setConversations] = usePersistedState<SupportConversation[]>({
+  const [conversations, setConversations] = useSharedCollection<SupportConversation>({
     key: CONVERSATIONS_KEY,
+    table: "support_conversations",
     fallback: ticketRepository.getSeedConversations(),
-    parse: parseConversations,
+    parseLocal: parseConversations,
+    fromRows: (rows) => rows.map(toConversation),
+    toRow: fromConversation,
+    identify: (conversation) => conversation.id,
   });
 
   const ticketsOf = useCallback(

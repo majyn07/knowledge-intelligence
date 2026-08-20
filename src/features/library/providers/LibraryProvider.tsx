@@ -10,7 +10,8 @@ import {
 
 import { toast } from "sonner";
 
-import { usePersistedState } from "@/hooks/usePersistedState";
+import { useSharedCollection } from "@/hooks/useSharedCollection";
+import { fromArticle, toArticle } from "@/lib/supabase/rows";
 import { useActivity } from "@/features/activities/providers/ActivityProvider";
 import { usePeople } from "@/features/people/providers/PeopleProvider";
 import { useTaxonomy } from "@/features/taxonomy/providers/TaxonomyProvider";
@@ -20,8 +21,9 @@ import type { PlanWorkspaceItem } from "@/features/plans/types/PlanWorkspace";
 
 import { articleService } from "@/features/library/services/articleService";
 import { parseArticles } from "@/features/library/normalizeArticle";
+import { STORAGE_KEYS } from "@/lib/storage";
 
-const STORAGE_KEY = "visus-library";
+const STORAGE_KEY = STORAGE_KEYS.articles;
 
 interface LibraryContextValue {
   items: KnowledgeArticle[];
@@ -39,11 +41,15 @@ export function LibraryProvider({ children }: { children: ReactNode }) {
   const { record } = useActivity();
   const { currentPerson } = usePeople();
   const { taxonomy } = useTaxonomy();
-  const [items, setItems] = usePersistedState<KnowledgeArticle[]>({
+  const [items, setItems] = useSharedCollection<KnowledgeArticle>({
     key: STORAGE_KEY,
+    table: "articles",
     fallback: articleService.getSeed(),
+    fromRows: (rows) => rows.map(toArticle),
+    toRow: fromArticle,
+    identify: (article) => article.id,
     // O vocabulário é capturado na montagem, que é quando a migração acontece.
-    parse: (raw) => parseArticles(raw, taxonomy),
+    parseLocal: (raw) => parseArticles(raw, taxonomy),
   });
 
   const createItem = useCallback(

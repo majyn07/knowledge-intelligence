@@ -1,6 +1,7 @@
 import type { Project } from "@/models/Project";
 
-import { projectRepository } from "../repository/projectRepository";
+import { getSeedProjects } from "../repository/projectRepository";
+
 import type { ProjectFormData } from "../types/ProjectFormData";
 
 function normalize(data: ProjectFormData) {
@@ -19,35 +20,31 @@ function normalize(data: ProjectFormData) {
 export const projectService = {
   /** Base canônica usada no render inicial, antes da hidratação. */
   getSeed(): Project[] {
-    return projectRepository.getSeed();
+    return getSeedProjects();
   },
 
-  getAll(): Project[] {
-    return projectRepository.getAll();
-  },
-
-  create(data: ProjectFormData): Project {
+  /**
+   * Constrói o registro. Não persiste: quem grava é a coleção compartilhada,
+   * que sabe se o destino é o banco ou o navegador. Antes disto o serviço
+   * escrevia direto no `localStorage`, o que o prendia a uma fonte só.
+   */
+  build(data: ProjectFormData): Project {
     const now = new Date();
-    const project: Project = {
+
+    return {
       id: crypto.randomUUID(),
       ...normalize(data),
       createdAt: now,
       updatedAt: now,
     };
-
-    return projectRepository.create(project);
   },
 
-  update(project: Project, data: ProjectFormData): Project {
-    return projectRepository.update({
+  apply(project: Project, data: ProjectFormData): Project {
+    return {
       ...project,
       ...normalize(data),
       updatedAt: new Date(),
-    });
-  },
-
-  delete(id: string): void {
-    projectRepository.delete(id);
+    };
   },
 
   toFormData(project: Project): ProjectFormData {
