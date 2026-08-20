@@ -2,7 +2,7 @@
 
 import type { SupabaseClient } from "@supabase/supabase-js";
 
-import { flag, items, record, text } from "@/lib/shape";
+import { flag, items, record, text, textList } from "@/lib/shape";
 import type { Database, ProfileRow } from "@/lib/supabase/types";
 import type { Person, Team } from "@/models/Assignment";
 
@@ -39,6 +39,8 @@ export function toTeam(raw: unknown): Team {
     id: text(row.id),
     name: text(row.name),
     order: typeof row.position === "number" ? row.position : 0,
+    // Equipes gravadas antes da coluna existir não têm o campo.
+    categoryIds: textList(row.category_ids),
   };
 }
 
@@ -99,5 +101,25 @@ export async function setPersonActive(
   isActive: boolean
 ): Promise<void> {
   const { error } = await client.from("profiles").update({ is_active: isActive }).eq("id", id);
+  if (error) throw new Error(error.message);
+}
+
+/**
+ * Define por quais categorias do portal a equipe responde.
+ *
+ * Sem servidor não há o que gravar: as equipes existem nos dois modos, mas a
+ * edição do cadastro é uma operação compartilhada, e no navegador ela não
+ * teria com quem ser compartilhada.
+ */
+export async function setTeamCategories(
+  client: Client,
+  id: string,
+  categoryIds: string[]
+): Promise<void> {
+  const { error } = await client
+    .from("teams")
+    .update({ category_ids: categoryIds })
+    .eq("id", id);
+
   if (error) throw new Error(error.message);
 }

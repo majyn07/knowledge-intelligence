@@ -18,10 +18,12 @@ import {
  * portal. Isso é o portal, não um erro de levantamento, e espelhá-lo é o
  * trabalho desta semente.
  *
- * `AltoQi Visus Workflow` fica sem seções porque no dia do levantamento a
- * categoria dele no portal não tinha nenhuma — inventar seria pior que
- * admitir a lacuna. `Quero falar com o Suporte` continua não confirmada:
- * aparenta ser página de contato, e não categoria de conteúdo.
+ * Duas categorias ficam sem seções, e as duas foram conferidas no portal:
+ * `AltoQi Visus Workflow`, que no dia do levantamento não tinha nenhuma, e
+ * `Quero falar com o Suporte`, que é categoria de verdade — aparece entre as
+ * treze da página inicial — mas serve de porta de entrada para o atendimento,
+ * não de prateleira de artigo. Ficam vazias porque é o que elas são;
+ * inventar seção seria pior que admitir a lacuna.
  */
 const portal: { name: string; isProduct: boolean; sections: string[] }[] = [
   {

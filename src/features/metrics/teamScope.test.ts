@@ -7,8 +7,8 @@ import type { PlanWorkspaceItem } from "@/features/plans/types/PlanWorkspace";
 import { scopeToTeam, teamOfAssignment } from "./teamScope";
 
 const teams: Team[] = [
-  { id: "eq-visus", name: "Suporte Visus", order: 0 },
-  { id: "eq-eletrica", name: "Suporte Builder Elétrica", order: 1 },
+  { id: "eq-visus", name: "Suporte Visus", order: 0, categoryIds: [] },
+  { id: "eq-eletrica", name: "Suporte Builder Elétrica", order: 1, categoryIds: [] },
 ];
 
 const people: Person[] = [

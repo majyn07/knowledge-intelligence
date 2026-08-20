@@ -11,8 +11,8 @@ import type { Team } from "@/models/Assignment";
  * equipe, e as atribuições parariam de resolver na virada.
  */
 export const seedTeams: Team[] = [
-  { id: "team-suporte-builder-eletrica", name: "Suporte Builder Elétrica", order: 0 },
-  { id: "team-suporte-builder-hidraulica", name: "Suporte Builder Hidráulica", order: 1 },
-  { id: "team-suporte-estruturas", name: "Suporte Estruturas", order: 2 },
-  { id: "team-suporte-visus", name: "Suporte Visus", order: 3 },
+  { id: "team-suporte-builder-eletrica", name: "Suporte Builder Elétrica", order: 0, categoryIds: [] },
+  { id: "team-suporte-builder-hidraulica", name: "Suporte Builder Hidráulica", order: 1, categoryIds: [] },
+  { id: "team-suporte-estruturas", name: "Suporte Estruturas", order: 2, categoryIds: [] },
+  { id: "team-suporte-visus", name: "Suporte Visus", order: 3, categoryIds: [] },
 ];

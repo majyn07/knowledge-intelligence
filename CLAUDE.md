@@ -174,6 +174,19 @@ comentário é registro do que foi dito, e não se reescreve.
 quem fez o quê. A política do banco é a mesma em todas as tabelas; se um dia
 houver papéis, ela muda ali e em nenhum outro lugar.
 
+**A equipe é sugerida, nunca derivada.** Cada equipe declara em Configurações
+por quais categorias do portal responde, e classificar um artigo preenche o
+autor a partir disso — sem sobrescrever quem já foi escolhido, e dizendo na
+tela que a sugestão foi dela. Derivar automaticamente criaria um responsável
+que ninguém escolheu, e em QiOnboarding ou Novidades de Release, que não têm
+equipe óbvia, o palpite apareceria com cara de decisão. Duas equipes na mesma
+categoria desligam a sugestão: escolher uma seria arbitrário, e arbitrário com
+cara de sugestão é pior que campo vazio.
+
+O mapa é **cadastro, não constante** — mesma razão do resto da classificação:
+as categorias do portal mudam e as equipes mudam, e ninguém vai abrir o código
+para acompanhar.
+
 **Atribuição guarda identificador, não nome.** Era nome, com a justificativa de
 que remover alguém não apagaria o registro de quem conduziu. Com conta, o nome
 passou a ser editável pela própria pessoa, e renomear orfanaria tudo. Quem

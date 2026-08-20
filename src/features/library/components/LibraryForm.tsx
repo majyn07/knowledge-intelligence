@@ -13,6 +13,8 @@ import {
   type KnowledgeArticle,
 } from "@/models/KnowledgeArticle";
 import { findSection, sectionsOf } from "@/models/Taxonomy";
+import { usePeople } from "@/features/people/providers/PeopleProvider";
+import { suggestTeam } from "@/features/people/suggestTeam";
 import { useTaxonomy } from "@/features/taxonomy/providers/TaxonomyProvider";
 
 import { PersonSelect } from "@/features/people/components/PersonSelect";
@@ -114,6 +116,36 @@ export function LibraryForm({
     () => (categoryId === "" ? [] : sectionsOf(taxonomy, categoryId)),
     [categoryId, taxonomy]
   );
+
+  const { teams } = usePeople();
+
+  /*
+    Preenchimento silencioso é o risco da sugestão: ninguém desconfia do que já
+    veio preenchido. A tela diz que foi ela quem escolheu, e some assim que a
+    pessoa mexe no campo.
+  */
+  const [suggestedAuthor, setSuggestedAuthor] = useState(false);
+
+  /**
+   * Escolher a seção preenche o autor, quando ele ainda está vazio.
+   *
+   * Nunca sobrescreve: quem já escolheu alguém decidiu, e trocar por baixo
+   * seria o produto discordando de uma escolha humana. A sugestão sai do
+   * cadastro de equipes, não de um mapa no código, e some quando duas equipes
+   * declaram a mesma categoria — aí escolher uma delas seria arbitrário.
+   */
+  function chooseSection(sectionId: string) {
+    change("sectionId", sectionId);
+
+    if (formData.author !== "") return;
+
+    const suggested = suggestTeam(sectionId, taxonomy, teams);
+
+    if (suggested) {
+      change("author", suggested);
+      setSuggestedAuthor(true);
+    }
+  }
 
   const genreName = (id: string) =>
     taxonomy.genres.find((genre) => genre.id === id)?.name ?? "Não definido";
@@ -289,7 +321,7 @@ export function LibraryForm({
             <Label htmlFor="article-section">Seção</Label>
             <Select
               value={formData.sectionId || UNSET}
-              onValueChange={(value) => change("sectionId", value === UNSET ? "" : (value ?? ""))}
+              onValueChange={(value) => chooseSection(value === UNSET ? "" : (value ?? ""))}
               disabled={categoryId === ""}
             >
               <SelectTrigger id="article-section">
@@ -358,9 +390,18 @@ export function LibraryForm({
             <PersonSelect
               id="author"
               value={formData.author}
-              onChange={(name) => change("author", name)}
+              onChange={(name) => {
+                setSuggestedAuthor(false);
+                change("author", name);
+              }}
               placeholder="Sem autor"
             />
+
+            {suggestedAuthor && (
+              <p className="text-xs text-muted-foreground">
+                Sugerido pela categoria da seção. Troque se não for.
+              </p>
+            )}
           </div>
         </div>
 

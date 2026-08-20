@@ -22,6 +22,7 @@ import { seedTeams } from "../mock/teams";
 import {
   readPeopleAndTeams,
   setPersonActive,
+  setTeamCategories as writeTeamCategories,
   updateProfile,
 } from "../peopleRepository";
 
@@ -39,6 +40,8 @@ interface PeopleContextValue {
 
   updateMe: (fields: { name?: string; role?: string; teamId?: string; avatarUrl?: string }) => Promise<void>;
   deactivate: (id: string, isActive: boolean) => Promise<void>;
+  /** Por quais categorias do portal a equipe responde. */
+  setTeamCategories: (teamId: string, categoryIds: string[]) => Promise<void>;
 
   /** Pessoas ativas de uma equipe. */
   peopleOfTeam: (teamId: string) => Person[];
@@ -173,6 +176,23 @@ export function PeopleProvider({ children }: { children: ReactNode }) {
     [supabase]
   );
 
+  const setTeamCategories = useCallback(
+    async (teamId: string, categoryIds: string[]) => {
+      if (!supabase) return;
+
+      try {
+        await writeTeamCategories(supabase, teamId, categoryIds);
+      } catch (error) {
+        toast.error(
+          `Não foi possível salvar: ${
+            error instanceof Error ? error.message : "erro desconhecido"
+          }`
+        );
+      }
+    },
+    [supabase]
+  );
+
   const peopleOfTeam = useCallback(
     (teamId: string) => people.filter((person) => person.isActive && person.teamId === teamId),
     [people]
@@ -188,6 +208,7 @@ export function PeopleProvider({ children }: { children: ReactNode }) {
       setCurrentPerson: setLocalActor,
       updateMe,
       deactivate,
+      setTeamCategories,
       peopleOfTeam,
     }),
     [
@@ -198,6 +219,7 @@ export function PeopleProvider({ children }: { children: ReactNode }) {
       people,
       peopleOfTeam,
       setLocalActor,
+      setTeamCategories,
       teams,
       updateMe,
     ]

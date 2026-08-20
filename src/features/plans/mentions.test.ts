@@ -11,7 +11,7 @@ import {
   plainMentionText,
 } from "./mentions";
 
-const teams: Team[] = [{ id: "eq-visus", name: "Suporte Visus", order: 0 }];
+const teams: Team[] = [{ id: "eq-visus", name: "Suporte Visus", order: 0, categoryIds: [] }];
 
 const people: Person[] = [
   {

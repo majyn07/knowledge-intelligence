@@ -50,8 +50,8 @@ function base(): PanelData {
       },
     ],
     teams: [
-      { id: "eq-visus", name: "Suporte Visus", order: 0 },
-      { id: "eq-eletrica", name: "Suporte Builder Elétrica", order: 1 },
+      { id: "eq-visus", name: "Suporte Visus", order: 0, categoryIds: [] },
+      { id: "eq-eletrica", name: "Suporte Builder Elétrica", order: 1, categoryIds: [] },
     ],
     activeProjectId: "p1",
   };
