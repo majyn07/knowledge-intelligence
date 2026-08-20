@@ -99,15 +99,58 @@ export function countLocal(taxonomy: Taxonomy): LocalWorkspace {
   };
 }
 
-/** O servidor já tem conteúdo? Se sim, não há o que migrar. */
-export async function serverHasContent(client: Client): Promise<boolean> {
-  const { count, error } = await client
-    .from("projects")
-    .select("id", { count: "exact", head: true });
+/** Tabela do banco correspondente a cada coleção. */
+const tables: Record<keyof LocalWorkspace, keyof Database["public"]["Tables"]> = {
+  projects: "projects",
+  tickets: "tickets",
+  conversations: "support_conversations",
+  analyses: "analyses",
+  plans: "plans",
+  articles: "articles",
+  events: "activity_events",
+};
 
-  if (error) throw new Error(error.message);
+/**
+ * Quanto o servidor tem de cada coleção.
+ *
+ * Conta **todas**, e não só projetos. A primeira versão perguntava apenas se
+ * havia projeto, e isso escondeu uma migração que subiu pela metade: os planos
+ * falharam, o que vinha depois deles nem tentou, e como projetos já existia a
+ * tela nunca mais voltou. O conteúdo ficou preso no navegador sem caminho de
+ * volta.
+ */
+export async function serverCounts(client: Client): Promise<LocalWorkspace> {
+  const entries = Object.entries(tables) as [keyof LocalWorkspace, keyof Database["public"]["Tables"]][];
 
-  return (count ?? 0) > 0;
+  const counted = await Promise.all(
+    entries.map(async ([key, table]) => {
+      const { count, error } = await client
+        .from(table)
+        .select("id", { count: "exact", head: true });
+
+      if (error) throw new Error(`${table}: ${error.message}`);
+
+      return [key, count ?? 0] as const;
+    })
+  );
+
+  return Object.fromEntries(counted) as unknown as LocalWorkspace;
+}
+
+/**
+ * O que existe aqui e não existe lá.
+ *
+ * Só conta como pendente a coleção que está vazia no servidor: se ela já tem
+ * qualquer linha, quem mandou foi alguém, e sobrescrever com a cópia deste
+ * navegador seria descartar trabalho alheio.
+ */
+export function pendingCollections(
+  local: LocalWorkspace,
+  server: LocalWorkspace
+): (keyof LocalWorkspace)[] {
+  return (Object.keys(tables) as (keyof LocalWorkspace)[]).filter(
+    (key) => local[key] > 0 && server[key] === 0
+  );
 }
 
 /**
@@ -118,9 +161,9 @@ export async function serverHasContent(client: Client): Promise<boolean> {
  * seção. Subir tudo de uma vez produziria violação de chave estrangeira num
  * caminho que ninguém entenderia.
  *
- * O que já está no servidor não é tocado: esta função só roda quando ele está
- * vazio, e quem chega depois lê o que o primeiro enviou em vez de sobrescrever
- * com a própria cópia.
+ * Envia tudo, mesmo o que já subiu: a gravação é por identificador, então
+ * reenviar é inofensivo — e garante que os registros referenciados existam
+ * antes de quem os referencia, inclusive quando só falta uma parte.
  */
 export async function pushLocalWorkspace(
   client: Client,

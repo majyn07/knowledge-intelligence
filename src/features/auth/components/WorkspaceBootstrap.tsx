@@ -10,8 +10,9 @@ import { getSupabase } from "@/lib/supabase/client";
 
 import {
   countLocal,
+  pendingCollections,
   pushLocalWorkspace,
-  serverHasContent,
+  serverCounts,
   type LocalWorkspace,
 } from "../workspaceBootstrap";
 
@@ -43,6 +44,8 @@ export function WorkspaceBootstrap({ children }: { children: ReactNode }) {
 
   const [phase, setPhase] = useState<Phase>("verificando");
   const [local, setLocal] = useState<LocalWorkspace | null>(null);
+  const [pending, setPending] = useState<(keyof LocalWorkspace)[]>([]);
+  const [partial, setPartial] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -55,24 +58,22 @@ export function WorkspaceBootstrap({ children }: { children: ReactNode }) {
 
     let alive = true;
 
-    serverHasContent(supabase)
-      .then((hasContent) => {
+    serverCounts(supabase)
+      .then((server) => {
         if (!alive) return;
 
-        if (hasContent) {
-          setPhase("pronto");
-          return;
-        }
-
         const counts = countLocal(taxonomy);
-        const total = Object.values(counts).reduce((sum, n) => sum + n, 0);
+        const falta = pendingCollections(counts, server);
 
-        if (total === 0) {
+        if (falta.length === 0) {
           setPhase("pronto");
           return;
         }
 
         setLocal(counts);
+        setPending(falta);
+        // Se algo já subiu, esta é a segunda metade de uma migração interrompida.
+        setPartial(Object.values(server).some((n) => n > 0));
         setPhase("perguntando");
       })
       .catch(() => {
@@ -111,17 +112,18 @@ export function WorkspaceBootstrap({ children }: { children: ReactNode }) {
         <UploadCloud className="h-6 w-6 text-primary" aria-hidden />
 
         <h1 className="mt-5 text-2xl font-semibold tracking-tight">
-          Enviar o trabalho deste navegador?
+          {partial ? "Faltou enviar parte do conteúdo" : "Enviar o trabalho deste navegador?"}
         </h1>
 
         <p className="mt-2 text-sm text-muted-foreground">
-          O servidor compartilhado ainda está vazio. Encontramos conteúdo
-          guardado aqui, e ele pode ser a base para a equipe.
+          {partial
+            ? "Um envio anterior subiu só uma parte. O que está listado abaixo continua neste navegador e ainda não chegou ao servidor."
+            : "O servidor compartilhado ainda está vazio. Encontramos conteúdo guardado aqui, e ele pode ser a base para a equipe."}
         </p>
 
         <ul className="mt-6 flex flex-col gap-1.5 rounded-xl border bg-card p-5 text-sm">
           {labels
-            .filter(([key]) => (local?.[key] ?? 0) > 0)
+            .filter(([key]) => pending.includes(key))
             .map(([key, label]) => (
               <li key={key} className="flex items-baseline justify-between gap-4">
                 <span className="text-muted-foreground">{label}</span>

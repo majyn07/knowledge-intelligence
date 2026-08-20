@@ -2,7 +2,11 @@ import { describe, expect, it } from "vitest";
 
 import { buildPortalTaxonomy } from "@/features/taxonomy/mock/portalTaxonomy";
 
-import { countLocal } from "./workspaceBootstrap";
+import {
+  countLocal,
+  pendingCollections,
+  type LocalWorkspace,
+} from "./workspaceBootstrap";
 
 /*
   Sem `window`, `readRaw` devolve `null` para toda chave — que é exatamente o
@@ -41,5 +45,41 @@ describe("countLocal com nenhuma chave gravada", () => {
     if (counts.conversations > 0) {
       expect(counts.tickets).toBeGreaterThan(0);
     }
+  });
+});
+
+describe("pendingCollections", () => {
+  const vazio: LocalWorkspace = {
+    projects: 0, tickets: 0, conversations: 0,
+    analyses: 0, plans: 0, articles: 0, events: 0,
+  };
+
+  it("aponta o que existe aqui e não existe lá", () => {
+    const local = { ...vazio, projects: 5, plans: 2 };
+
+    expect(pendingCollections(local, vazio)).toEqual(["projects", "plans"]);
+  });
+
+  it("enxerga a migração que subiu pela metade", () => {
+    // O caso real: projetos e atendimentos subiram, os planos falharam, e o
+    // resto da ordem nem tentou. Antes disto a tela nunca mais voltava.
+    const local = { ...vazio, projects: 5, tickets: 3, plans: 2, articles: 4 };
+    const servidor = { ...vazio, projects: 5, tickets: 3 };
+
+    expect(pendingCollections(local, servidor)).toEqual(["plans", "articles"]);
+  });
+
+  it("não reenvia coleção que já tem conteúdo no servidor", () => {
+    // Linha lá significa que alguém mandou; sobrescrever descartaria trabalho.
+    const local = { ...vazio, articles: 4 };
+    const servidor = { ...vazio, articles: 1 };
+
+    expect(pendingCollections(local, servidor)).toEqual([]);
+  });
+
+  it("nada pendente quando o servidor está completo", () => {
+    const cheio = { ...vazio, projects: 5, articles: 4 };
+
+    expect(pendingCollections(cheio, cheio)).toEqual([]);
   });
 });
