@@ -252,6 +252,24 @@ begin
 end;
 $$;
 
+-- Tabela criada por SQL não fica necessariamente exposta na API de dados: RLS
+-- controla quais linhas aparecem depois que a tabela é alcançável, e não se
+-- ela é alcançável. Sem o `grant`, o cliente recebe erro de permissão mesmo
+-- com a política correta.
+do $$
+declare
+  t text;
+begin
+  foreach t in array array[
+    'profiles', 'taxonomy_categories', 'taxonomy_sections', 'taxonomy_entries',
+    'projects', 'tickets', 'analyses', 'plans', 'articles', 'activity_events'
+  ]
+  loop
+    execute format('grant select, insert, update, delete on public.%I to authenticated', t);
+  end loop;
+end;
+$$;
+
 -- ============================================================
 -- Tempo real
 -- ============================================================

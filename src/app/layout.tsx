@@ -12,6 +12,8 @@ import { TicketsProvider } from "@/features/analysis/providers/TicketsProvider";
 import { ProjectProvider } from "@/providers/ProjectProvider";
 import { BrandThemeProvider } from "@/providers/BrandThemeProvider";
 import { TaxonomyProvider } from "@/features/taxonomy/providers/TaxonomyProvider";
+import { SessionProvider } from "@/features/auth/providers/SessionProvider";
+import { AccessGate } from "@/features/auth/components/AccessGate";
 
 import "./globals.css";
 
@@ -52,6 +54,12 @@ export default function RootLayout({
     <html lang="pt-BR" className={poppins.variable}>
       <body className="min-h-screen bg-background font-sans text-foreground antialiased">
         <BrandThemeProvider>
+          {/*
+            Sessão acima de tudo que lê dados: com as políticas do banco
+            fechadas, não há leitura possível antes de haver acesso.
+          */}
+          <SessionProvider>
+          <AccessGate>
           <TaxonomyProvider>
           <PeopleProvider>
           <ActivityProvider>
@@ -73,6 +81,8 @@ export default function RootLayout({
           </ActivityProvider>
           </PeopleProvider>
           </TaxonomyProvider>
+          </AccessGate>
+          </SessionProvider>
         </BrandThemeProvider>
       </body>
     </html>
