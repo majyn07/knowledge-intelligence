@@ -8,6 +8,10 @@ import { parseConversations, parseTickets } from "@/features/analysis/normalizeS
 import { parseArticles } from "@/features/library/normalizeArticle";
 import { parsePlans } from "@/features/plans/normalizePlan";
 import { parseProjects } from "@/features/projects/normalizeProject";
+import { projectService } from "@/features/projects/services/ProjectService";
+import { ticketRepository } from "@/features/analysis/repositories/ticketRepository";
+import { articleService } from "@/features/library/services/articleService";
+import { planWorkspaceMock } from "@/features/plans/mock/planWorkspace";
 import { readRaw, STORAGE_KEYS } from "@/lib/storage";
 import {
   fromAnalysis,
@@ -41,24 +45,42 @@ export interface LocalWorkspace {
  * antigo sobe corrigido em vez de subir quebrado.
  */
 function readLocal(taxonomy: Taxonomy) {
-  const parse = <T>(key: string, parser: (raw: string) => T[]): T[] => {
+  /*
+    Chave ausente cai na semente, e não em lista vazia.
+
+    O produto mostra a semente enquanto ninguém editou aquela coleção — nunca
+    chega a gravar nada. Tratar isso como "não há nada" quebraria o envio: os
+    atendimentos, planos e artigos da semente referenciam os projetos dela por
+    chave estrangeira, e subiriam apontando para projeto inexistente.
+
+    O critério é o que a pessoa vê na tela, não o que por acaso foi gravado.
+  */
+  const parse = <T>(key: string, parser: (raw: string) => T[], seed: T[] = []): T[] => {
     const raw = readRaw(key);
-    if (raw === null) return [];
+    if (raw === null) return seed;
 
     try {
       return parser(raw);
     } catch {
-      return [];
+      return seed;
     }
   };
 
   return {
-    projects: parse(STORAGE_KEYS.projects, parseProjects),
-    tickets: parse(STORAGE_KEYS.tickets, parseTickets),
-    conversations: parse(STORAGE_KEYS.conversations, parseConversations),
+    projects: parse(STORAGE_KEYS.projects, parseProjects, projectService.getSeed()),
+    tickets: parse(STORAGE_KEYS.tickets, parseTickets, ticketRepository.getSeedTickets()),
+    conversations: parse(
+      STORAGE_KEYS.conversations,
+      parseConversations,
+      ticketRepository.getSeedConversations()
+    ),
     analyses: parse(STORAGE_KEYS.analyses, parseAnalyses),
-    plans: parse(STORAGE_KEYS.plans, parsePlans),
-    articles: parse(STORAGE_KEYS.articles, (raw) => parseArticles(raw, taxonomy)),
+    plans: parse(STORAGE_KEYS.plans, parsePlans, planWorkspaceMock),
+    articles: parse(
+      STORAGE_KEYS.articles,
+      (raw) => parseArticles(raw, taxonomy),
+      articleService.getSeed()
+    ),
     events: parse(STORAGE_KEYS.activity, parseEvents),
   };
 }
