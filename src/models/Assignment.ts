@@ -10,6 +10,14 @@ export interface Team {
   id: string;
   name: string;
   order: number;
+  /**
+   * Categorias do portal pelas quais a equipe responde.
+   *
+   * Serve para **sugerir** o responsável, nunca para decidi-lo: quem escolhe
+   * continua sendo quem preenche o formulário. Vazio é o normal — equipe que
+   * não declarou nada simplesmente não é sugerida.
+   */
+  categoryIds: string[];
 }
 
 /**

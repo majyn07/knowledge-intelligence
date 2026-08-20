@@ -21,6 +21,7 @@ import { useProject } from "@/providers/ProjectProvider";
 import { migrateAssignment } from "@/models/Assignment";
 
 import { AvatarUpload } from "./AvatarUpload";
+import { TeamCategories } from "./TeamCategories";
 import { PersonAvatar } from "./PersonAvatar";
 import { usePeople } from "../providers/PeopleProvider";
 
@@ -188,6 +189,10 @@ export function PeopleManager() {
                       </StatusBadge>
                     )}
                   </span>
+
+                  <div className="w-full">
+                    <TeamCategories team={team} />
+                  </div>
                 </li>
               );
             })}

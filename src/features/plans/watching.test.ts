@@ -7,7 +7,7 @@ import type { KnowledgeArticle } from "@/models/KnowledgeArticle";
 import { buildWatching } from "./watching";
 import type { PlanComment, PlanWorkspaceItem } from "./types/PlanWorkspace";
 
-const teams: Team[] = [{ id: "eq-visus", name: "Suporte Visus", order: 0 }];
+const teams: Team[] = [{ id: "eq-visus", name: "Suporte Visus", order: 0, categoryIds: [] }];
 
 const me: Person = {
   id: "pes-1",
