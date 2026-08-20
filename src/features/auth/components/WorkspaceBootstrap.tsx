@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState, type ReactNode } from "react";
 import { UploadCloud } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { LoadingScreen } from "@/components/common/LoadingScreen";
 import { useTaxonomy } from "@/features/taxonomy/providers/TaxonomyProvider";
 import { getSupabase } from "@/lib/supabase/client";
 
@@ -102,7 +103,7 @@ export function WorkspaceBootstrap({ children }: { children: ReactNode }) {
   }, [taxonomy]);
 
   if (phase === "pronto") return <>{children}</>;
-  if (phase === "verificando") return null;
+  if (phase === "verificando") return <LoadingScreen label="Conectando ao servidor…" />;
 
   return (
     <main className="flex min-h-screen items-center justify-center px-6 py-12">

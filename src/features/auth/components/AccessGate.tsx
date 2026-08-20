@@ -2,6 +2,8 @@
 
 import type { ReactNode } from "react";
 
+import { LoadingScreen } from "@/components/common/LoadingScreen";
+
 import { useSession } from "../providers/SessionProvider";
 import { SignInScreen } from "./SignInScreen";
 
@@ -19,7 +21,8 @@ import { SignInScreen } from "./SignInScreen";
 export function AccessGate({ children }: { children: ReactNode }) {
   const { state } = useSession();
 
-  if (state === "carregando") return null;
+  // Tela de espera, e não `null`: nada renderizado é indistinguível de app quebrado.
+  if (state === "carregando") return <LoadingScreen label="Verificando o acesso…" />;
   if (state === "anonimo") return <SignInScreen />;
 
   return <>{children}</>;

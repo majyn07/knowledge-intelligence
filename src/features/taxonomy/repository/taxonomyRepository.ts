@@ -107,13 +107,21 @@ export async function seedTaxonomyIfEmpty(
 
   const rows = fromTaxonomy(seed);
 
-  const categorias = await client.from("taxonomy_categories").insert(rows.categories);
+  /*
+    `upsert` e não `insert`: em desenvolvimento o React executa efeitos duas
+    vezes, e duas semeaduras simultâneas veriam a contagem zerada juntas. Com
+    `insert`, a segunda quebraria na chave primária; com `upsert`, ela apenas
+    reescreve o que a primeira já gravou.
+
+    A ordem também importa: seção referencia categoria.
+  */
+  const categorias = await client.from("taxonomy_categories").upsert(rows.categories);
   if (categorias.error) throw new Error(categorias.error.message);
 
-  const secoes = await client.from("taxonomy_sections").insert(rows.sections);
+  const secoes = await client.from("taxonomy_sections").upsert(rows.sections);
   if (secoes.error) throw new Error(secoes.error.message);
 
-  const entradas = await client.from("taxonomy_entries").insert(rows.entries);
+  const entradas = await client.from("taxonomy_entries").upsert(rows.entries);
   if (entradas.error) throw new Error(entradas.error.message);
 
   return true;
