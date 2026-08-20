@@ -4,6 +4,7 @@ import localFont from "next/font/local";
 import { Toaster } from "@/components/ui/sonner";
 
 import { PlansProvider } from "@/features/plans/providers/PlansProvider";
+import { PanelsProvider } from "@/features/metrics/panels/PanelsProvider";
 import { LibraryProvider } from "@/features/library/providers/LibraryProvider";
 import { PeopleProvider } from "@/features/people/providers/PeopleProvider";
 import { ActivityProvider } from "@/features/activities/providers/ActivityProvider";
@@ -87,7 +88,13 @@ export default function RootLayout({
             <TicketsProvider>
             <KnowledgeLifecycleProvider>
               <PlansProvider>
-                <LibraryProvider>{children}</LibraryProvider>
+                <LibraryProvider>
+                  {/*
+                    Painéis por último: não dependem de ninguém, e quem os lê
+                    precisa de todos os domínios acima para contar.
+                  */}
+                  <PanelsProvider>{children}</PanelsProvider>
+                </LibraryProvider>
               </PlansProvider>
             </KnowledgeLifecycleProvider>
             </TicketsProvider>

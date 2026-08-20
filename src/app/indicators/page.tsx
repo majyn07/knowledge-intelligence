@@ -16,6 +16,7 @@ import { useLibrary } from "@/features/library/providers/LibraryProvider";
 import { CoverageMap } from "@/features/library/components/CoverageMap";
 import { CycleFunnel } from "@/features/metrics/components/CycleFunnel";
 import { PeriodMetricCard } from "@/features/metrics/components/PeriodMetricCard";
+import { PanelBoard } from "@/features/metrics/panels/components/PanelBoard";
 import { selectPeriodMetrics, type MetricPeriod } from "@/features/metrics/periodMetrics";
 import { selectProjectMetrics } from "@/features/metrics/projectMetrics";
 import { usePlans } from "@/features/plans/providers/PlansProvider";
@@ -162,6 +163,8 @@ export default function IndicatorsPage() {
           O funil responde onde o fluxo trava; o mapa, o que falta cobrir. Os
           cartões acima contam o que existe — as três perguntas são diferentes.
         */}
+        <PanelBoard />
+
         <CycleFunnel />
 
         <CoverageMap />

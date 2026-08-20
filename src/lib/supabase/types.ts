@@ -21,6 +21,19 @@ export type ProfileRow = {
   created_at: string;
 };
 
+export type DashboardPanelRow = {
+  id: string;
+  title: string;
+  source: string;
+  breakdown: string;
+  visual: string;
+  /** Nulo é "desde o início", e não campo por preencher. */
+  window_days: number | null;
+  stage: string | null;
+  scoped_to_project: boolean;
+  position: number;
+};
+
 export type TeamRow = {
   id: string;
   name: string;
@@ -205,6 +218,12 @@ export interface Database {
         Update: Partial<TeamRow>;
         Relationships: [];
       };
+      dashboard_panels: {
+        Row: DashboardPanelRow;
+        Insert: DashboardPanelRow;
+        Update: Partial<DashboardPanelRow>;
+        Relationships: [];
+      };
       support_conversations: {
         Row: SupportConversationRow;
         Insert: SupportConversationRow;
@@ -233,6 +252,7 @@ export const REALTIME_TABLES = [
   "support_conversations",
   "teams",
   "profiles",
+  "dashboard_panels",
 ] as const;
 
 export type RealtimeTable = (typeof REALTIME_TABLES)[number];

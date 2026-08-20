@@ -87,6 +87,7 @@ export const STORAGE_KEYS = {
   activity: "visus-activity",
   recent: "visus-recently-viewed",
   sidebar: "visus-workspace-sidebar-collapsed",
+  panels: "visus-dashboard-panels",
   brandTheme: "visus-brand-theme",
 } as const;
 

@@ -64,7 +64,7 @@ Ordem em `app/layout.tsx`, de fora para dentro:
 
 ```
 BrandTheme → Taxonomy → People → Activity → Project
-           → Tickets → KnowledgeLifecycle → Plans → Library
+           → Tickets → KnowledgeLifecycle → Plans → Library → Panels
 ```
 
 `Taxonomy` fica logo abaixo do tema porque não depende de ninguém e quase todo
@@ -73,7 +73,8 @@ do armazenamento, e os filtros de artigo e de projeto leem as opções dali.
 
 `Activity` fica acima dos domínios porque todos registram eventos nele e ele não
 depende de ninguém. `Tickets` fica acima de `KnowledgeLifecycle` porque a análise
-parte do atendimento.
+parte do atendimento. `Panels` fica por último pelo motivo inverso: não depende
+de ninguém, e quem lê os painéis precisa de todos os domínios acima para contar.
 
 Estado de uma entidade que várias telas consomem é **provider**, não hook solto.
 Já pagamos essa dívida uma vez com a Biblioteca.
@@ -220,7 +221,8 @@ escrevia direto no armazenamento, o que o prendia a uma fonte só.
 
 Ordem de subida importa e não pode ser paralelizada: projeto, atendimento,
 conversa, análise, plano, artigo, histórico. Atendimento referencia projeto,
-conversa referencia atendimento, artigo referencia projeto e seção.
+conversa referencia atendimento, artigo referencia projeto e seção. Painel vai
+por último, sem consequência: ele não referencia ninguém.
 
 ## Taxonomia
 
@@ -367,6 +369,35 @@ Média de nada é `null`, nunca zero — zero diria "chega instantaneamente".
 Relógio nunca é lido durante o render. Use `useNow`: ler no render é impuro e
 diverge na hidratação, porque servidor e cliente têm horas diferentes.
 
+## Painéis
+
+O painel guarda a **pergunta**, não a resposta: origem, quebra, janela e forma
+de visualizar. O número é recalculado a cada abertura, sobre os dados que
+existem agora — gravar o resultado seria gravar um número que envelhece em
+silêncio.
+
+`runPanel(spec, dados, agora)` é puro e recebe tudo pronto: os providers já têm
+as coleções em memória, então somar mais um cartão não custa consulta nenhuma.
+
+**Nem toda quebra serve a toda origem.** `allowedBreakdowns` diz o que cada uma
+sabe responder, e `reconcileSpec` conserta a combinação impossível em vez de
+gravá-la — "atendimentos por gênero" produziria uma coluna vazia com cara de
+dado. A correção acontece na frente de quem edita, não depois.
+
+Painel é **compartilhado**, como o resto do produto: não há papéis, e inventar
+"meu painel" criaria uma noção de dono que nada mais aqui tem. Os padrão são
+semente editável, com `defaultPanels` de volta pelo botão de restaurar — e os
+que a equipe criou continuam onde estavam.
+
+Classificação vazia vira "Não definido" e **continua na tabela**: escondê-la
+faria a soma das linhas não bater com o total, sem ninguém saber por quê.
+
+Data que não dá para situar no tempo fica fora da janela e **vira ressalva**.
+`timeOf` lê ISO e `dd/mm/aaaa`, porque o atendimento guarda `"15/07/2026"`
+desde a primeira versão — sem isso o painel mostrava zero com três atendimentos
+na tela. O que sobra — `"Ontem, 16:20"` dos planos migrados — não é chutado:
+aparece contado à parte, na ressalva.
+
 ## Convenções
 
 - Serviços em camelCase: `articleService`, `projectService`, `planService`
@@ -394,6 +425,10 @@ npm run typecheck
 npm test
 npm run build
 ```
+
+`npm run dev:local` sobe o produto com a fundação compartilhada desligada, sem
+mexer no `.env.local` — conferir o modo navegador exigia editar o arquivo e
+lembrar de desfazer, e esquecer o desfazer deixa a equipe inteira sem banco.
 
 Um hook `PostToolUse` em `.claude/settings.json` roda `typecheck` e `test` em
 segundo plano após edições em `.ts`/`.tsx`, avisando só quando algo quebra.

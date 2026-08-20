@@ -6,6 +6,8 @@ import { parseEvents } from "@/features/activities/normalizeEvent";
 import { parseAnalyses } from "@/features/analysis/normalizeAnalysis";
 import { parseConversations, parseTickets } from "@/features/analysis/normalizeSupport";
 import { parseArticles } from "@/features/library/normalizeArticle";
+import { defaultPanels } from "@/features/metrics/panels/defaultPanels";
+import { fromPanel, parsePanels } from "@/features/metrics/panels/normalizePanel";
 import { parsePlans } from "@/features/plans/normalizePlan";
 import { parseProjects } from "@/features/projects/normalizeProject";
 import { projectService } from "@/features/projects/services/ProjectService";
@@ -35,6 +37,7 @@ export interface LocalWorkspace {
   plans: number;
   articles: number;
   events: number;
+  panels: number;
 }
 
 /**
@@ -82,6 +85,7 @@ function readLocal(taxonomy: Taxonomy) {
       articleService.getSeed()
     ),
     events: parse(STORAGE_KEYS.activity, parseEvents),
+    panels: parse(STORAGE_KEYS.panels, parsePanels, defaultPanels),
   };
 }
 
@@ -96,6 +100,7 @@ export function countLocal(taxonomy: Taxonomy): LocalWorkspace {
     plans: local.plans.length,
     articles: local.articles.length,
     events: local.events.length,
+    panels: local.panels.length,
   };
 }
 
@@ -108,6 +113,7 @@ const tables: Record<keyof LocalWorkspace, keyof Database["public"]["Tables"]> =
   plans: "plans",
   articles: "articles",
   events: "activity_events",
+  panels: "dashboard_panels",
 };
 
 /**
@@ -192,4 +198,7 @@ export async function pushLocalWorkspace(
   await send("plans", local.plans.map(fromPlan));
   await send("articles", local.articles.map(fromArticle));
   await send("activity_events", local.events.map(fromEvent));
+
+  // Painéis não referenciam ninguém, então ficam por último sem consequência.
+  await send("dashboard_panels", local.panels.map(fromPanel));
 }

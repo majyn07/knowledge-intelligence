@@ -6,17 +6,12 @@ import { PageSection } from "@/components/common/page/PageSection";
 import { StatusBadge } from "@/components/common/status/StatusBadge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import type { AnalysisRecord, AnalysisStatus } from "@/models/KnowledgeLifecycle";
+import { analysisStatusLabel } from "@/models/KnowledgeLifecycle";
+import type { AnalysisRecord } from "@/models/KnowledgeLifecycle";
 
 interface NextPriorityProps {
   analyses: AnalysisRecord[];
 }
-
-const statusLabel: Record<AnalysisStatus, string> = {
-  open: "Aberta",
-  in_review: "Em revisão",
-  completed: "Concluída",
-};
 
 function getPriority(analysis: AnalysisRecord) {
   const documentationStatus = analysis.result.classification.documentationStatus;
@@ -63,7 +58,7 @@ export function NextPriority({ analyses }: NextPriorityProps) {
 
                   <div className="mt-5 flex flex-wrap gap-2">
                     <StatusBadge variant="info">
-                      {statusLabel[pendingAnalysis.status]}
+                      {analysisStatusLabel[pendingAnalysis.status]}
                     </StatusBadge>
                     <StatusBadge variant={getPriority(pendingAnalysis).variant}>
                       {getPriority(pendingAnalysis).label}
