@@ -30,25 +30,9 @@ export const planWorkspaceMock: PlanWorkspaceItem[] = [
       { id: "task-3", label: "Validar conteúdo com Suporte", completed: false, owner: "Suporte" },
       { id: "task-4", label: "Publicar na Biblioteca", completed: false, owner: "Mariana Costa" },
     ],
-    timeline: [
-      { id: "timeline-1", label: "Criado a partir da análise", date: "15 jul.", completed: true },
-      { id: "timeline-2", label: "Diagnóstico revisado", date: "16 jul.", completed: true },
-      { id: "timeline-3", label: "Em desenvolvimento", date: "Hoje", completed: true },
-      { id: "timeline-4", label: "Em revisão", date: "Próximo passo", completed: false },
-      { id: "timeline-5", label: "Publicado", date: "Pendente", completed: false },
-    ],
     comments: [
       { id: "comment-1", author: "Mariana Costa", message: "O novo fluxo precisa deixar explícita a validação após o login.", date: "Hoje, 09:40" },
       { id: "comment-2", author: "Suporte", message: "Confirmamos que este é o principal ponto de dúvida dos últimos atendimentos.", date: "Hoje, 10:05" },
-    ],
-    attachments: [
-      { id: "attachment-1", name: "Fluxo de autenticação.pdf", type: "Documento", description: "Referência técnica do fluxo atualizado" },
-      { id: "attachment-2", name: "Capturas pendentes", type: "Checklist", description: "Lista de imagens a atualizar" },
-    ],
-    copilotInsights: [
-      { type: "suggestion", title: "Aproveite o artigo existente", description: "A atualização preserva referências já conhecidas e evita um novo conteúdo concorrente." },
-      { type: "risk", title: "Risco de publicação incompleta", description: "Sem as capturas atualizadas, o procedimento pode continuar ambíguo para novos usuários." },
-      { type: "duplicate", title: "Sobreposição identificada", description: "O artigo de permissões deve permanecer como complemento, não como conteúdo duplicado." },
     ],
   },
   {
@@ -64,9 +48,6 @@ export const planWorkspaceMock: PlanWorkspaceItem[] = [
     source: { projectId: "project-001", ticketId: "45812", analysisId: "analysis-001", opportunityId: "opp-002", analysisLabel: "Análise de autenticação", opportunityTitle: "Revisar documentação de permissões" },
     document: { executiveSummary: "Consolidar a documentação dos novos perfis de acesso.", context: "A análise relacionou permissões ao fluxo de autenticação.", problem: "A documentação não diferencia os perfis atuais.", diagnosis: "Há conteúdos sobrepostos e terminologia inconsistente.", evidence: ["Perfis novos não aparecem no artigo principal."], decisions: ["Consolidar nomenclaturas."], proposal: "Atualizar a matriz de permissões e revisar exemplos.", acceptanceCriteria: ["Todos os perfis estão descritos."], notes: "Aguardando validação técnica.", references: ["Atendimento #45812"] },
     tasks: [{ id: "task-5", label: "Validar matriz de perfis", completed: true, owner: "Rafael Lima" }, { id: "task-6", label: "Revisar exemplos de acesso", completed: false, owner: "Suporte" }],
-    timeline: [{ id: "timeline-6", label: "Criado", date: "14 jul.", completed: true }, { id: "timeline-7", label: "Em revisão", date: "Hoje", completed: true }, { id: "timeline-8", label: "Aprovado", date: "Pendente", completed: false }],
     comments: [{ id: "comment-3", author: "Rafael Lima", message: "A matriz revisada está pronta para validação do time.", date: "Ontem, 16:20" }],
-    attachments: [{ id: "attachment-3", name: "Matriz de permissões", type: "Documento", description: "Referência dos novos perfis" }],
-    copilotInsights: [{ type: "suggestion", title: "Mantenha a terminologia consistente", description: "Use os mesmos nomes de perfil no artigo, produto e suporte." }],
   },
 ];

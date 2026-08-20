@@ -8,25 +8,11 @@ export interface PlanTask {
   owner: string;
 }
 
-export interface PlanTimelineItem {
-  id: string;
-  label: string;
-  date: string;
-  completed: boolean;
-}
-
 export interface PlanComment {
   id: string;
   author: string;
   message: string;
   date: string;
-}
-
-export interface PlanAttachment {
-  id: string;
-  name: string;
-  type: string;
-  description: string;
 }
 
 export interface PlanDocument {
@@ -40,12 +26,6 @@ export interface PlanDocument {
   acceptanceCriteria: string[];
   notes: string;
   references: string[];
-}
-
-export interface PlanCopilotInsight {
-  title: string;
-  description: string;
-  type: "suggestion" | "risk" | "duplicate";
 }
 
 /** References the decision that originated the plan without copying the analysis. */
@@ -72,8 +52,35 @@ export interface PlanWorkspaceItem {
   source: PlanSource;
   document: PlanDocument;
   tasks: PlanTask[];
-  timeline: PlanTimelineItem[];
   comments: PlanComment[];
-  attachments: PlanAttachment[];
-  copilotInsights: PlanCopilotInsight[];
+}
+
+export const planStatusLabel: Record<PlanStatus, string> = {
+  analysis: "Em análise",
+  development: "Em desenvolvimento",
+  review: "Em revisão",
+  approved: "Aprovado",
+  published: "Publicado",
+};
+
+export const planPriorityLabel: Record<PlanPriority, string> = {
+  high: "Alta prioridade",
+  medium: "Prioridade média",
+  normal: "Prioridade normal",
+};
+
+/**
+ * Estágios de execução do plano. Como no artigo, o caminho de volta existe:
+ * uma revisão reprovada devolve o trabalho ao desenvolvimento.
+ */
+export const allowedPlanTransitions: Record<PlanStatus, PlanStatus[]> = {
+  analysis: ["development"],
+  development: ["review", "analysis"],
+  review: ["approved", "development"],
+  approved: ["published", "review"],
+  published: ["approved"],
+};
+
+export function canTransitionPlan(current: PlanStatus, next: PlanStatus) {
+  return current === next || allowedPlanTransitions[current].includes(next);
 }

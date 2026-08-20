@@ -5,6 +5,8 @@ export type ActivityType =
   | "opportunity_discarded"
   | "opportunity_deferred"
   | "plan_created"
+  | "plan_status_changed"
+  | "plan_updated"
   | "article_created"
   | "article_updated"
   | "article_status_changed"
@@ -51,6 +53,8 @@ export const activityTypeLabel: Record<ActivityType, string> = {
   opportunity_discarded: "Oportunidade descartada",
   opportunity_deferred: "Oportunidade adiada",
   plan_created: "Plano criado",
+  plan_status_changed: "Estágio do plano alterado",
+  plan_updated: "Plano atualizado",
   article_created: "Artigo criado",
   article_updated: "Artigo atualizado",
   article_status_changed: "Estágio do artigo alterado",
@@ -66,6 +70,8 @@ export const activityStage: Record<ActivityType, "analise" | "decisao" | "execuc
   opportunity_discarded: "decisao",
   opportunity_deferred: "decisao",
   plan_created: "execucao",
+  plan_status_changed: "execucao",
+  plan_updated: "execucao",
   article_created: "conhecimento",
   article_updated: "conhecimento",
   article_status_changed: "conhecimento",

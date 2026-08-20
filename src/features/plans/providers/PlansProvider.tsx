@@ -2,14 +2,27 @@
 
 import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from "react";
 
+import { toast } from "sonner";
+
 import { usePersistedState } from "@/hooks/usePersistedState";
 import { useActivity } from "@/features/activities/providers/ActivityProvider";
 
 import { planWorkspaceMock } from "../mock/planWorkspace";
 import { planService, type CreatePlanFromOpportunityInput } from "../services/planService";
-import type { PlanStatus, PlanWorkspaceItem } from "../types/PlanWorkspace";
+import {
+  canTransitionPlan,
+  planStatusLabel,
+  type PlanDocument,
+  type PlanPriority,
+  type PlanStatus,
+  type PlanWorkspaceItem,
+} from "../types/PlanWorkspace";
 
 const STORAGE_KEY = "visus-improvement-plans";
+
+function nowLabel() {
+  return new Intl.DateTimeFormat("pt-BR", { dateStyle: "medium", timeStyle: "short" }).format(new Date());
+}
 
 interface PlansContextValue {
   plans: PlanWorkspaceItem[];
@@ -19,7 +32,14 @@ interface PlansContextValue {
   setSearch: (value: string) => void;
   setStatus: (value: PlanStatus | "all") => void;
   selectPlan: (id: string) => void;
+  changeStatus: (planId: string, status: PlanStatus) => void;
+  assignPlan: (planId: string, owner: string) => void;
+  setPriority: (planId: string, priority: PlanPriority) => void;
+  addTask: (planId: string, label: string, owner: string) => void;
   toggleTask: (planId: string, taskId: string) => void;
+  removeTask: (planId: string, taskId: string) => void;
+  addComment: (planId: string, author: string, message: string) => void;
+  updateDocument: (planId: string, changes: Partial<PlanDocument>) => void;
   createPlanFromApprovedOpportunity: (input: CreatePlanFromOpportunityInput) => { plan: PlanWorkspaceItem; created: boolean };
   linkPlanToArticle: (planId: string, articleId: string) => void;
 }
@@ -36,6 +56,16 @@ export function PlansProvider({ children }: { children: ReactNode }) {
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState<PlanStatus | "all">("all");
   const selectedPlan = plans.find((plan) => plan.id === selectedPlanId) ?? plans[0];
+
+  /** Toda alteração carimba a data — o plano é um documento vivo. */
+  const patchPlan = useCallback(
+    (planId: string, patch: (plan: PlanWorkspaceItem) => PlanWorkspaceItem) => {
+      setPlans((current) =>
+        current.map((plan) => (plan.id === planId ? { ...patch(plan), updatedAt: nowLabel() } : plan))
+      );
+    },
+    [setPlans]
+  );
 
   const createPlanFromApprovedOpportunity = useCallback((input: CreatePlanFromOpportunityInput) => {
     const existing = plans.find((plan) =>
@@ -56,17 +86,96 @@ export function PlansProvider({ children }: { children: ReactNode }) {
     return { plan, created: true };
   }, [plans, record, setPlans]);
 
-  const linkPlanToArticle = useCallback((planId: string, articleId: string) => {
-    setPlans((current) => current.map((plan) => plan.id !== planId ? plan : {
-      ...plan,
-      source: { ...plan.source, articleId },
-      updatedAt: new Intl.DateTimeFormat("pt-BR", { dateStyle: "medium", timeStyle: "short" }).format(new Date()),
+  const changeStatus = useCallback((planId: string, next: PlanStatus) => {
+    const plan = plans.find((item) => item.id === planId);
+    if (!plan) return;
+
+    if (!canTransitionPlan(plan.status, next)) {
+      toast.error(
+        `Não é possível ir de "${planStatusLabel[plan.status]}" para "${planStatusLabel[next]}".`
+      );
+      return;
+    }
+
+    // Publicar o plano encerra o ciclo: exige o conteúdo já publicado na Biblioteca.
+    if (next === "published" && !plan.source.articleId) {
+      toast.error("Crie o conteúdo na Biblioteca antes de publicar o plano.");
+      return;
+    }
+
+    patchPlan(planId, (current) => ({ ...current, status: next }));
+    record({
+      type: "plan_status_changed",
+      projectId: plan.projectId,
+      actor: plan.owner,
+      subject: { kind: "plan", id: plan.id, label: plan.title },
+      detail: `${planStatusLabel[plan.status]} → ${planStatusLabel[next]}`,
+    });
+    toast.success(`Plano movido para "${planStatusLabel[next]}".`);
+  }, [patchPlan, plans, record]);
+
+  const assignPlan = useCallback((planId: string, owner: string) => {
+    const plan = plans.find((item) => item.id === planId);
+    if (!plan || plan.owner === owner) return;
+
+    patchPlan(planId, (current) => ({ ...current, owner }));
+    record({
+      type: "plan_updated",
+      projectId: plan.projectId,
+      actor: owner,
+      subject: { kind: "plan", id: plan.id, label: plan.title },
+      detail: owner ? `Responsável definido: ${owner}.` : "Responsável removido.",
+    });
+  }, [patchPlan, plans, record]);
+
+  const setPriority = useCallback((planId: string, priority: PlanPriority) => {
+    patchPlan(planId, (current) => ({ ...current, priority }));
+  }, [patchPlan]);
+
+  const addTask = useCallback((planId: string, label: string, owner: string) => {
+    const trimmed = label.trim();
+    if (!trimmed) return;
+
+    patchPlan(planId, (current) => ({
+      ...current,
+      tasks: [...current.tasks, { id: crypto.randomUUID(), label: trimmed, completed: false, owner }],
     }));
-  }, [setPlans]);
+  }, [patchPlan]);
 
   const toggleTask = useCallback((planId: string, taskId: string) => {
-    setPlans((current) => current.map((plan) => plan.id !== planId ? plan : { ...plan, tasks: plan.tasks.map((task) => task.id !== taskId ? task : { ...task, completed: !task.completed }) }));
-  }, [setPlans]);
+    patchPlan(planId, (current) => ({
+      ...current,
+      tasks: current.tasks.map((task) => task.id !== taskId ? task : { ...task, completed: !task.completed }),
+    }));
+  }, [patchPlan]);
+
+  const removeTask = useCallback((planId: string, taskId: string) => {
+    patchPlan(planId, (current) => ({
+      ...current,
+      tasks: current.tasks.filter((task) => task.id !== taskId),
+    }));
+  }, [patchPlan]);
+
+  const addComment = useCallback((planId: string, author: string, message: string) => {
+    const trimmed = message.trim();
+    if (!trimmed) return;
+
+    patchPlan(planId, (current) => ({
+      ...current,
+      comments: [
+        { id: crypto.randomUUID(), author: author || "Sem autor", message: trimmed, date: nowLabel() },
+        ...current.comments,
+      ],
+    }));
+  }, [patchPlan]);
+
+  const updateDocument = useCallback((planId: string, changes: Partial<PlanDocument>) => {
+    patchPlan(planId, (current) => ({ ...current, document: { ...current.document, ...changes } }));
+  }, [patchPlan]);
+
+  const linkPlanToArticle = useCallback((planId: string, articleId: string) => {
+    patchPlan(planId, (current) => ({ ...current, source: { ...current.source, articleId } }));
+  }, [patchPlan]);
 
   const value = useMemo(() => ({
     plans,
@@ -76,10 +185,17 @@ export function PlansProvider({ children }: { children: ReactNode }) {
     setSearch,
     setStatus,
     selectPlan: setSelectedPlanId,
+    changeStatus,
+    assignPlan,
+    setPriority,
+    addTask,
     toggleTask,
+    removeTask,
+    addComment,
+    updateDocument,
     createPlanFromApprovedOpportunity,
     linkPlanToArticle,
-  }), [createPlanFromApprovedOpportunity, linkPlanToArticle, plans, search, selectedPlan, status, toggleTask]);
+  }), [addComment, addTask, assignPlan, changeStatus, createPlanFromApprovedOpportunity, linkPlanToArticle, plans, removeTask, search, selectedPlan, setPriority, status, toggleTask, updateDocument]);
 
   return <PlansContext.Provider value={value}>{children}</PlansContext.Provider>;
 }

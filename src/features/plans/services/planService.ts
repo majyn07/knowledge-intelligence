@@ -55,7 +55,7 @@ export const planService = {
         evidence: [opportunity.justification],
         decisions: ["Oportunidade aprovada pela revisão humana."],
         proposal: opportunity.description,
-        acceptanceCriteria: ["Definir critérios de aceite antes da publicação."],
+        acceptanceCriteria: [],
         notes: "",
         references: [
           `Projeto ${analysis.projectId}`,
@@ -65,12 +65,7 @@ export const planService = {
         ],
       },
       tasks: [],
-      timeline: [
-        { id: crypto.randomUUID(), label: "Plano criado a partir de decisão aprovada", date: createdAt, completed: true },
-      ],
       comments: [],
-      attachments: [],
-      copilotInsights: [],
     };
   },
 };
