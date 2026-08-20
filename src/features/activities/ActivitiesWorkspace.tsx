@@ -5,6 +5,7 @@ import { History } from "lucide-react";
 
 import { BrandEmptyState } from "@/components/brand/BrandEmptyState";
 import { PageHeader } from "@/components/common/page/PageHeader";
+import { TimelineSkeleton } from "@/components/common/page/LoadingSkeleton";
 import { Button } from "@/components/ui/button";
 import { activityStage } from "@/models/ActivityEvent";
 import { useProject } from "@/providers/ProjectProvider";
@@ -35,7 +36,7 @@ function dayLabel(at: string) {
 }
 
 export function ActivitiesWorkspace() {
-  const { events } = useActivity();
+  const { events, isHydrated } = useActivity();
   const { activeProject, activeProjectId } = useProject();
   const [stage, setStage] = useState<StageFilter>("all");
 
@@ -82,7 +83,9 @@ export function ActivitiesWorkspace() {
         ))}
       </div>
 
-      {projectEvents.length === 0 ? (
+      {!isHydrated ? (
+        <TimelineSkeleton />
+      ) : projectEvents.length === 0 ? (
         <BrandEmptyState
           title={stage === "all" ? "Nenhuma atividade registrada" : "Nada nesta etapa"}
           description={

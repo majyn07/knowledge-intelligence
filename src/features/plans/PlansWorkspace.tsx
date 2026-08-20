@@ -5,6 +5,7 @@ import { ListTodo } from "lucide-react";
 import { useEffect } from "react";
 
 import { PageHeader } from "@/components/common/page/PageHeader";
+import { ListSkeleton } from "@/components/common/page/LoadingSkeleton";
 import { useQueryParam } from "@/hooks/useQueryParam";
 import { useProject } from "@/providers/ProjectProvider";
 import { useLibrary } from "@/features/library/providers/LibraryProvider";
@@ -17,6 +18,7 @@ import { usePlans } from "./providers/PlansProvider";
 export function PlansWorkspace() {
   const {
     plans,
+    isHydrated,
     selectedPlan,
     search,
     status,
@@ -47,6 +49,20 @@ export function PlansWorkspace() {
       icon={<ListTodo className="h-6 w-6" />}
     />
   );
+
+  /*
+    "Nenhum plano disponível" e "ainda não li os planos" são coisas diferentes,
+    e a segunda não pode ser apresentada como a primeira: quem chegasse aqui
+    leria que não há trabalho a fazer.
+  */
+  if (!isHydrated) {
+    return (
+      <div className="w-full space-y-7">
+        {header}
+        <ListSkeleton count={4} />
+      </div>
+    );
+  }
 
   if (!currentPlan) {
     return (

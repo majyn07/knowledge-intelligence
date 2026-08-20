@@ -28,6 +28,13 @@ export interface Person {
   /** Vazio enquanto ninguém definiu a equipe. */
   teamId: string;
   /**
+   * Retrato da pessoa, embutido no próprio registro.
+   *
+   * Vazio é o normal: quem não enviou aparece pelas iniciais, que já
+   * distinguem sem exigir nada de ninguém.
+   */
+  avatarUrl: string;
+  /**
    * Quem sai da empresa é desativado, não removido: o histórico já registrou
    * o que a pessoa fez, e apagar deixaria esses registros apontando para o
    * vazio. Ela some das atribuições novas e continua no passado.

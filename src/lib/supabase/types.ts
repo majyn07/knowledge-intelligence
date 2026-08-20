@@ -26,12 +26,24 @@ export type DashboardPanelRow = {
   title: string;
   source: string;
   breakdown: string;
+  /** Segunda quebra. Nulo é o normal: o cruzamento é a exceção. */
+  breakdown_2: string | null;
   visual: string;
   /** Nulo é "desde o início", e não campo por preencher. */
   window_days: number | null;
   stage: string | null;
   scoped_to_project: boolean;
   position: number;
+};
+
+export type FollowRow = {
+  id: string;
+  person_id: string;
+  subject_kind: string;
+  subject_id: string;
+  subject_label: string;
+  project_id: string;
+  created_at: string;
 };
 
 export type TeamRow = {
@@ -218,6 +230,12 @@ export interface Database {
         Update: Partial<TeamRow>;
         Relationships: [];
       };
+      follows: {
+        Row: FollowRow;
+        Insert: FollowRow;
+        Update: Partial<FollowRow>;
+        Relationships: [];
+      };
       dashboard_panels: {
         Row: DashboardPanelRow;
         Insert: DashboardPanelRow;
@@ -253,6 +271,7 @@ export const REALTIME_TABLES = [
   "teams",
   "profiles",
   "dashboard_panels",
+  "follows",
 ] as const;
 
 export type RealtimeTable = (typeof REALTIME_TABLES)[number];

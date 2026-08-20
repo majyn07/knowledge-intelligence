@@ -84,14 +84,10 @@ export function ProjectWorkspace({ projectId }: ProjectWorkspaceProps) {
 
   return (
     <div className="w-full space-y-8">
-      <Button variant="ghost" size="sm" render={<Link href="/projects" />} nativeButton={false}>
-        <ArrowLeft className="mr-1.5 h-4 w-4" />
-        Todos os projetos
-      </Button>
-
       <PageHeader
         overline="Workspace do projeto"
         title={project.name}
+        trailLeaf={project.name}
         description="Contexto, estado atual e os módulos onde o trabalho deste projeto acontece."
         icon={<FolderKanban className="h-6 w-6" />}
         actions={

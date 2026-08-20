@@ -37,7 +37,7 @@ interface PeopleContextValue {
   /** Só faz sentido sem servidor: com conta, quem opera é quem entrou. */
   setCurrentPerson: (name: string) => void;
 
-  updateMe: (fields: { name?: string; role?: string; teamId?: string }) => Promise<void>;
+  updateMe: (fields: { name?: string; role?: string; teamId?: string; avatarUrl?: string }) => Promise<void>;
   deactivate: (id: string, isActive: boolean) => Promise<void>;
 
   /** Pessoas ativas de uma equipe. */
@@ -134,7 +134,7 @@ export function PeopleProvider({ children }: { children: ReactNode }) {
   const currentPerson = me?.name ?? localActor;
 
   const updateMe = useCallback(
-    async (fields: { name?: string; role?: string; teamId?: string }) => {
+    async (fields: { name?: string; role?: string; teamId?: string; avatarUrl?: string }) => {
       if (!supabase || !me) return;
 
       try {

@@ -45,6 +45,10 @@ export function normalizePanel(raw: unknown, order = 0): PanelSpec {
     title: text(value.title) || "Painel sem título",
     source,
     breakdown: oneOf(value.breakdown, PANEL_BREAKDOWNS, "none"),
+    // Ausente é o normal — o cruzamento é a exceção, não o padrão.
+    ...(text(value.breakdown2)
+      ? { breakdown2: oneOf(value.breakdown2, PANEL_BREAKDOWNS, "none") }
+      : {}),
     visual: oneOf(value.visual, PANEL_VISUALS, "number"),
     window: panelWindow("window" in value ? value.window : undefined),
     ...(text(value.stage) ? { stage: text(value.stage) } : {}),
@@ -68,6 +72,7 @@ export function toPanel(row: unknown): PanelSpec {
     title: value.title,
     source: value.source,
     breakdown: value.breakdown,
+    breakdown2: value.breakdown_2 ?? "",
     visual: value.visual,
     window: value.window_days ?? null,
     stage: value.stage ?? "",
@@ -83,6 +88,7 @@ export function fromPanel(spec: PanelSpec): DashboardPanelRow {
     title: spec.title,
     source: spec.source,
     breakdown: spec.breakdown,
+    breakdown_2: spec.breakdown2 ?? null,
     visual: spec.visual,
     window_days: spec.window,
     stage: spec.stage ?? null,

@@ -25,6 +25,8 @@ import { STORAGE_KEYS } from "@/lib/storage";
 const STORAGE_KEY = STORAGE_KEYS.analyses;
 
 interface KnowledgeLifecycleValue {
+  /** Falso até o conteúdo guardado ser lido, após a montagem. */
+  isHydrated: boolean;
   analyses: AnalysisRecord[];
   saveAnalysis: (input: Omit<AnalysisRecord, "id" | "startedAt" | "status">) => AnalysisRecord;
   updateMessages: (analysisId: string, messages: AnalysisMessage[]) => void;
@@ -52,7 +54,7 @@ const KnowledgeLifecycleContext = createContext<KnowledgeLifecycleValue | null>(
 export function KnowledgeLifecycleProvider({ children }: { children: ReactNode }) {
   const { record } = useActivity();
   const { currentPerson } = usePeople();
-  const [analyses, setAnalyses] = useSharedCollection<AnalysisRecord>({
+  const [analyses, setAnalyses, isHydrated] = useSharedCollection<AnalysisRecord>({
     key: STORAGE_KEY,
     table: "analyses",
     fallback: [],
@@ -158,6 +160,7 @@ export function KnowledgeLifecycleProvider({ children }: { children: ReactNode }
 
   const value = useMemo(() => ({
     analyses,
+    isHydrated,
     saveAnalysis,
     updateMessages,
     updateOpportunityStatus,
@@ -165,7 +168,7 @@ export function KnowledgeLifecycleProvider({ children }: { children: ReactNode }
     linkOpportunityToPlan,
     setAnalysisStatus,
     getAnalysis: (projectId: string, ticketId: string) => analyses.find((item) => item.projectId === projectId && item.ticketId === ticketId),
-  }), [analyses, linkOpportunityToPlan, saveAnalysis, setAnalysisStatus, updateMessages, updateOpportunity, updateOpportunityStatus]);
+  }), [analyses, isHydrated, linkOpportunityToPlan, saveAnalysis, setAnalysisStatus, updateMessages, updateOpportunity, updateOpportunityStatus]);
 
   return <KnowledgeLifecycleContext.Provider value={value}>{children}</KnowledgeLifecycleContext.Provider>;
 }

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { UserRound, Users } from "lucide-react";
+import { Users } from "lucide-react";
 
 import { PageSection } from "@/components/common/page/PageSection";
 import { StatusBadge } from "@/components/common/status/StatusBadge";
@@ -20,6 +20,8 @@ import { usePlans } from "@/features/plans/providers/PlansProvider";
 import { useProject } from "@/providers/ProjectProvider";
 import { migrateAssignment } from "@/models/Assignment";
 
+import { AvatarUpload } from "./AvatarUpload";
+import { PersonAvatar } from "./PersonAvatar";
 import { usePeople } from "../providers/PeopleProvider";
 
 const NO_TEAM = "__none__";
@@ -71,7 +73,14 @@ export function PeopleManager() {
               {me.email} · entrou por link, sem senha
             </p>
 
-            <div className="mt-4 grid gap-4 md:grid-cols-3">
+            <div className="mt-4">
+              <AvatarUpload
+                person={me}
+                onChange={(avatarUrl) => updateMe({ avatarUrl })}
+              />
+            </div>
+
+            <div className="mt-5 grid gap-4 md:grid-cols-3">
               <div className="space-y-2">
                 <Label htmlFor="me-name">Nome</Label>
 
@@ -200,8 +209,8 @@ export function PeopleManager() {
                   key={person.id}
                   className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-border/60 px-3 py-2"
                 >
-                  <span className="flex min-w-0 items-center gap-2 text-sm">
-                    <UserRound className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+                  <span className="flex min-w-0 items-center gap-2.5 text-sm">
+                    <PersonAvatar person={person} className="h-7 w-7 text-[10px]" />
 
                     <span className="min-w-0">
                       <span className="truncate font-medium">{person.name}</span>

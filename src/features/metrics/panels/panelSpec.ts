@@ -119,6 +119,14 @@ export interface PanelSpec {
   title: string;
   source: PanelSource;
   breakdown: PanelBreakdown;
+  /**
+   * Segunda quebra, que cruza com a primeira e produz uma tabela.
+   *
+   * Para em duas de propósito. Três dimensões não cabem numa tabela que se lê
+   * de relance, e a leitura passa a exigir girar o cubo — que é outro tipo de
+   * ferramenta, não uma versão mais completa desta.
+   */
+  breakdown2?: PanelBreakdown;
   visual: PanelVisual;
   window: PanelWindow;
   /** Só para `arrivals`: a qual estágio se chegou. */
@@ -140,12 +148,40 @@ export function reconcileSpec(spec: PanelSpec): PanelSpec {
 
   const breakdown = allowed.includes(spec.breakdown) ? spec.breakdown : "none";
 
+  /*
+    A segunda quebra só existe cruzando com a primeira. Sem a primeira ela
+    seria a primeira, e cruzar algo consigo mesmo produziria uma diagonal —
+    tabela de uma coluna útil e o resto zerado.
+  */
+  const breakdown2 =
+    breakdown !== "none" &&
+    spec.breakdown2 &&
+    spec.breakdown2 !== "none" &&
+    spec.breakdown2 !== breakdown &&
+    allowed.includes(spec.breakdown2)
+      ? spec.breakdown2
+      : undefined;
+
   // Número único não comporta quebra: seria um número por linha sem linha.
-  const visual = spec.visual === "number" && breakdown !== "none" ? "bar" : spec.visual;
+  // Cruzamento só cabe em tabela — barra empilhada esconderia metade dos números.
+  const visual = breakdown2
+    ? "table"
+    : spec.visual === "number" && breakdown !== "none"
+      ? "bar"
+      : spec.visual;
+
+  /*
+    `breakdown2` sai do espalhamento para poder ser **removido**, e não apenas
+    sobrescrito: espalhar `spec` traria de volta a segunda quebra que acabou de
+    ser considerada impossível.
+  */
+  const resto = { ...spec };
+  delete resto.breakdown2;
 
   return {
-    ...spec,
+    ...resto,
     breakdown,
+    ...(breakdown2 ? { breakdown2 } : {}),
     visual,
     // `arrivals` sem estágio não conta nada; o padrão é o fim do ciclo.
     stage: spec.source === "arrivals" ? (spec.stage || "published") : undefined,

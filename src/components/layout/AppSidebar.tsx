@@ -2,17 +2,6 @@
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import {
-  BarChart3,
-  BookOpen,
-  FileSearch,
-  FolderKanban,
-  History,
-  Home,
-  Plug,
-  Settings,
-  Sparkles,
-} from "lucide-react";
 
 import {
   Sidebar,
@@ -27,59 +16,8 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
 
-const workspaceItems = [
-  {
-    title: "Início",
-    icon: Home,
-    href: "/",
-  },
-  {
-    title: "Workspace",
-    icon: Sparkles,
-    href: "/analysis",
-  },
-  {
-    title: "Projetos",
-    icon: FolderKanban,
-    href: "/projects",
-  },
-  {
-    title: "Biblioteca",
-    icon: BookOpen,
-    href: "/library",
-  },
-];
+import { managementItems, systemItems, workspaceItems } from "./navigation";
 
-const managementItems = [
-  {
-    title: "Métricas",
-    icon: BarChart3,
-    href: "/indicators",
-  },
-  {
-    title: "Plano de Melhorias",
-    icon: FileSearch,
-    href: "/improvement-plan",
-  },
-  {
-    title: "Atividades",
-    icon: History,
-    href: "/activities",
-  },
-];
-
-const systemItems = [
-  {
-    title: "Integrações",
-    icon: Plug,
-    href: "/integrations",
-  },
-  {
-    title: "Configurações",
-    icon: Settings,
-    href: "/settings",
-  },
-];
 /**
  * Ambiente real, vindo da Vercel.
  *

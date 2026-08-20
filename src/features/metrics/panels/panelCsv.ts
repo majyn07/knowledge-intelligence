@@ -32,11 +32,25 @@ export function panelToCsv(spec: PanelSpec, result: PanelResult): string {
       "",
     ].join(";"),
     "",
-    ["Item", "Total"].map(field).join(";"),
   ];
 
-  for (const row of result.rows) {
-    linhas.push([field(row.label), field(row.value)].join(";"));
+  if (result.matrix) {
+    /*
+      A tabela cruzada sai como tabela: uma coluna por valor da segunda
+      dimensão. Achatá-la em pares "linha, coluna, valor" seria mais fácil de
+      gerar e mais difícil de ler — e a planilha existe para ser lida.
+    */
+    linhas.push(["", ...result.matrix.columns.map((column) => column.label), "Total"].map(field).join(";"));
+
+    for (const row of result.matrix.rows) {
+      linhas.push([field(row.label), ...row.values.map(field), field(row.total)].join(";"));
+    }
+  } else {
+    linhas.push(["Item", "Total"].map(field).join(";"));
+
+    for (const row of result.rows) {
+      linhas.push([field(row.label), field(row.value)].join(";"));
+    }
   }
 
   linhas.push("", [field("Total"), field(result.total)].join(";"));

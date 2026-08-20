@@ -5,6 +5,7 @@ import { Toaster } from "@/components/ui/sonner";
 
 import { PlansProvider } from "@/features/plans/providers/PlansProvider";
 import { PanelsProvider } from "@/features/metrics/panels/PanelsProvider";
+import { FollowsProvider } from "@/features/people/providers/FollowsProvider";
 import { LibraryProvider } from "@/features/library/providers/LibraryProvider";
 import { PeopleProvider } from "@/features/people/providers/PeopleProvider";
 import { ActivityProvider } from "@/features/activities/providers/ActivityProvider";
@@ -54,12 +55,18 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="pt-BR" className={poppins.variable}>
+    /*
+      A supressão vale só para os atributos do `<html>`, e existe porque o
+      script de aparência escreve `data-appearance` antes da primeira pintura.
+      O servidor não tem como saber a preferência de quem abre — e sem o
+      script a tela pisca clara antes de escurecer.
+    */
+    <html lang="pt-BR" className={poppins.variable} suppressHydrationWarning>
       <head>
         {/*
           Antes de qualquer pintura: sem isto a tela abre clara e escurece.
-          Escreve num atributo que o React não renderiza, então não há
-          divergência de hidratação para suprimir.
+          A divergência de atributo que ele cria é o motivo do
+          `suppressHydrationWarning` acima.
         */}
         <script dangerouslySetInnerHTML={{ __html: appearanceScript }} />
       </head>
@@ -93,7 +100,10 @@ export default function RootLayout({
                     Painéis por último: não dependem de ninguém, e quem os lê
                     precisa de todos os domínios acima para contar.
                   */}
-                  <PanelsProvider>{children}</PanelsProvider>
+                  <PanelsProvider>
+                    {/* Acompanhamentos dependem de saber quem é a pessoa, e de mais nada. */}
+                    <FollowsProvider>{children}</FollowsProvider>
+                  </PanelsProvider>
                 </LibraryProvider>
               </PlansProvider>
             </KnowledgeLifecycleProvider>

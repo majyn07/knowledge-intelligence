@@ -4,7 +4,9 @@ import { useMemo, useState } from "react";
 import Link from "next/link";
 import { Info } from "lucide-react";
 
+import { ListSkeleton } from "@/components/common/page/LoadingSkeleton";
 import { PageSection } from "@/components/common/page/PageSection";
+import { Button } from "@/components/ui/button";
 import { StatusBadge } from "@/components/common/status/StatusBadge";
 import { RelativeDate } from "@/components/common/RelativeDate";
 import { useActivity } from "@/features/activities/providers/ActivityProvider";
@@ -30,6 +32,12 @@ const steps = [
   { stage: "published", label: "Publicado" },
 ];
 
+const janelas = [7, 30, 90, 365];
+
+function janelaLabel(days: number) {
+  return days === 365 ? "último ano" : `últimos ${days} dias`;
+}
+
 /**
  * Onde o ciclo trava, e quantos chegaram ao fim.
  *
@@ -40,11 +48,17 @@ const steps = [
  * Cada número abre a lista que o originou — indicador que não se abre é
  * indicador em que ninguém confia.
  */
-export function CycleFunnel({ days = 30 }: { days?: number }) {
-  const { events } = useActivity();
+export function CycleFunnel({ days: inicial = 30 }: { days?: number }) {
+  const { events, isHydrated } = useActivity();
   const { activeProjectId } = useProject();
 
   const [open, setOpen] = useState<string | null>(null);
+  /*
+    A janela era fixa em 30 dias, o que impedia a única leitura que um funil
+    tem a dar: se ele está melhorando. Comparar 30 com 90 e com o ano é a
+    tendência ao longo do tempo, e ela precisa ser escolhida por quem olha.
+  */
+  const [days, setDays] = useState(inicial);
 
   const scoped = useMemo(
     () => (activeProjectId ? events.filter((e) => e.projectId === activeProjectId) : events),
@@ -73,13 +87,41 @@ export function CycleFunnel({ days = 30 }: { days?: number }) {
 
   const peak = Math.max(1, ...funnel.map((step) => step.arrivals));
 
-  // Sem o relógio ainda não dá para dizer nada sobre janela de tempo.
-  if (!window) return null;
+  /*
+    Sem o relógio não dá para dizer nada sobre janela de tempo, e sem o
+    histórico lido não dá para contar. Antes disto a seção simplesmente não
+    existia no primeiro render e aparecia do nada — o esqueleto reserva o
+    espaço e diz que algo vem ali.
+  */
+  if (!window || !isHydrated) {
+    return (
+      <PageSection
+        title="Onde o ciclo trava"
+        description="Quantos artigos chegaram a cada estágio."
+      >
+        <ListSkeleton count={3} />
+      </PageSection>
+    );
+  }
 
   return (
     <PageSection
       title="Onde o ciclo trava"
-      description={`Quantos artigos chegaram a cada estágio nos últimos ${days} dias.`}
+      description={`Quantos artigos chegaram a cada estágio nos ${janelaLabel(days)}.`}
+      actions={
+        <div className="flex flex-wrap gap-1.5" role="group" aria-label="Janela do funil">
+          {janelas.map((janela) => (
+            <Button
+              key={janela}
+              size="sm"
+              variant={days === janela ? "default" : "outline"}
+              onClick={() => setDays(janela)}
+            >
+              {janela === 365 ? "1 ano" : `${janela} dias`}
+            </Button>
+          ))}
+        </div>
+      }
     >
       <div className="flex flex-col gap-4">
         <div className="rounded-xl border bg-card p-5">

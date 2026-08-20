@@ -9,6 +9,7 @@ import { useActivity } from "@/features/activities/providers/ActivityProvider";
 import { BrandEmptyState } from "@/components/brand/BrandEmptyState";
 import { MarkdownContent } from "@/components/common/MarkdownContent";
 import { PageHeader } from "@/components/common/page/PageHeader";
+import { FollowButton } from "@/features/people/components/FollowButton";
 import { PageSection } from "@/components/common/page/PageSection";
 import { PropertyGrid } from "@/components/common/data/PropertyGrid";
 import { StatusBadge } from "@/components/common/status/StatusBadge";
@@ -114,17 +115,20 @@ export function ArticleWorkspace({ articleId }: ArticleWorkspaceProps) {
 
   return (
     <div className="w-full space-y-8">
-      <Button variant="ghost" size="sm" render={<Link href="/library" />} nativeButton={false}>
-        <ArrowLeft className="mr-1.5 h-4 w-4" />
-        Toda a Biblioteca
-      </Button>
-
       <PageHeader
         overline={`Base de Conhecimento · ${genreName || "Sem gênero"}`}
         title={article.title}
+        trailLeaf={article.title}
         description={article.summary || "Sem resumo registrado."}
         actions={
           <div className="flex flex-wrap gap-2">
+            <FollowButton
+              kind="article"
+              subjectId={article.id}
+              subjectLabel={article.title}
+              projectId={article.projectId}
+            />
+
             {transitions.map((status) =>
               status === "published" ? (
                 <Button key={status} onClick={() => setIsPublishing(true)}>
