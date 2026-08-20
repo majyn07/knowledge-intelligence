@@ -51,6 +51,22 @@ export interface ActivitySubject {
  * não um espelho do estado atual. É o que sustenta o princípio de
  * rastreabilidade e permite reconstruir a história de qualquer entidade.
  */
+/**
+ * Para onde o registro foi, em chave e não em texto.
+ *
+ * O evento guardava só `detail` — "Rascunho → Publicado" —, e indicador que
+ * precisa saber o destino teria de reconhecer texto. Inferir estágio de uma
+ * frase é adivinhação: basta alguém traduzir um rótulo para o número parar de
+ * bater, sem nada indicando.
+ *
+ * As chaves são as do modelo (`draft`, `published`, `review`…), não os
+ * rótulos: rótulo é apresentação e muda; chave é contrato.
+ */
+export interface ActivityTransition {
+  from: string;
+  to: string;
+}
+
 export interface ActivityEvent {
   id: string;
   /** ISO 8601. */
@@ -61,6 +77,16 @@ export interface ActivityEvent {
   actor: string;
   subject: ActivitySubject;
   detail: string;
+
+  /**
+   * Presente só nos eventos de mudança de estágio.
+   *
+   * Ausente nos registros gravados antes disto existir — e eles ficam de fora
+   * das contagens por destino, com a tela dizendo isso. Preencher agora
+   * exigiria interpretar o texto do `detail`, que é o problema que este campo
+   * resolve.
+   */
+  transition?: ActivityTransition;
 }
 
 export const activityTypeLabel: Record<ActivityType, string> = {

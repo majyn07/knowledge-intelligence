@@ -9,6 +9,7 @@ import { StatusBadge } from "@/components/common/status/StatusBadge";
 import { AssigneeName } from "@/features/people/components/AssigneeName";
 import { useActivity } from "@/features/activities/providers/ActivityProvider";
 import { usePlans } from "@/features/plans/providers/PlansProvider";
+import { useNow } from "@/hooks/useNow";
 
 import { buildAttentionQueue } from "../attentionQueue";
 import { deadlineState } from "../deadlines";
@@ -28,13 +29,17 @@ export function AttentionQueue({ projectId }: { projectId?: string }) {
   const { plans } = usePlans();
   const { events } = useActivity();
 
+  const now = useNow();
+
   const queue = useMemo(() => {
+    if (!now) return [];
+
     const scoped = projectId ? plans.filter((plan) => plan.projectId === projectId) : plans;
 
     // `now` entra como argumento: a ordenação é pura e testável sem congelar
     // o relógio, e é o mesmo critério dos indicadores por período.
-    return buildAttentionQueue(scoped, events, new Date());
-  }, [events, plans, projectId]);
+    return buildAttentionQueue(scoped, events, now);
+  }, [events, now, plans, projectId]);
 
   return (
     <PageSection
@@ -49,7 +54,7 @@ export function AttentionQueue({ projectId }: { projectId?: string }) {
       ) : (
         <ul className="flex flex-col gap-1.5">
           {queue.map(({ plan, reason }) => {
-            const late = deadlineState(plan.dueDate, new Date());
+            const late = deadlineState(plan.dueDate, now ?? new Date(0));
             const overdue = late === "atrasado" || late === "hoje";
 
             return (

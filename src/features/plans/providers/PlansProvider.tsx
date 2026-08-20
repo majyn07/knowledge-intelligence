@@ -121,6 +121,7 @@ export function PlansProvider({ children }: { children: ReactNode }) {
       actor: currentPerson || plan.owner,
       subject: { kind: "plan", id: plan.id, label: plan.title },
       detail: `${planStatusLabel[plan.status]} → ${planStatusLabel[next]}`,
+      transition: { from: plan.status, to: next },
     });
     toast.success(`Plano movido para "${planStatusLabel[next]}".`);
   }, [currentPerson, patchPlan, plans, record]);
