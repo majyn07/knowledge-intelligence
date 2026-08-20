@@ -1,5 +1,11 @@
 import type { Ticket } from "@/models/Ticket";
 
+/*
+  A data é o dia do atendimento, em `aaaa-mm-dd`. Era `dd/mm/aaaa` — formato
+  de exibição num campo que deveria guardar dado —, e o normalizador continua
+  convertendo o que já está gravado assim.
+*/
+
 export const tickets: Ticket[] = [
   {
     id: "45812",
@@ -7,7 +13,7 @@ export const tickets: Ticket[] = [
     title: "Erro ao autenticar após atualização",
     solution: "Workflow",
     company: "Alpha Engenharia",
-    date: "15/07/2026",
+    date: "2026-07-15",
   },
   {
     id: "45813",
@@ -15,7 +21,7 @@ export const tickets: Ticket[] = [
     title: "Permissões de acesso",
     solution: "Collab",
     company: "",
-    date: "14/07/2026",
+    date: "2026-07-14",
   },
   {
     id: "45814",
@@ -23,6 +29,6 @@ export const tickets: Ticket[] = [
     title: "Falha na instalação",
     solution: "Planning",
     company: "Beta Construtora",
-    date: "13/07/2026",
+    date: "2026-07-13",
   },
 ];

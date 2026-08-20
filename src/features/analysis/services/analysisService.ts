@@ -59,7 +59,7 @@ export const analysisService = {
       id: crypto.randomUUID(),
       author: "assistant",
       message: data.message,
-      createdAt: new Date().toLocaleString(),
+      createdAt: new Date().toISOString(),
       status: "completed",
     };
   },

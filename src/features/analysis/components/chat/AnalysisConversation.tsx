@@ -10,6 +10,8 @@ import {
   User,
 } from "lucide-react";
 
+import { RelativeDate } from "@/components/common/RelativeDate";
+
 import { sendAnalysisMessage } from "../../hooks/useAnalysisConversation";
 
 import { PageSection } from "@/components/common/page/PageSection";
@@ -49,7 +51,7 @@ export function AnalysisConversation({
         id: Date.now().toString(),
         author: "user",
         message: prompt,
-        createdAt: new Date().toLocaleString(),
+        createdAt: new Date().toISOString(),
       };
 
       const updatedMessages = [
@@ -162,7 +164,7 @@ export function AnalysisConversation({
                       </span>
 
                       <span className="text-xs text-muted-foreground">
-                        {item.createdAt}
+                        <RelativeDate value={item.createdAt} />
                       </span>
                     </div>
 

@@ -164,6 +164,27 @@ describe("janela", () => {
     expect(runPanel(spec({ source: "tickets", window: null }), data, agora).total).toBe(2);
   });
 
+  it("dia de calendário cai no mês em que ele está, e não no anterior", () => {
+    /*
+      `new Date("2026-08-01")` é meia-noite em Greenwich, que no Brasil ainda é
+      31 de julho. Sem ler o dia como local, o atendimento do primeiro dia do
+      mês apareceria no mês anterior — e o erro só aparece na virada, que é
+      justamente onde ninguém olharia para conferir.
+    */
+    const data = base();
+    data.tickets = [
+      { id: "t1", projectId: "p1", title: "A", solution: "", company: "", date: "2026-08-01" },
+    ];
+
+    const rows = runPanel(
+      spec({ source: "tickets", breakdown: "month", visual: "bar", window: null }),
+      data,
+      agora
+    ).rows;
+
+    expect(rows).toEqual([{ key: "2026-08", label: "ago/26", value: 1 }]);
+  });
+
   it("dia que não existe não vira o mês seguinte em silêncio", () => {
     // "31/02/2026" viraria 3 de março, e o registro apareceria num mês em que
     // nada aconteceu.

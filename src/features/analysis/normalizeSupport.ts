@@ -1,3 +1,4 @@
+import { toIsoDate } from "@/lib/dates";
 import { items, record, text } from "@/lib/shape";
 import type { SupportConversation } from "@/models/SupportConversation";
 import type { Ticket } from "@/models/Ticket";
@@ -25,7 +26,16 @@ export function normalizeTicket(raw: unknown): Ticket {
     title: text(value.title),
     solution: text(value.solution),
     company: text(value.company),
-    date: text(value.date),
+    /*
+      O campo era de texto livre, e os registros anteriores guardam
+      `dd/mm/aaaa`. A conversão acontece na leitura e se firma na próxima
+      gravação — sem migração de dados, como na atribuição.
+
+      O que não é data reconhecível vira vazio de propósito: "ontem" não
+      situa nada no tempo, e mantê-lo faria o registro cair fora de toda
+      janela sem que ninguém entendesse por quê.
+    */
+    date: toIsoDate(text(value.date)),
     ...externalSource(value.source),
   };
 }

@@ -10,10 +10,18 @@ import {
  * A estrutura do suporte.altoqi.com.br como levantada em 20/08/2026.
  *
  * É semente, não verdade permanente: o portal muda e o cadastro é editável.
- * Duas categorias ficaram sem seções por não terem sido confirmadas —
- * `AltoQi Visus Workflow`, cuja consulta caiu na lista do AltoQi Visus, e
- * `Quero falar com o Suporte`, que aparenta ser página de contato. Ficam
- * vazias de propósito: inventar seção seria pior que admitir a lacuna.
+ *
+ * O Visus é uma **linha com sete módulos** — Plataforma, Collab, Planning,
+ * Bid, Tracking, Cost Management, Workflow e Control Tower —, confirmados em
+ * `altoqi.com.br/visus/*`. Eles aparecem duas vezes de propósito: como seções
+ * dentro de `AltoQi Visus` e, para dois deles, como categoria própria no
+ * portal. Isso é o portal, não um erro de levantamento, e espelhá-lo é o
+ * trabalho desta semente.
+ *
+ * `AltoQi Visus Workflow` fica sem seções porque no dia do levantamento a
+ * categoria dele no portal não tinha nenhuma — inventar seria pior que
+ * admitir a lacuna. `Quero falar com o Suporte` continua não confirmada:
+ * aparenta ser página de contato, e não categoria de conteúdo.
  */
 const portal: { name: string; isProduct: boolean; sections: string[] }[] = [
   {

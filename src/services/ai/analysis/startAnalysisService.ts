@@ -18,7 +18,7 @@ export const startAnalysisService = {
         author: "assistant" as const,
         message:
           "Análise concluída. Consulte os resultados estruturados ao lado.",
-        createdAt: new Date().toLocaleString(),
+        createdAt: new Date().toISOString(),
         status: "completed" as const,
       },
     ];
