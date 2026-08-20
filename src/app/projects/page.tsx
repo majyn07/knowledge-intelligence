@@ -107,6 +107,7 @@ export default function ProjectsPage() {
           }
         >
           <ProjectForm
+            key={selectedProject?.id ?? "novo"}
             initialData={
               selectedProject
                 ? projectService.toFormData(selectedProject)

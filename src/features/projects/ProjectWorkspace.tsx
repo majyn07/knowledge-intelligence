@@ -134,6 +134,7 @@ export function ProjectWorkspace({ projectId }: ProjectWorkspaceProps) {
         description="Atualize a identidade, o contexto AltoQi e o objetivo deste projeto."
       >
         <ProjectForm
+          key={project.id}
           initialData={projectService.toFormData(project)}
           submitLabel="Atualizar"
           onSubmit={handleSubmit}

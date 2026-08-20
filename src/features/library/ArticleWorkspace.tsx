@@ -242,6 +242,7 @@ export function ArticleWorkspace({ articleId }: ArticleWorkspaceProps) {
         description="Atualize o conteúdo, a classificação e o estágio editorial."
       >
         <LibraryForm
+          key={article.id}
           projects={projects.map((project) => ({ id: project.id, name: project.name }))}
           articles={items}
           editingId={article.id}

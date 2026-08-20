@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useEffect, useState, type ReactNode } from "react";
+import { FormEvent, useState, type ReactNode } from "react";
 
 import type { ProjectFormData } from "@/features/projects/types/ProjectFormData";
 import { PROJECT_PRODUCTS, UNSET_PRODUCT } from "@/features/projects/constants/products";
@@ -61,12 +61,9 @@ export function ProjectForm({
   onSubmit,
   onCancel,
 }: ProjectFormProps) {
+  // O estado nasce do prop e não é sincronizado depois: quem troca o registro
+  // em edição remonta o formulário por chave.
   const [formData, setFormData] = useState<ProjectFormData>(initialData ?? emptyForm);
-
-  useEffect(() => {
-    // Sincroniza o formulário quando o projeto em edição muda.
-    setFormData(initialData ?? emptyForm);
-  }, [initialData]);
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();

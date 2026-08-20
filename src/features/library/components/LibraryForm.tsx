@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useEffect, useMemo, useState, type ReactNode } from "react";
+import { FormEvent, useMemo, useState, type ReactNode } from "react";
 import { Sparkles } from "lucide-react";
 
 import type { LibraryFormData } from "@/features/library/types/LibraryFormData";
@@ -91,15 +91,11 @@ export function LibraryForm({
   onSubmit,
   onCancel,
 }: LibraryFormProps) {
+  // O estado nasce do prop e não é sincronizado depois: quem troca o registro
+  // em edição remonta o formulário por chave.
   const [formData, setFormData] = useState<LibraryFormData>(initialData ?? emptyForm);
-  const [tags, setTags] = useState("");
-  const [keywords, setKeywords] = useState("");
-
-  useEffect(() => {
-    setFormData(initialData ?? emptyForm);
-    setTags(initialData?.tags.join(", ") ?? "");
-    setKeywords(initialData?.keywords.join(", ") ?? "");
-  }, [initialData]);
+  const [tags, setTags] = useState(initialData?.tags.join(", ") ?? "");
+  const [keywords, setKeywords] = useState(initialData?.keywords.join(", ") ?? "");
 
   const similarArticles = useMemo(
     () =>

@@ -106,6 +106,7 @@ export default function LibraryPage() {
           }
         >
           <LibraryForm
+            key={selectedItem?.id ?? "novo"}
             projects={projectOptions}
             articles={items}
             editingId={selectedItem?.id}
