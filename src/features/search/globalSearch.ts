@@ -7,6 +7,8 @@ import { sectionPath, type Taxonomy } from "@/models/Taxonomy";
 import type { Ticket } from "@/models/Ticket";
 
 export type SearchResultKind =
+  /** Grupo, não entidade: os itens dentro dele mantêm o tipo de origem. */
+  | "recent"
   | "command"
   | "project"
   | "ticket"
@@ -44,6 +46,7 @@ export interface GlobalSearchInput {
 
 /** Ordem de exibição: do que o analista mais procura para o que menos procura. */
 export const SEARCH_KIND_ORDER: SearchResultKind[] = [
+  "recent",
   // Comandos primeiro: com o campo vazio, é o único grupo que tem o que mostrar.
   "command",
   "article",
@@ -56,6 +59,7 @@ export const SEARCH_KIND_ORDER: SearchResultKind[] = [
 ];
 
 export const searchKindLabel: Record<SearchResultKind, string> = {
+  recent: "Onde você estava",
   command: "Ir para",
   project: "Projetos",
   ticket: "Atendimentos",

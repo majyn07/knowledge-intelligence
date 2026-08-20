@@ -364,9 +364,18 @@ Data na tela é `RelativeDate`: relativo no texto, instante exato no título.
 O valor relativo entra depois da montagem — servidor e cliente têm relógios
 diferentes, e "há 2 minutos" divergiria na hidratação.
 
-`Ctrl+K` abre busca **e** comandos. Comando é navegação e criação; publicar,
-aprovar e excluir ficam de fora, porque pedem intenção e uma lista percorrida
-com a seta não é lugar para isso.
+`Ctrl+K` abre busca, comandos e "onde você estava". Comando é navegação;
+publicar, aprovar e excluir ficam de fora, porque pedem intenção e uma lista
+percorrida com a seta não é lugar para isso. `/` faz o mesmo e `?` lista os
+atalhos — convenção de mercado, não invenção nossa.
+
+Atalho de tecla única precisa da guarda de digitação: `/` e `?` são caracteres
+comuns em português, e sem ela escrever "e/ou" abriria a paleta no meio da
+frase.
+
+Vistos recentemente ficam no navegador mesmo no modo compartilhado: "onde
+**eu** estava" é sobre esta máquina, e sincronizar entre catorze pessoas
+viraria ruído.
 
 Testes cobrem lógica pura, nunca componentes: motor de busca e busca
 transversal, transições de artigo e de plano, métricas por projeto e por
