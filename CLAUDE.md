@@ -183,6 +183,32 @@ Tabela nova precisa de `grant` explícito para `authenticated`: RLS decide
 quais linhas aparecem depois que a tabela é alcançável, não se ela é
 alcançável.
 
+### Como o dado chega às telas
+
+`useSharedCollection` devolve `[itens, definir, hidratado]` — a mesma
+assinatura de `usePersistedState` — e decide sozinho entre banco e navegador.
+Provider não sabe de onde o dado vem, e não deve saber.
+
+A escrita compara o estado anterior com o novo e manda só a diferença. O tempo
+real relê a coleção inteira em vez de aplicar o evento recebido: aplicar erra
+quando os eventos chegam fora de ordem ou quando um se perde na reconexão.
+
+Taxonomia é a exceção — são três tabelas compondo um objeto, com repositório
+próprio, porque a ordem entre elas importa: categoria entra antes de seção e
+sai depois.
+
+**Chave de armazenamento vem de `STORAGE_KEYS`**, nunca de literal. Cada
+provider repetia a própria, e a duplicação já produziu divergência real: a
+migração procurou `visus-plans` enquanto o provider gravava em
+`visus-improvement-plans`.
+
+Serviço constrói registro; **quem persiste é a coleção**. O `projectService`
+escrevia direto no armazenamento, o que o prendia a uma fonte só.
+
+Ordem de subida importa e não pode ser paralelizada: projeto, atendimento,
+conversa, análise, plano, artigo, histórico. Atendimento referencia projeto,
+conversa referencia atendimento, artigo referencia projeto e seção.
+
 ## Taxonomia
 
 O `suporte.altoqi.com.br` **é** a base de conhecimento publicada, em HubSpot

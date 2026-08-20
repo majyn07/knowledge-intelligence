@@ -22,7 +22,7 @@ function cloneProject(project: Project): Project {
   };
 }
 
-function getSeedProjects(): Project[] {
+export function getSeedProjects(): Project[] {
   return projectMocks.map(cloneProject);
 }
 

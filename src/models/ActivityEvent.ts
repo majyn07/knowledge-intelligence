@@ -1,28 +1,42 @@
-export type ActivityType =
-  | "ticket_created"
-  | "ticket_updated"
-  | "ticket_deleted"
-  | "analysis_started"
-  | "analysis_completed"
-  | "opportunity_approved"
-  | "opportunity_discarded"
-  | "opportunity_deferred"
-  | "plan_created"
-  | "plan_status_changed"
-  | "plan_updated"
-  | "article_created"
-  | "article_updated"
-  | "article_status_changed"
-  | "project_created"
-  | "project_updated";
+/**
+ * Tipos de evento e assuntos possíveis.
+ *
+ * Declarados como array e não como união escrita à mão porque o normalizador
+ * precisa da lista em tempo de execução para recusar valor desconhecido.
+ * Manter as duas formas separadas convida a desalinho — e foi exatamente o que
+ * aconteceu na primeira tentativa de escrever o normalizador.
+ */
+export const ACTIVITY_TYPES = [
+  "ticket_created",
+  "ticket_updated",
+  "ticket_deleted",
+  "analysis_started",
+  "analysis_completed",
+  "opportunity_approved",
+  "opportunity_discarded",
+  "opportunity_deferred",
+  "plan_created",
+  "plan_status_changed",
+  "plan_updated",
+  "article_created",
+  "article_updated",
+  "article_status_changed",
+  "project_created",
+  "project_updated",
+] as const;
 
-export type ActivitySubjectKind =
-  | "ticket"
-  | "analysis"
-  | "opportunity"
-  | "plan"
-  | "article"
-  | "project";
+export type ActivityType = (typeof ACTIVITY_TYPES)[number];
+
+export const ACTIVITY_SUBJECT_KINDS = [
+  "ticket",
+  "analysis",
+  "opportunity",
+  "plan",
+  "article",
+  "project",
+] as const;
+
+export type ActivitySubjectKind = (typeof ACTIVITY_SUBJECT_KINDS)[number];
 
 export interface ActivitySubject {
   kind: ActivitySubjectKind;

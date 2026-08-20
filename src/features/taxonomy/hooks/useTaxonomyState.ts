@@ -11,8 +11,9 @@ import type { Taxonomy } from "@/models/Taxonomy";
 import { buildPortalTaxonomy } from "../mock/portalTaxonomy";
 import { parseTaxonomy } from "../normalizeTaxonomy";
 import { readTaxonomy, seedTaxonomyIfEmpty, writeTaxonomy } from "../repository/taxonomyRepository";
+import { STORAGE_KEYS } from "@/lib/storage";
 
-const STORAGE_KEY = "visus-taxonomy";
+const STORAGE_KEY = STORAGE_KEYS.taxonomy;
 
 /**
  * Estado da taxonomia, do servidor quando há e do navegador quando não há.

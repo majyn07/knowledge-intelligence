@@ -65,20 +65,32 @@ export function remove(key: string): void {
 }
 
 /** Chaves que a aplicação escreve, para o caminho de recuperação. */
-export const APP_STORAGE_KEYS = [
-  "visus-projects",
-  "visus-active-project-id",
-  "visus-tickets",
-  "visus-support-conversations",
-  "visus-knowledge-lifecycle",
-  "visus-improvement-plans",
-  "visus-library",
-  "visus-people",
-  "visus-current-person",
-  "visus-activity",
-  "visus-workspace-sidebar-collapsed",
-  "visus-brand-theme",
-] as const;
+/**
+ * Chaves nomeadas do armazenamento.
+ *
+ * Existem aqui e em nenhum outro lugar. Cada provider repetia a própria como
+ * literal, e a duplicação já produziu divergência: a migração para o servidor
+ * procurou "visus-plans" enquanto o provider gravava em
+ * "visus-improvement-plans", e não encontrou nada.
+ */
+export const STORAGE_KEYS = {
+  projects: "visus-projects",
+  activeProject: "visus-active-project-id",
+  tickets: "visus-tickets",
+  conversations: "visus-support-conversations",
+  analyses: "visus-knowledge-lifecycle",
+  plans: "visus-improvement-plans",
+  articles: "visus-library",
+  taxonomy: "visus-taxonomy",
+  people: "visus-people",
+  currentPerson: "visus-current-person",
+  activity: "visus-activity",
+  sidebar: "visus-workspace-sidebar-collapsed",
+  brandTheme: "visus-brand-theme",
+} as const;
+
+/** Tudo que a recuperação de falha apaga para voltar à semente. */
+export const APP_STORAGE_KEYS = Object.values(STORAGE_KEYS);
 
 /** Usado apenas na tela de erro: devolve o navegador ao estado de semente. */
 export function clearAppStorage(): void {

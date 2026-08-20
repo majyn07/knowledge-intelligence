@@ -14,6 +14,7 @@ import { BrandThemeProvider } from "@/providers/BrandThemeProvider";
 import { TaxonomyProvider } from "@/features/taxonomy/providers/TaxonomyProvider";
 import { SessionProvider } from "@/features/auth/providers/SessionProvider";
 import { AccessGate } from "@/features/auth/components/AccessGate";
+import { WorkspaceBootstrap } from "@/features/auth/components/WorkspaceBootstrap";
 
 import "./globals.css";
 
@@ -61,6 +62,7 @@ export default function RootLayout({
           <SessionProvider>
           <AccessGate>
           <TaxonomyProvider>
+          <WorkspaceBootstrap>
           <PeopleProvider>
           <ActivityProvider>
           <ProjectProvider>
@@ -80,6 +82,7 @@ export default function RootLayout({
           </ProjectProvider>
           </ActivityProvider>
           </PeopleProvider>
+          </WorkspaceBootstrap>
           </TaxonomyProvider>
           </AccessGate>
           </SessionProvider>
