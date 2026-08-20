@@ -147,6 +147,42 @@ pedir antes. O acesso à HubSpot será mediado pela Claude, não por adapter RES
 direto — a fronteira será desenhada na sprint de Atendimentos remotos, contra a
 forma que a Claude realmente devolver.
 
+## Identidade visual
+
+O kit de marca vive em `brand/`, **fora de `public/`** — são arquivos de
+impressão, de até 2,6 MB, que ninguém deve baixar pelo navegador. Em
+`public/brand/` ficam só as versões de web, geradas a partir dele com `sharp`
+e recortadas na margem transparente: nenhuma passa de 8 kB.
+
+A regra de uso sai dos próprios arquivos, que são variantes de fundo:
+
+| Sufixo | Uso |
+| --- | --- |
+| `-1` | colorida, fundo claro |
+| `-4` | colorida, fundo escuro |
+| `-2` | monocromática escura |
+| sem sufixo | toda branca |
+
+O sidebar é escuro, então usa `-4`. Marca em imagem dentro de container
+flex-column **precisa de `self-start`**: o padrão é esticar, e a marca sai
+deformada na largura.
+
+Poppins é a fonte da identidade e vem de `src/fonts`, servida por
+`next/font/local`. A família tem 18 pesos; a interface carrega quatro.
+Não voltar para fonte do Google — a marca não depende de terceiro.
+
+### Duas cores por tema, não uma
+
+`--brand` é o tom exato da marca, medido do arquivo. `--primary` é esse tom
+escurecido até texto branco fechar 4,5:1. Onde a cor é identidade vale
+`--brand`; onde ela vira fundo de botão vale `--primary`.
+
+Sem a separação, ou a marca sai errada ou o botão fica ilegível: o verde
+AltoQi `#00CC78` puro dá 2,4:1 com branco, e o laranja Builder dá 2,8:1.
+
+Cor nova passa por medição de contraste antes de entrar. Estimar a olho já
+produziu dois valores reprovados nesta mesma sprint.
+
 ## IA
 
 Gemini é o provider atual (`services/ai/server/geminiService.ts`), isolado atrás

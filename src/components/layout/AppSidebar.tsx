@@ -85,33 +85,43 @@ export function AppSidebar() {
   return (
     <Sidebar variant="sidebar" collapsible="icon">
       <SidebarHeader className="p-2">
-  <div className="flex items-center gap-3 px-2 group-data-[collapsible=icon]:justify-center">
-    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-x0 bg-white shadow-sm">
-      <Image
-        src="/logo-altoqi.png"
-        alt="AltoQi"
-        width={40}
-        height={40}
-        className="object-contain"
-        priority
-      />
-    </div>
+        <div className="flex flex-col gap-2.5 px-2 py-1">
+          {/*
+            Duas marcas, uma por estado. O lockup horizontal traz o nome e só
+            cabe expandido; recolhido sobra o símbolo. Ambos são a versão para
+            fundo escuro — verde e branco — porque o sidebar é escuro.
+          */}
+          <Image
+            src="/brand/altoqi-horizontal-dark.png"
+            alt="AltoQi"
+            width={320}
+            height={102}
+            priority
+            /* `self-start` é obrigatório: num flex-column o padrão é esticar,
+               e a marca sairia deformada na largura. */
+            className="h-8 w-auto self-start object-contain group-data-[collapsible=icon]:hidden"
+          />
 
-    <div className="min-w-0 group-data-[collapsible=icon]:hidden">
-      <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-sidebar-foreground/50">
-        AltoQi
-      </p>
+          <Image
+            src="/brand/altoqi-symbol-dark.png"
+            alt="AltoQi"
+            width={96}
+            height={83}
+            priority
+            className="mx-auto hidden h-7 w-auto self-center object-contain group-data-[collapsible=icon]:block"
+          />
 
-      <h2 className="truncate text-lg font-semibold">
-        KI AltoQi - V.0.7
-      </h2>
+          <div className="min-w-0 group-data-[collapsible=icon]:hidden">
+            <h2 className="truncate text-[0.95rem] font-semibold leading-tight tracking-tight">
+              Knowledge Intelligence
+            </h2>
 
-      <p className="truncate text-sm text-sidebar-foreground/65">
-        Central de Conhecimento
-      </p>
-    </div>
-  </div>
-</SidebarHeader>
+            <p className="truncate text-xs text-sidebar-foreground/60">
+              Central de Conhecimento
+            </p>
+          </div>
+        </div>
+      </SidebarHeader>
 
       <SidebarContent>
         <SidebarGroup className="pt-2">
