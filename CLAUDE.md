@@ -29,6 +29,9 @@ src/services/ai  fronteira de IA, server-only
 src/hooks        utilitários de React sem domínio
 ```
 
+As nove features: `activities`, `analysis`, `dashboard`, `library`, `metrics`,
+`people`, `plans`, `projects`, `search`.
+
 ### Cadeia de dados
 
 ```
@@ -44,11 +47,13 @@ importado — o mock é semente, não banco.
 Ordem em `app/layout.tsx`, de fora para dentro:
 
 ```
-BrandTheme → People → Activity → Project → KnowledgeLifecycle → Plans → Library
+BrandTheme → People → Activity → Project
+           → Tickets → KnowledgeLifecycle → Plans → Library
 ```
 
 `Activity` fica acima dos domínios porque todos registram eventos nele e ele não
-depende de ninguém.
+depende de ninguém. `Tickets` fica acima de `KnowledgeLifecycle` porque a análise
+parte do atendimento.
 
 Estado de uma entidade que várias telas consomem é **provider**, não hook solto.
 Já pagamos essa dívida uma vez com a Biblioteca.
@@ -62,25 +67,44 @@ hidratação quebra.
 A regra: **servidor e primeiro render do cliente produzem o mesmo HTML**, a
 partir da semente canônica. O valor guardado entra num efeito após a montagem.
 Vale para qualquer coisa que só o navegador conhece — `localStorage`,
-`window.innerWidth`, `matchMedia`. Nunca resolva com `suppressHydrationWarning`
-nem `dynamic({ ssr: false })`.
+`window.innerWidth`, `matchMedia`, parâmetros de URL (`useQueryParam`). Nunca
+resolva com `suppressHydrationWarning` nem `dynamic({ ssr: false })`.
+
+### Formulários
+
+O estado do formulário **nasce do prop e não é sincronizado depois**. Para trocar
+o registro em edição, o pai remonta o componente com `key={registro.id}`.
+
+Nunca use `useEffect(() => setForm(initialData), [initialData])`: `initialData`
+costuma ser um objeto novo a cada render do pai, e o efeito apaga o que está
+sendo digitado. Esse defeito já custou uma sessão de depuração.
+
+Campos de texto longo usam `MarkdownField` de `components/common/markdown`, que
+já traz barra de formatação e pré-visualização.
 
 ## Regras de produto
 
 **Nada inventado.** Se um número não pode ser derivado dos dados reais, ele não
 aparece. Não rotule métrica calculada como saída de IA. Estado vazio honesto é
-sempre melhor que preenchimento.
+sempre melhor que preenchimento. Quando uma seção não tem como ser verdadeira,
+ela sai — foi assim com anexos e "Copiloto de IA" no Plano.
 
 **A Biblioteca é a Base de Conhecimento.** Existe um único acervo,
 `KnowledgeArticle`. Só artigo **publicado** conta como cobertura documental — a
 análise não enxerga rascunho nem revisão.
 
+**Máquinas de estado têm caminho de volta.** Artigo e plano podem retroceder:
+revisão reprovada volta para rascunho, publicado pode ser recolhido. Um fluxo que
+só avança esconde o erro em vez de corrigi-lo.
+
 **Referências a HubSpot, Zendesk, Vercel e CRMs são pedidos de maturidade**
 funcional e de UX, nunca de integração ou de importar o domínio deles. Traduza o
 princípio para o nosso ciclo.
 
-**Integração real exige autorização explícita.** Contratos, mappers e fronteiras
-inertes podem ser preparados; ligar rede ou credencial, não.
+**Integração real exige autorização explícita.** Ligar rede ou credencial exige
+pedir antes. O acesso à HubSpot será mediado pela Claude, não por adapter REST
+direto — a fronteira será desenhada na sprint de Atendimentos remotos, contra a
+forma que a Claude realmente devolver.
 
 ## IA
 
@@ -88,10 +112,21 @@ Gemini é o provider atual (`services/ai/server/geminiService.ts`), isolado atr�
 de `analysisAIService`. GPT saiu do roadmap; Claude entra numa sprint própria.
 
 O acervo vive no navegador, então a **busca de artigos roda no cliente** e o
-contexto chega ao servidor com a evidência já resolvida. O servidor valida com
-schema estrito (`analysisRequestSchema`) e monta o prompt. A resposta estruturada
-também é validada (`analysisResponseSchema`); id e status de oportunidade são
-atribuídos internamente, nunca pelo modelo.
+contexto chega ao servidor com a evidência já resolvida — atendimento, conversa e
+artigos relacionados. O servidor valida com schema estrito
+(`analysisRequestSchema`) e monta o prompt. A resposta estruturada também é
+validada (`analysisResponseSchema`); id e status de oportunidade são atribuídos
+internamente, **nunca pelo modelo** — quem decide é a revisão humana.
+
+## Histórico
+
+Todo fato relevante do ciclo vira um `ActivityEvent`, gravado pelo provider da
+própria feature. Eventos são **acrescentados, nunca editados**: registram o que
+aconteceu, não o estado atual. O evento guarda o rótulo do assunto, então o
+registro sobrevive à exclusão do registro original.
+
+Os indicadores temporais leem esse log. Só reporte o que o evento expressa sem
+ambiguidade — o destino de uma transição vive no texto e inferi-lo é adivinhação.
 
 ## Convenções
 
@@ -102,6 +137,15 @@ atribuídos internamente, nunca pelo modelo.
 - `import "server-only"` em tudo que toca chave de API
 - Comentário explica **por que**, não o que o código já diz
 - JSX legível: nada de componente inteiro numa única linha
+- Edição por script precisa normalizar fim de linha: o repositório usa
+  `core.autocrlf`, e um `\r` sobrando quebra o `git diff --check`
+
+## Trabalho por sprint
+
+Uma branch por sprint, nomeada pelo que a sprint entrega
+(`sprint/atendimentos`, `sprint/governanca`). Um commit por sprint, com o corpo
+descrevendo o que mudou e o que ficou de fora. Não avance para a próxima sprint
+sem apresentar o resultado e receber autorização.
 
 ## Verificação
 
@@ -112,5 +156,9 @@ npm test
 npm run build
 ```
 
-Testes cobrem lógica pura — motor de busca, transições, métricas, parsing. Ao
-mexer em qualquer uma delas, o teste vem junto.
+Um hook `PostToolUse` em `.claude/settings.json` roda `typecheck` e `test` em
+segundo plano após edições em `.ts`/`.tsx`, avisando só quando algo quebra.
+
+Testes cobrem lógica pura — motor de busca, busca transversal, transições de
+artigo e de plano, métricas por projeto e por período, parsing da resposta da IA
+e normalização de atendimento. Ao mexer em qualquer uma delas, o teste vem junto.
