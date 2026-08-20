@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useState, type ReactNode } from "react";
+import { FormEvent, useEffect, useState, type ReactNode } from "react";
 import { MessageSquarePlus, Trash2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -15,6 +15,8 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 
+import { todayIso } from "@/lib/dates";
+
 import type { TicketFormData, TicketMessageFormData } from "../types/TicketFormData";
 
 interface TicketFormProps {
@@ -25,14 +27,29 @@ interface TicketFormProps {
   onCancel?: () => void;
   /** Avisa o diálogo de que há alteração pendente. */
   onDirty?: () => void;
+  /**
+   * Preenche a data com hoje quando ela está vazia.
+   *
+   * Só quem abre o formulário sabe se é criação — editar um registro antigo
+   * que chegou sem data **não** pode ganhar a data de hoje, porque seria
+   * carimbar como ocorrido agora algo que aconteceu quando ninguém sabe.
+   */
+  isNew?: boolean;
 }
 
+/**
+ * Formulário em branco.
+ *
+ * A data nasce vazia e é preenchida com hoje depois da montagem: ler o
+ * relógio durante o render é impuro, e o valor que ele produz não é o mesmo
+ * no servidor e no cliente.
+ */
 function emptyForm(projectId: string): TicketFormData {
   return {
     title: "",
     company: "",
     solution: "",
-    date: new Intl.DateTimeFormat("pt-BR").format(new Date()),
+    date: "",
     projectId,
     messages: [],
   };
@@ -58,6 +75,7 @@ export function TicketForm({
   onSubmit,
   onCancel,
   onDirty,
+  isNew = false,
 }: TicketFormProps) {
   // O estado nasce do prop e não é sincronizado depois: quem troca o registro
   // em edição remonta o formulário por chave, evitando que um novo objeto de
@@ -65,6 +83,18 @@ export function TicketForm({
   const [formData, setFormData] = useState<TicketFormData>(
     initialData ?? emptyForm(projects[0]?.id ?? "")
   );
+
+  /*
+    Hoje entra depois da montagem: ler o relógio durante o render é impuro, e
+    o valor que ele produz não é o mesmo no servidor e no cliente.
+  */
+  useEffect(() => {
+    if (!isNew) return;
+
+    setFormData((previous) =>
+      previous.date === "" ? { ...previous, date: todayIso(new Date()) } : previous
+    );
+  }, [isNew]);
 
   function change<K extends keyof TicketFormData>(field: K, value: TicketFormData[K]) {
     onDirty?.();
@@ -91,10 +121,8 @@ export function TicketForm({
           id: crypto.randomUUID(),
           author,
           body: "",
-          createdAt: new Intl.DateTimeFormat("pt-BR", {
-            dateStyle: "short",
-            timeStyle: "short",
-          }).format(new Date()),
+          // ISO, como todo instante do produto. Quem formata é a tela.
+          createdAt: new Date().toISOString(),
         },
       ],
     }));
@@ -150,12 +178,30 @@ export function TicketForm({
 
           <div className="space-y-2">
             <Label htmlFor="ticket-date">Data</Label>
+
+            {/*
+              Campo de data, e não texto livre. Antes aceitava qualquer coisa —
+              "ontem", "15 jul" —, e o que não dava para situar no tempo caía
+              fora de toda janela dos indicadores. O valor nativo já é
+              `aaaa-mm-dd`, que é o formato guardado.
+            */}
             <Input
               id="ticket-date"
+              type="date"
               value={formData.date}
-              placeholder="dd/mm/aaaa"
               onChange={(event) => change("date", event.target.value)}
             />
+
+            {/*
+              Registro anterior cuja data não pôde ser lida chega vazio. Dizer
+              isso é melhor que o campo parecer nunca ter sido preenchido.
+            */}
+            {formData.date === "" && (
+              <p className="text-xs text-muted-foreground">
+                Sem data. Os indicadores por período não alcançam este
+                atendimento enquanto ela não for informada.
+              </p>
+            )}
           </div>
 
           <div className="space-y-2">

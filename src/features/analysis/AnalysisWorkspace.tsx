@@ -188,6 +188,7 @@ export function AnalysisWorkspace() {
       >
         <TicketForm
           key={isCreating ? "novo" : "fechado"}
+          isNew
           projects={projectOptions}
           initialData={
             activeProjectId
@@ -195,7 +196,9 @@ export function AnalysisWorkspace() {
                   title: "",
                   company: "",
                   solution: "",
-                  date: new Intl.DateTimeFormat("pt-BR").format(new Date()),
+                  // Vazia: quem preenche com hoje é o próprio formulário,
+                  // depois da montagem. Ler o relógio aqui seria no render.
+                  date: "",
                   projectId: activeProjectId,
                   messages: [],
                 }

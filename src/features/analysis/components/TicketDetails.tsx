@@ -5,6 +5,8 @@ import { Brain, Building2, CalendarDays, Boxes, Pencil, ScanSearch, Trash2 } fro
 import { PropertyGrid } from "@/components/common/data/PropertyGrid";
 import { PageSection } from "@/components/common/page/PageSection";
 import { Button } from "@/components/ui/button";
+import { RelativeDate } from "@/components/common/RelativeDate";
+import { formatDay } from "@/lib/dates";
 import type { AnalysisStatus } from "@/models/KnowledgeLifecycle";
 import type { SupportConversation } from "@/models/SupportConversation";
 import type { Ticket } from "@/models/Ticket";
@@ -102,7 +104,7 @@ export function TicketDetails({
               value: (
                 <div className="flex items-center gap-2">
                   <CalendarDays className="h-4 w-4 text-primary" />
-                  <span>{ticket.date || "Não informada"}</span>
+                  <span>{ticket.date ? formatDay(ticket.date) : "Não informada"}</span>
                 </div>
               ),
             },
@@ -133,7 +135,9 @@ export function TicketDetails({
                   >
                     <div className="mb-3 flex items-center justify-between gap-6">
                       <span className="text-sm font-semibold">{message.author}</span>
-                      <span className="text-xs text-muted-foreground">{message.createdAt}</span>
+                      <span className="text-xs text-muted-foreground">
+                        <RelativeDate value={message.createdAt} />
+                      </span>
                     </div>
 
                     <p className="whitespace-pre-wrap text-sm leading-7">{message.body}</p>

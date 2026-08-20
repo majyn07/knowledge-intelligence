@@ -355,6 +355,18 @@ Data só é data em **ISO 8601**, e a leitura recusa o resto. `new Date("15 jul.
 mesmo registro mostrando prazos diferentes em máquinas diferentes, sem nada
 indicando o problema.
 
+**Dia de calendário não é instante.** A data do atendimento é o dia em que ele
+aconteceu, e dia não tem fuso: `lib/dates` trabalha sobre os componentes do
+texto e nunca sobre um `Date`, porque `new Date("2026-08-01")` é meia-noite em
+Greenwich — 31 de julho no Brasil. O erro só aparece na virada do mês, que é
+justamente onde ninguém olharia para conferir. Instante continua em ISO
+completo; dia fica em `aaaa-mm-dd`.
+
+Campo de data é **campo de data**, não texto livre. O do atendimento aceitava
+"ontem", e o que não dá para situar no tempo cai fora de toda janela. O
+normalizador converte o `dd/mm/aaaa` que está gravado e esvazia o que não é
+data — a tela diz que falta, em vez de deixar o campo parecer preenchido.
+
 Isso vale para o que o produto **grava**, e não só para o que ele lê: o plano
 nascia com `createdAt` em texto de exibição — "20 de ago. de 2026, 18:23" —
 apesar de o modelo dizer ISO, e por isso o painel de planos por mês não
