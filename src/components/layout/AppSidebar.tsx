@@ -80,6 +80,25 @@ const systemItems = [
     href: "/settings",
   },
 ];
+/**
+ * Ambiente real, vindo da Vercel.
+ *
+ * Antes era o texto fixo "Build de desenvolvimento", que apareceu numa tela de
+ * produção. Rótulo de ambiente que não olha o ambiente é exatamente o tipo de
+ * afirmação que este produto não faz — e em produção o certo é não afirmar
+ * nada, porque quem está lá não precisa ser lembrado disso.
+ */
+const environmentLabel = (() => {
+  switch (process.env.NEXT_PUBLIC_VERCEL_ENV) {
+    case "preview":
+      return "Ambiente de pré-visualização";
+    case "production":
+      return null;
+    default:
+      return "Ambiente local";
+  }
+})();
+
 export function AppSidebar() {
   const pathname = usePathname();
   return (
@@ -196,9 +215,11 @@ export function AppSidebar() {
           Central de Conhecimento
         </p>
 
-        <p className="text-[11px] text-sidebar-foreground/60">
-          Build de desenvolvimento
-        </p>
+        {environmentLabel && (
+          <p className="text-[11px] text-sidebar-foreground/60">
+            {environmentLabel}
+          </p>
+        )}
       </div>
 
       <span className="rounded-md bg-primary/10 px-2 py-1 text-[10px] font-semibold text-primary">
