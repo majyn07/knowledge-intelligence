@@ -5,6 +5,7 @@ import { Boxes, Paintbrush } from "lucide-react";
 import { ProductGraphic } from "@/components/brand/ProductGraphic";
 import { AppShell } from "@/components/layout/AppShell";
 import { BrandThemeSwitcher } from "@/components/common/BrandThemeSwitcher";
+import { AppearanceToggle } from "@/components/common/AppearanceToggle";
 import { PageHeader } from "@/components/common/page/PageHeader";
 import { PageSection } from "@/components/common/page/PageSection";
 import { PeopleManager } from "@/features/people/components/PeopleManager";
@@ -45,6 +46,18 @@ export default function SettingsPage() {
 
             <div className="relative mt-5">
               <BrandThemeSwitcher />
+
+              <div className="mt-6 border-t pt-5">
+                <p className="text-sm font-medium">Aparência</p>
+
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Claro, escuro, ou o que o seu sistema já pede.
+                </p>
+
+                <div className="mt-3">
+                  <AppearanceToggle />
+                </div>
+              </div>
             </div>
           </div>
         </PageSection>

@@ -280,6 +280,21 @@ Poppins é a fonte da identidade e vem de `src/fonts`, servida por
 `next/font/local`. A família tem 18 pesos; a interface carrega quatro.
 Não voltar para fonte do Google — a marca não depende de terceiro.
 
+### Aparência
+
+A aparência vive em `data-appearance` no `<html>`, e não numa classe. O tema
+precisa estar aplicado antes da primeira pintura, senão a tela pisca clara —
+isso exige um script antes do React, e mexer em `className` do `<html>` nesse
+momento produziria divergência de hidratação. Atributo que não aparece no JSX
+o React não compara.
+
+O bloco escuro usa `:root[data-appearance="dark"]`, com o `:root` deliberado:
+os temas de produto têm a mesma especificidade e vêm antes no arquivo. Sem
+ele, a primária do produto venceria o escuro.
+
+Cada produto tem bloco próprio dentro do escuro. Sem isso os três ficariam
+idênticos, porque a primária viria toda do verde institucional.
+
 ### Duas cores por tema, não uma
 
 `--brand` é o tom exato da marca, medido do arquivo. `--primary` é esse tom
@@ -344,6 +359,14 @@ npm run build
 
 Um hook `PostToolUse` em `.claude/settings.json` roda `typecheck` e `test` em
 segundo plano após edições em `.ts`/`.tsx`, avisando só quando algo quebra.
+
+Data na tela é `RelativeDate`: relativo no texto, instante exato no título.
+O valor relativo entra depois da montagem — servidor e cliente têm relógios
+diferentes, e "há 2 minutos" divergiria na hidratação.
+
+`Ctrl+K` abre busca **e** comandos. Comando é navegação e criação; publicar,
+aprovar e excluir ficam de fora, porque pedem intenção e uma lista percorrida
+com a seta não é lugar para isso.
 
 Testes cobrem lógica pura, nunca componentes: motor de busca e busca
 transversal, transições de artigo e de plano, métricas por projeto e por

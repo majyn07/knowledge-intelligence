@@ -2,7 +2,18 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 
-@custom-variant dark (&:is(.dark *));
+/*
+  A aparência vive num atributo, não numa classe.
+
+  O tema precisa estar aplicado antes da primeira pintura, senão a tela pisca
+  clara e escurece. Isso exige um script que roda antes do React — e mexer em
+  `className` do `<html>` antes da hidratação produziria divergência, que é
+  justamente o que este projeto não resolve com `suppressHydrationWarning`.
+
+  `data-appearance` não aparece no JSX, então o React não o compara. O script
+  pode escrevê-lo cedo sem consequência.
+*/
+@custom-variant dark (&:is([data-appearance="dark"] *));
 
 @theme inline {
   --color-background: var(--background);
@@ -187,7 +198,12 @@
   --chart-1: oklch(0.63 0.11 218);
 }
 
-.dark {
+/*
+  `:root[...]` e não só `[...]`: os temas de produto usam `:root[data-brand]`,
+  de mesma especificidade, e vêm antes no arquivo. Sem o `:root` aqui, o roxo
+  do Visus venceria o escuro e a primária sairia com o tom de fundo claro.
+*/
+:root[data-appearance="dark"] {
 
   --background: oklch(0.18 0.01 220);
   --foreground: oklch(0.97 0 0);
@@ -239,6 +255,34 @@
   --sidebar-border: oklch(0.31 0.01 220);
 
   --sidebar-ring: var(--primary);
+}
+
+/*
+  Produto dentro do escuro.
+
+  Sem estes blocos os três produtos ficariam idênticos no tema escuro, porque
+  a primária viria toda do verde institucional. O `L` de cada um foi resolvido
+  para o texto escuro fechar contraste por cima: os quatro passam de 4,8:1.
+*/
+:root[data-appearance="dark"][data-brand="visus"] {
+  --brand: oklch(0.70 0.15 303.2);
+  --primary: oklch(0.70 0.15 303.2);
+  --accent: oklch(0.30 0.045 303);
+  --chart-1: oklch(0.70 0.15 303.2);
+}
+
+:root[data-appearance="dark"][data-brand="builder"] {
+  --brand: oklch(0.78 0.15 60.5);
+  --primary: oklch(0.78 0.15 60.5);
+  --accent: oklch(0.32 0.04 60);
+  --chart-1: oklch(0.78 0.15 60.5);
+}
+
+:root[data-appearance="dark"][data-brand="eberick"] {
+  --brand: oklch(0.75 0.11 218);
+  --primary: oklch(0.75 0.11 218);
+  --accent: oklch(0.30 0.035 218);
+  --chart-1: oklch(0.75 0.11 218);
 }
 
 @layer base {

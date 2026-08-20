@@ -12,6 +12,7 @@ import { TicketsProvider } from "@/features/analysis/providers/TicketsProvider";
 import { ProjectProvider } from "@/providers/ProjectProvider";
 import { BrandThemeProvider } from "@/providers/BrandThemeProvider";
 import { TaxonomyProvider } from "@/features/taxonomy/providers/TaxonomyProvider";
+import { AppearanceProvider, appearanceScript } from "@/providers/AppearanceProvider";
 import { SessionProvider } from "@/features/auth/providers/SessionProvider";
 import { AccessGate } from "@/features/auth/components/AccessGate";
 import { WorkspaceBootstrap } from "@/features/auth/components/WorkspaceBootstrap";
@@ -53,6 +54,14 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="pt-BR" className={poppins.variable}>
+      <head>
+        {/*
+          Antes de qualquer pintura: sem isto a tela abre clara e escurece.
+          Escreve num atributo que o React não renderiza, então não há
+          divergência de hidratação para suprimir.
+        */}
+        <script dangerouslySetInnerHTML={{ __html: appearanceScript }} />
+      </head>
       <body className="min-h-screen bg-background font-sans text-foreground antialiased">
         {/*
           O aviso fica **fora** dos portões de acesso e de migração.
@@ -62,6 +71,7 @@ export default function RootLayout({
         */}
         <Toaster position="top-right" richColors closeButton />
 
+        <AppearanceProvider>
         <BrandThemeProvider>
           {/*
             Sessão acima de tudo que lê dados: com as políticas do banco
@@ -90,6 +100,7 @@ export default function RootLayout({
           </AccessGate>
           </SessionProvider>
         </BrandThemeProvider>
+        </AppearanceProvider>
       </body>
     </html>
   );
