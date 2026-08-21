@@ -46,6 +46,19 @@ export type FollowRow = {
   created_at: string;
 };
 
+export type SavedViewRow = {
+  id: string;
+  name: string;
+  screen: string;
+  search: string;
+  status: string;
+  category_id: string;
+  sort_column: string;
+  sort_direction: string;
+  columns: string[];
+  position: number;
+};
+
 export type TeamRow = {
   id: string;
   name: string;
@@ -242,6 +255,12 @@ export interface Database {
         Update: Partial<TeamRow>;
         Relationships: [];
       };
+      saved_views: {
+        Row: SavedViewRow;
+        Insert: SavedViewRow;
+        Update: Partial<SavedViewRow>;
+        Relationships: [];
+      };
       follows: {
         Row: FollowRow;
         Insert: FollowRow;
@@ -284,6 +303,7 @@ export const REALTIME_TABLES = [
   "profiles",
   "dashboard_panels",
   "follows",
+  "saved_views",
 ] as const;
 
 export type RealtimeTable = (typeof REALTIME_TABLES)[number];

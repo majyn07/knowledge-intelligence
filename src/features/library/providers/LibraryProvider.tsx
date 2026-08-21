@@ -39,6 +39,9 @@ interface LibraryContextValue {
   createItem: (data: LibraryFormData) => void;
   updateItem: (id: string, data: LibraryFormData) => void;
   changeStatus: (id: string, status: ArticleStatus) => void;
+  /** Ações em lote sobre a seleção da tabela. */
+  changeStatusMany: (ids: string[], status: ArticleStatus) => void;
+  assignMany: (ids: string[], author: string) => void;
   deleteItem: (id: string) => void;
   createItemFromPlan: (plan: PlanWorkspaceItem) => { item: KnowledgeArticle; created: boolean };
 }
@@ -168,6 +171,79 @@ export function LibraryProvider({ children }: { children: ReactNode }) {
     [currentPerson, items, record, setItems]
   );
 
+
+  /**
+   * Mesma mudança de estágio, para muitos.
+   *
+   * Não é um laço sobre `changeStatus`: cada chamada dispararia um aviso, e
+   * duzentos avisos empilhados escondem o que aconteceu em vez de contar. Aqui
+   * a gravação é uma só e o aviso também — mas o histórico continua ganhando
+   * um evento por artigo, porque cada um se moveu de fato.
+   *
+   * O que não pode fazer a transição fica de fora e aparece na ressalva. Parar
+   * tudo por causa de um seria pior; aplicar em silêncio, também.
+   */
+  const changeStatusMany = useCallback(
+    (ids: string[], status: ArticleStatus) => {
+      const alvos = items.filter((item) => ids.includes(item.id));
+      const podem = alvos.filter((item) => articleService.canTransitionStatus(item.status, status));
+
+      if (podem.length === 0) {
+        toast.error(
+          `Nenhum dos selecionados pode ir para "${articleStatusLabel[status]}".`
+        );
+        return;
+      }
+
+      const permitidos = new Set(podem.map((item) => item.id));
+
+      setItems((previous) =>
+        previous.map((item) =>
+          permitidos.has(item.id) ? articleService.changeStatus(item, status) : item
+        )
+      );
+
+      for (const item of podem) {
+        record({
+          type: "article_status_changed",
+          projectId: item.projectId,
+          actor: currentPerson || item.author,
+          subject: { kind: "article", id: item.id, label: item.title },
+          detail: articleStatusLabel[item.status] + " → " + articleStatusLabel[status],
+          transition: { from: item.status, to: status },
+        });
+      }
+
+      const fora = alvos.length - podem.length;
+
+      toast.success(
+        `${podem.length} artigo(s) movido(s) para "${articleStatusLabel[status]}".`,
+        fora > 0
+          ? {
+              description: `${fora} ficou(ram) de fora: o estágio atual não permite essa transição.`,
+            }
+          : undefined
+      );
+    },
+    [currentPerson, items, record, setItems]
+  );
+
+  /** Mesma atribuição, para muitos. */
+  const assignMany = useCallback(
+    (ids: string[], author: string) => {
+      const alvos = new Set(ids);
+
+      setItems((previous) =>
+        previous.map((item) =>
+          alvos.has(item.id) ? { ...item, author, updatedAt: new Date() } : item
+        )
+      );
+
+      toast.success(`${ids.length} artigo(s) reatribuído(s).`);
+    },
+    [setItems]
+  );
+
   const restoreItem = useCallback(
     (id: string) => {
       setItems((previous) =>
@@ -216,10 +292,12 @@ export function LibraryProvider({ children }: { children: ReactNode }) {
       createItem,
       updateItem,
       changeStatus,
+      changeStatusMany,
+      assignMany,
       deleteItem,
       createItemFromPlan,
     }),
-    [changeStatus, createItem, createItemFromPlan, deleteItem, deletedItems, isHydrated, items, purgeItem, restoreItem, updateItem]
+    [assignMany, changeStatus, changeStatusMany, createItem, createItemFromPlan, deleteItem, deletedItems, isHydrated, items, purgeItem, restoreItem, updateItem]
   );
 
   return <LibraryContext.Provider value={value}>{children}</LibraryContext.Provider>;

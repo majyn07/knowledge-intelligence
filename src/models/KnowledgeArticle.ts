@@ -1,10 +1,15 @@
 import type { Trashable } from "./Trash";
 
-export type ArticleStatus =
-  | "draft"
-  | "review"
-  | "published"
-  | "archived";
+/**
+ * Os estágios do artigo, como lista.
+ *
+ * Declarada como array e não só como união porque o normalizador e as visões
+ * salvas precisam da lista em tempo de execução para recusar valor
+ * desconhecido — a mesma razão de .
+ */
+export const ARTICLE_STATUSES = ["draft", "review", "published", "archived"] as const;
+
+export type ArticleStatus = (typeof ARTICLE_STATUSES)[number];
 
 /** Origem do conteúdo, quando ele nasceu de uma decisão do ciclo de conhecimento. */
 export interface KnowledgeContentSource {

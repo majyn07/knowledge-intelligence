@@ -6,6 +6,7 @@ import { Toaster } from "@/components/ui/sonner";
 import { PlansProvider } from "@/features/plans/providers/PlansProvider";
 import { PanelsProvider } from "@/features/metrics/panels/PanelsProvider";
 import { FollowsProvider } from "@/features/people/providers/FollowsProvider";
+import { SavedViewsProvider } from "@/features/library/providers/SavedViewsProvider";
 import { LibraryProvider } from "@/features/library/providers/LibraryProvider";
 import { PeopleProvider } from "@/features/people/providers/PeopleProvider";
 import { ActivityProvider } from "@/features/activities/providers/ActivityProvider";
@@ -102,7 +103,9 @@ export default function RootLayout({
                   */}
                   <PanelsProvider>
                     {/* Acompanhamentos dependem de saber quem é a pessoa, e de mais nada. */}
-                    <FollowsProvider>{children}</FollowsProvider>
+                    <FollowsProvider>
+                      <SavedViewsProvider>{children}</SavedViewsProvider>
+                    </FollowsProvider>
                   </PanelsProvider>
                 </LibraryProvider>
               </PlansProvider>
