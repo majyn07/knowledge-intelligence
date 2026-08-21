@@ -365,6 +365,23 @@ O artigo aponta para `sectionId`, e a categoria vem da seção — guardar as du
 permitiria que divergissem. `portalArticleId` guarda a identidade no portal,
 sem a qual sincronizar criaria duplicata a cada importação.
 
+**A classificação do atendimento é outra, e continua separada.** O suporte
+classifica o ticket na HubSpot por `[Support] Produto` — Builder, Eberick,
+Visus, Área do Cliente, Produtos anteriores, Não é produto — e por uma lista de
+23 categorias dentro do produto: Cabeamento, Climatização, Elétrico, Elétrico |
+Barramento, Elétrico | Fotovoltaico, Gás, Hidrossanitário, Incêndio, SPDA, as
+seis Estrutural, as sete Visus e Geral / Plataforma.
+
+A forma é a mesma da nossa — produto em cima, disciplina embaixo —, mas o
+vocabulário responde a outra pergunta: um classifica o **atendimento**, o outro
+classifica o **artigo publicado**. Unificar os dois foi considerado e recusado:
+os artigos já apontam para seções do portal, e trocar o cadastro deixaria todos
+em "Sem seção" — que é exatamente a classificação inventada que o resto deste
+documento evita. O "Responde por" da equipe lê o portal.
+
+A classificação da HubSpot entra quando os atendimentos remotos entrarem, como
+vocabulário do atendimento, e não por cima deste.
+
 **Nada de classificação é fixo no código.** Categoria, seção, gênero e tipo de
 oportunidade são cadastro, editável em Configurações. A semente é a estrutura
 do portal como levantada — 13 categorias e 146 seções —, mas o portal muda e
