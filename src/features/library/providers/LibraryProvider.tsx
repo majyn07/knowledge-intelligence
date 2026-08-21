@@ -47,6 +47,8 @@ interface LibraryContextValue {
   /** Ações em lote sobre a seleção da tabela. */
   changeStatusMany: (ids: string[], status: ArticleStatus) => void;
   assignMany: (ids: string[], author: string) => void;
+  /** Grava o resultado de uma importação: novos e atualizados de uma vez. */
+  importArticles: (create: KnowledgeArticle[], update: KnowledgeArticle[]) => void;
   deleteItem: (id: string) => void;
   createItemFromPlan: (plan: PlanWorkspaceItem) => { item: KnowledgeArticle; created: boolean };
 }
@@ -250,6 +252,50 @@ export function LibraryProvider({ children }: { children: ReactNode }) {
   );
 
   /**
+   * Grava uma importação inteira numa passada só.
+   *
+   * Numa passada porque cada gravação da coleção compartilhada é uma ida ao
+   * servidor: mil e oitocentos artigos em mil e oitocentas chamadas levaria
+   * minutos e deixaria o acervo pela metade se qualquer uma falhasse.
+   *
+   * O histórico recebe **um** evento, e não um por artigo. Mil e oitocentas
+   * linhas iguais não são registro do que aconteceu: são ruído que enterra
+   * tudo que aconteceu antes.
+   */
+  const importArticles = useCallback(
+    (create: KnowledgeArticle[], update: KnowledgeArticle[]) => {
+      if (create.length === 0 && update.length === 0) return;
+
+      const porId = new Map(update.map((item) => [item.id, item]));
+
+      setItems((previous) => [
+        ...previous.map((item) => porId.get(item.id) ?? item),
+        ...create,
+      ]);
+
+      const partes = [
+        create.length > 0 ? `${create.length} novo(s)` : "",
+        update.length > 0 ? `${update.length} atualizado(s)` : "",
+      ].filter(Boolean);
+
+      record({
+        type: "article_created",
+        projectId: (create[0] ?? update[0]).projectId,
+        actor: currentPerson,
+        subject: {
+          kind: "article",
+          id: "import",
+          label: `Importação de ${create.length + update.length} artigos`,
+        },
+        detail: partes.join(", "),
+      });
+
+      toast.success(`Importação concluída: ${partes.join(", ")}.`);
+    },
+    [currentPerson, record, setItems]
+  );
+
+  /**
    * Guarda a próxima versão sem tirar a atual do ar.
    *
    * Editar um publicado exigia recolhê-lo para revisão, e enquanto isso a
@@ -358,10 +404,11 @@ export function LibraryProvider({ children }: { children: ReactNode }) {
       discardArticleDraft,
       changeStatusMany,
       assignMany,
+      importArticles,
       deleteItem,
       createItemFromPlan,
     }),
-    [assignMany, changeStatus, changeStatusMany, discardArticleDraft, publishArticleDraft, saveDraft, createItem, createItemFromPlan, deleteItem, deletedItems, isHydrated, items, purgeItem, restoreItem, updateItem]
+    [assignMany, changeStatus, changeStatusMany, discardArticleDraft, publishArticleDraft, saveDraft, createItem, createItemFromPlan, deleteItem, deletedItems, importArticles, isHydrated, items, purgeItem, restoreItem, updateItem]
   );
 
   return <LibraryContext.Provider value={value}>{children}</LibraryContext.Provider>;
