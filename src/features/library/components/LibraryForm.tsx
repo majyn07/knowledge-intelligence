@@ -429,7 +429,12 @@ export function LibraryForm({
         </div>
       </Fieldset>
 
-      <div className="flex justify-end gap-2 border-t border-border/70 pt-5">
+      {/*
+        As ações grudam no rodapé enquanto o formulário rola. Ele é longo — nove
+        campos e um editor —, e num diálogo com rolagem própria os botões
+        ficavam a uma tela de distância de quem acabou de digitar o título.
+      */}
+      <div className="sticky bottom-0 -mx-4 -mb-4 flex justify-end gap-2 border-t border-border/70 bg-popover px-4 py-4">
         <Button type="button" variant="outline" onClick={onCancel}>
           Cancelar
         </Button>

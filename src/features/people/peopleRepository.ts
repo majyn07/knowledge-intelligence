@@ -41,6 +41,7 @@ export function toTeam(raw: unknown): Team {
     order: typeof row.position === "number" ? row.position : 0,
     // Equipes gravadas antes da coluna existir não têm o campo.
     categoryIds: textList(row.category_ids),
+    sectionIds: textList(row.section_ids),
   };
 }
 
@@ -111,14 +112,21 @@ export async function setPersonActive(
  * edição do cadastro é uma operação compartilhada, e no navegador ela não
  * teria com quem ser compartilhada.
  */
-export async function setTeamCategories(
+export async function setTeamScope(
   client: Client,
   id: string,
-  categoryIds: string[]
+  ids: { categoryIds?: string[]; sectionIds?: string[] }
 ): Promise<void> {
+  const payload: { category_ids?: string[]; section_ids?: string[] } = {};
+
+  if (ids.categoryIds !== undefined) payload.category_ids = ids.categoryIds;
+  if (ids.sectionIds !== undefined) payload.section_ids = ids.sectionIds;
+
+  if (Object.keys(payload).length === 0) return;
+
   const { error } = await client
     .from("teams")
-    .update({ category_ids: categoryIds })
+    .update(payload)
     .eq("id", id);
 
   if (error) throw new Error(error.message);

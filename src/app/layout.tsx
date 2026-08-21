@@ -16,6 +16,8 @@ import { ProjectProvider } from "@/providers/ProjectProvider";
 import { BrandThemeProvider } from "@/providers/BrandThemeProvider";
 import { TaxonomyProvider } from "@/features/taxonomy/providers/TaxonomyProvider";
 import { AppearanceProvider, appearanceScript } from "@/providers/AppearanceProvider";
+import { ReleaseProvider } from "@/features/release/providers/ReleaseProvider";
+import { ReleaseBanner } from "@/features/release/components/ReleaseBanner";
 import { SessionProvider } from "@/features/auth/providers/SessionProvider";
 import { AccessGate } from "@/features/auth/components/AccessGate";
 import { WorkspaceBootstrap } from "@/features/auth/components/WorkspaceBootstrap";
@@ -80,6 +82,15 @@ export default function RootLayout({
         */}
         <Toaster position="top-right" richColors closeButton />
 
+        {/*
+          Nova versão publicada e trabalho pendente ficam **acima** dos portões
+          de acesso, pelo mesmo motivo do aviso: a publicação acontece
+          independentemente de a sessão ter sido lida, e quem está com a aba
+          aberta precisa saber.
+        */}
+        <ReleaseProvider>
+        <ReleaseBanner />
+
         <AppearanceProvider>
         <BrandThemeProvider>
           {/*
@@ -121,6 +132,7 @@ export default function RootLayout({
           </SessionProvider>
         </BrandThemeProvider>
         </AppearanceProvider>
+        </ReleaseProvider>
       </body>
     </html>
   );

@@ -9,8 +9,8 @@ import {
 } from "./Assignment";
 
 const teams: Team[] = [
-  { id: "team-suporte-visus", name: "Suporte Visus", order: 0, categoryIds: [] },
-  { id: "team-suporte-estruturas", name: "Suporte Estruturas", order: 1, categoryIds: [] },
+  { id: "team-suporte-visus", name: "Suporte Visus", order: 0, categoryIds: [], sectionIds: [] },
+  { id: "team-suporte-estruturas", name: "Suporte Estruturas", order: 1, categoryIds: [], sectionIds: [] },
 ];
 
 const people: Person[] = [

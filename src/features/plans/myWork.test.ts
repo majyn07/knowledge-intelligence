@@ -10,7 +10,7 @@ import type { PlanWorkspaceItem } from "./types/PlanWorkspace";
 const agora = new Date("2026-08-20T18:00:00.000Z");
 const dia = (n: number) => new Date(agora.getTime() + n * 24 * 60 * 60 * 1000).toISOString();
 
-const teams: Team[] = [{ id: "team-suporte-visus", name: "Suporte Visus", order: 0, categoryIds: [] }];
+const teams: Team[] = [{ id: "team-suporte-visus", name: "Suporte Visus", order: 0, categoryIds: [], sectionIds: [] }];
 
 const eu: Person = {
   id: "pessoa-1",

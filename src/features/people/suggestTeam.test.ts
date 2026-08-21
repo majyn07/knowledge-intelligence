@@ -13,6 +13,7 @@ const taxonomy: Taxonomy = {
   ],
   sections: [
     { id: "sec-eletrica", categoryId: "cat-builder", name: "Elétrica", order: 0 },
+    { id: "sec-hidraulica", categoryId: "cat-builder", name: "Hidráulica", order: 1 },
     { id: "sec-collab", categoryId: "cat-visus", name: "Collab", order: 0 },
     { id: "sec-canais", categoryId: "cat-onboarding", name: "Canais", order: 0 },
   ],
@@ -20,11 +21,12 @@ const taxonomy: Taxonomy = {
   opportunityTypes: [],
 };
 
-const team = (id: string, categoryIds: string[]): Team => ({
+const team = (id: string, categoryIds: string[], sectionIds: string[] = []): Team => ({
   id,
   name: id,
   order: 0,
   categoryIds,
+  sectionIds,
 });
 
 describe("suggestTeam", () => {
@@ -69,6 +71,48 @@ describe("suggestTeam", () => {
     const teams = [team("eq-orfa", ["cat-que-sumiu"])];
 
     expect(suggestTeam("sec-collab", taxonomy, teams)).toBe("");
+  });
+
+  it("a seção declarada vence a categoria", () => {
+    /*
+      O suporte do Builder é dividido por disciplina, e disciplina no portal é
+      seção. As duas equipes têm de responder pela mesma categoria — declarar
+      só ela desligaria a sugestão de ambas.
+    */
+    const teams = [
+      team("eq-eletrica", ["cat-builder"], ["sec-eletrica"]),
+      team("eq-hidraulica", ["cat-builder"], ["sec-hidraulica"]),
+    ];
+
+    expect(suggestTeam("sec-eletrica", taxonomy, teams)).toBe("eq-eletrica");
+    expect(suggestTeam("sec-hidraulica", taxonomy, teams)).toBe("eq-hidraulica");
+  });
+
+  it("seção sem dono cai na categoria, e duas donas dela não sugerem", () => {
+    /*
+      A categoria continua valendo para quem responde pelo produto inteiro.
+      Mas se a seção não foi declarada por ninguém e a categoria tem duas
+      equipes, voltamos ao empate — e empate não sugere.
+    */
+    const comSecao = [
+      team("eq-eletrica", ["cat-builder"], ["sec-eletrica"]),
+      team("eq-hidraulica", ["cat-builder"], ["sec-hidraulica"]),
+    ];
+
+    expect(suggestTeam("sec-collab", taxonomy, comSecao)).toBe("");
+
+    const umaSo = [team("eq-builder", ["cat-builder"], ["sec-eletrica"])];
+
+    expect(suggestTeam("sec-hidraulica", taxonomy, umaSo)).toBe("eq-builder");
+  });
+
+  it("duas equipes na mesma seção desligam a sugestão", () => {
+    const teams = [
+      team("eq-a", [], ["sec-eletrica"]),
+      team("eq-b", ["cat-builder"], ["sec-eletrica"]),
+    ];
+
+    expect(suggestTeam("sec-eletrica", taxonomy, teams)).toBe("");
   });
 
   it("uma equipe pode responder por mais de uma categoria", () => {

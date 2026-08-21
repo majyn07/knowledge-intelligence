@@ -121,6 +121,27 @@ Fechar um formulário com alteração pendente pede confirmação. Use
 `useUnsavedGuard`: o formulário avisa que ficou sujo via `onDirty`, o diálogo
 consulta antes de fechar. Descartar trabalho em silêncio não é opção.
 
+O mesmo aviso sobe um nível: enquanto houver alteração pendente, o guarda
+registra no `ReleaseProvider` que existe trabalho aberto, e é isso que faz o
+aviso de nova versão dizer "salve antes" em vez de oferecer um recarregar que
+descarta o texto. Quem fecha a aba inteira merece a mesma pergunta de quem
+fecha o diálogo — por isso também há `beforeunload` enquanto houver pendência.
+
+### Versão publicada
+
+`/api/version` devolve o identificador do deploy, e o navegador de quem está
+com a página aberta compara de cinco em cinco minutos e ao voltar para a aba.
+A referência é a **primeira versão que aquela aba viu**, e não uma constante
+embutida na compilação: assim o aviso funciona sem depender de a plataforma
+expor o identificador do deploy para o navegador.
+
+Recarregar sozinho está fora de questão — quem está no meio de um artigo
+perderia o texto, e o produto teria decidido por ela. O aviso fica no canto,
+não bloqueia, e atualizar é ato de alguém.
+
+Fora da Vercel a versão é fixa: no desenvolvimento o servidor reinicia a cada
+salvamento, e um aviso a cada tecla seria ruído.
+
 ### Falhas
 
 `app/error.tsx`, `app/global-error.tsx` e `app/not-found.tsx` existem. Um erro
@@ -203,9 +224,21 @@ equipe óbvia, o palpite apareceria com cara de decisão. Duas equipes na mesma
 categoria desligam a sugestão: escolher uma seria arbitrário, e arbitrário com
 cara de sugestão é pior que campo vazio.
 
+**A seção vence a categoria** quando alguma equipe a declarou. O suporte do
+Builder é dividido por disciplina, e disciplina no portal é seção, não
+categoria: Builder Elétrica e Builder Hidráulica teriam de declarar a mesma
+categoria e desligariam a sugestão uma da outra. Quem responde pelo produto
+inteiro — Visus, Eberick — declara só a categoria, e a seção que ninguém
+declarou continua caindo nela.
+
+Por isso a categoria disputada só vira aviso quando **nenhuma** seção dela foi
+declarada: apontar como defeito o arranjo que a própria tela pediu seria
+ensinar a desconfiar da orientação certa.
+
 O mapa é **cadastro, não constante** — mesma razão do resto da classificação:
 as categorias do portal mudam e as equipes mudam, e ninguém vai abrir o código
-para acompanhar.
+para acompanhar. Vale para o nome da equipe também: renomear preserva o id, que
+é o vínculo com tudo que já foi atribuído.
 
 **Atribuição guarda identificador, não nome.** Era nome, com a justificativa de
 que remover alguém não apagaria o registro de quem conduziu. Com conta, o nome

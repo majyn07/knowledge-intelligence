@@ -22,7 +22,7 @@ import { seedTeams } from "../mock/teams";
 import {
   readPeopleAndTeams,
   setPersonActive,
-  setTeamCategories as writeTeamCategories,
+  setTeamScope as writeTeamScope,
   updateProfile,
 } from "../peopleRepository";
 
@@ -41,7 +41,7 @@ interface PeopleContextValue {
   updateMe: (fields: { name?: string; role?: string; teamId?: string; avatarUrl?: string }) => Promise<void>;
   deactivate: (id: string, isActive: boolean) => Promise<void>;
   /** Por quais categorias do portal a equipe responde. */
-  setTeamCategories: (teamId: string, categoryIds: string[]) => Promise<void>;
+  setTeamScope: (teamId: string, ids: { categoryIds?: string[]; sectionIds?: string[] }) => Promise<void>;
 
   /** Pessoas ativas de uma equipe. */
   peopleOfTeam: (teamId: string) => Person[];
@@ -176,12 +176,12 @@ export function PeopleProvider({ children }: { children: ReactNode }) {
     [supabase]
   );
 
-  const setTeamCategories = useCallback(
-    async (teamId: string, categoryIds: string[]) => {
+  const setTeamScope = useCallback(
+    async (teamId: string, ids: { categoryIds?: string[]; sectionIds?: string[] }) => {
       if (!supabase) return;
 
       try {
-        await writeTeamCategories(supabase, teamId, categoryIds);
+        await writeTeamScope(supabase, teamId, ids);
       } catch (error) {
         toast.error(
           `Não foi possível salvar: ${
@@ -208,7 +208,7 @@ export function PeopleProvider({ children }: { children: ReactNode }) {
       setCurrentPerson: setLocalActor,
       updateMe,
       deactivate,
-      setTeamCategories,
+      setTeamScope,
       peopleOfTeam,
     }),
     [
@@ -219,7 +219,7 @@ export function PeopleProvider({ children }: { children: ReactNode }) {
       people,
       peopleOfTeam,
       setLocalActor,
-      setTeamCategories,
+      setTeamScope,
       teams,
       updateMe,
     ]
