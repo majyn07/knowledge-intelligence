@@ -14,6 +14,8 @@ import type { Session } from "@supabase/supabase-js";
 
 import { getSupabase, isAllowedEmail, isBackendConfigured } from "@/lib/supabase/client";
 
+import { signInErrorMessage } from "../signInError";
+
 /**
  * Estado de acesso do produto.
  *
@@ -106,7 +108,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
       options: { emailRedirectTo: `${window.location.origin}/auth/callback` },
     });
 
-    return error ? error.message : null;
+    return error ? signInErrorMessage(error.message) : null;
   }, []);
 
   const signOut = useCallback(async () => {
