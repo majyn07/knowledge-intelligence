@@ -21,6 +21,10 @@ import { LibraryTable } from "@/features/library/components/LibraryTable";
 import { LibraryViewBar } from "@/features/library/components/LibraryViewBar";
 import { BulkActions } from "@/features/library/components/BulkActions";
 import { ImportButton, ImportDialog } from "@/features/library/components/ImportDialog";
+import { SuggestSectionDialog } from "@/features/library/components/SuggestSectionDialog";
+import { findSection } from "@/models/Taxonomy";
+import { useTaxonomy } from "@/features/taxonomy/providers/TaxonomyProvider";
+import { Sparkles } from "lucide-react";
 import { useLibraryTable } from "@/features/library/hooks/useLibraryTable";
 import { useSavedViews } from "@/features/library/providers/SavedViewsProvider";
 import { articlesToCsv } from "@/features/library/articleCsv";
@@ -36,6 +40,7 @@ import { useProject } from "@/providers/ProjectProvider";
 export default function LibraryPage() {
   const [importOpen, setImportOpen] = useState(false);
   const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
+  const [suggestOpen, setSuggestOpen] = useState(false);
   const { activeProject, activeProjectId, projects } = useProject();
   const {
     items,
@@ -68,6 +73,18 @@ export default function LibraryPage() {
     id: project.id,
     name: project.name,
   }));
+
+  const { taxonomy } = useTaxonomy();
+
+  /*
+    Sem seção é estado legítimo — o importado entra assim de propósito quando o
+    nome não bate com o cadastro. O botão de sugerir só existe quando existe o
+    problema que ele resolve.
+  */
+  const semSecao = items.filter(
+    (item) =>
+      item.projectId === activeProjectId && findSection(taxonomy, item.sectionId) === undefined
+  );
 
   const table = useLibraryTable(filteredItems);
 
@@ -123,6 +140,13 @@ export default function LibraryPage() {
           description={`O acervo de ${activeProject?.name ?? "este projeto"}. Os artigos publicados são o que a análise consulta ao avaliar a cobertura documental.`}
           actions={
             <div className="flex flex-wrap gap-2">
+              {semSecao.length > 0 && (
+                <Button variant="outline" onClick={() => setSuggestOpen(true)}>
+                  <Sparkles className="mr-1.5 h-4 w-4" />
+                  Sugerir seção ({semSecao.length})
+                </Button>
+              )}
+
               <ImportButton onClick={() => setImportOpen(true)} />
               <Button onClick={openCreateDialog}>Novo artigo</Button>
             </div>
@@ -276,6 +300,12 @@ export default function LibraryPage() {
         />
 
         <ImportDialog open={importOpen} onOpenChange={setImportOpen} />
+
+        <SuggestSectionDialog
+          open={suggestOpen}
+          onOpenChange={setSuggestOpen}
+          articles={semSecao}
+        />
 
         {/*
           A confirmação diz o número antes do clique, como a de um registro só —
