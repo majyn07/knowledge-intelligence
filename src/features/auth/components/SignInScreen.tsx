@@ -7,7 +7,7 @@ import { MailCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { ALLOWED_EMAIL_DOMAIN } from "@/lib/supabase/client";
+import { ALLOWED_EMAIL_DOMAIN, isGoogleSignInEnabled } from "@/lib/supabase/client";
 
 import { useSession } from "../providers/SessionProvider";
 
@@ -50,6 +50,7 @@ function GoogleMark() {
  */
 export function SignInScreen() {
   const { requestLink, signInWithGoogle } = useSession();
+  const googleEnabled = isGoogleSignInEnabled();
 
   const [email, setEmail] = useState("");
   const [sending, setSending] = useState(false);
@@ -107,8 +108,10 @@ export function SignInScreen() {
         </h1>
 
         <p className="mt-2 text-sm text-muted-foreground">
-          O acesso é restrito a contas <strong>@{ALLOWED_EMAIL_DOMAIN}</strong>.
-          Não há senha em nenhum dos caminhos.
+          O acesso é restrito a contas <strong>@{ALLOWED_EMAIL_DOMAIN}</strong>.{" "}
+          {googleEnabled
+            ? "Não há senha em nenhum dos caminhos."
+            : "Enquanto a conta da empresa não está conectada, a entrada é pelo link enviado por e-mail. Não há senha."}
         </p>
 
         {sent ? (
@@ -142,23 +145,32 @@ export function SignInScreen() {
               O Google vem primeiro porque é o caminho que não depende de
               entrega de e-mail — e entrega falha. O link continua abaixo, para
               quem estiver num navegador sem a conta da empresa.
-            */}
-            <Button
-              type="button"
-              variant="outline"
-              className="w-full"
-              disabled={sending}
-              onClick={() => void handleGoogle()}
-            >
-              <GoogleMark />
-              Entrar com a conta AltoQi
-            </Button>
 
-            <div className="flex items-center gap-3">
-              <span className="h-px flex-1 bg-border" />
-              <span className="text-xs text-muted-foreground">ou receba um link</span>
-              <span className="h-px flex-1 bg-border" />
-            </div>
+              Só aparece quando está ligado do outro lado. Com o provedor
+              desligado, a navegação termina num `400` da Supabase — a pessoa
+              sai do produto e fica olhando um JSON em inglês. Botão que às
+              vezes leva a lugar nenhum é pior que botão que ainda não existe.
+            */}
+            {googleEnabled && (
+              <>
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="w-full"
+                  disabled={sending}
+                  onClick={() => void handleGoogle()}
+                >
+                  <GoogleMark />
+                  Entrar com a conta AltoQi
+                </Button>
+
+                <div className="flex items-center gap-3">
+                  <span className="h-px flex-1 bg-border" />
+                  <span className="text-xs text-muted-foreground">ou receba um link</span>
+                  <span className="h-px flex-1 bg-border" />
+                </div>
+              </>
+            )}
 
             <div className="space-y-2">
               <Label htmlFor="email">E-mail corporativo</Label>

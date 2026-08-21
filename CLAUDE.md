@@ -283,6 +283,23 @@ mesmo motivo: parâmetro que sai do navegador não restringe ninguém.
 Não há senha em lugar nenhum. São dois caminhos: a conta Google da AltoQi, que
 é o principal, e o link por e-mail como alternativa.
 
+**O botão do Google só aparece quando está ligado do outro lado**, declarado
+por `NEXT_PUBLIC_GOOGLE_SIGN_IN=on` — mesma razão do modo compartilhado, e um
+defeito concreto: com o provedor desligado, a Supabase responde `400
+Unsupported provider` à navegação, e a pessoa saía do produto para um JSON em
+inglês, sem botão de voltar. Deduzir do navegador exigiria perguntar ao
+servidor a cada abertura da tela. Botão que às vezes leva a lugar nenhum é pior
+que botão que ainda não existe.
+
+Enquanto ele está desligado, a tela diz que a entrada é pelo link — em vez de
+prometer dois caminhos e oferecer um.
+
+O que falta para a equipe entrar não é código, e está escrito em
+`docs/acesso-da-equipe.md`: o serviço de e-mail embutido tem teto por hora
+**travado enquanto não houver SMTP próprio**, e só entrega para endereços da
+equipe do projeto. Os dois caminhos de saída dependem de credencial de fora —
+Google Cloud ou SMTP —, e nenhum deles se resolve esperando.
+
 As chaves privilegiadas — service role, secret e JWT — **foram removidas do
 ambiente**. Elas ignoram as políticas de acesso, e nenhuma operação do produto
 precisa disso. As `POSTGRES_*` ficam porque `npm run db:migrate` depende delas

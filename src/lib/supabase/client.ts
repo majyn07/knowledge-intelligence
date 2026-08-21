@@ -39,6 +39,25 @@ export function isBackendConfigured(): boolean {
   return sharedEnabled && url !== "" && anonKey !== "";
 }
 
+/**
+ * A entrada pela conta Google está ligada do lado da Supabase.
+ *
+ * É declarada pelo mesmo motivo do modo compartilhado, e por um defeito
+ * concreto: com o provedor desligado, a Supabase responde `400 Unsupported
+ * provider` à navegação — o botão tirava a pessoa do produto e a deixava
+ * olhando um JSON em inglês, fora da aplicação, sem botão de voltar.
+ *
+ * Não dá para deduzir isso do navegador sem perguntar antes ao servidor a cada
+ * abertura da tela. Um botão que só existe quando funciona é mais honesto que
+ * um botão que existe sempre e às vezes leva a lugar nenhum.
+ *
+ * Ligar no mesmo dia em que as credenciais do Google Cloud entrarem no
+ * ambiente da Supabase: `NEXT_PUBLIC_GOOGLE_SIGN_IN=on`.
+ */
+export function isGoogleSignInEnabled(): boolean {
+  return (process.env.NEXT_PUBLIC_GOOGLE_SIGN_IN ?? "").trim().toLowerCase() === "on";
+}
+
 let client: SupabaseClient<Database> | null = null;
 
 /**

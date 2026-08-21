@@ -25,6 +25,11 @@ const KNOWN: Match[] = [
       "O envio de e-mails atingiu o limite. O serviço de e-mail configurado neste projeto tem teto por hora — avise quem administra, porque isso se resolve na configuração e não esperando.",
   },
   {
+    contains: "provider is not enabled",
+    message:
+      "A entrada pela conta da empresa ainda não foi conectada neste projeto. Use o link por e-mail.",
+  },
+  {
     contains: "not authorized",
     message:
       "Este endereço não está autorizado a receber o link neste projeto. Avise quem administra o acesso.",

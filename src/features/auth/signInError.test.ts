@@ -36,4 +36,15 @@ describe("signInErrorMessage", () => {
   it("endereço recusado aponta para quem administra", () => {
     expect(signInErrorMessage("Email address not authorized")).toContain("administra");
   });
+
+  it("provedor desligado manda para o caminho que funciona", () => {
+    /*
+      A Supabase responde `Unsupported provider: provider is not enabled` — em
+      inglês e nomeando o provedor, que não é o que quem lê precisa saber.
+    */
+    const texto = signInErrorMessage("Unsupported provider: provider is not enabled");
+
+    expect(texto).toContain("link por e-mail");
+    expect(texto).not.toContain("provider");
+  });
 });
