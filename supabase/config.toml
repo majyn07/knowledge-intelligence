@@ -1,0 +1,53 @@
+# Configuração do projeto, versionada como as migrações.
+#
+# Existe por causa de um defeito real: o link de acesso enviado por e-mail
+# caía em `localhost:3000`, porque a `site_url` do projeto continuava no
+# padrão e o destino pedido pelo produto não estava na lista de permitidos.
+# A Supabase ignora o destino que não está na lista e usa a `site_url` — e o
+# resultado era toda a equipe recebendo um link para uma máquina que não é a
+# dela.
+#
+# Fica no repositório pelo mesmo motivo das migrações: configuração de acesso
+# decidida em silêncio no painel é configuração que ninguém sabe explicar
+# depois.
+#
+# Cuidado ao rodar `supabase config push`: ele aplica este arquivo inteiro, e
+# o que não estiver declarado volta ao padrão da CLI. Confira o diff antes.
+
+project_id = "teebrsxpnypztwhtiupe"
+
+[auth]
+# Para onde a Supabase manda quem não tem destino explícito permitido.
+site_url = "https://knowledge-intelligence.vercel.app"
+
+# Destinos que o produto pode pedir. O de produção é o que destrava a equipe;
+# os de localhost são para desenvolvimento — 3000 é o `npm run dev` e 3100 é
+# o `npm run dev:local`.
+additional_redirect_urls = [
+  "https://knowledge-intelligence.vercel.app/auth/callback",
+  "http://localhost:3000/auth/callback",
+  "http://localhost:3100/auth/callback",
+]
+
+# As seções abaixo não são preferência nossa: são os valores que o projeto já
+# tinha. Estão declaradas porque `config push` aplica o arquivo inteiro, e o
+# que fica de fora volta ao padrão da CLI — que aqui era mais fraco que o
+# valor real. Na primeira tentativa isso baixou o tamanho do código, encurtou
+# o intervalo entre envios de e-mail e desligou o segundo fator.
+#
+# Antes de mexer neste arquivo, confira o diff que o push imprime.
+
+[auth.mfa.totp]
+enroll_enabled = true
+verify_enabled = true
+
+[auth.email]
+enable_signup = true
+double_confirm_changes = true
+enable_confirmations = true
+secure_password_change = false
+# Intervalo mínimo entre e-mails para o mesmo endereço: é o que impede alguém
+# usar o formulário de acesso como máquina de disparo.
+max_frequency = "1m0s"
+otp_length = 8
+otp_expiry = 3600
