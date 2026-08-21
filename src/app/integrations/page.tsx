@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 
 import { AppShell } from "@/components/layout/AppShell";
+import { AI_PROVIDERS, resolveActiveProvider } from "@/services/ai/providers/catalog";
 
 export const metadata: Metadata = {
   title: "Integrações",
@@ -13,7 +14,7 @@ export const metadata: Metadata = {
  */
 export const dynamic = "force-dynamic";
 
-type IntegrationState = "connected" | "planned";
+type IntegrationState = "active" | "connected" | "planned";
 
 type Integration = {
   name: string;
@@ -23,29 +24,55 @@ type Integration = {
 };
 
 /**
- * O estado do provedor de análise é lido do ambiente do servidor — só a
- * presença da chave, nunca o valor. Uma tela de integrações que afirma estar
- * conectada sem verificar é exatamente o tipo de coisa que este produto não faz.
+ * O estado dos provedores sai do **mesmo catálogo** que o servidor usa para
+ * escolher com quem falar. Duas listas do mesmo vocabulário divergem, e a
+ * divergência apareceria como a tela dizendo "conectado" sobre um provedor que
+ * a análise não usa.
+ *
+ * Só a presença da chave é lida, nunca o valor. Uma tela de integrações que
+ * afirma estar conectada sem verificar é exatamente o tipo de coisa que este
+ * produto não faz.
  */
-function buildIntegrations(): Integration[] {
-  const analysisConfigured = Boolean(process.env.GEMINI_API_KEY);
+function buildIntegrations(): { integrations: Integration[]; caveat: string | null } {
+  const active = resolveActiveProvider(process.env);
 
-  return [
-    {
-      name: "Google Gemini",
-      purpose: "Análise de atendimentos",
-      detail: analysisConfigured
-        ? "Chave configurada neste ambiente. É o provedor que lê o atendimento e propõe oportunidades para a revisão humana."
-        : "Sem chave configurada neste ambiente. A análise por IA não funciona até que ela exista.",
-      state: analysisConfigured ? "connected" : "planned",
-    },
-    {
-      name: "Claude",
-      purpose: "Análise e acesso à HubSpot",
+  const providers: Integration[] = AI_PROVIDERS.map((provider) => {
+    const configured = active.configured.includes(provider.id);
+    const isActive = active.id === provider.id;
+
+    if (isActive) {
+      return {
+        name: provider.name,
+        purpose: provider.purpose,
+        detail:
+          "É quem lê o atendimento e propõe oportunidades para a revisão humana. A chave está configurada neste ambiente.",
+        state: "active",
+      };
+    }
+
+    if (configured) {
+      return {
+        name: provider.name,
+        purpose: provider.purpose,
+        detail:
+          "Chave configurada, mas não é o provedor em uso. Declare `AI_PROVIDER` para trocar.",
+        state: "connected",
+      };
+    }
+
+    return {
+      name: provider.name,
+      purpose: provider.purpose,
       detail:
-        "Entra como segundo provedor de análise e é por onde o acesso à HubSpot será mediado — não haverá conexão REST direta com o CRM.",
+        provider.id === "claude"
+          ? "Entra como segundo provedor de análise e é por onde o acesso à HubSpot será mediado — não haverá conexão REST direta com o CRM. Falta a credencial."
+          : "Sem chave configurada neste ambiente.",
       state: "planned",
-    },
+    };
+  });
+
+  const integrations: Integration[] = [
+    ...providers,
     {
       name: "HubSpot · Atendimentos",
       purpose: "Origem dos atendimentos",
@@ -61,16 +88,30 @@ function buildIntegrations(): Integration[] {
       state: "planned",
     },
   ];
+
+  /*
+    A ressalva existe pelo mesmo motivo da ressalva de data no painel: quando o
+    resultado veio de um critério que ninguém escolheu, quem lê precisa saber.
+  */
+  const caveat =
+    active.reason === "preferencia"
+      ? "Há mais de um provedor com chave e nenhum declarado. Vale a ordem escrita no catálogo — declare `AI_PROVIDER` para decidir."
+      : active.reason === "declarado-sem-chave"
+        ? `O ambiente declara \`AI_PROVIDER=${active.declared}\`, que não tem chave aqui. A análise por IA não funciona até isso bater — e o produto não troca de provedor por conta própria.`
+        : null;
+
+  return { integrations, caveat };
 }
 
 const stateLabel: Record<IntegrationState, string> = {
-  connected: "Conectada",
+  active: "Em uso",
+  connected: "Configurada",
   planned: "Planejada",
 };
 
 export default function IntegrationsPage() {
-  const integrations = buildIntegrations();
-  const connected = integrations.filter((item) => item.state === "connected").length;
+  const { integrations, caveat } = buildIntegrations();
+  const ativas = integrations.filter((item) => item.state !== "planned").length;
 
   return (
     <AppShell>
@@ -82,12 +123,18 @@ export default function IntegrationsPage() {
             </h1>
 
             <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
-              {connected === 0
+              {ativas === 0
                 ? "Nenhuma integração ativa. Todo dado nesta instalação foi cadastrado por alguém."
-                : `${connected} de ${integrations.length} conectadas. O restante ainda não existe — e nada nesta tela finge o contrário.`}
+                : `${ativas} de ${integrations.length} conectadas. O restante ainda não existe — e nada nesta tela finge o contrário.`}
             </p>
           </div>
         </header>
+
+        {caveat && (
+          <p className="rounded-xl border border-border/70 bg-muted/40 p-4 text-sm text-muted-foreground">
+            {caveat}
+          </p>
+        )}
 
         <ul className="flex flex-col gap-3">
           {integrations.map((item) => (
@@ -106,9 +153,11 @@ export default function IntegrationsPage() {
 
                 <span
                   className={
-                    item.state === "connected"
+                    item.state === "active"
                       ? "rounded-full bg-primary/12 px-2.5 py-1 text-xs font-semibold text-primary"
-                      : "rounded-full bg-muted px-2.5 py-1 text-xs font-semibold text-muted-foreground"
+                      : item.state === "connected"
+                        ? "rounded-full border border-primary/30 px-2.5 py-1 text-xs font-semibold text-primary"
+                        : "rounded-full bg-muted px-2.5 py-1 text-xs font-semibold text-muted-foreground"
                   }
                 >
                   {stateLabel[item.state]}

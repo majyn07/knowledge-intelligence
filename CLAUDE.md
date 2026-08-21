@@ -482,6 +482,38 @@ produziu dois valores reprovados nesta mesma sprint.
 Gemini é o provider atual (`services/ai/server/geminiService.ts`), isolado atrás
 de `analysisAIService`. GPT saiu do roadmap; Claude entra numa sprint própria.
 
+**Somar um provedor é escrever um arquivo e citá-lo no registro.** O contrato é
+`AIProvider` — `chat` e `analyze`, nada mais —, e nada acima de
+`services/ai/server` conhece SDK, nome de modelo ou formato de mensagem.
+
+**Qual provedor vale é declarado, não deduzido da presença de chave**, pelo
+mesmo motivo do modo compartilhado: chave provisionada em ambiente é acidente
+de infraestrutura, não decisão de produto. `AI_PROVIDER` nomeia; sem ele, vale
+o único configurado. Com dois configurados e nenhum declarado vale a ordem
+escrita em `AI_PROVIDERS`, e **a tela de Integrações diz que foi ela** — como a
+ressalva de data no painel, resultado de critério que ninguém escolheu precisa
+ser anunciado.
+
+Declarar um provedor sem chave **não cai em outro**. Quem declarou quis aquele,
+e substituir por conta própria faria um erro de digitação virar uma análise
+feita por outro modelo, sem ninguém saber.
+
+A tela de Integrações lê do **mesmo catálogo** que o servidor usa para
+escolher. Duas listas do mesmo vocabulário divergem, e a divergência apareceria
+como a tela dizendo "conectado" sobre um provedor que a análise não usa.
+
+**Falha de provedor tem tipo.** Chave recusada, cota estourada, modelo
+sobrecarregado e pedido que passou do prazo eram a mesma frase — "tente
+novamente" —, inclusive quando tentar de novo não mudava nada. `classifyProvider‑
+Failure` separa as quatro, e o que não é reconhecido **leva a mensagem original
+junto**, como na tradução do erro de acesso: ela é a única pista de quem
+administra. As duas rotas respondem pelo mesmo `aiErrorResponse`; escritas em
+separado, divergem.
+
+Todo pedido tem prazo (`AI_TIMEOUT_MS`). Sem ele um pedido pendurado prende a
+rota até o teto da plataforma, e quem pediu a análise fica olhando um botão
+girar.
+
 O acervo vive no navegador, então a **busca de artigos roda no cliente** e o
 contexto chega ao servidor com a evidência já resolvida — atendimento, conversa e
 artigos relacionados. O servidor valida com schema estrito
@@ -724,7 +756,8 @@ viraria ruído.
 
 Testes cobrem lógica pura, nunca componentes: motor de busca e busca
 transversal, transições de artigo e de plano, métricas por projeto e por
-período, parsing da resposta da IA, índice do artigo, critérios de publicação,
+período, parsing da resposta da IA, a escolha do provedor com a classificação
+das falhas dele, índice do artigo, critérios de publicação,
 fronteira de armazenamento, o cadastro de taxonomia com a migração da
 classificação antiga, os normalizadores de artigo, plano e atendimento, o motor
 e o desenho dos painéis, a trilha de navegação, o recorte por equipe, as
