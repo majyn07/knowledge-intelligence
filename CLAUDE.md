@@ -661,6 +661,13 @@ O plano é calculado antes de gravar e mostrado inteiro — quantos entram,
 quantos atualizam, quantos ficam sem seção, quantas linhas o arquivo perde.
 É a mesma regra do diálogo de exclusão: o número vem antes do clique.
 
+**Não é preciso conhecer o formato do arquivo.** Cada coluna é oferecida com
+um valor de exemplo, porque cabeçalho de exportação costuma ser `hs_body` ou
+`col_12` e o nome não diz o que a coluna guarda. E a tela monta **o primeiro
+registro como ele vai ficar**: contagem certa com mapeamento trocado é
+perfeitamente possível — mil e oitocentos resumos no lugar do título somam mil
+e oitocentos do mesmo jeito —, e ver um registro pronto é o que denuncia.
+
 Reimportar **atualiza** pelo `portalArticleId`, e o que o arquivo não traz é
 preservado: gênero e responsável são nossos, não do portal, e a segunda
 importação não pode apagar a classificação que alguém fez aqui dentro.
