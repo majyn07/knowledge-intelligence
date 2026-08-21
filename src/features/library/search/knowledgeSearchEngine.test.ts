@@ -17,6 +17,7 @@ function article(overrides: Partial<KnowledgeArticle> = {}): KnowledgeArticle {
     tags: ["acesso"],
     keywords: ["login"],
     author: "",
+    contentFormat: "markdown" as const,
     createdAt: new Date("2026-01-01"),
     updatedAt: new Date("2026-01-01"),
     ...overrides,

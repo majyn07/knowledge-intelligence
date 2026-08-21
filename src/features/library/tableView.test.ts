@@ -30,6 +30,7 @@ function artigo(over: Partial<KnowledgeArticle>): KnowledgeArticle {
     tags: [],
     keywords: [],
     author: "eq-visus",
+    contentFormat: "markdown" as const,
     createdAt: new Date("2026-08-01T00:00:00.000Z"),
     updatedAt: new Date("2026-08-01T00:00:00.000Z"),
     ...over,

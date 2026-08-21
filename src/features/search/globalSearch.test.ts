@@ -40,6 +40,7 @@ const base: GlobalSearchInput = {
       tags: [],
       keywords: ["token"],
       author: "",
+      contentFormat: "markdown" as const,
       createdAt: new Date(),
       updatedAt: new Date(),
     },

@@ -1,4 +1,5 @@
 import { date, flag, items, oneOf, record, text, textList } from "@/lib/shape";
+import { CONTENT_FORMATS } from "@/models/KnowledgeArticle";
 import type { ArticleStatus, KnowledgeArticle } from "@/models/KnowledgeArticle";
 import type { Taxonomy } from "@/models/Taxonomy";
 
@@ -35,6 +36,8 @@ export function toArticle(raw: unknown): KnowledgeArticle {
     tags: textList(row.tags),
     keywords: textList(row.keywords),
     author: text(row.author),
+    // Da coluna, e não fixo: é o que permite HTML vindo do portal continuar HTML.
+    contentFormat: oneOf(row.content_format, CONTENT_FORMATS, "markdown"),
     ...(text(row.portal_article_id)
       ? { portalArticleId: text(row.portal_article_id) }
       : {}),
@@ -53,6 +56,7 @@ export function toArticle(raw: unknown): KnowledgeArticle {
     createdAt: date(row.created_at),
     updatedAt: date(row.updated_at),
     ...(text(row.deleted_at) ? { deletedAt: text(row.deleted_at) } : {}),
+    ...(row.draft ? { draft: row.draft as KnowledgeArticle["draft"] } : {}),
   };
 }
 
@@ -81,6 +85,8 @@ export function fromArticle(article: KnowledgeArticle): ArticleRow {
     created_at: article.createdAt.toISOString(),
     updated_at: article.updatedAt.toISOString(),
     deleted_at: article.deletedAt || null,
+    content_format: article.contentFormat,
+    draft: article.draft ?? null,
   };
 }
 

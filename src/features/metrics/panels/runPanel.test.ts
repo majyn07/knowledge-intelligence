@@ -70,6 +70,7 @@ function artigo(over: Partial<KnowledgeArticle>): KnowledgeArticle {
     tags: [],
     keywords: [],
     author: "eq-visus",
+    contentFormat: "markdown" as const,
     createdAt: dia(-1),
     updatedAt: dia(-1),
     ...over,

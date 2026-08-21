@@ -146,6 +146,10 @@ export type PlanRow = {
 export type ArticleRow = {
   /** ISO de quando foi para a lixeira. Nulo é "em uso". */
   deleted_at: string | null;
+  /** `markdown` ou `html`. Declarado, para nunca haver conversão. */
+  content_format: string;
+  /** A próxima versão, quando existe. Nulo é o normal. */
+  draft: unknown;
   id: string;
   project_id: string;
   title: string;

@@ -18,6 +18,7 @@ function normalize(data: LibraryFormData) {
     tags: data.tags,
     keywords: data.keywords,
     author: data.author.trim(),
+    contentFormat: "markdown" as const,
     url: data.url.trim() || undefined,
   };
 }
@@ -67,6 +68,8 @@ export const articleService = {
       projectId: plan.projectId,
       genreId: "",
       status: "draft",
+      // Nasce Markdown: é o que este editor escreve.
+      contentFormat: "markdown",
       sectionId: "",
       tags: [],
       keywords: [],

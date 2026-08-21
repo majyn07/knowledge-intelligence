@@ -52,6 +52,7 @@ const article = (overrides: Partial<KnowledgeArticle> = {}): KnowledgeArticle =>
   tags: [],
   keywords: [],
   author: "",
+  contentFormat: "markdown" as const,
   createdAt: new Date(),
   updatedAt: new Date(),
   ...overrides,
