@@ -67,6 +67,8 @@ export function normalizePlan(raw: unknown): PlanWorkspaceItem {
         date: text(comment.date),
       };
     }),
+    // Ausente é "em uso": registro gravado antes da lixeira existir.
+    ...(text(value.deletedAt) ? { deletedAt: text(value.deletedAt) } : {}),
   };
 }
 

@@ -119,6 +119,8 @@ export function normalizeArticle(raw: unknown, taxonomy: Taxonomy): KnowledgeArt
       : {}),
     createdAt: date(value.createdAt),
     updatedAt: date(value.updatedAt),
+    // Ausente é "em uso": registro gravado antes da lixeira existir.
+    ...(text(value.deletedAt) ? { deletedAt: text(value.deletedAt) } : {}),
   };
 }
 

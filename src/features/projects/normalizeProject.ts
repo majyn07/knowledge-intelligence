@@ -26,6 +26,8 @@ export function normalizeProject(raw: unknown): Project {
     owner: text(value.owner),
     createdAt: date(value.createdAt),
     updatedAt: date(value.updatedAt),
+    // Ausente é "em uso": registro gravado antes da lixeira existir.
+    ...(text(value.deletedAt) ? { deletedAt: text(value.deletedAt) } : {}),
   };
 }
 

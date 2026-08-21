@@ -38,6 +38,7 @@ export function toProject(raw: unknown): Project {
     dueDate: row.due_date,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
+    deletedAt: row.deleted_at,
   });
 }
 
@@ -54,6 +55,7 @@ export function fromProject(project: Project): Record<string, unknown> {
     owner: project.owner,
     created_at: project.createdAt.toISOString(),
     updated_at: project.updatedAt.toISOString(),
+    deleted_at: project.deletedAt || null,
   };
 }
 
@@ -70,6 +72,7 @@ export function toTicket(raw: unknown): Ticket {
     company: row.company,
     date: row.occurred_on,
     source: row.source,
+    deletedAt: row.deleted_at,
   });
 }
 
@@ -82,6 +85,7 @@ export function fromTicket(ticket: Ticket): Record<string, unknown> {
     company: ticket.company,
     occurred_on: ticket.date,
     source: ticket.source ?? null,
+    deleted_at: ticket.deletedAt || null,
   };
 }
 
@@ -122,6 +126,7 @@ export function toAnalysis(raw: unknown): AnalysisRecord {
     result: row.result,
     relatedArticles: row.related_articles,
     messages: row.messages,
+    deletedAt: row.deleted_at,
   });
 }
 
@@ -136,6 +141,7 @@ export function fromAnalysis(analysis: AnalysisRecord): Record<string, unknown> 
     result: analysis.result,
     related_articles: analysis.relatedArticles,
     messages: analysis.messages,
+    deleted_at: analysis.deletedAt || null,
   };
 }
 
@@ -158,6 +164,7 @@ export function toPlan(raw: unknown): PlanWorkspaceItem {
     document: row.document,
     tasks: row.tasks,
     comments: row.comments,
+    deletedAt: row.deleted_at,
   });
 }
 
@@ -175,6 +182,7 @@ export function fromPlan(plan: PlanWorkspaceItem): Record<string, unknown> {
     document: plan.document,
     tasks: plan.tasks,
     comments: plan.comments,
+    deleted_at: plan.deletedAt || null,
     created_at: plan.createdAt,
     updated_at: plan.updatedAt,
   };

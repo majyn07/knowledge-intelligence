@@ -59,6 +59,8 @@ export function normalizeAnalysis(raw: unknown): AnalysisRecord {
     // Evidência e conversa passaram a ser gravadas depois; registro antigo não tem.
     relatedArticles: items(value.relatedArticles) as AnalysisRecord["relatedArticles"],
     messages: items(value.messages) as AnalysisRecord["messages"],
+    // Ausente é "em uso": registro gravado antes da lixeira existir.
+    ...(text(value.deletedAt) ? { deletedAt: text(value.deletedAt) } : {}),
   };
 }
 

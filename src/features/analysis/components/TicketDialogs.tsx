@@ -11,6 +11,8 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { OrphanWarning } from "@/components/common/OrphanWarning";
+import type { Orphans } from "@/models/Trash";
 
 export function TicketDialog({
   open,
@@ -42,13 +44,14 @@ export function TicketDialog({
 export function TicketDeleteDialog({
   open,
   ticketTitle,
-  hasAnalysis,
+  orphans,
   onCancel,
   onConfirm,
 }: {
   open: boolean;
   ticketTitle: string;
-  hasAnalysis: boolean;
+  /** O que passaria a apontar para o vazio. */
+  orphans: Orphans;
   onCancel: () => void;
   onConfirm: () => void;
 }) {
@@ -59,18 +62,12 @@ export function TicketDeleteDialog({
           <DialogTitle>Excluir atendimento</DialogTitle>
 
           <DialogDescription>
-            Tem certeza que deseja excluir <strong>{ticketTitle}</strong>? O registro da conversa
-            será excluído junto.
-            {hasAnalysis && (
-              <>
-                <br />
-                <br />
-                Este atendimento já foi analisado. A análise e o que dela derivou continuam
-                existindo, mas passam a apontar para um atendimento que não existe mais.
-              </>
-            )}
+            <strong>{ticketTitle}</strong> vai para a lixeira, em Configurações, com o registro da
+            conversa. Pode ser restaurado de lá.
           </DialogDescription>
         </DialogHeader>
+
+        <OrphanWarning orphans={orphans} />
 
         <DialogFooter>
           <Button variant="outline" onClick={onCancel}>

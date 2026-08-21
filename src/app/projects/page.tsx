@@ -17,6 +17,10 @@ import { ProjectToolbar } from "@/features/projects/components/ProjectToolbar";
 import { useProjectFilters } from "@/features/projects/hooks/useProjectFilters";
 import { useProjectDialogs } from "@/features/projects/hooks/useProjectDialogs";
 import { projectService } from "@/features/projects/services/ProjectService";
+import { useKnowledgeLifecycle } from "@/features/analysis/providers/KnowledgeLifecycleProvider";
+import { useLibrary } from "@/features/library/providers/LibraryProvider";
+import { usePlans } from "@/features/plans/providers/PlansProvider";
+import { countOrphans } from "@/models/Trash";
 import { useProject } from "@/providers/ProjectProvider";
 
 export default function ProjectsPage() {
@@ -28,6 +32,10 @@ export default function ProjectsPage() {
     updateProject,
     deleteProject,
   } = useProject();
+
+  const { analyses } = useKnowledgeLifecycle();
+  const { plans } = usePlans();
+  const { items: articles } = useLibrary();
 
   const {
     filters,
@@ -134,6 +142,12 @@ export default function ProjectsPage() {
         <ProjectDeleteDialog
           open={deleteDialogOpen}
           projectName={selectedProject?.name ?? ""}
+          orphans={countOrphans({
+            analyses,
+            plans,
+            articles,
+            of: { kind: "project", id: selectedProject?.id ?? "" },
+          })}
           onCancel={closeDeleteDialog}
           onConfirm={handleConfirmDelete}
         />

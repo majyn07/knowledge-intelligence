@@ -10,6 +10,7 @@ import { DiscardChangesDialog } from "@/components/common/DiscardChangesDialog";
 import { usePersistedState } from "@/hooks/usePersistedState";
 import { useUnsavedGuard } from "@/hooks/useUnsavedGuard";
 import { useQueryParam } from "@/hooks/useQueryParam";
+import { countOrphans } from "@/models/Trash";
 import { useProject } from "@/providers/ProjectProvider";
 
 import { AnalysisPanel } from "./components/AnalysisPanel";
@@ -45,8 +46,9 @@ export function AnalysisWorkspace() {
     updateOpportunity,
     updateOpportunityStatus,
     linkOpportunityToPlan,
+    analyses,
   } = useKnowledgeLifecycle();
-  const { createPlanFromApprovedOpportunity } = usePlans();
+  const { createPlanFromApprovedOpportunity, plans } = usePlans();
   const { items: articles } = useLibrary();
   const requestedTicketId = useQueryParam("ticket");
 
@@ -239,9 +241,12 @@ export function AnalysisWorkspace() {
       <TicketDeleteDialog
         open={Boolean(deletingTicket)}
         ticketTitle={deletingTicket?.title ?? ""}
-        hasAnalysis={Boolean(
-          deletingTicket && activeProjectId && getAnalysis(activeProjectId, deletingTicket.id)
-        )}
+        orphans={countOrphans({
+          analyses,
+          plans,
+          articles,
+          of: { kind: "ticket", id: deletingTicket?.id ?? "" },
+        })}
         onCancel={() => setDeletingTicketId(null)}
         onConfirm={handleDelete}
       />

@@ -41,7 +41,9 @@ export interface PlanSource {
   opportunityTitle: string;
 }
 
-export interface PlanWorkspaceItem {
+import type { Trashable } from "@/models/Trash";
+
+export interface PlanWorkspaceItem extends Trashable {
   id: string;
   title: string;
   projectName: string;

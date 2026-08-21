@@ -1,6 +1,7 @@
 import type { AnalysisMessage } from "./AnalysisMessage";
 import type { AnalysisResult } from "./AnalysisResult";
 import type { KnowledgeSearchResult } from "./KnowledgeSearchResult";
+import type { Trashable } from "./Trash";
 
 export type AnalysisStatus = "open" | "in_review" | "completed";
 
@@ -24,7 +25,7 @@ export type OpportunityWorkflowStatus =
   | "draft"
   | "deferred";
 
-export interface AnalysisRecord {
+export interface AnalysisRecord extends Trashable {
   id: string;
   projectId: string;
   ticketId: string;
