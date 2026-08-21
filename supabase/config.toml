@@ -37,6 +37,28 @@ additional_redirect_urls = [
 #
 # Antes de mexer neste arquivo, confira o diff que o push imprime.
 
+# Entrada pela conta Google da AltoQi.
+#
+# Existe porque o link por e-mail depende de entrega, e o serviço embutido da
+# Supabase entrega dois por hora **e recusa endereços de fora da equipe do
+# projeto** — a equipe inteira nunca receberia nada. Aqui não há caixa de
+# entrada no caminho.
+#
+# O segredo fica no ambiente, nunca no repositório: `env(...)` é resolvido na
+# hora do push, e o que entra no Git é só o formato.
+#
+# Ligar depois de criar as credenciais no Google Cloud Console e definir
+# SUPABASE_AUTH_GOOGLE_CLIENT_ID e SUPABASE_AUTH_GOOGLE_SECRET no ambiente.
+# Enquanto `enabled` for falso, o botão da tela responde com erro legível.
+[auth.external.google]
+enabled = false
+client_id = "env(SUPABASE_AUTH_GOOGLE_CLIENT_ID)"
+secret = "env(SUPABASE_AUTH_GOOGLE_SECRET)"
+# Vazio: quem recebe o retorno do Google é a própria Supabase, e daí ela
+# encaminha para o `redirectTo` que o produto pediu.
+redirect_uri = ""
+skip_nonce_check = false
+
 [auth.mfa.totp]
 enroll_enabled = true
 verify_enabled = true

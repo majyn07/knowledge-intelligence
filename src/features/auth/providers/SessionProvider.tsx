@@ -12,7 +12,12 @@ import {
 
 import type { Session } from "@supabase/supabase-js";
 
-import { getSupabase, isAllowedEmail, isBackendConfigured } from "@/lib/supabase/client";
+import {
+  ALLOWED_EMAIL_DOMAIN,
+  getSupabase,
+  isAllowedEmail,
+  isBackendConfigured,
+} from "@/lib/supabase/client";
 
 import { signInErrorMessage } from "../signInError";
 
@@ -35,6 +40,8 @@ interface SessionContextValue {
   email: string;
   /** Envia o link de acesso. Devolve o erro em texto, ou `null` se deu certo. */
   requestLink: (email: string) => Promise<string | null>;
+  /** Entrada pela conta Google da AltoQi. Mesmo retorno do link. */
+  signInWithGoogle: () => Promise<string | null>;
   signOut: () => Promise<void>;
 }
 
@@ -111,6 +118,33 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     return error ? signInErrorMessage(error.message) : null;
   }, []);
 
+  /**
+   * Entrada pela conta Google da AltoQi.
+   *
+   * Existe porque o link por e-mail depende de entrega, e entrega falha: o
+   * serviço embutido da Supabase entrega dois por hora e recusa endereços de
+   * fora da equipe do projeto. Aqui não há caixa de entrada no caminho.
+   *
+   * `hd` pede ao Google para oferecer só contas do domínio. É conveniência, e
+   * **não** segurança — o parâmetro sai do navegador e pode ser alterado por
+   * quem quiser. Quem garante a restrição continua sendo o gatilho no banco,
+   * que recusa quem não é da AltoQi.
+   */
+  const signInWithGoogle = useCallback(async () => {
+    const supabase = getSupabase();
+    if (!supabase) return "Não há servidor configurado nesta instalação.";
+
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: {
+        redirectTo: `${window.location.origin}/auth/callback`,
+        queryParams: { hd: ALLOWED_EMAIL_DOMAIN, prompt: "select_account" },
+      },
+    });
+
+    return error ? signInErrorMessage(error.message) : null;
+  }, []);
+
   const signOut = useCallback(async () => {
     await getSupabase()?.auth.signOut();
   }, []);
@@ -128,9 +162,10 @@ export function SessionProvider({ children }: { children: ReactNode }) {
       state,
       email: session?.user.email ?? "",
       requestLink,
+      signInWithGoogle,
       signOut,
     }),
-    [requestLink, session, signOut, state]
+    [requestLink, session, signInWithGoogle, signOut, state]
   );
 
   return <SessionContext.Provider value={value}>{children}</SessionContext.Provider>;
