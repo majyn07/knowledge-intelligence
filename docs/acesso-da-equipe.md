@@ -17,75 +17,110 @@ Nenhum dos dois se resolve mexendo no produto, e nenhum se resolve esperando: o
 teto por hora da Supabase **fica travado enquanto não houver servidor de e-mail
 próprio configurado**. É por isso que só uma pessoa conseguiu entrar até agora.
 
-Há dois caminhos, e eles não são excludentes.
+## O caminho escolhido: servidor de e-mail próprio
 
-## Caminho A — conta Google da AltoQi (recomendado)
+A entrada pela conta Google resolveria o mesmo problema sem e-mail nenhum, mas
+depende de criar credencial no Google Cloud Console da empresa — e isso está
+adiado junto com o resto do que precisa da TI. O código dela já está pronto e
+escondido atrás de uma variável; quando o dia chegar, é ligar.
 
-Elimina o e-mail do caminho: quem já está logado na conta da empresa no
-navegador entra em um clique. Sem teto por hora, sem entrega, sem caixa de
-spam, sem senha em lugar nenhum.
+Até lá, o caminho é configurar SMTP na Supabase. Feito isso, o link passa a
+chegar em qualquer `@altoqi.com.br`, sem teto de fábrica.
 
-Precisa de alguém com acesso ao **Google Cloud Console** da AltoQi.
+### Onde configurar
 
-1. Em <https://console.cloud.google.com>, criar (ou escolher) um projeto.
-2. **APIs e serviços → Tela de permissão OAuth**. Tipo de usuário: **Interno**.
-   Interno é o que restringe a entrada às contas `@altoqi.com.br` — a
-   verificação do Google não é necessária nesse modo.
-   - Nome do app: `Visus Knowledge Intelligence`
-   - E-mail de suporte e de contato: o de quem administra
-3. **Credenciais → Criar credenciais → ID do cliente OAuth**, tipo
-   **Aplicativo da Web**.
-   - Origens JavaScript autorizadas:
-     `https://knowledge-intelligence.vercel.app`
-   - URI de redirecionamento autorizado — **exatamente** este, é o da Supabase
-     e não o do produto:
-     `https://teebrsxpnypztwhtiupe.supabase.co/auth/v1/callback`
-4. O Google devolve um **Client ID** e um **Client Secret**.
-
-Onde colocar, sem que passem por conversa nenhuma:
-
-5. No painel da Supabase → **Authentication → Providers → Google**: ligar,
-   colar os dois campos, salvar.
-6. Na Vercel → o projeto → **Settings → Environment Variables**: criar
-   `NEXT_PUBLIC_GOOGLE_SIGN_IN` com valor `on`, nos três ambientes, e
-   **redeploy**. É o que faz o botão "Entrar com a conta AltoQi" aparecer na
-   tela — enquanto estiver desligado, ele fica escondido de propósito, porque
-   um botão que leva a uma página de erro é pior que botão nenhum.
-
-Custo: nenhum. O Client Secret não passa por aqui — vai do Google Cloud direto
-para o painel da Supabase.
-
-## Caminho B — servidor de e-mail próprio
-
-Mantém o link por e-mail e o faz chegar em qualquer `@altoqi.com.br`, sem teto
-de fábrica. Serve como alternativa para quem não estiver com a conta da empresa
-no navegador.
-
-Precisa de credenciais SMTP — do servidor da AltoQi ou de um serviço de envio.
-
-No painel da Supabase → **Project Settings → Authentication → SMTP Settings**:
+Painel da Supabase → projeto `teebrsxpnypztwhtiupe` → **Project Settings →
+Authentication → SMTP Settings**:
 
 | Campo | Valor |
 | --- | --- |
 | Sender email | um endereço que a AltoQi possa usar como remetente |
 | Sender name | `Visus Knowledge Intelligence` |
-| Host / Port | os do servidor |
-| Username / Password | as credenciais |
+| Host | o do servidor de envio |
+| Port | `587` (TLS) ou `465` (SSL), conforme o servidor |
+| Username / Password | as credenciais do envio |
 
-Depois, em **Authentication → Rate Limits**, subir o limite de envio por hora —
-ele só destrava depois que o SMTP está configurado.
+Depois, **Authentication → Rate Limits** → subir o limite de envio por hora. Ele
+só destrava depois que o SMTP está salvo — com o serviço embutido o campo fica
+preso no valor de fábrica. Para catorze pessoas, qualquer número acima de trinta
+por hora sobra.
+
+### De onde tirar as credenciais
+
+Três opções, da que menos depende de terceiros para a que entrega melhor.
+
+**1. SMTP do Google Workspace, com senha de app.**
+A AltoQi está no Google Workspace, então já existe servidor de envio. Numa
+conta `@altoqi.com.br` com verificação em duas etapas ligada, gerar uma senha
+de app em <https://myaccount.google.com/apppasswords> e usar:
+
+- Host `smtp.gmail.com`, porta `465`
+- Username: o próprio endereço
+- Password: a senha de app (16 caracteres, não a senha da conta)
+
+O limite do Workspace é de 2.000 envios por dia — ordens de grandeza acima do
+que este produto precisa. O administrador do Workspace pode ter desligado
+senhas de app; se a página não abrir, é isso.
+
+**2. Serviço de envio com remetente verificado.**
+Brevo, SendGrid ou Mailjet permitem verificar **um endereço** de remetente por
+e-mail de confirmação, sem mexer no DNS do domínio. É o caminho quando a opção
+1 estiver bloqueada e não der para esperar a TI. As faixas gratuitas ficam
+entre 100 e 300 envios por dia, e sobra.
+
+**3. O servidor da própria AltoQi, ou autenticação de domínio completa.**
+É o que entrega melhor e o único que não depende de conta pessoal de ninguém,
+mas precisa da TI — registros SPF/DKIM no DNS de `altoqi.com.br`, ou os dados
+do relay interno. É para onde migrar depois, sem pressa: trocar o SMTP é
+mudar cinco campos num painel.
+
+Em qualquer uma delas, **as credenciais vão direto para o painel da Supabase**.
+Não passam por conversa, por commit, nem por arquivo do projeto.
+
+### Como conferir que funcionou
+
+1. Sair do produto e pedir o link para um endereço que **não** seja o de quem
+   administra o projeto.
+2. O e-mail deve chegar. Se voltar `email rate limit exceeded`, o SMTP não
+   salvou ou o limite por hora ficou no valor antigo.
+3. Entrar pelo link. O perfil é criado na hora, e a pessoa aparece em
+   Configurações → Pessoas.
+
+## O outro caminho, para quando a TI entrar na conversa
+
+Conta Google da AltoQi. Elimina o e-mail do caminho: quem já está logado na
+conta da empresa entra em um clique.
+
+1. Em <https://console.cloud.google.com>, criar ou escolher um projeto.
+2. **APIs e serviços → Tela de permissão OAuth**, tipo de usuário **Interno** —
+   é o que restringe a entrada às contas `@altoqi.com.br`, e dispensa a
+   verificação do Google.
+3. **Credenciais → Criar credenciais → ID do cliente OAuth**, tipo
+   **Aplicativo da Web**.
+   - Origem JavaScript autorizada:
+     `https://knowledge-intelligence.vercel.app`
+   - URI de redirecionamento autorizado — **exatamente** este, é o da Supabase
+     e não o do produto:
+     `https://teebrsxpnypztwhtiupe.supabase.co/auth/v1/callback`
+4. Colar Client ID e Client Secret em **Authentication → Providers → Google**
+   no painel da Supabase, e ligar.
+5. Na Vercel → **Settings → Environment Variables**: criar
+   `NEXT_PUBLIC_GOOGLE_SIGN_IN` com valor `on`, nos três ambientes, e
+   **redeploy**. É o que faz o botão aparecer — enquanto está desligado, ele
+   fica escondido de propósito, porque um botão que leva a uma página de erro é
+   pior que botão nenhum.
+
+Custo: nenhum.
 
 ## O que já está pronto do nosso lado
 
 - A restrição de domínio vive **no banco** (`check constraint` na tabela de
-  perfis e gatilho em `auth.users`). Ligar o Google não abre a porta para
-  ninguém de fora: uma conta que não seja `@altoqi.com.br` é recusada na
-  criação do perfil, independentemente do caminho de entrada.
+  perfis e gatilho em `auth.users`). Nenhum caminho de entrada abre a porta
+  para quem não é `@altoqi.com.br`: a conta é recusada na criação do perfil.
 - A configuração de acesso está versionada em `supabase/config.toml`, com o
   bloco do Google já escrito. Os segredos ficam no ambiente, nunca no
   repositório.
 - Os destinos de retorno já estão liberados, em produção e em
   desenvolvimento — foi o defeito que fazia todo link cair em `localhost`.
-- A tela de acesso já traduz os erros da Supabase, inclusive este.
-
-Feito o caminho A, resta ligar `NEXT_PUBLIC_GOOGLE_SIGN_IN=on` e publicar.
+- A tela de acesso traduz os erros da Supabase, inclusive o do limite de envio
+  e o do provedor desligado.

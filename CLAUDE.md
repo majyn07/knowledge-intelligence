@@ -297,8 +297,12 @@ prometer dois caminhos e oferecer um.
 O que falta para a equipe entrar não é código, e está escrito em
 `docs/acesso-da-equipe.md`: o serviço de e-mail embutido tem teto por hora
 **travado enquanto não houver SMTP próprio**, e só entrega para endereços da
-equipe do projeto. Os dois caminhos de saída dependem de credencial de fora —
-Google Cloud ou SMTP —, e nenhum deles se resolve esperando.
+equipe do projeto.
+
+**O caminho escolhido é o SMTP**, e não o Google: criar credencial no Google
+Cloud Console da empresa depende da TI, que está adiada junto com o resto do
+bloco de credenciais. O Google continua sendo o desenho principal do código —
+só não é o próximo passo.
 
 As chaves privilegiadas — service role, secret e JWT — **foram removidas do
 ambiente**. Elas ignoram as políticas de acesso, e nenhuma operação do produto
