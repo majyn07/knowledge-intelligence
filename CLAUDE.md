@@ -636,9 +636,17 @@ das transições possíveis; oferecer o que vale para parte aplicaria a metade e
 falharia na outra, em silêncio. Marcar tudo marca **a página**, e não o recorte
 inteiro — o atrito é proposital.
 
-Excluir em lote fica de fora enquanto o desfazer for por registro. Um clique
-que manda duzentos artigos para a lixeira precisa de um desfazer em lote, que
-é outra peça.
+Excluir em lote existe desde que o **desfazer em lote** existe — e nessa ordem.
+Um clique que manda duzentos artigos para a lixeira precisa de um caminho de
+volta do mesmo tamanho, e desfazer duzentas vezes não é caminho de volta.
+
+O desfazer devolve **os que foram levados naquele clique**, e não tudo que
+está na lixeira: restaurar por engano o que alguém excluiu ontem seria o
+desfazer criando o problema que veio consertar.
+
+O diálogo de confirmação concorda em número. "3 artigo(s) vai para a lixeira e
+pode ser restaurado" é uma frase escrita para um caso e usada noutro, e quem
+lê rápido uma frase que não concorda desconfia da tela inteira.
 
 Exportar entrega **o recorte que está na tela**, com as colunas escolhidas.
 Quem exporta acabou de montá-lo. Exibir e exportar passam pelo mesmo

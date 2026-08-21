@@ -26,3 +26,33 @@ export function trashToast(input: {
     },
   });
 }
+
+/**
+ * O mesmo aviso, para muitos.
+ *
+ * Existe porque a exclusão em lote **não podia existir sem ele**: um clique que
+ * manda duzentos artigos para a lixeira precisa de um caminho de volta do mesmo
+ * tamanho, e desfazer duzentas vezes não é caminho de volta.
+ *
+ * O desfazer devolve exatamente o que foi levado, e não "tudo que está na
+ * lixeira" — restaurar por engano o que alguém excluiu ontem seria o desfazer
+ * criando o problema que veio consertar.
+ */
+export function bulkTrashToast(input: {
+  count: number;
+  label: string;
+  onUndo: () => void;
+}) {
+  toast.success(
+    `${input.count} ${input.label}${input.count > 1 ? "s" : ""} movido${
+      input.count > 1 ? "s" : ""
+    } para a lixeira.`,
+    {
+      description: "Continuam existindo até alguém esvaziar a lixeira.",
+      action: {
+        label: "Desfazer",
+        onClick: input.onUndo,
+      },
+    }
+  );
+}

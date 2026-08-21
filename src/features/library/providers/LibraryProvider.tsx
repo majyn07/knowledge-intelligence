@@ -10,7 +10,7 @@ import {
 
 import { toast } from "sonner";
 
-import { trashToast } from "@/components/common/trashToast";
+import { bulkTrashToast, trashToast } from "@/components/common/trashToast";
 import { alive, trashed } from "@/models/Trash";
 import { useSharedCollection } from "@/hooks/useSharedCollection";
 import { fromArticle, toArticle } from "@/lib/supabase/rows";
@@ -47,6 +47,8 @@ interface LibraryContextValue {
   /** Ações em lote sobre a seleção da tabela. */
   changeStatusMany: (ids: string[], status: ArticleStatus) => void;
   assignMany: (ids: string[], author: string) => void;
+  /** Exclusão em lote, com desfazer do mesmo tamanho. */
+  deleteMany: (ids: string[]) => void;
   /** Grava o resultado de uma importação: novos e atualizados de uma vez. */
   importArticles: (create: KnowledgeArticle[], update: KnowledgeArticle[]) => void;
   deleteItem: (id: string) => void;
@@ -379,13 +381,73 @@ export function LibraryProvider({ children }: { children: ReactNode }) {
         previous.map((item) => (item.id === id ? { ...item, deletedAt: at } : item))
       );
 
+      /*
+        A exclusão também é fato do ciclo. Ela não era registrada, e o
+        histórico de um artigo terminava no último "atualizado" — sem dizer que
+        ele saiu de vista, nem por quem.
+      */
+      record({
+        type: "article_deleted",
+        projectId: article.projectId,
+        actor: currentPerson || article.author,
+        subject: { kind: "article", id: article.id, label: article.title },
+        detail: "Movido para a lixeira.",
+      });
+
       trashToast({
         label: "Artigo",
         subject: article.title,
         onUndo: () => restoreItem(id),
       });
     },
-    [items, restoreItem, setItems]
+    [currentPerson, items, record, restoreItem, setItems]
+  );
+
+  /**
+   * Exclusão em lote, com o desfazer do mesmo tamanho.
+   *
+   * Ela ficou de fora até agora justamente por isso: sem um desfazer em lote,
+   * um clique que manda duzentos artigos para a lixeira só teria volta registro
+   * a registro.
+   *
+   * O desfazer devolve **os que foram levados agora**, e não tudo que está na
+   * lixeira. Restaurar por engano o que alguém excluiu ontem seria o desfazer
+   * criando o problema que veio consertar.
+   */
+  const deleteMany = useCallback(
+    (ids: string[]) => {
+      const alvos = items.filter((item) => ids.includes(item.id));
+      if (alvos.length === 0) return;
+
+      const levados = new Set(alvos.map((item) => item.id));
+      const at = new Date().toISOString();
+
+      setItems((previous) =>
+        previous.map((item) => (levados.has(item.id) ? { ...item, deletedAt: at } : item))
+      );
+
+      for (const item of alvos) {
+        record({
+          type: "article_deleted",
+          projectId: item.projectId,
+          actor: currentPerson || item.author,
+          subject: { kind: "article", id: item.id, label: item.title },
+          detail: "Movido para a lixeira em lote.",
+        });
+      }
+
+      bulkTrashToast({
+        count: alvos.length,
+        label: "artigo",
+        onUndo: () =>
+          setItems((previous) =>
+            previous.map((item) =>
+              levados.has(item.id) ? { ...item, deletedAt: undefined } : item
+            )
+          ),
+      });
+    },
+    [currentPerson, items, record, setItems]
   );
 
   const value = useMemo(
@@ -406,9 +468,10 @@ export function LibraryProvider({ children }: { children: ReactNode }) {
       assignMany,
       importArticles,
       deleteItem,
+      deleteMany,
       createItemFromPlan,
     }),
-    [assignMany, changeStatus, changeStatusMany, discardArticleDraft, publishArticleDraft, saveDraft, createItem, createItemFromPlan, deleteItem, deletedItems, importArticles, isHydrated, items, purgeItem, restoreItem, updateItem]
+    [assignMany, changeStatus, changeStatusMany, discardArticleDraft, publishArticleDraft, saveDraft, createItem, createItemFromPlan, deleteItem, deleteMany, deletedItems, importArticles, isHydrated, items, purgeItem, restoreItem, updateItem]
   );
 
   return <LibraryContext.Provider value={value}>{children}</LibraryContext.Provider>;

@@ -21,6 +21,7 @@ export const ACTIVITY_TYPES = [
   "article_created",
   "article_updated",
   "article_status_changed",
+  "article_deleted",
   "project_created",
   "project_updated",
 ] as const;
@@ -104,6 +105,7 @@ export const activityTypeLabel: Record<ActivityType, string> = {
   article_created: "Artigo criado",
   article_updated: "Artigo atualizado",
   article_status_changed: "Estágio do artigo alterado",
+  article_deleted: "Artigo movido para a lixeira",
   project_created: "Projeto criado",
   project_updated: "Projeto atualizado",
 };
@@ -124,6 +126,7 @@ export const activityStage: Record<ActivityType, "atendimento" | "analise" | "de
   article_created: "conhecimento",
   article_updated: "conhecimento",
   article_status_changed: "conhecimento",
+  article_deleted: "conhecimento",
   project_created: "projeto",
   project_updated: "projeto",
 };

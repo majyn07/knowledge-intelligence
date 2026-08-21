@@ -7,6 +7,7 @@ import {
   ListTodo,
   ScanSearch,
   Ticket,
+  Trash2,
   UserRound,
   XCircle,
 } from "lucide-react";
@@ -39,6 +40,7 @@ const typeIcon: Record<ActivityType, typeof ScanSearch> = {
   article_created: BookOpen,
   article_updated: BookOpen,
   article_status_changed: BookOpen,
+  article_deleted: Trash2,
   project_created: FolderKanban,
   project_updated: FolderKanban,
 };
@@ -58,6 +60,7 @@ const typeVariant: Record<ActivityType, "success" | "danger" | "warning" | "info
   article_created: "default",
   article_updated: "default",
   article_status_changed: "warning",
+  article_deleted: "danger",
   project_created: "default",
   project_updated: "default",
 };

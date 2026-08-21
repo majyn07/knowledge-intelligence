@@ -35,6 +35,7 @@ import { useProject } from "@/providers/ProjectProvider";
 
 export default function LibraryPage() {
   const [importOpen, setImportOpen] = useState(false);
+  const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
   const { activeProject, activeProjectId, projects } = useProject();
   const {
     items,
@@ -44,6 +45,7 @@ export default function LibraryPage() {
     deleteItem,
     changeStatusMany,
     assignMany,
+    deleteMany,
   } = useLibrary();
   const { views, saveView, removeView } = useSavedViews();
 
@@ -185,6 +187,7 @@ export default function LibraryPage() {
                   assignMany(table.selectedArticles.map((item) => item.id), ref);
                   table.clear();
                 }}
+                onDelete={() => setBulkDeleteOpen(true)}
                 onClear={table.clear}
               />
             )}
@@ -273,6 +276,23 @@ export default function LibraryPage() {
         />
 
         <ImportDialog open={importOpen} onOpenChange={setImportOpen} />
+
+        {/*
+          A confirmação diz o número antes do clique, como a de um registro só —
+          e diz também que há volta, porque é a existência do desfazer em lote
+          que permitiu esta ação existir.
+        */}
+        <LibraryDeleteDialog
+          open={bulkDeleteOpen}
+          itemTitle=""
+          count={table.selectedArticles.length}
+          onCancel={() => setBulkDeleteOpen(false)}
+          onConfirm={() => {
+            deleteMany(table.selectedArticles.map((item) => item.id));
+            table.clear();
+            setBulkDeleteOpen(false);
+          }}
+        />
 
         <LibraryDeleteDialog
           open={deleteDialogOpen}
