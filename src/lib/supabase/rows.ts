@@ -52,6 +52,7 @@ export function toArticle(raw: unknown): KnowledgeArticle {
       : {}),
     createdAt: date(row.created_at),
     updatedAt: date(row.updated_at),
+    ...(text(row.deleted_at) ? { deletedAt: text(row.deleted_at) } : {}),
   };
 }
 
@@ -79,6 +80,7 @@ export function fromArticle(article: KnowledgeArticle): ArticleRow {
     source: article.source ?? null,
     created_at: article.createdAt.toISOString(),
     updated_at: article.updatedAt.toISOString(),
+    deleted_at: article.deletedAt || null,
   };
 }
 

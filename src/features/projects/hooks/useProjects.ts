@@ -4,9 +4,12 @@ import { useCallback, useMemo } from "react";
 
 import { toast } from "sonner";
 
+import { trashToast } from "@/components/common/trashToast";
+
 import { useSharedCollection } from "@/hooks/useSharedCollection";
 import { fromProject, toProject } from "@/lib/supabase/domainRows";
 import type { Project } from "@/models/Project";
+import { alive, trashed } from "@/models/Trash";
 
 import { parseProjects } from "../normalizeProject";
 import { projectService } from "../services/ProjectService";
@@ -24,7 +27,7 @@ const STORAGE_KEY = STORAGE_KEYS.projects;
  * e atualizar o registro. Persistência não era responsabilidade dele.
  */
 export function useProjects() {
-  const [projects, setProjects, isHydrated] = useSharedCollection<Project>({
+  const [all, setProjects, isHydrated] = useSharedCollection<Project>({
     key: STORAGE_KEY,
     table: "projects",
     fallback: projectService.getSeed(),
@@ -33,6 +36,14 @@ export function useProjects() {
     toRow: fromProject,
     identify: (project) => project.id,
   });
+
+  /*
+    A coleção guarda vivos e excluídos juntos; as telas só querem os vivos.
+    Separar aqui, e não em cada tela, é o que impede um registro na lixeira de
+    reaparecer numa listagem que alguém esqueceu de filtrar.
+  */
+  const projects = useMemo(() => alive(all), [all]);
+  const deletedProjects = useMemo(() => trashed(all), [all]);
 
   const createProject = useCallback(
     (data: ProjectFormData): Project => {
@@ -61,24 +72,61 @@ export function useProjects() {
     [projects, setProjects]
   );
 
+  const restoreProject = useCallback(
+    (id: string) => {
+      setProjects((current) =>
+        current.map((project) =>
+          project.id === id ? { ...project, deletedAt: "" } : project
+        )
+      );
+    },
+    [setProjects]
+  );
+
+  /**
+   * Excluir manda para a lixeira.
+   *
+   * O registro sai da vista e continua existindo. Com dado compartilhado quem
+   * apaga apaga para catorze pessoas, e o diálogo de confirmação era a única
+   * barreira — que quem clica rápido não lê.
+   */
   const deleteProject = useCallback(
     (id: string): boolean => {
       if (!projects.some((project) => project.id === id)) return false;
 
-      setProjects((current) => current.filter((project) => project.id !== id));
-      toast.success("Projeto excluído com sucesso.");
+      const at = new Date().toISOString();
+      setProjects((current) =>
+        current.map((project) => (project.id === id ? { ...project, deletedAt: at } : project))
+      );
+
+      trashToast({
+        label: "Projeto",
+        subject: projects.find((project) => project.id === id)?.name ?? "",
+        onUndo: () => restoreProject(id),
+      });
 
       return true;
     },
-    [projects, setProjects]
+    [projects, restoreProject, setProjects]
+  );
+
+  /** Sai do banco de vez. Só a lixeira chama, e ela avisa antes. */
+  const purgeProject = useCallback(
+    (id: string) => {
+      setProjects((current) => current.filter((project) => project.id !== id));
+    },
+    [setProjects]
   );
 
   return {
     projects,
+    deletedProjects,
     isHydrated,
     totalProjects: useMemo(() => projects.length, [projects]),
     createProject,
     updateProject,
     deleteProject,
+    restoreProject,
+    purgeProject,
   };
 }

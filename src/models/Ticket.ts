@@ -1,4 +1,6 @@
-export interface Ticket {
+import type { Trashable } from "./Trash";
+
+export interface Ticket extends Trashable {
   id: string;
   projectId: string;
   title: string;

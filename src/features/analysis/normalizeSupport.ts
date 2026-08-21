@@ -36,6 +36,8 @@ export function normalizeTicket(raw: unknown): Ticket {
       janela sem que ninguém entendesse por quê.
     */
     date: toIsoDate(text(value.date)),
+    // Ausente é "em uso": registro gravado antes da lixeira existir.
+    ...(text(value.deletedAt) ? { deletedAt: text(value.deletedAt) } : {}),
     ...externalSource(value.source),
   };
 }

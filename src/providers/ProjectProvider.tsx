@@ -20,13 +20,26 @@ interface ProjectContextValue {
   createProject: (data: ProjectFormData) => Project;
   updateProject: (id: string, data: ProjectFormData) => Project | undefined;
   deleteProject: (id: string) => boolean;
+  /** O que está na lixeira, para a tela de recuperação. */
+  deletedProjects: Project[];
+  restoreProject: (id: string) => void;
+  purgeProject: (id: string) => void;
 }
 
 const ProjectContext = createContext<ProjectContextValue | null>(null);
 
 export function ProjectProvider({ children }: { children: ReactNode }) {
   const { record } = useActivity();
-  const { projects, isHydrated, createProject, updateProject, deleteProject } = useProjects();
+  const {
+    projects,
+    deletedProjects,
+    isHydrated,
+    createProject,
+    updateProject,
+    deleteProject,
+    restoreProject,
+    purgeProject,
+  } = useProjects();
   // Parte da base canônica: mesmo valor no servidor e no primeiro render.
   const [activeProjectId, setActiveProjectId] = useState<string | null>(() => projects[0]?.id ?? null);
   const restoredSelection = useRef(false);
@@ -98,7 +111,8 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
   const value = useMemo(() => ({
     projects, activeProject, activeProjectId, isHydrated, selectProject,
     createProject: handleCreateProject, updateProject: handleUpdateProject, deleteProject: handleDeleteProject,
-  }), [activeProject, activeProjectId, handleCreateProject, handleDeleteProject, handleUpdateProject, isHydrated, projects, selectProject]);
+    deletedProjects, restoreProject, purgeProject,
+  }), [activeProject, activeProjectId, deletedProjects, handleCreateProject, handleDeleteProject, handleUpdateProject, isHydrated, projects, purgeProject, restoreProject, selectProject]);
 
   return <ProjectContext.Provider value={value}>{children}</ProjectContext.Provider>;
 }

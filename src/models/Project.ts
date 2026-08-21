@@ -1,6 +1,8 @@
 export type ProjectStatus = "active" | "inactive" | "archived";
 
-export interface Project {
+import type { Trashable } from "./Trash";
+
+export interface Project extends Trashable {
   id: string;
   name: string;
   client: string;

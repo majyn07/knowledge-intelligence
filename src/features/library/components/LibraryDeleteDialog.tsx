@@ -40,11 +40,9 @@ export function LibraryDeleteDialog({
           </DialogTitle>
 
           <DialogDescription>
-            Tem certeza que deseja excluir o conteúdo{" "}
-            <strong>{itemTitle}</strong>?
-            <br />
-            <br />
-            Esta ação não poderá ser desfeita.
+            <strong>{itemTitle}</strong> vai para a lixeira, em Configurações, e pode ser
+            restaurado de lá. Enquanto estiver na lixeira, a análise deixa de considerá-lo
+            como cobertura documental.
           </DialogDescription>
         </DialogHeader>
 

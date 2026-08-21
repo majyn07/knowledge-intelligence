@@ -1,3 +1,5 @@
+import type { Trashable } from "./Trash";
+
 export type ArticleStatus =
   | "draft"
   | "review"
@@ -17,7 +19,7 @@ export interface KnowledgeContentSource {
  * Artigo da Base de Conhecimento — a única representação de conteúdo do
  * produto. É o que a Biblioteca edita e o que a análise consulta.
  */
-export interface KnowledgeArticle {
+export interface KnowledgeArticle extends Trashable {
   id: string;
 
   title: string;

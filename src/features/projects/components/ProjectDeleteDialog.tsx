@@ -10,10 +10,14 @@ import {
 } from "@/components/ui/dialog";
 
 import { Button } from "@/components/ui/button";
+import { OrphanWarning } from "@/components/common/OrphanWarning";
+import type { Orphans } from "@/models/Trash";
 
 interface ProjectDeleteDialogProps {
   open: boolean;
   projectName: string;
+  /** O que passaria a apontar para o vazio. */
+  orphans: Orphans;
   onCancel: () => void;
   onConfirm: () => void;
 }
@@ -21,6 +25,7 @@ interface ProjectDeleteDialogProps {
 export function ProjectDeleteDialog({
   open,
   projectName,
+  orphans,
   onCancel,
   onConfirm,
 }: ProjectDeleteDialogProps) {
@@ -40,13 +45,12 @@ export function ProjectDeleteDialog({
           </DialogTitle>
 
           <DialogDescription>
-            Tem certeza que deseja excluir o projeto{" "}
-            <strong>{projectName}</strong>?
-            <br />
-            <br />
-            Esta ação não poderá ser desfeita.
+            <strong>{projectName}</strong> vai para a lixeira, em Configurações,
+            e pode ser restaurado de lá.
           </DialogDescription>
         </DialogHeader>
+
+        <OrphanWarning orphans={orphans} />
 
         <DialogFooter>
           <Button

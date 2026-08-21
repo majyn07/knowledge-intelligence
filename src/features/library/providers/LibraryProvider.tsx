@@ -10,6 +10,8 @@ import {
 
 import { toast } from "sonner";
 
+import { trashToast } from "@/components/common/trashToast";
+import { alive, trashed } from "@/models/Trash";
 import { useSharedCollection } from "@/hooks/useSharedCollection";
 import { fromArticle, toArticle } from "@/lib/supabase/rows";
 import { useActivity } from "@/features/activities/providers/ActivityProvider";
@@ -27,6 +29,10 @@ const STORAGE_KEY = STORAGE_KEYS.articles;
 
 interface LibraryContextValue {
   items: KnowledgeArticle[];
+  /** O que está na lixeira, para a tela de recuperação. */
+  deletedItems: KnowledgeArticle[];
+  restoreItem: (id: string) => void;
+  purgeItem: (id: string) => void;
   /** Falso até o conteúdo guardado ser lido, após a montagem. */
   isHydrated: boolean;
   totalItems: number;
@@ -43,7 +49,7 @@ export function LibraryProvider({ children }: { children: ReactNode }) {
   const { record } = useActivity();
   const { currentPerson } = usePeople();
   const { taxonomy } = useTaxonomy();
-  const [items, setItems, isHydrated] = useSharedCollection<KnowledgeArticle>({
+  const [allItems, setItems, isHydrated] = useSharedCollection<KnowledgeArticle>({
     key: STORAGE_KEY,
     table: "articles",
     fallback: articleService.getSeed(),
@@ -53,6 +59,15 @@ export function LibraryProvider({ children }: { children: ReactNode }) {
     // O vocabulário é capturado na montagem, que é quando a migração acontece.
     parseLocal: (raw) => parseArticles(raw, taxonomy),
   });
+
+  /*
+    A coleção guarda vivos e excluídos juntos; as telas só querem os vivos.
+    Separar aqui, e não em cada tela, é o que impede um artigo na lixeira de
+    reaparecer numa listagem — ou, pior, de contar como cobertura documental
+    numa análise.
+  */
+  const items = useMemo(() => alive(allItems), [allItems]);
+  const deletedItems = useMemo(() => trashed(allItems), [allItems]);
 
   const createItem = useCallback(
     (data: LibraryFormData) => {
@@ -153,17 +168,49 @@ export function LibraryProvider({ children }: { children: ReactNode }) {
     [currentPerson, items, record, setItems]
   );
 
-  const deleteItem = useCallback(
+  const restoreItem = useCallback(
     (id: string) => {
-      setItems((previous) => previous.filter((item) => item.id !== id));
-      toast.success("Artigo excluído.");
+      setItems((previous) =>
+        previous.map((item) => (item.id === id ? { ...item, deletedAt: "" } : item))
+      );
     },
     [setItems]
+  );
+
+  /** Sai do banco de vez. Só a lixeira chama, e ela avisa antes. */
+  const purgeItem = useCallback(
+    (id: string) => {
+      setItems((previous) => previous.filter((item) => item.id !== id));
+    },
+    [setItems]
+  );
+
+  /** Excluir manda para a lixeira: quem apaga apaga para a equipe inteira. */
+  const deleteItem = useCallback(
+    (id: string) => {
+      const article = items.find((item) => item.id === id);
+      if (!article) return;
+
+      const at = new Date().toISOString();
+      setItems((previous) =>
+        previous.map((item) => (item.id === id ? { ...item, deletedAt: at } : item))
+      );
+
+      trashToast({
+        label: "Artigo",
+        subject: article.title,
+        onUndo: () => restoreItem(id),
+      });
+    },
+    [items, restoreItem, setItems]
   );
 
   const value = useMemo(
     () => ({
       items,
+      deletedItems,
+      restoreItem,
+      purgeItem,
       totalItems: items.length,
       isHydrated,
       createItem,
@@ -172,7 +219,7 @@ export function LibraryProvider({ children }: { children: ReactNode }) {
       deleteItem,
       createItemFromPlan,
     }),
-    [changeStatus, createItem, createItemFromPlan, deleteItem, isHydrated, items, updateItem]
+    [changeStatus, createItem, createItemFromPlan, deleteItem, deletedItems, isHydrated, items, purgeItem, restoreItem, updateItem]
   );
 
   return <LibraryContext.Provider value={value}>{children}</LibraryContext.Provider>;

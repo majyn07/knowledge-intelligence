@@ -10,6 +10,8 @@ import {
 
 import { toast } from "sonner";
 
+import { trashToast } from "@/components/common/trashToast";
+import { alive, trashed } from "@/models/Trash";
 import { useSharedCollection } from "@/hooks/useSharedCollection";
 import { fromConversation, fromTicket, toConversation, toTicket } from "@/lib/supabase/domainRows";
 import { STORAGE_KEYS } from "@/lib/storage";
@@ -36,6 +38,10 @@ interface TicketsContextValue {
   createTicket: (data: TicketFormData) => Ticket;
   updateTicket: (id: string, data: TicketFormData) => void;
   deleteTicket: (id: string) => void;
+  /** O que está na lixeira, para a tela de recuperação. */
+  deletedTickets: Ticket[];
+  restoreTicket: (id: string) => void;
+  purgeTicket: (id: string) => void;
 }
 
 const TicketsContext = createContext<TicketsContextValue | null>(null);
@@ -44,7 +50,7 @@ export function TicketsProvider({ children }: { children: ReactNode }) {
   const { record } = useActivity();
   const { currentPerson } = usePeople();
 
-  const [tickets, setTickets, isHydrated] = useSharedCollection<Ticket>({
+  const [allTickets, setTickets, isHydrated] = useSharedCollection<Ticket>({
     key: TICKETS_KEY,
     table: "tickets",
     fallback: ticketRepository.getSeedTickets(),
@@ -63,6 +69,14 @@ export function TicketsProvider({ children }: { children: ReactNode }) {
     toRow: fromConversation,
     identify: (conversation) => conversation.id,
   });
+
+  /*
+    A coleção guarda vivos e excluídos juntos; as telas só querem os vivos.
+    Separar aqui, e não em cada tela, é o que impede um atendimento na lixeira
+    de reaparecer numa listagem que alguém esqueceu de filtrar.
+  */
+  const tickets = useMemo(() => alive(allTickets), [allTickets]);
+  const deletedTickets = useMemo(() => trashed(allTickets), [allTickets]);
 
   const ticketsOf = useCallback(
     (projectId: string | null) =>
@@ -124,13 +138,35 @@ export function TicketsProvider({ children }: { children: ReactNode }) {
     [conversationOf, currentPerson, record, setConversations, setTickets, tickets]
   );
 
+  const restoreTicket = useCallback(
+    (id: string) => {
+      setTickets((all) => all.map((item) => (item.id === id ? { ...item, deletedAt: "" } : item)));
+    },
+    [setTickets]
+  );
+
+  /** Sai do banco de vez, com a conversa dele. Só a lixeira chama. */
+  const purgeTicket = useCallback(
+    (id: string) => {
+      setTickets((all) => all.filter((item) => item.id !== id));
+      setConversations((all) => all.filter((item) => item.ticketId !== id));
+    },
+    [setConversations, setTickets]
+  );
+
+  /**
+   * Excluir manda para a lixeira.
+   *
+   * A conversa não ganha marca própria: ela não tem vida fora do atendimento e
+   * some junto quando a tela filtra por ele.
+   */
   const deleteTicket = useCallback(
     (id: string) => {
       const ticket = tickets.find((item) => item.id === id);
       if (!ticket) return;
 
-      setTickets((all) => all.filter((item) => item.id !== id));
-      setConversations((all) => all.filter((item) => item.ticketId !== id));
+      const at = new Date().toISOString();
+      setTickets((all) => all.map((item) => (item.id === id ? { ...item, deletedAt: at } : item)));
 
       // O histórico guarda o rótulo, então o registro sobrevive ao assunto.
       record({
@@ -138,12 +174,16 @@ export function TicketsProvider({ children }: { children: ReactNode }) {
         projectId: ticket.projectId,
         actor: currentPerson,
         subject: { kind: "ticket", id: ticket.id, label: ticket.title },
-        detail: `Atendimento #${ticket.id} e seu registro de conversa foram excluídos.`,
+        detail: `Atendimento #${ticket.id} foi movido para a lixeira.`,
       });
 
-      toast.success("Atendimento excluído.");
+      trashToast({
+        label: "Atendimento",
+        subject: ticket.title,
+        onUndo: () => restoreTicket(id),
+      });
     },
-    [currentPerson, record, setConversations, setTickets, tickets]
+    [currentPerson, record, restoreTicket, setTickets, tickets]
   );
 
   const value = useMemo(
@@ -156,8 +196,11 @@ export function TicketsProvider({ children }: { children: ReactNode }) {
       createTicket,
       updateTicket,
       deleteTicket,
+      deletedTickets,
+      restoreTicket,
+      purgeTicket,
     }),
-    [conversationOf, conversations, createTicket, deleteTicket, isHydrated, ticketsOf, tickets, updateTicket]
+    [conversationOf, conversations, createTicket, deleteTicket, deletedTickets, isHydrated, purgeTicket, restoreTicket, ticketsOf, tickets, updateTicket]
   );
 
   return <TicketsContext.Provider value={value}>{children}</TicketsContext.Provider>;

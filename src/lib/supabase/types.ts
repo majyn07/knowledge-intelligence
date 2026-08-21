@@ -76,6 +76,8 @@ export type TaxonomyEntryRow = {
 };
 
 export type ProjectRow = {
+  /** ISO de quando foi para a lixeira. Nulo é "em uso". */
+  deleted_at: string | null;
   id: string;
   name: string;
   client: string;
@@ -90,6 +92,8 @@ export type ProjectRow = {
 };
 
 export type TicketRow = {
+  /** ISO de quando foi para a lixeira. Nulo é "em uso". */
+  deleted_at: string | null;
   id: string;
   project_id: string;
   title: string;
@@ -100,6 +104,8 @@ export type TicketRow = {
 };
 
 export type AnalysisRow = {
+  /** ISO de quando foi para a lixeira. Nulo é "em uso". */
+  deleted_at: string | null;
   id: string;
   project_id: string;
   ticket_id: string;
@@ -108,6 +114,8 @@ export type AnalysisRow = {
 };
 
 export type PlanRow = {
+  /** ISO de quando foi para a lixeira. Nulo é "em uso". */
+  deleted_at: string | null;
   id: string;
   project_id: string;
   title: string;
@@ -123,6 +131,8 @@ export type PlanRow = {
 };
 
 export type ArticleRow = {
+  /** ISO de quando foi para a lixeira. Nulo é "em uso". */
+  deleted_at: string | null;
   id: string;
   project_id: string;
   title: string;

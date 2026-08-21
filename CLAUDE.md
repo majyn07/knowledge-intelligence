@@ -142,6 +142,26 @@ ela sai — foi assim com anexos e "Copiloto de IA" no Plano.
 `KnowledgeArticle`. Só artigo **publicado** conta como cobertura documental — a
 análise não enxerga rascunho nem revisão.
 
+**Excluir manda para a lixeira.** O registro sai da vista e continua
+existindo — com dado compartilhado, quem apaga apaga para catorze pessoas, e o
+diálogo de confirmação era a única barreira. Não há prazo de expurgo
+automático: apagar trabalho sozinho, num horário que ninguém escolheu, é o
+mesmo problema que a exclusão direta tem. Esvaziar é ato de alguém, e a tela
+diz o que vai levar antes.
+
+O aviso de exclusão oferece **desfazer**, e é outra necessidade: quem clicou
+errado percebe no mesmo segundo e não deveria abrir outra tela para consertar.
+A lixeira é a rede durável; o desfazer é a imediata.
+
+Excluir **não bloqueia** por causa do que deriva do registro, mas diz o número
+antes do clique: "excluir este atendimento" e "excluir este atendimento, a
+análise dele e o plano que ele originou" são decisões diferentes, e a tela
+apresentava as duas do mesmo jeito.
+
+A coleção guarda vivo e excluído juntos, e **quem separa é o provider** — não
+cada tela. Foi o que impede um artigo na lixeira de contar como cobertura
+documental numa análise.
+
 **Máquinas de estado têm caminho de volta.** Artigo e plano podem retroceder:
 revisão reprovada volta para rascunho, publicado pode ser recolhido. Um fluxo que
 só avança esconde o erro em vez de corrigi-lo.
