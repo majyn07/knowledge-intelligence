@@ -127,6 +127,28 @@ aviso de nova versão dizer "salve antes" em vez de oferecer um recarregar que
 descarta o texto. Quem fecha a aba inteira merece a mesma pergunta de quem
 fecha o diálogo — por isso também há `beforeunload` enquanto houver pendência.
 
+**Perguntar só serve para quem está lá.** Aba fechada por engano, navegador
+reiniciado e queda de energia não perguntam nada, e até então o texto
+simplesmente deixava de existir. `useDraftRecovery` grava o que está sendo
+digitado um segundo e meio depois de a digitação parar — a cada tecla seriam
+centenas de escritas síncronas num artigo longo — e o formulário oferece
+restaurar na próxima abertura.
+
+Fica **no navegador**, mesmo no modo compartilhado: texto pela metade no
+servidor ficaria visível para a equipe antes de a pessoa decidir mostrar, e a
+decisão de mostrar é dela. Mesma razão de "vistos recentemente" não
+sincronizar.
+
+O aviso só aparece quando o guardado **difere** do que o registro tem hoje.
+Igual significa que a gravação aconteceu, e pedir decisão sobre nada é o que
+ensina alguém a ignorar avisos. Restaurar devolve o texto aos campos e não
+grava: salvar continua sendo ato de quem edita.
+
+A chave é uma por registro, com prefixo — duas abas em artigos diferentes se
+sobrescreveriam. Por isso `clearAppStorage` varre também as chaves derivadas
+de uma nossa: apagar só os nomes exatos deixaria conteúdo para trás na tela que
+promete voltar à semente.
+
 ### Versão publicada
 
 `/api/version` devolve o identificador do deploy, e o navegador de quem está
@@ -798,7 +820,8 @@ transversal, transições de artigo e de plano, métricas por projeto e por
 período, parsing da resposta da IA, a escolha do provedor com a classificação
 das falhas dele, índice do artigo, critérios de publicação,
 fronteira de armazenamento, a leitura de arquivo delimitado com o mapeamento de
-colunas e o plano de importação, o cadastro de taxonomia com a migração da
+colunas e o plano de importação, a recuperação de texto não salvo, o cadastro
+de taxonomia com a migração da
 classificação antiga, os normalizadores de artigo, plano e atendimento, o motor
 e o desenho dos painéis, a trilha de navegação, o recorte por equipe, as
 menções, o que se acompanha, a lixeira, a tabela com suas visões salvas, o rascunho do artigo e a tradução

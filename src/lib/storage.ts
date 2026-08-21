@@ -92,15 +92,40 @@ export const STORAGE_KEYS = {
   savedViews: "visus-saved-views",
   libraryMode: "visus-library-mode",
   libraryColumns: "visus-library-columns",
+  /*
+    Prefixo, e não chave: a recuperação é uma por registro em edição, para duas
+    abas abertas em artigos diferentes não se sobrescreverem.
+  */
+  libraryRecovery: "visus-library-recovery",
   brandTheme: "visus-brand-theme",
 } as const;
 
 /** Tudo que a recuperação de falha apaga para voltar à semente. */
 export const APP_STORAGE_KEYS = Object.values(STORAGE_KEYS);
 
-/** Usado apenas na tela de erro: devolve o navegador ao estado de semente. */
+/**
+ * Usado apenas na tela de erro: devolve o navegador ao estado de semente.
+ *
+ * Varre também as chaves **derivadas** de uma nossa — a recuperação de texto é
+ * uma por registro, com o prefixo mais o identificador. Apagar só os nomes
+ * exatos deixaria conteúdo para trás justamente na tela que promete voltar à
+ * semente, e é conteúdo guardado em formato antigo que costuma ter causado o
+ * erro que trouxe alguém até aqui.
+ */
 export function clearAppStorage(): void {
   for (const key of APP_STORAGE_KEYS) remove(key);
+
+  if (typeof window === "undefined") return;
+
+  try {
+    const derivadas = Object.keys(localStorage).filter((key) =>
+      APP_STORAGE_KEYS.some((base) => key.startsWith(`${base}:`))
+    );
+
+    for (const key of derivadas) remove(key);
+  } catch {
+    // Armazenamento indisponível: não há o que limpar.
+  }
 }
 
 function isQuotaError(error: unknown): boolean {
