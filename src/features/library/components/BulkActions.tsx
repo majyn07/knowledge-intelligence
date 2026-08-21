@@ -1,6 +1,6 @@
 "use client";
 
-import { X } from "lucide-react";
+import { Trash2, X } from "lucide-react";
 
 import { PersonSelect } from "@/features/people/components/PersonSelect";
 import { Button } from "@/components/ui/button";
@@ -15,22 +15,23 @@ interface BulkActionsProps {
   selected: KnowledgeArticle[];
   onChangeStatus: (status: ArticleStatus) => void;
   onAssign: (ref: string) => void;
+  onDelete: () => void;
   onClear: () => void;
 }
 
 /**
  * Ações sobre a seleção.
  *
- * Mudar estágio e atribuir, e nada além. Excluir em lote fica de fora desta
- * sprint por um motivo concreto: o desfazer que existe é por registro, e um
- * clique que manda duzentos artigos para a lixeira precisaria de um desfazer
- * em lote — que é outra peça, não um detalhe do botão.
+ * Mudar estágio, atribuir e excluir. Excluir só entrou depois do desfazer em
+ * lote: um clique que manda duzentos artigos para a lixeira precisa de um
+ * caminho de volta do mesmo tamanho, e desfazer duzentas vezes não é caminho
+ * de volta.
  *
  * O estágio oferecido é só o que **toda** a seleção pode alcançar. Oferecer o
  * que vale para parte dela aplicaria a metade e falharia na outra, em
  * silêncio.
  */
-export function BulkActions({ selected, onChangeStatus, onAssign, onClear }: BulkActionsProps) {
+export function BulkActions({ selected, onChangeStatus, onAssign, onDelete, onClear }: BulkActionsProps) {
   if (selected.length === 0) return null;
 
   const comuns = (Object.keys(articleStatusLabel) as ArticleStatus[]).filter((status) =>
@@ -65,6 +66,11 @@ export function BulkActions({ selected, onChangeStatus, onAssign, onClear }: Bul
       <span className="flex min-w-48 items-center gap-2">
         <PersonSelect id="bulk-author" value="" onChange={onAssign} placeholder="Atribuir a…" />
       </span>
+
+      <Button size="sm" variant="outline" onClick={onDelete}>
+        <Trash2 className="mr-1.5 h-3.5 w-3.5" />
+        Excluir
+      </Button>
 
       <Button size="sm" variant="ghost" className="ml-auto" onClick={onClear}>
         <X className="mr-1.5 h-3.5 w-3.5" />
