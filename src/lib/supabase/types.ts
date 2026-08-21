@@ -65,6 +65,8 @@ export type TeamRow = {
   position: number;
   /** Categorias do portal pelas quais a equipe responde. */
   category_ids: string[];
+  /** Seções — mais específicas que a categoria, e decidem primeiro. */
+  section_ids: string[];
 };
 
 export type TaxonomyCategoryRow = {

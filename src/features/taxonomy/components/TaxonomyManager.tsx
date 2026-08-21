@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { ChevronDown, ChevronRight, Plus, RotateCcw, Trash2 } from "lucide-react";
+import { Check, ChevronDown, ChevronRight, Pencil, Plus, RotateCcw, Trash2, X } from "lucide-react";
 
 import { PageSection } from "@/components/common/page/PageSection";
 import { StatusBadge } from "@/components/common/status/StatusBadge";
@@ -13,6 +13,102 @@ import { sectionsOf } from "@/models/Taxonomy";
 
 import { useTaxonomy } from "../providers/TaxonomyProvider";
 import type { EntryList } from "../taxonomyService";
+
+/**
+ * Nome que vira campo no lugar, sem abrir diálogo.
+ *
+ * Renomear preserva o identificador, e é por isso que a operação pode ser
+ * leve: o vínculo com o artigo é o id, não o texto. Trocar "Elétrica" por
+ * "Disciplina Elétrica" não desclassifica nada.
+ *
+ * O estado nasce do prop e não é sincronizado depois — quem troca o registro
+ * em edição é a chave do componente. Um efeito sincronizando `name` apagaria o
+ * que está sendo digitado a cada render do pai.
+ */
+function InlineRename({
+  name,
+  label,
+  size = "sm",
+  onRename,
+}: {
+  name: string;
+  label: string;
+  size?: "sm" | "md";
+  onRename: (name: string) => void;
+}) {
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState(name);
+
+  const icon = size === "sm" ? "h-3.5 w-3.5" : "h-4 w-4";
+
+  function open() {
+    setDraft(name);
+    setEditing(true);
+  }
+
+  function confirm() {
+    const trimmed = draft.trim();
+    // Nome vazio apagaria o rótulo de tudo que aponta para o id, sem remover
+    // nada — e ninguém saberia dizer o que aquela seção era.
+    if (trimmed && trimmed !== name) onRename(trimmed);
+    setEditing(false);
+  }
+
+  if (!editing) {
+    return (
+      <>
+        <span className={`min-w-0 flex-1 truncate ${size === "md" ? "text-sm font-medium" : ""}`}>
+          {name}
+        </span>
+
+        <Button
+          size="icon"
+          variant="ghost"
+          aria-label={`Renomear ${label}`}
+          onClick={open}
+        >
+          <Pencil className={icon} />
+        </Button>
+      </>
+    );
+  }
+
+  return (
+    <>
+      <Input
+        autoFocus
+        value={draft}
+        aria-label={`Novo nome — ${name}`}
+        className="h-8 min-w-0 flex-1"
+        onChange={(event) => setDraft(event.target.value)}
+        onKeyDown={(event) => {
+          if (event.key === "Enter") {
+            event.preventDefault();
+            confirm();
+          }
+
+          if (event.key === "Escape") {
+            event.preventDefault();
+            setEditing(false);
+          }
+        }}
+      />
+
+      <Button size="icon" variant="ghost" aria-label="Salvar nome" onClick={confirm}>
+        <Check className={icon} />
+      </Button>
+
+      <Button
+        size="icon"
+        variant="ghost"
+        aria-label="Cancelar renomear"
+        onClick={() => setEditing(false)}
+      >
+        <X className={icon} />
+      </Button>
+    </>
+  );
+}
 
 /**
  * Lista simples editável — gênero e tipo de oportunidade.
@@ -31,7 +127,7 @@ function EntryListEditor({
   hint: string;
   usage: (id: string) => number;
 }) {
-  const { taxonomy, createEntry, deleteEntry } = useTaxonomy();
+  const { taxonomy, createEntry, deleteEntry, editEntry } = useTaxonomy();
   const [name, setName] = useState("");
 
   function add() {
@@ -51,24 +147,28 @@ function EntryListEditor({
           return (
             <li
               key={entry.id}
-              className="flex items-center justify-between gap-3 rounded-lg border border-border/60 px-3 py-2"
+              className="flex items-center gap-2 rounded-lg border border-border/60 px-3 py-2 text-sm"
             >
-              <span className="min-w-0 truncate text-sm">{entry.name}</span>
+              <InlineRename
+                key={entry.name}
+                name={entry.name}
+                label={entry.name}
+                size="sm"
+                onRename={(novo) => editEntry(list, entry.id, novo)}
+              />
 
-              <span className="flex shrink-0 items-center gap-2">
-                {count > 0 && (
-                  <StatusBadge variant="default">{count} em uso</StatusBadge>
-                )}
+              {count > 0 && (
+                <StatusBadge variant="default">{count} em uso</StatusBadge>
+              )}
 
-                <Button
-                  size="icon"
-                  variant="ghost"
-                  aria-label={`Remover ${entry.name}`}
-                  onClick={() => deleteEntry(list, entry.id)}
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
-              </span>
+              <Button
+                size="icon"
+                variant="ghost"
+                aria-label={`Remover ${entry.name}`}
+                onClick={() => deleteEntry(list, entry.id)}
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
             </li>
           );
         })}
@@ -98,7 +198,8 @@ function EntryListEditor({
 
 /** Uma categoria e suas seções, recolhida por padrão — são 146 no total. */
 function CategoryRow({ categoryId }: { categoryId: string }) {
-  const { taxonomy, createSection, deleteSection, deleteCategory } = useTaxonomy();
+  const { taxonomy, createSection, deleteSection, deleteCategory, editCategory, editSection } =
+    useTaxonomy();
   const { items: articles } = useLibrary();
 
   const [open, setOpen] = useState(false);
@@ -129,9 +230,13 @@ function CategoryRow({ categoryId }: { categoryId: string }) {
           {open ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
         </Button>
 
-        <span className="min-w-0 flex-1 truncate text-sm font-medium">
-          {category.name}
-        </span>
+        <InlineRename
+          key={category.name}
+          name={category.name}
+          label={`a categoria ${category.name}`}
+          size="md"
+          onRename={(novo) => editCategory(categoryId, novo)}
+        />
 
         {!category.isProduct && (
           <StatusBadge variant="default">Apoio</StatusBadge>
@@ -163,9 +268,15 @@ function CategoryRow({ categoryId }: { categoryId: string }) {
               {sections.map((section) => (
                 <li
                   key={section.id}
-                  className="flex items-center justify-between gap-3 rounded px-2 py-1.5 text-sm hover:bg-muted/60"
+                  className="flex items-center gap-2 rounded px-2 py-1.5 text-sm hover:bg-muted/60"
                 >
-                  <span className="min-w-0 truncate">{section.name}</span>
+                  <InlineRename
+                    key={section.name}
+                    name={section.name}
+                    label={`a seção ${section.name}`}
+                    size="sm"
+                    onRename={(novo) => editSection(section.id, novo)}
+                  />
 
                   <Button
                     size="icon"

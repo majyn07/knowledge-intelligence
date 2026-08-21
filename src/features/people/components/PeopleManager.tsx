@@ -21,7 +21,7 @@ import { useProject } from "@/providers/ProjectProvider";
 import { migrateAssignment } from "@/models/Assignment";
 
 import { AvatarUpload } from "./AvatarUpload";
-import { TeamCategories } from "./TeamCategories";
+import { TeamScope } from "./TeamScope";
 import { PersonAvatar } from "./PersonAvatar";
 import { usePeople } from "../providers/PeopleProvider";
 
@@ -191,7 +191,7 @@ export function PeopleManager() {
                   </span>
 
                   <div className="w-full">
-                    <TeamCategories team={team} />
+                    <TeamScope team={team} />
                   </div>
                 </li>
               );

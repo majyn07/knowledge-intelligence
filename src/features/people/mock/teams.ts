@@ -1,18 +1,18 @@
 import type { Team } from "@/models/Assignment";
 
 /**
- * As quatro equipes reais do suporte AltoQi.
+ * As quatro equipes do suporte AltoQi, com os nomes que elas têm de fato.
  *
  * Equipe é estrutura, não dado pessoal — por isso ela vive no código, ao
  * contrário das pessoas, que só existem depois de entrarem no produto.
  *
- * Os identificadores são os mesmos da migração `0006_equipes.sql`. Divergir
- * aqui faria o modo local e o compartilhado discordarem sobre o que é a mesma
- * equipe, e as atribuições parariam de resolver na virada.
+ * Os identificadores **não mudam** quando o nome muda. Eles são o vínculo com
+ * tudo que já foi atribuído, e renomear preservando o id é a mesma regra que
+ * vale para categoria e seção: o vínculo é o identificador, não o texto.
  */
 export const seedTeams: Team[] = [
-  { id: "team-suporte-builder-eletrica", name: "Suporte Builder Elétrica", order: 0, categoryIds: [] },
-  { id: "team-suporte-builder-hidraulica", name: "Suporte Builder Hidráulica", order: 1, categoryIds: [] },
-  { id: "team-suporte-estruturas", name: "Suporte Estruturas", order: 2, categoryIds: [] },
-  { id: "team-suporte-visus", name: "Suporte Visus", order: 3, categoryIds: [] },
+  { id: "team-suporte-builder-eletrica", name: "Builder Elétrica", order: 0, categoryIds: [], sectionIds: [] },
+  { id: "team-suporte-builder-hidraulica", name: "Builder Hidráulica", order: 1, categoryIds: [], sectionIds: [] },
+  { id: "team-suporte-estruturas", name: "Eberick Estruturas", order: 2, categoryIds: [], sectionIds: [] },
+  { id: "team-suporte-visus", name: "Suporte Visus", order: 3, categoryIds: [], sectionIds: [] },
 ];

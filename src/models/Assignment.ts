@@ -18,6 +18,14 @@ export interface Team {
    * não declarou nada simplesmente não é sugerida.
    */
   categoryIds: string[];
+  /**
+   * Seções pelas quais a equipe responde.
+   *
+   * Existe porque a divisão do suporte nem sempre acompanha a categoria: no
+   * Builder as disciplinas são seções, e Elétrica e Hidráulica dividem a mesma
+   * categoria. A seção é mais específica e por isso decide primeiro.
+   */
+  sectionIds: string[];
 }
 
 /**
