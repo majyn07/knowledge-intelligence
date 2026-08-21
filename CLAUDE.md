@@ -622,6 +622,45 @@ Exportar entrega **o recorte que está na tela**, com as colunas escolhidas.
 Quem exporta acabou de montá-lo. Exibir e exportar passam pelo mesmo
 `cellValue`: escritos em separado, os dois divergem.
 
+### Importar por arquivo
+
+O acervo entra por arquivo antes de entrar por integração. A HubSpot exporta
+CSV, e arquivo não pede rede, credencial nem autorização de ninguém — o que a
+API acrescenta é o *automático*, que é a segunda versão do problema.
+
+**O mapeamento de colunas é uma tela, não uma adivinhação.** `guessMapping`
+reconhece por correspondência exata e deixa em branco o que não reconhece.
+Casar por trecho faria "nome do autor" virar título em mil e oitocentos
+registros de uma vez — e ninguém revisa um por um para descobrir. Mesma regra
+da seção: nome que não existe no cadastro vira vazio e é **contado**, nunca
+encaixado no mais parecido.
+
+O plano é calculado antes de gravar e mostrado inteiro — quantos entram,
+quantos atualizam, quantos ficam sem seção, quantas linhas o arquivo perde.
+É a mesma regra do diálogo de exclusão: o número vem antes do clique.
+
+Reimportar **atualiza** pelo `portalArticleId`, e o que o arquivo não traz é
+preservado: gênero e responsável são nossos, não do portal, e a segunda
+importação não pode apagar a classificação que alguém fez aqui dentro.
+
+O leitor de CSV é nosso porque o caso que importa é específico: conteúdo de
+artigo tem vírgula, aspas e quebra de linha **dentro** do campo, e um leitor
+que parte no `\n` corta o artigo ao meio sem avisar. Ele também detecta o
+separador — exportação brasileira sai com ponto e vírgula — e descarta o BOM
+do Excel, que gruda invisível no primeiro cabeçalho e faz a coluna não ser
+reconhecida.
+
+A gravação é **uma** passada e **um** evento de histórico. Mil e oitocentas
+chamadas ao servidor deixariam o acervo pela metade se uma falhasse, e mil e
+oitocentas linhas iguais no histórico enterram tudo que aconteceu antes.
+
+**Limite conhecido:** no modo navegador o acervo inteiro vive no
+`localStorage`, que tem teto de poucos megabytes. Medido: 255 artigos de teste
+ocuparam 134 kB, mas artigo real do portal é HTML longo — a projeção para
+1.800 passa do teto. No modo compartilhado o dado está no banco e o teto não
+existe, mas a coleção continua inteira em memória e a busca de artigos roda no
+cliente. É a pergunta que a importação existe para responder com dado real.
+
 ## Histórico
 
 Todo fato relevante do ciclo vira um `ActivityEvent`, gravado pelo provider da
@@ -758,7 +797,8 @@ Testes cobrem lógica pura, nunca componentes: motor de busca e busca
 transversal, transições de artigo e de plano, métricas por projeto e por
 período, parsing da resposta da IA, a escolha do provedor com a classificação
 das falhas dele, índice do artigo, critérios de publicação,
-fronteira de armazenamento, o cadastro de taxonomia com a migração da
+fronteira de armazenamento, a leitura de arquivo delimitado com o mapeamento de
+colunas e o plano de importação, o cadastro de taxonomia com a migração da
 classificação antiga, os normalizadores de artigo, plano e atendimento, o motor
 e o desenho dos painéis, a trilha de navegação, o recorte por equipe, as
 menções, o que se acompanha, a lixeira, a tabela com suas visões salvas, o rascunho do artigo e a tradução

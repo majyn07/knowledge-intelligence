@@ -1,5 +1,7 @@
 "use client";
 
+import { useState } from "react";
+
 import type { LibraryFormData } from "@/features/library/types/LibraryFormData";
 
 import { Button } from "@/components/ui/button";
@@ -18,6 +20,7 @@ import { LibraryToolbar } from "@/features/library/components/LibraryToolbar";
 import { LibraryTable } from "@/features/library/components/LibraryTable";
 import { LibraryViewBar } from "@/features/library/components/LibraryViewBar";
 import { BulkActions } from "@/features/library/components/BulkActions";
+import { ImportButton, ImportDialog } from "@/features/library/components/ImportDialog";
 import { useLibraryTable } from "@/features/library/hooks/useLibraryTable";
 import { useSavedViews } from "@/features/library/providers/SavedViewsProvider";
 import { articlesToCsv } from "@/features/library/articleCsv";
@@ -31,6 +34,7 @@ import { articleService } from "@/features/library/services/articleService";
 import { useProject } from "@/providers/ProjectProvider";
 
 export default function LibraryPage() {
+  const [importOpen, setImportOpen] = useState(false);
   const { activeProject, activeProjectId, projects } = useProject();
   const {
     items,
@@ -116,7 +120,10 @@ export default function LibraryPage() {
           title="Biblioteca"
           description={`O acervo de ${activeProject?.name ?? "este projeto"}. Os artigos publicados são o que a análise consulta ao avaliar a cobertura documental.`}
           actions={
-            <Button onClick={openCreateDialog}>Novo artigo</Button>
+            <div className="flex flex-wrap gap-2">
+              <ImportButton onClick={() => setImportOpen(true)} />
+              <Button onClick={openCreateDialog}>Novo artigo</Button>
+            </div>
           }
         />
 
@@ -264,6 +271,8 @@ export default function LibraryPage() {
           onKeepEditing={guard.keepEditing}
           onDiscard={guard.confirmDiscard}
         />
+
+        <ImportDialog open={importOpen} onOpenChange={setImportOpen} />
 
         <LibraryDeleteDialog
           open={deleteDialogOpen}
