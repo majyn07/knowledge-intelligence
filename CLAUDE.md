@@ -505,8 +505,20 @@ Gemini é o provider atual (`services/ai/server/geminiService.ts`), isolado atr�
 de `analysisAIService`. GPT saiu do roadmap; Claude entra numa sprint própria.
 
 **Somar um provedor é escrever um arquivo e citá-lo no registro.** O contrato é
-`AIProvider` — `chat` e `analyze`, nada mais —, e nada acima de
-`services/ai/server` conhece SDK, nome de modelo ou formato de mensagem.
+`AIProvider`, e o que ele realmente faz é `complete(mensagens)` — `chat` e
+`analyze` são atalhos escritos sobre ela. Antes o construtor de prompt da
+análise vivia dentro do provider, o que obrigava toda operação nova a virar um
+método novo do contrato; agora o prompt fica onde é assunto do produto, e nada
+acima de `services/ai/server` conhece SDK, nome de modelo ou formato de
+mensagem.
+
+**A IA propõe seção; a revisão humana aprova.** A importação por arquivo deixa
+artigo sem seção de propósito, e classificar centenas à mão é o problema
+seguinte. O vocabulário vai inteiro no pedido e a resposta escolhe dentro dele
+— e o identificador é **conferido na volta**, porque instrução não é garantia:
+seção que o modelo inventou vira ausência, não classificação. Artigo que não
+cabe em nenhuma seção é omitido de propósito; ficar de fora é resposta
+legítima, e melhor que palpite. Nada é aplicado sem alguém deixar marcado.
 
 **Qual provedor vale é declarado, não deduzido da presença de chave**, pelo
 mesmo motivo do modo compartilhado: chave provisionada em ambiente é acidente
@@ -833,7 +845,7 @@ viraria ruído.
 Testes cobrem lógica pura, nunca componentes: motor de busca e busca
 transversal, transições de artigo e de plano, métricas por projeto e por
 período, parsing da resposta da IA, a escolha do provedor com a classificação
-das falhas dele, índice do artigo, critérios de publicação,
+das falhas dele, a leitura da sugestão de seção, índice do artigo, critérios de publicação,
 fronteira de armazenamento, a leitura de arquivo delimitado com o mapeamento de
 colunas e o plano de importação, a recuperação de texto não salvo, o cadastro
 de taxonomia com a migração da

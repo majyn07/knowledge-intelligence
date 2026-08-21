@@ -1,3 +1,4 @@
+import type { AIChatMessage } from "@/models/AIChatMessage";
 import type { AIChatRequest } from "@/models/AIChatRequest";
 
 import type { AIProviderId } from "./catalog";
@@ -20,6 +21,15 @@ export interface AIProvider {
   chat(request: AIChatRequest): Promise<string>;
   /** Resposta estruturada, validada depois pelo schema da análise. */
   analyze(request: AIChatRequest): Promise<string>;
+  /**
+   * Um pedido qualquer, com as mensagens já montadas.
+   *
+   * Existe porque `chat` e `analyze` carregavam o construtor de prompt da
+   * análise dentro do provider — o que obrigava toda operação nova a virar um
+   * método novo do contrato. Com isto, o prompt fica onde é assunto do
+   * produto, e o provider volta a saber só falar com o modelo.
+   */
+  complete(messages: AIChatMessage[], options?: { json?: boolean }): Promise<string>;
 }
 
 /**
