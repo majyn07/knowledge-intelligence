@@ -1,14 +1,39 @@
+import type { AIFailure } from "../providers/providerFailure";
+
+/**
+ * Falha de configuração: não há provedor utilizável neste ambiente.
+ *
+ * Guarda **o que foi declarado**, quando alguém declarou. Um `AI_PROVIDER`
+ * escrito errado e um ambiente sem chave nenhuma são problemas diferentes, e
+ * quem administra precisa saber qual dos dois é.
+ */
 export class AIConfigurationError extends Error {
-  constructor() {
+  readonly declared?: string;
+
+  constructor(declared?: string) {
     super("A configuração do provedor de IA está indisponível.");
     this.name = "AIConfigurationError";
+    this.declared = declared;
   }
 }
 
+/**
+ * Falha do provedor, com o tipo preservado.
+ *
+ * Antes eram todas a mesma frase — "tente novamente" —, inclusive quando a
+ * chave estava errada e tentar de novo não ia mudar nada. O tipo e a mensagem
+ * original sobem juntos, pelo mesmo motivo da tradução do erro de acesso: o
+ * texto do provedor é a única pista de quem administra.
+ */
 export class AIProviderError extends Error {
-  constructor() {
-    super("O provedor de IA não pôde concluir a solicitação.");
+  readonly provider: string;
+  readonly failure: AIFailure;
+
+  constructor(provider: string, failure: AIFailure) {
+    super(`O provedor de IA não pôde concluir a solicitação (${failure.kind}).`);
     this.name = "AIProviderError";
+    this.provider = provider;
+    this.failure = failure;
   }
 }
 

@@ -1,17 +1,21 @@
 import type { AIChatRequest } from "@/models/AIChatRequest";
 
-import { geminiService } from "../server/geminiService";
+import { activeProvider } from "../server/providerRegistry";
 
 /**
- * Application-facing AI boundary for analysis workflows.
- * Provider selection remains isolated in the server provider layer.
+ * Fronteira de IA da análise.
+ *
+ * Quem é o provedor é resolvido a cada chamada, e não uma vez na importação:
+ * a tela de Integrações relata estado do ambiente, e um módulo que decide na
+ * carga continuaria falando com o provedor antigo depois de alguém trocar a
+ * configuração e reimplantar.
  */
 export const analysisAIService = {
   chat(request: AIChatRequest): Promise<string> {
-    return geminiService.chat(request);
+    return activeProvider().chat(request);
   },
 
   analyze(request: AIChatRequest): Promise<string> {
-    return geminiService.analyze(request);
+    return activeProvider().analyze(request);
   },
 };
