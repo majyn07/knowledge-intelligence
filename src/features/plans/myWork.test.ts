@@ -41,7 +41,7 @@ function artigo(id: string, author: string, status: KnowledgeArticle["status"] =
   return {
     id, title: `Artigo ${id}`, summary: "", content: "", projectId: "p2",
     genreId: "gen-artigo", status, sectionId: "sec-altoqi-visus-workflow",
-    tags: [], keywords: [], author,
+    tags: [], keywords: [], author, contentFormat: "markdown" as const,
     createdAt: new Date(dia(-40)), updatedAt: new Date(dia(-1)),
   };
 }

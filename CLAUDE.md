@@ -421,6 +421,33 @@ incidental — uma delas faria um plano parado há um mês parecer recém-tocado
 Contador e fila convivem porque respondem coisas diferentes: um diz que existe
 trabalho, a outra diz por onde começar.
 
+## Conteúdo e versionamento
+
+**O formato é declarado, nunca adivinhado.** O artigo carrega
+`contentFormat`: o que escrevemos aqui é Markdown, o que vier do portal é
+HTML. Converter nos dois sentidos degrada a cada ida e volta — tabela com
+atributo, âncora, classe e mídia embutida não sobrevivem à viagem —, e guardar
+o formato junto é o que permite **não converter nunca**. O editor rico espera
+haver artigo real do portal na mão: escolher editor sem ver o conteúdo é
+escolher no escuro.
+
+**O publicado continua no ar enquanto a próxima versão é preparada.** Editar
+um publicado exigia recolhê-lo para revisão, e enquanto estivesse recolhido a
+análise deixava de contá-lo como cobertura — corrigir uma vírgula fazia uma
+seção do portal parecer descoberta. O rascunho guarda só título, resumo e
+conteúdo: classificação e responsável são atributos do **artigo**, não do
+texto, e duplicá-los criaria duas respostas para "em que seção isto está".
+
+A comparação é **campo a campo**, e não linha a linha: ela responde "vale
+republicar?", e para isso basta saber o que foi tocado.
+
+**Quem está editando aparece; nada trava.** Travar o registro transformaria uma
+aba esquecida aberta na sexta num artigo inacessível até segunda, sem ninguém
+para destravar — não há papéis. A presença vem do tempo real e não de tabela:
+numa tabela, quem fechasse o navegador sem avisar ficaria "editando" para
+sempre. O aviso de presença cobre o antes; `useStaleRecordWarning` cobre o
+depois, quando alguém gravou enquanto você digitava.
+
 ## Operar em volume
 
 Cartão e tabela **convivem**. A grade responde "o que tem aqui" e é boa para
@@ -589,7 +616,7 @@ período, parsing da resposta da IA, índice do artigo, critérios de publicaç�
 fronteira de armazenamento, o cadastro de taxonomia com a migração da
 classificação antiga, os normalizadores de artigo, plano e atendimento, o motor
 e o desenho dos painéis, a trilha de navegação, o recorte por equipe, as
-menções, o que se acompanha, a lixeira e a tabela com suas visões salvas.
+menções, o que se acompanha, a lixeira, a tabela com suas visões salvas e o rascunho do artigo.
 Ao mexer em qualquer uma delas, o teste vem junto.
 
 Dois cuidados que já custaram tempo: `npm test` **não** faz typecheck — só o

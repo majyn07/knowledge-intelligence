@@ -17,6 +17,7 @@ function article(overrides: Partial<KnowledgeArticle> = {}): KnowledgeArticle {
     tags: [],
     keywords: ["login"],
     author: "Raoni Milioli da Silva",
+    contentFormat: "markdown" as const,
     createdAt: new Date(),
     updatedAt: new Date(),
     ...overrides,
@@ -62,6 +63,7 @@ describe("articlePublishChecks", () => {
       genreId: "",
       keywords: [],
       author: "",
+      contentFormat: "markdown" as const,
     });
 
     expect(failing(vazio)).toHaveLength(6);

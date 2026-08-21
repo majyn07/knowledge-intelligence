@@ -22,6 +22,7 @@ import type { LibraryFormData } from "@/features/library/types/LibraryFormData";
 import type { PlanWorkspaceItem } from "@/features/plans/types/PlanWorkspace";
 
 import { articleService } from "@/features/library/services/articleService";
+import { discardDraft, draftChanges, draftFieldLabel, publishDraft } from "@/features/library/draft";
 import { parseArticles } from "@/features/library/normalizeArticle";
 import { STORAGE_KEYS } from "@/lib/storage";
 
@@ -39,6 +40,10 @@ interface LibraryContextValue {
   createItem: (data: LibraryFormData) => void;
   updateItem: (id: string, data: LibraryFormData) => void;
   changeStatus: (id: string, status: ArticleStatus) => void;
+  /** A próxima versão, preparada sem tirar a atual do ar. */
+  saveDraft: (id: string, draft: { title: string; summary: string; content: string }) => void;
+  publishArticleDraft: (id: string) => void;
+  discardArticleDraft: (id: string) => void;
   /** Ações em lote sobre a seleção da tabela. */
   changeStatusMany: (ids: string[], status: ArticleStatus) => void;
   assignMany: (ids: string[], author: string) => void;
@@ -244,6 +249,62 @@ export function LibraryProvider({ children }: { children: ReactNode }) {
     [setItems]
   );
 
+  /**
+   * Guarda a próxima versão sem tirar a atual do ar.
+   *
+   * Editar um publicado exigia recolhê-lo para revisão, e enquanto isso a
+   * análise deixava de contá-lo como cobertura documental: corrigir uma
+   * vírgula fazia uma seção do portal parecer descoberta.
+   */
+  const saveDraft = useCallback(
+    (id: string, draft: { title: string; summary: string; content: string }) => {
+      setItems((previous) =>
+        previous.map((item) =>
+          item.id === id
+            ? {
+                ...item,
+                draft: { ...draft, updatedAt: new Date().toISOString(), author: currentPerson },
+              }
+            : item
+        )
+      );
+    },
+    [currentPerson, setItems]
+  );
+
+  const publishArticleDraft = useCallback(
+    (id: string) => {
+      const article = items.find((item) => item.id === id);
+      if (!article?.draft) return;
+
+      const mudou = draftChanges(article);
+
+      setItems((previous) =>
+        previous.map((item) => (item.id === id ? publishDraft(item, new Date()) : item))
+      );
+
+      record({
+        type: "article_updated",
+        projectId: article.projectId,
+        actor: currentPerson || article.author,
+        subject: { kind: "article", id: article.id, label: article.title },
+        detail: `Nova versão publicada: ${mudou.length > 0 ? mudou.map((campo) => draftFieldLabel[campo]).join(", ") : "sem alteração"}`,
+      });
+
+      toast.success("Nova versão publicada.");
+    },
+    [currentPerson, items, record, setItems]
+  );
+
+  const discardArticleDraft = useCallback(
+    (id: string) => {
+      setItems((previous) => previous.map((item) => (item.id === id ? discardDraft(item) : item)));
+
+      toast.success("Rascunho descartado. A versão publicada continua como está.");
+    },
+    [setItems]
+  );
+
   const restoreItem = useCallback(
     (id: string) => {
       setItems((previous) =>
@@ -292,12 +353,15 @@ export function LibraryProvider({ children }: { children: ReactNode }) {
       createItem,
       updateItem,
       changeStatus,
+      saveDraft,
+      publishArticleDraft,
+      discardArticleDraft,
       changeStatusMany,
       assignMany,
       deleteItem,
       createItemFromPlan,
     }),
-    [assignMany, changeStatus, changeStatusMany, createItem, createItemFromPlan, deleteItem, deletedItems, isHydrated, items, purgeItem, restoreItem, updateItem]
+    [assignMany, changeStatus, changeStatusMany, discardArticleDraft, publishArticleDraft, saveDraft, createItem, createItemFromPlan, deleteItem, deletedItems, isHydrated, items, purgeItem, restoreItem, updateItem]
   );
 
   return <LibraryContext.Provider value={value}>{children}</LibraryContext.Provider>;

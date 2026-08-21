@@ -30,6 +30,10 @@ import { PublishConfirmDialog } from "@/components/common/PublishConfirmDialog";
 import { ArticleTableOfContents } from "./components/ArticleTableOfContents";
 import { LibraryDialog } from "./components/LibraryDialog";
 import { LibraryForm } from "./components/LibraryForm";
+import { DraftPanel } from "./components/DraftPanel";
+import { EditingNotice } from "./components/EditingNotice";
+import { acceptsDraft, editableContent } from "./draft";
+import { useEditingPresence } from "./useEditingPresence";
 import { RelatedArticles } from "./components/RelatedArticles";
 import { findSimilarArticles } from "./search/findSimilarArticles";
 import { articlePublishChecks } from "./publishChecks";
@@ -49,12 +53,20 @@ const statusVariant: Record<ArticleStatus, "default" | "warning" | "success"> = 
 };
 
 export function ArticleWorkspace({ articleId }: ArticleWorkspaceProps) {
-  const { items, updateItem, changeStatus } = useLibrary();
+  const {
+    items,
+    updateItem,
+    changeStatus,
+    saveDraft,
+    publishArticleDraft,
+    discardArticleDraft,
+  } = useLibrary();
   const { eventsFor } = useActivity();
   const { projects } = useProject();
   const { taxonomy } = useTaxonomy();
   const assigneeName = useAssigneeName();
   const [isEditing, setIsEditing] = useState(false);
+  const editors = useEditingPresence(articleId);
   const [isPublishing, setIsPublishing] = useState(false);
 
   const article = items.find((item) => item.id === articleId);
@@ -108,8 +120,33 @@ export function ArticleWorkspace({ articleId }: ArticleWorkspaceProps) {
   const genreName = taxonomy.genres.find((entry) => entry.id === article.genreId)?.name ?? "";
   const history = eventsFor("article", article.id);
 
+  /**
+   * Salvar um artigo publicado prepara a próxima versão, sem tirar a atual do ar.
+   *
+   * A classificação vale na hora: seção, gênero, responsável e estágio são
+   * atributos do **artigo**, não do texto, e segurá-los junto do rascunho
+   * criaria duas respostas para "em que seção isto está".
+   */
   function handleSubmit(data: LibraryFormData) {
-    updateItem(article!.id, data);
+    const alvo = article!;
+
+    if (acceptsDraft(alvo)) {
+      updateItem(alvo.id, {
+        ...data,
+        title: alvo.title,
+        summary: alvo.summary,
+        content: alvo.content,
+      });
+
+      saveDraft(alvo.id, {
+        title: data.title,
+        summary: data.summary,
+        content: data.content,
+      });
+    } else {
+      updateItem(alvo.id, data);
+    }
+
     setIsEditing(false);
   }
 
@@ -148,6 +185,13 @@ export function ArticleWorkspace({ articleId }: ArticleWorkspaceProps) {
             <Button onClick={() => setIsEditing(true)}>Editar artigo</Button>
           </div>
         }
+      />
+
+      <DraftPanel
+        article={article}
+        onPublish={() => publishArticleDraft(article.id)}
+        onDiscard={() => discardArticleDraft(article.id)}
+        onEdit={() => setIsEditing(true)}
       />
 
       <section className="rounded-xl border border-border/70 bg-card p-5 sm:p-6">
@@ -289,6 +333,8 @@ export function ArticleWorkspace({ articleId }: ArticleWorkspaceProps) {
         title="Editar artigo"
         description="Atualize o conteúdo, a classificação e o estágio editorial."
       >
+        <EditingNotice editors={editors} />
+
         {isStale && (
           <div
             role="alert"
@@ -314,11 +360,11 @@ export function ArticleWorkspace({ articleId }: ArticleWorkspaceProps) {
         )}
 
         <LibraryForm
-          key={article.id}
+          key={article.id + (article.draft ? "-rascunho" : "")}
           projects={projects.map((project) => ({ id: project.id, name: project.name }))}
           articles={items}
           editingId={article.id}
-          initialData={articleService.toFormData(article)}
+          initialData={{ ...articleService.toFormData(article), ...editableContent(article) }}
           submitLabel="Atualizar"
           onSubmit={handleSubmit}
           onCancel={() => setIsEditing(false)}

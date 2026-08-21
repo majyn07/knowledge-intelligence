@@ -20,6 +20,7 @@ function artigo(sectionId: string, status: ArticleStatus = "published"): Knowled
     tags: [],
     keywords: [],
     author: "",
+    contentFormat: "markdown" as const,
     createdAt: new Date(),
     updatedAt: new Date(),
   };

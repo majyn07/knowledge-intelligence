@@ -1,9 +1,36 @@
 import { date, items, oneOf, record, text, textList } from "@/lib/shape";
-import { ARTICLE_STATUSES } from "@/models/KnowledgeArticle";
+import { ARTICLE_STATUSES, CONTENT_FORMATS } from "@/models/KnowledgeArticle";
 import type { KnowledgeArticle } from "@/models/KnowledgeArticle";
 import type { Taxonomy } from "@/models/Taxonomy";
 
+import type { ArticleDraft } from "./draft";
+
 const STATUSES = ARTICLE_STATUSES;
+
+
+/**
+ * O rascunho, quando existe.
+ *
+ * Rascunho sem conteúdo nenhum é o mesmo que não ter rascunho — e deixá-lo
+ * como objeto vazio faria a tela anunciar "versão em preparo" sobre nada.
+ */
+function normalizeDraft(raw: unknown): { draft?: ArticleDraft } {
+  if (raw === null || raw === undefined) return {};
+
+  const value = record(raw);
+
+  const draft: ArticleDraft = {
+    title: text(value.title),
+    summary: text(value.summary),
+    content: text(value.content),
+    updatedAt: text(value.updatedAt),
+    author: text(value.author),
+  };
+
+  return draft.title === "" && draft.summary === "" && draft.content === ""
+    ? {}
+    : { draft };
+}
 
 /** Rótulo do gênero que cada valor do antigo enum `ArticleType` representava. */
 const legacyGenreName: Record<string, string> = {
@@ -103,6 +130,9 @@ export function normalizeArticle(raw: unknown, taxonomy: Taxonomy): KnowledgeArt
     tags: textList(value.tags),
     keywords: textList(value.keywords),
     author: text(value.author),
+    // Registro gravado antes do campo existir é Markdown: é o que o produto escrevia.
+    contentFormat: oneOf(value.contentFormat, CONTENT_FORMATS, "markdown"),
+    ...normalizeDraft(value.draft),
     ...(text(value.portalArticleId)
       ? { portalArticleId: text(value.portalArticleId) }
       : {}),

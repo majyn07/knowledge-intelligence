@@ -1,3 +1,5 @@
+import type { ArticleDraft } from "@/features/library/draft";
+
 import type { Trashable } from "./Trash";
 
 /**
@@ -7,6 +9,9 @@ import type { Trashable } from "./Trash";
  * salvas precisam da lista em tempo de execução para recusar valor
  * desconhecido — a mesma razão de .
  */
+export const CONTENT_FORMATS = ["markdown", "html"] as const;
+export type ContentFormat = (typeof CONTENT_FORMATS)[number];
+
 export const ARTICLE_STATUSES = ["draft", "review", "published", "archived"] as const;
 
 export type ArticleStatus = (typeof ARTICLE_STATUSES)[number];
@@ -62,6 +67,24 @@ export interface KnowledgeArticle extends Trashable {
 
   /** Quem conduz o conteúdo. Campo simples até existir sistema de usuários. */
   author: string;
+
+  /**
+   * Em que formato o conteúdo está.
+   *
+   * Declarado, e não adivinhado. O que escrevemos aqui é Markdown; o que vier
+   * do portal é HTML. Converter nos dois sentidos degrada a cada ida e volta —
+   * tabela com atributo, âncora, classe e mídia embutida não sobrevivem à
+   * viagem — e guardar o formato junto é o que permite não converter nunca.
+   */
+  contentFormat: ContentFormat;
+
+  /**
+   * A próxima versão, preparada enquanto a atual continua no ar.
+   *
+   * Ausente é o normal. Só existe em artigo publicado: onde não há versão
+   * publicada a preservar, o texto em edição já é o artigo.
+   */
+  draft?: ArticleDraft;
 
   /** Endereço público do artigo, quando já publicado fora da plataforma. */
   url?: string;
