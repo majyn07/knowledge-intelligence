@@ -89,6 +89,9 @@ export const STORAGE_KEYS = {
   sidebar: "visus-workspace-sidebar-collapsed",
   panels: "visus-dashboard-panels",
   follows: "visus-follows",
+  savedViews: "visus-saved-views",
+  libraryMode: "visus-library-mode",
+  libraryColumns: "visus-library-columns",
   brandTheme: "visus-brand-theme",
 } as const;
 

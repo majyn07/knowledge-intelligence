@@ -65,7 +65,7 @@ Ordem em `app/layout.tsx`, de fora para dentro:
 ```
 BrandTheme → Taxonomy → People → Activity → Project
            → Tickets → KnowledgeLifecycle → Plans → Library
-           → Panels → Follows
+           → Panels → Follows → SavedViews
 ```
 
 `Taxonomy` fica logo abaixo do tema porque não depende de ninguém e quase todo
@@ -421,6 +421,40 @@ incidental — uma delas faria um plano parado há um mês parecer recém-tocado
 Contador e fila convivem porque respondem coisas diferentes: um diz que existe
 trabalho, a outra diz por onde começar.
 
+## Operar em volume
+
+Cartão e tabela **convivem**. A grade responde "o que tem aqui" e é boa para
+poucos; a tabela responde "onde está este e o que falta nele", que é a
+pergunta de quem opera um acervo de 1.800. Trocar uma pela outra responderia
+metade.
+
+Forma e colunas ficam **no navegador** — "prefiro tabela" é sobre esta máquina,
+como o tema. O que é da equipe são as **visões salvas**, que guardam o recorte
+inteiro: filtros, ordenação e colunas. Como o painel, a visão guarda a
+pergunta e não a resposta.
+
+O título não pode ser escondido: sem ele a linha deixa de identificar o
+registro, e a tabela vira um conjunto de atributos sem sujeito.
+
+**Paginação, não rolagem infinita.** Com 1.800 linhas a rolagem esconde onde a
+pessoa está e impede voltar ao mesmo ponto — e página não exige biblioteca
+nova no projeto, que virtualizar exigiria. Página fora do intervalo é
+corrigida em vez de devolver vazio: filtrar estando na página 7 deixaria a
+tela em branco com registros logo ali.
+
+**Em lote só o que toda a seleção alcança.** O estágio oferecido é a interseção
+das transições possíveis; oferecer o que vale para parte aplicaria a metade e
+falharia na outra, em silêncio. Marcar tudo marca **a página**, e não o recorte
+inteiro — o atrito é proposital.
+
+Excluir em lote fica de fora enquanto o desfazer for por registro. Um clique
+que manda duzentos artigos para a lixeira precisa de um desfazer em lote, que
+é outra peça.
+
+Exportar entrega **o recorte que está na tela**, com as colunas escolhidas.
+Quem exporta acabou de montá-lo. Exibir e exportar passam pelo mesmo
+`cellValue`: escritos em separado, os dois divergem.
+
 ## Histórico
 
 Todo fato relevante do ciclo vira um `ActivityEvent`, gravado pelo provider da
@@ -555,7 +589,7 @@ período, parsing da resposta da IA, índice do artigo, critérios de publicaç�
 fronteira de armazenamento, o cadastro de taxonomia com a migração da
 classificação antiga, os normalizadores de artigo, plano e atendimento, o motor
 e o desenho dos painéis, a trilha de navegação, o recorte por equipe, as
-menções e o que se acompanha.
+menções, o que se acompanha, a lixeira e a tabela com suas visões salvas.
 Ao mexer em qualquer uma delas, o teste vem junto.
 
 Dois cuidados que já custaram tempo: `npm test` **não** faz typecheck — só o

@@ -1,8 +1,9 @@
 import { date, items, oneOf, record, text, textList } from "@/lib/shape";
-import type { ArticleStatus, KnowledgeArticle } from "@/models/KnowledgeArticle";
+import { ARTICLE_STATUSES } from "@/models/KnowledgeArticle";
+import type { KnowledgeArticle } from "@/models/KnowledgeArticle";
 import type { Taxonomy } from "@/models/Taxonomy";
 
-const STATUSES: readonly ArticleStatus[] = ["draft", "review", "published", "archived"];
+const STATUSES = ARTICLE_STATUSES;
 
 /** Rótulo do gênero que cada valor do antigo enum `ArticleType` representava. */
 const legacyGenreName: Record<string, string> = {
