@@ -244,10 +244,47 @@ efeito.
 
 A restrição de domínio vive **no banco** — `check constraint` na tabela de
 perfis e gatilho em `auth.users`. A conferência na interface existe só para
-dar erro legível. Não há senha em lugar nenhum: o acesso é por link no e-mail.
+dar erro legível, e o `hd` que o produto manda ao Google é conveniência pelo
+mesmo motivo: parâmetro que sai do navegador não restringe ninguém.
 
-A chave de serviço está no ambiente e **não é usada em lugar nenhum**. Ela
-ignora as políticas de acesso, e nenhuma operação do produto precisa disso.
+Não há senha em lugar nenhum. São dois caminhos: a conta Google da AltoQi, que
+é o principal, e o link por e-mail como alternativa.
+
+As chaves privilegiadas — service role, secret e JWT — **foram removidas do
+ambiente**. Elas ignoram as políticas de acesso, e nenhuma operação do produto
+precisa disso. As `POSTGRES_*` ficam porque `npm run db:migrate` depende delas
+via `vercel env pull`, e nenhuma vai para o navegador.
+
+### Configuração de acesso
+
+Vive em `supabase/config.toml`, versionada como as migrações: configuração de
+acesso decidida em silêncio no painel é configuração que ninguém sabe explicar
+depois.
+
+**`supabase config push` aplica o arquivo inteiro, e o que não está declarado
+volta ao padrão da CLI.** Isso não é teoria: um push que só pretendia ajustar
+duas URLs baixou o tamanho do código de acesso de 8 para 6, encurtou o
+intervalo mínimo entre e-mails de um minuto para um segundo e desligou o
+segundo fator. Por isso o arquivo declara valores que não são preferência
+nossa — são os que o projeto já tinha. **Confira o diff que o push imprime
+antes de aceitar.**
+
+`site_url` e `additional_redirect_urls` precisam conter o destino que o
+produto pede. Fora da lista, a Supabase ignora o pedido e manda o link para a
+`site_url` — foi assim que todo link de acesso caiu em `localhost`.
+
+Código que chega em `/` é encaminhado por `src/proxy.ts` para
+`/auth/callback`, que é quem o troca por sessão. Todo link já enviado carrega
+o destino que valia na hora do envio, então e-mail antigo continua caindo na
+raiz mesmo com a configuração certa — e antes disso nada acontecia ali.
+
+O serviço de e-mail embutido da Supabase entrega **dois por hora e recusa
+endereços de fora da equipe do projeto**. Não sustenta uma equipe: ou há SMTP
+próprio, ou o acesso é pelo Google.
+
+Erro de envio passa por `signInError`: a mensagem crua da Supabase apareceu em
+inglês na tela. O que não é reconhecido **vai junto**, porque a mensagem
+original é a única pista de quem administra.
 
 Schema em `supabase/migrations`, aplicado por `npm run db:migrate`. Coluna de
 verdade para o que é filtrado, ordenado ou contado; `jsonb` para o conteúdo
@@ -583,6 +620,10 @@ lembrar de desfazer, e esquecer o desfazer deixa a equipe inteira sem banco.
 Um hook `PostToolUse` em `.claude/settings.json` roda `typecheck` e `test` em
 segundo plano após edições em `.ts`/`.tsx`, avisando só quando algo quebra.
 
+As CLIs da Vercel e da Supabase estão instaladas e autenticadas, então dá para
+conferir deploy, ambiente e configuração sem abrir painel. No PowerShell chame
+`vercel.cmd`: a política de execução recusa o `.ps1`.
+
 Data na tela é `RelativeDate`: relativo no texto, instante exato no título.
 O valor relativo entra depois da montagem — servidor e cliente têm relógios
 diferentes, e "há 2 minutos" divergiria na hidratação.
@@ -616,7 +657,8 @@ período, parsing da resposta da IA, índice do artigo, critérios de publicaç�
 fronteira de armazenamento, o cadastro de taxonomia com a migração da
 classificação antiga, os normalizadores de artigo, plano e atendimento, o motor
 e o desenho dos painéis, a trilha de navegação, o recorte por equipe, as
-menções, o que se acompanha, a lixeira, a tabela com suas visões salvas e o rascunho do artigo.
+menções, o que se acompanha, a lixeira, a tabela com suas visões salvas, o rascunho do artigo e a tradução
+do erro de acesso.
 Ao mexer em qualquer uma delas, o teste vem junto.
 
 Dois cuidados que já custaram tempo: `npm test` **não** faz typecheck — só o
