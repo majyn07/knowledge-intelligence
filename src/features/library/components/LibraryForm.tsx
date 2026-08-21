@@ -33,6 +33,8 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 
 import { DuplicateWarning } from "./DuplicateWarning";
+import { RecoveryNotice } from "./RecoveryNotice";
+import { useDraftRecovery } from "../hooks/useDraftRecovery";
 
 interface LibraryFormProps {
   projects: { id: string; name: string }[];
@@ -166,12 +168,26 @@ export function LibraryForm({
     ? [initialData.status, ...allowedArticleTransitions[initialData.status]]
     : ["draft"];
 
+  /*
+    Rede para quem não está lá para responder. O guarda de alterações pendentes
+    cobre quem fecha o diálogo; este cobre a aba fechada por engano, o navegador
+    reiniciado e a queda de energia, que não perguntam nada a ninguém.
+  */
+  const recovery = useDraftRecovery(editingId ?? "", {
+    title: formData.title,
+    summary: formData.summary,
+    content: formData.content,
+  });
+
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
     if (!formData.title.trim() || !formData.projectId) return;
 
     onSubmit({ ...formData, tags: toList(tags), keywords: toList(keywords) });
+
+    // O texto já tem para onde ir: a cópia de recuperação deixa de fazer falta.
+    recovery.clear();
 
     setFormData(emptyForm);
     setTags("");
@@ -189,6 +205,26 @@ export function LibraryForm({
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
+      {recovery.recovered && (
+        <RecoveryNotice
+          draft={recovery.recovered}
+          onRestore={() => {
+            const guardado = recovery.recovered;
+            if (!guardado) return;
+
+            onDirty?.();
+            setFormData((previous) => ({
+              ...previous,
+              title: guardado.title,
+              summary: guardado.summary,
+              content: guardado.content,
+            }));
+            recovery.dismiss();
+          }}
+          onDiscard={recovery.discard}
+        />
+      )}
+
       <Fieldset legend="Artigo" hint="O que este conteúdo ensina e para quem.">
         <div className="space-y-2">
           <Label htmlFor="title">Título</Label>
