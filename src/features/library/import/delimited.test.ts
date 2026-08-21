@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { detectDelimiter, parseDelimited } from "./delimited";
+import { columnSample, detectDelimiter, parseDelimited } from "./delimited";
 
 describe("detectDelimiter", () => {
   it("reconhece o ponto e vírgula da exportação brasileira", () => {
@@ -81,5 +81,34 @@ describe("parseDelimited", () => {
   it("separador declarado vence a detecção", () => {
     // A tela deixa trocar quando a detecção erra, e a escolha tem de valer.
     expect(parseDelimited("a;b\n1;2", ";").headers).toEqual(["a", "b"]);
+  });
+});
+
+describe("columnSample", () => {
+  it("mostra o primeiro valor não vazio da coluna", () => {
+    /*
+      O nome do cabeçalho nem sempre diz o que a coluna guarda — exportação sai
+      com `hs_body` e `col_12` —, e sem ver o conteúdo o mapeamento vira
+      adivinhação de outro tipo. A primeira linha costuma ter campo em branco.
+    */
+    const tabela = parseDelimited("a,b\n,primeiro\nsegundo,x");
+
+    expect(columnSample(tabela, 0)).toBe("segundo");
+  });
+
+  it("quebra de linha dentro do campo não desmonta a linha da tela", () => {
+    const tabela = parseDelimited('titulo,corpo\nA,"linha um\nlinha dois"');
+
+    expect(columnSample(tabela, 1)).toBe("linha um linha dois");
+  });
+
+  it("corta o que é longo demais, com reticência", () => {
+    const tabela = parseDelimited("a\n" + "x".repeat(200));
+
+    expect(columnSample(tabela, 0, 10)).toBe("xxxxxxxxxx…");
+  });
+
+  it("coluna toda vazia devolve vazio, e não quebra", () => {
+    expect(columnSample(parseDelimited("a,b\nx,"), 1)).toBe("");
   });
 });

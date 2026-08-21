@@ -14,10 +14,11 @@ import {
 } from "@/components/ui/select";
 import { useProject } from "@/providers/ProjectProvider";
 import { useTaxonomy } from "@/features/taxonomy/providers/TaxonomyProvider";
+import { sectionPath } from "@/models/Taxonomy";
 import { articleStatusLabel, type ArticleStatus, type ContentFormat } from "@/models/KnowledgeArticle";
 
 import { useLibrary } from "../providers/LibraryProvider";
-import { parseDelimited, type DelimitedTable } from "../import/delimited";
+import { columnSample, parseDelimited, type DelimitedTable } from "../import/delimited";
 import { buildImportPlan, type ImportPlan } from "../import/importPlan";
 import {
   guessMapping,
@@ -132,6 +133,7 @@ export function ImportDialog({
   }
 
   const total = plan ? plan.create.length + plan.update.length : 0;
+  const primeiro = plan ? plan.create[0] ?? plan.update[0] : undefined;
 
   return (
     <LibraryDialog
@@ -179,7 +181,8 @@ export function ImportDialog({
               <p className="mt-1 text-xs text-muted-foreground">
                 O que foi reconhecido já veio preenchido. O que não foi ficou em branco de
                 propósito — encaixar no mais parecido erraria em {table.rows.length} registros de
-                uma vez.
+                uma vez. Abaixo de cada escolha está <strong>o que aquela coluna guarda de
+                verdade</strong>, para não ser preciso conhecer o formato do arquivo.
               </p>
 
               <div className="mt-3 grid gap-3 sm:grid-cols-2">
@@ -210,10 +213,18 @@ export function ImportDialog({
                         {table.headers.map((header, index) => (
                           <SelectItem key={`${header}-${index}`} value={String(index)}>
                             {header || `Coluna ${index + 1}`}
+                            {columnSample(table, index, 32) &&
+                              ` — ${columnSample(table, index, 32)}`}
                           </SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
+
+                    {mapping[field] !== null && (
+                      <p className="truncate text-xs text-muted-foreground">
+                        {columnSample(table, mapping[field]) || "Coluna vazia neste arquivo."}
+                      </p>
+                    )}
                   </div>
                 ))}
               </div>
@@ -335,6 +346,48 @@ export function ImportDialog({
                 </ul>
               </div>
             )}
+          </div>
+        )}
+
+        {/*
+          A conferência que dispensa conhecer o formato: um registro montado,
+          com os nomes dos nossos campos. Contagem certa com mapeamento trocado
+          é possível — mil e oitocentos resumos no lugar do título somam mil e
+          oitocentos do mesmo jeito. Ver um pronto é o que denuncia.
+        */}
+        {primeiro && (
+          <div className="rounded-xl border p-4">
+            <h3 className="text-sm font-medium">O primeiro registro, como vai ficar</h3>
+
+            <dl className="mt-2 grid gap-x-4 gap-y-1.5 text-xs sm:grid-cols-[10rem_1fr]">
+              <dt className="text-muted-foreground">Título</dt>
+              <dd className="truncate">{primeiro.title}</dd>
+
+              <dt className="text-muted-foreground">Resumo</dt>
+              <dd className="truncate">{primeiro.summary || "—"}</dd>
+
+              <dt className="text-muted-foreground">Conteúdo</dt>
+              <dd className="truncate">
+                {primeiro.content
+                  ? `${primeiro.content.replace(/\s+/g, " ").slice(0, 80)}${
+                      primeiro.content.length > 80 ? "…" : ""
+                    }`
+                  : "—"}
+              </dd>
+
+              <dt className="text-muted-foreground">Seção</dt>
+              <dd className="truncate">
+                {primeiro.sectionId
+                  ? sectionPath(taxonomy, primeiro.sectionId)
+                  : "Sem seção — para classificar depois"}
+              </dd>
+
+              <dt className="text-muted-foreground">Estágio</dt>
+              <dd>{articleStatusLabel[primeiro.status]}</dd>
+
+              <dt className="text-muted-foreground">Identificador no portal</dt>
+              <dd className="truncate">{primeiro.portalArticleId || "—"}</dd>
+            </dl>
           </div>
         )}
 

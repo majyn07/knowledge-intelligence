@@ -154,3 +154,25 @@ export function parseDelimited(text: string, delimiter?: string): DelimitedTable
     delimiter: sep,
   };
 }
+
+/**
+ * Um valor de exemplo da coluna, para quem não conhece o formato do arquivo.
+ *
+ * O nome do cabeçalho nem sempre diz o que a coluna guarda — exportação sai
+ * com `hs_body`, `col_12` e coisas piores —, e sem ver o conteúdo o mapeamento
+ * vira adivinhação de outro tipo. Pega o primeiro valor **não vazio**: a
+ * primeira linha costuma ter campo em branco, e mostrar vazio não informa nada.
+ */
+export function columnSample(table: DelimitedTable, index: number, limit = 60): string {
+  for (const row of table.rows) {
+    const valor = (row[index] ?? "").trim();
+    if (valor === "") continue;
+
+    // Quebra de linha dentro do campo desmontaria a linha da tela.
+    const linha = valor.replace(/\s+/g, " ");
+
+    return linha.length > limit ? `${linha.slice(0, limit)}…` : linha;
+  }
+
+  return "";
+}
