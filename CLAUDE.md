@@ -411,6 +411,12 @@ Vive em `supabase/config.toml`, versionada como as migrações: configuração d
 acesso decidida em silêncio no painel é configuração que ninguém sabe explicar
 depois.
 
+**O SMTP próprio foi ligado no painel em 21/08/2026**, e não está declarado no
+arquivo porque a senha de envio não entra no repositório. Isso cria um risco
+que está anotado em maiúsculas dentro dele: um `config push` desligaria o SMTP
+e devolveria a equipe ao serviço embutido — dois e-mails por hora, e só para
+quem está na equipe do projeto —, sem nada no push avisando que foi isso.
+
 **`supabase config push` aplica o arquivo inteiro, e o que não está declarado
 volta ao padrão da CLI.** Isso não é teoria: um push que só pretendia ajustar
 duas URLs baixou o tamanho do código de acesso de 8 para 6, encurtou o

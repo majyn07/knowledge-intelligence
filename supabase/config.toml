@@ -63,6 +63,25 @@ skip_nonce_check = false
 enroll_enabled = true
 verify_enabled = true
 
+# PERIGO — leia antes de rodar `supabase config push`.
+#
+# O SMTP próprio foi configurado **no painel**, em 21/08/2026, e é o que põe a
+# equipe dentro do produto. Ele não está declarado aqui porque a senha de envio
+# não entra no repositório.
+#
+# `config push` aplica este arquivo inteiro e devolve ao padrão o que não está
+# escrito. Um push com este bloco como está **desliga o SMTP** e joga o projeto
+# de volta no serviço embutido — dois e-mails por hora, e só para quem está na
+# equipe do projeto. A equipe para de conseguir entrar, e nada no push avisa
+# que foi isso.
+#
+# Isso não é hipótese: um push que só pretendia ajustar duas URLs já baixou o
+# tamanho do código de acesso, encurtou o intervalo entre envios e desligou o
+# segundo fator.
+#
+# Antes de qualquer push: abrir
+# https://supabase.com/dashboard/project/teebrsxpnypztwhtiupe/auth/smtp
+# e conferir os valores; depois do push, conferir de novo.
 [auth.email]
 enable_signup = true
 double_confirm_changes = true
