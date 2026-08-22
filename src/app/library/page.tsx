@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import type { LibraryFormData } from "@/features/library/types/LibraryFormData";
 
@@ -9,6 +9,13 @@ import { Button } from "@/components/ui/button";
 import { AppShell } from "@/components/layout/AppShell";
 import { DiscardChangesDialog } from "@/components/common/DiscardChangesDialog";
 import { useUnsavedGuard } from "@/hooks/useUnsavedGuard";
+import { useUrlState } from "@/hooks/useUrlState";
+import {
+  fromParams,
+  LIBRARY_URL_DEFAULTS,
+  sameParams,
+  toParams,
+} from "@/features/library/libraryUrlState";
 import { PageHeader } from "@/components/common/page/PageHeader";
 import { ListSkeleton } from "@/components/common/page/LoadingSkeleton";
 
@@ -58,6 +65,8 @@ export default function LibraryPage() {
     items.filter((item) => item.projectId === activeProjectId)
   );
 
+  const [params, writeParams, urlRead] = useUrlState(LIBRARY_URL_DEFAULTS);
+
   const {
     dialogOpen,
     deleteDialogOpen,
@@ -87,6 +96,35 @@ export default function LibraryPage() {
   );
 
   const table = useLibraryTable(filteredItems);
+
+  /*
+    Dois efeitos, e a ordem entre eles importa. O primeiro lê o endereço uma vez
+    — quando alguém abre um link colado — e o segundo escreve o que a pessoa
+    escolhe daí em diante. Eles não se realimentam porque o segundo só escreve
+    quando o recorte de fato mudou; escrever o que já está lá reiniciaria o
+    primeiro num laço.
+  */
+  const urlApplied = useRef(false);
+
+  useEffect(() => {
+    if (!urlRead || urlApplied.current) return;
+    urlApplied.current = true;
+
+    const recorte = fromParams(params, taxonomy, table.page.pages);
+
+    setFilters(recorte.filters);
+    table.setSort(recorte.sort);
+    table.setPage(recorte.page);
+  }, [urlRead, params, taxonomy, table, setFilters]);
+
+  useEffect(() => {
+    if (!urlApplied.current) return;
+
+    const atual = toParams(filters, table.sort, table.page.page);
+    if (sameParams(atual, params)) return;
+
+    writeParams(atual);
+  }, [filters, table.sort, table.page.page, params, writeParams]);
 
   const guard = useUnsavedGuard(closeDialog);
 
