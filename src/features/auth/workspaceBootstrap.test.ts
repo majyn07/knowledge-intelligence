@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 
 import { buildPortalTaxonomy } from "@/features/taxonomy/mock/portalTaxonomy";
+import { projects } from "@/features/projects/mock/projects";
+import { knowledgeArticles } from "@/features/library/mock/articles";
 
 import {
   countLocal,
@@ -16,13 +18,22 @@ import {
 const taxonomy = buildPortalTaxonomy();
 
 describe("countLocal com nenhuma chave gravada", () => {
-  it("cai na semente em vez de reportar vazio", () => {
-    // O produto mostra a semente enquanto ninguém edita; tratá-la como "nada"
-    // faria a migração subir um recorte do que a pessoa vê.
+  it("conta a semente, e não zero, quando nada foi gravado", () => {
+    /*
+      O produto mostra a semente enquanto ninguém edita; tratá-la como "nada"
+      faria a migração subir um recorte do que a pessoa vê.
+
+      A conta é contra o tamanho da semente, e não contra um número escrito
+      aqui: as sementes de demonstração foram esvaziadas quando o produto
+      passou a receber dado real, e um teste amarrado ao número antigo teria
+      falhado sem que nada quebrasse.
+    */
     const counts = countLocal(taxonomy);
 
-    expect(counts.projects).toBeGreaterThan(0);
-    expect(counts.articles).toBeGreaterThan(0);
+    expect(counts.projects).toBe(projects.length);
+    expect(counts.articles).toBe(knowledgeArticles.length);
+    // Painéis continuam semeados: eles são pergunta, e não dado.
+    expect(counts.panels).toBeGreaterThan(0);
   });
 
   it("nunca reporta filho sem o pai que ele referencia", () => {

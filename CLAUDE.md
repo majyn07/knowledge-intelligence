@@ -77,6 +77,18 @@ Persistência sempre atrás de um provider ou repository. **Nunca** leia ou
 escreva `localStorage` direto num componente, e nunca mute um array de mock
 importado — o mock é semente, não banco.
 
+**A semente é o que é real e estrutural, e nada além.** Taxonomia do portal,
+equipes do suporte e painéis padrão ficam; projeto, atendimento, conversa,
+análise, plano, artigo e pessoa foram esvaziados quando o produto passou a
+receber dado de verdade. Dado inventado num hub de conhecimento é pior que tela
+vazia: quem entra pela primeira vez não tem como saber que aquilo não é
+trabalho da equipe, e o levantamento passaria a apontar tarefa que não existe.
+
+O banco compartilhado se limpa por script, nunca à mão: `npm run db:status`
+conta o que existe, e `npm run db:limpar-demo` só apaga com `--confirmar`, numa
+transação, preservando taxonomia, equipes, perfis e painéis. Apagar dado
+compartilhado apaga para catorze pessoas.
+
 Todo acesso ao armazenamento passa por `lib/storage`. Escrever pode falhar —
 cota estourada, modo privado, acesso negado — e sem tratamento o erro sobe de
 dentro de um efeito e derruba a aplicação inteira. Ali a falha vira resultado,
@@ -605,6 +617,10 @@ Failure` separa as quatro, e o que não é reconhecido **leva a mensagem origina
 junto**, como na tradução do erro de acesso: ela é a única pista de quem
 administra. As duas rotas respondem pelo mesmo `aiErrorResponse`; escritas em
 separado, divergem.
+
+**O passo a passo de ligar um provedor está em `docs/ligar-a-ia.md`** — o que
+já está pronto, o que é uma linha no registro, e o que só dá para conferir
+contra a resposta real da API.
 
 Todo pedido tem prazo (`AI_TIMEOUT_MS`). Sem ele um pedido pendurado prende a
 rota até o teto da plataforma, e quem pediu a análise fica olhando um botão

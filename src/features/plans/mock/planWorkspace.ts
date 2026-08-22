@@ -1,69 +1,10 @@
 import type { PlanWorkspaceItem } from "../types/PlanWorkspace";
 
 /**
- * Data relativa ao momento da leitura.
+ * Nenhum plano de demonstração.
  *
- * A semente guardava "Hoje, 10:30" e "15 jul. 2026". O primeiro deixa de ser
- * verdade amanhã; o segundo não é interpretável de forma confiável entre
- * motores. Calcular na leitura mantém a demonstração coerente sem fingir
- * precisão: são datas de exemplo, e se comportam como tal.
- *
- * Negativo é futuro, que é como um prazo a vencer se escreve.
+ * O plano nasce de uma oportunidade aprovada na revisão humana. Semear um
+ * inventaria a decisão que o produto existe para registrar — e o painel de
+ * planos por mês passaria a contar trabalho que ninguém fez.
  */
-function diasAtras(dias: number): string {
-  return new Date(Date.now() - dias * 24 * 60 * 60 * 1000).toISOString();
-}
-
-export const planWorkspaceMock: PlanWorkspaceItem[] = [
-  {
-    id: "plan-001",
-    title: "Atualização do fluxo de autenticação",
-    projectId: "project-001",
-    projectName: "Base Visus Produção",
-    status: "development",
-    priority: "high",
-    owner: "Raoni Milioli da Silva",
-    createdAt: diasAtras(36),
-    updatedAt: diasAtras(0),
-    dueDate: diasAtras(-2),
-    source: { projectId: "project-001", ticketId: "45812", analysisId: "analysis-001", opportunityId: "opp-001", analysisLabel: "Análise de autenticação", opportunityTitle: "Atualizar artigo de autenticação" },
-    document: {
-      executiveSummary: "Atualizar a orientação de autenticação para refletir o fluxo após a atualização do sistema, reduzindo intervenções recorrentes do suporte.",
-      context: "O atendimento revelou que o procedimento usado pela equipe não está documentado na Base de Conhecimento atual.",
-      problem: "Clientes não conseguem concluir a autenticação quando seguem o artigo existente, que não contempla as novas validações.",
-      diagnosis: "A análise identificou cobertura documental parcial e alta confiança de que o artigo atual está desatualizado.",
-      evidence: ["O suporte aplicou uma validação não registrada na documentação.", "O tema aparece junto a dúvidas sobre permissões e acesso.", "Dois artigos relacionados apresentam sobreposição parcial com o novo fluxo."],
-      decisions: ["Atualizar o artigo existente em vez de criar conteúdo duplicado.", "Validar o passo a passo com Suporte antes de publicar.", "Manter o artigo de permissões como referência complementar."],
-      proposal: "Reestruturar o artigo com pré-requisitos, novo passo a passo, mensagens de erro comuns e um bloco de validação pós-atualização.",
-      acceptanceCriteria: ["O fluxo é reproduzível por uma pessoa que não participou do atendimento.", "As novas validações e erros esperados estão documentados.", "Suporte valida o conteúdo antes da publicação."],
-      notes: "A publicação deve ocorrer junto à comunicação interna de atualização do procedimento.",
-      references: ["Atendimento #45812", "Artigo: Autenticação no Visus", "Artigo: Perfis e permissões"],
-    },
-    tasks: [
-      { id: "task-1", label: "Revisar o artigo atual e mapear lacunas", completed: true, owner: "Raoni Milioli da Silva" },
-      { id: "task-2", label: "Atualizar capturas do novo fluxo", completed: false, owner: "Design Técnico" },
-      { id: "task-3", label: "Validar conteúdo com Suporte", completed: false, owner: "Suporte" },
-      { id: "task-4", label: "Publicar na Biblioteca", completed: false, owner: "Raoni Milioli da Silva" },
-    ],
-    comments: [
-      { id: "comment-1", author: "Raoni Milioli da Silva", message: "O novo fluxo precisa deixar explícita a validação após o login.", date: diasAtras(0) },
-      { id: "comment-2", author: "Suporte", message: "Confirmamos que este é o principal ponto de dúvida dos últimos atendimentos.", date: diasAtras(0) },
-    ],
-  },
-  {
-    id: "plan-002",
-    title: "Revisão da documentação de permissões",
-    projectId: "project-001",
-    projectName: "Base Visus Produção",
-    status: "review",
-    priority: "medium",
-    owner: "Raoni Milioli da Silva",
-    createdAt: diasAtras(37),
-    updatedAt: diasAtras(9),
-    dueDate: diasAtras(3),
-    source: { projectId: "project-001", ticketId: "45812", analysisId: "analysis-001", opportunityId: "opp-002", analysisLabel: "Análise de autenticação", opportunityTitle: "Revisar documentação de permissões" },
-    document: { executiveSummary: "Consolidar a documentação dos novos perfis de acesso.", context: "A análise relacionou permissões ao fluxo de autenticação.", problem: "A documentação não diferencia os perfis atuais.", diagnosis: "Há conteúdos sobrepostos e terminologia inconsistente.", evidence: ["Perfis novos não aparecem no artigo principal."], decisions: ["Consolidar nomenclaturas."], proposal: "Atualizar a matriz de permissões e revisar exemplos.", acceptanceCriteria: ["Todos os perfis estão descritos."], notes: "Aguardando validação técnica.", references: ["Atendimento #45812"] },
-    tasks: [{ id: "task-5", label: "Validar matriz de perfis", completed: true, owner: "Raoni Milioli da Silva" }, { id: "task-6", label: "Revisar exemplos de acesso", completed: false, owner: "Suporte" }],
-    comments: [{ id: "comment-3", author: "Raoni Milioli da Silva", message: "A matriz revisada está pronta para validação do time.", date: diasAtras(1) }],
-  },
-];
+export const planWorkspaceMock: PlanWorkspaceItem[] = [];

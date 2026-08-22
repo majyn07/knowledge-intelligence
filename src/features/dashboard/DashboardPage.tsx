@@ -62,7 +62,23 @@ export function DashboardPage() {
       {!isReady ? (
         <MetricsSkeleton />
       ) : metrics.isEmpty ? (
-        <BrandEmptyState title={`Sem dados para ${activeProject?.name ?? "o projeto ativo"}`} description="Este projeto ainda não possui análises, oportunidades, planos ou conteúdos de conhecimento." />
+        /*
+          "Nenhuma iniciativa ainda" e "esta iniciativa está vazia" são estados
+          diferentes, e o segundo apresentado no lugar do primeiro fala de um
+          projeto que não existe. Quem abre o hub pela primeira vez precisa
+          saber o que fazer, e não ler sobre um contexto que ninguém criou.
+        */
+        activeProject === null ? (
+          <BrandEmptyState
+            title="O hub está vazio"
+            description="Comece trazendo o acervo do portal pela Biblioteca, ou registre o primeiro atendimento. O Levantamento passa a apontar o que fazer assim que houver o que ler."
+          />
+        ) : (
+          <BrandEmptyState
+            title={`Sem dados para ${activeProject.name}`}
+            description="Esta iniciativa ainda não possui análises, oportunidades, planos ou conteúdos de conhecimento."
+          />
+        )
       ) : (
         <>
           <NextPriority analyses={metrics.analyses} />
