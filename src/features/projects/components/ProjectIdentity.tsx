@@ -1,4 +1,4 @@
-import { Boxes, Building2, Layers, Target, UserRound } from "lucide-react";
+import { Boxes, Layers, Target, UserRound } from "lucide-react";
 
 import { PropertyGrid } from "@/components/common/data/PropertyGrid";
 import { StatusBadge } from "@/components/common/status/StatusBadge";
@@ -41,15 +41,6 @@ export function ProjectIdentity({ project, isActive }: ProjectIdentityProps) {
         className="mt-6"
         columns={4}
         items={[
-          {
-            label: "Cliente",
-            value: (
-              <span className="flex items-center gap-2">
-                <Building2 className="h-4 w-4 text-primary" />
-                {value(project.client, "Não informado")}
-              </span>
-            ),
-          },
           {
             label: "Produto",
             value: (

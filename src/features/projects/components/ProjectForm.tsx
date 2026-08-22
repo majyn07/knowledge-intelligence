@@ -30,7 +30,6 @@ interface ProjectFormProps {
 
 const emptyForm: ProjectFormData = {
   name: "",
-  client: "",
   description: "",
   status: "active",
   product: UNSET_PRODUCT,
@@ -98,16 +97,6 @@ export function ProjectForm({
         </div>
 
         <div className="grid gap-4 sm:grid-cols-2">
-          <div className="space-y-2">
-            <Label htmlFor="client">Cliente</Label>
-            <Input
-              id="client"
-              value={formData.client}
-              placeholder="Ex.: AltoQi"
-              onChange={(event) => change("client", event.target.value)}
-            />
-          </div>
-
           <div className="space-y-2">
             <Label htmlFor="status">Status</Label>
             <Select

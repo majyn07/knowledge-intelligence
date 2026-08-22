@@ -5,7 +5,6 @@ import type { Trashable } from "./Trash";
 export interface Project extends Trashable {
   id: string;
   name: string;
-  client: string;
   description: string;
   status: ProjectStatus;
 

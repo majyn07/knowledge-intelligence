@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Boxes, Building2, Pencil, Target, Trash2, UserRound } from "lucide-react";
+import { Boxes, Pencil, Target, Trash2, UserRound } from "lucide-react";
 
 import type { Project } from "@/models/Project";
 import { projectStatusLabel } from "@/models/Project";
@@ -52,10 +52,6 @@ export function ProjectCard({ project, isActive = false, onEdit, onDelete }: Pro
               </Link>
             </h2>
 
-            <p className="mt-1.5 flex items-center gap-2 text-sm text-muted-foreground">
-              <Building2 className="h-3.5 w-3.5 shrink-0" />
-              <span className="truncate">{project.client || "Cliente não informado"}</span>
-            </p>
           </div>
         </div>
 

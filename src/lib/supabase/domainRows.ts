@@ -28,7 +28,6 @@ export function toProject(raw: unknown): Project {
   return normalizeProject({
     id: row.id,
     name: row.name,
-    client: row.client,
     description: row.description,
     status: row.status,
     product: row.product,
@@ -46,7 +45,6 @@ export function fromProject(project: Project): Record<string, unknown> {
   return {
     id: project.id,
     name: project.name,
-    client: project.client,
     description: project.description,
     status: project.status,
     product: project.product,

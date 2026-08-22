@@ -48,7 +48,7 @@ export default function LibraryPage() {
   const [importOpen, setImportOpen] = useState(false);
   const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
   const [suggestOpen, setSuggestOpen] = useState(false);
-  const { activeProject, activeProjectId, projects } = useProject();
+  const { projects } = useProject();
   const {
     items,
     isHydrated,
@@ -61,9 +61,13 @@ export default function LibraryPage() {
   } = useLibrary();
   const { views, saveView, removeView } = useSavedViews();
 
-  const { filters, setFilters, filteredItems, unclassifiedCount } = useLibraryFilters(
-    items.filter((item) => item.projectId === activeProjectId)
-  );
+  /*
+    O acervo é do hub, e não da iniciativa ativa. Ele espelha um portal só, e o
+    lugar do artigo é a seção — filtrar por projeto esconderia o acervo da
+    AltoQi inteiro de quem trocasse de contexto. O mapa de cobertura já media
+    todos: eram duas telas discordando sobre o que é o acervo.
+  */
+  const { filters, setFilters, filteredItems, unclassifiedCount } = useLibraryFilters(items);
 
   const [params, writeParams, urlRead] = useUrlState(LIBRARY_URL_DEFAULTS);
 
@@ -91,8 +95,7 @@ export default function LibraryPage() {
     problema que ele resolve.
   */
   const semSecao = items.filter(
-    (item) =>
-      item.projectId === activeProjectId && findSection(taxonomy, item.sectionId) === undefined
+    (item) => findSection(taxonomy, item.sectionId) === undefined
   );
 
   const table = useLibraryTable(filteredItems);
@@ -175,7 +178,7 @@ export default function LibraryPage() {
         <PageHeader
           overline="Base de Conhecimento"
           title="Biblioteca"
-          description={`O acervo de ${activeProject?.name ?? "este projeto"}. Os artigos publicados são o que a análise consulta ao avaliar a cobertura documental.`}
+          description="O acervo do hub — o espelho do portal publicado, um só para toda a equipe. Os artigos publicados são o que a análise consulta ao avaliar a cobertura documental."
           actions={
             <div className="flex flex-wrap gap-2">
               {semSecao.length > 0 && (
