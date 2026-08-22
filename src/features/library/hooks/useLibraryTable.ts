@@ -125,6 +125,7 @@ export function useLibraryTable(articles: KnowledgeArticle[]) {
     columns,
     setColumns,
     sort,
+    setSort,
     toggleSort,
     context,
     sorted,

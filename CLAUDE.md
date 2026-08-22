@@ -660,6 +660,25 @@ O diálogo de confirmação concorda em número. "3 artigo(s) vai para a lixeira
 pode ser restaurado" é uma frase escrita para um caso e usada noutro, e quem
 lê rápido uma frase que não concorda desconfia da tela inteira.
 
+**O recorte vive na URL.** Filtro, busca, ordenação e página não viviam no
+endereço, então não existia link que reproduzisse a tela exata — que é o que
+se cola no chat da equipe. Com o acervo importado isso pesa: apontar para "os
+que ficaram sem seção" precisa de um endereço.
+
+O primeiro render devolve o padrão e a URL entra num efeito, como todo estado
+que só o navegador conhece. A escrita é `replaceState`, e não `pushState`: cada
+tecla na busca viraria uma entrada no histórico, e o botão de voltar deixaria
+de voltar para a tela anterior para voltar letra por letra.
+
+O que está no padrão **sai** da URL, e o que não é nosso **fica**: `?ticket=` e
+`?plan=` já existem, e um deles sumir por causa de um filtro seria uma tela
+derrubando a navegação de outra.
+
+Valor vindo de fora é conferido contra o cadastro de hoje. Link colado
+envelhece — categoria removida, coluna renomeada —, e filtrar por algo que não
+existe mais mostra tela vazia com cara de acervo vazio, sem quem abriu ter como
+saber que o problema é o link.
+
 Exportar entrega **o recorte que está na tela**, com as colunas escolhidas.
 Quem exporta acabou de montá-lo. Exibir e exportar passam pelo mesmo
 `cellValue`: escritos em separado, os dois divergem.
@@ -845,7 +864,7 @@ viraria ruído.
 Testes cobrem lógica pura, nunca componentes: motor de busca e busca
 transversal, transições de artigo e de plano, métricas por projeto e por
 período, parsing da resposta da IA, a escolha do provedor com a classificação
-das falhas dele, a leitura da sugestão de seção, índice do artigo, critérios de publicação,
+das falhas dele, a leitura da sugestão de seção, o recorte na URL, índice do artigo, critérios de publicação,
 fronteira de armazenamento, a leitura de arquivo delimitado com o mapeamento de
 colunas e o plano de importação, a recuperação de texto não salvo, o cadastro
 de taxonomia com a migração da

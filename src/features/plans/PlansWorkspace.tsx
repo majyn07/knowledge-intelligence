@@ -2,11 +2,14 @@
 
 import { ListTodo } from "lucide-react";
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 
 import { PageHeader } from "@/components/common/page/PageHeader";
 import { ListSkeleton } from "@/components/common/page/LoadingSkeleton";
 import { useQueryParam } from "@/hooks/useQueryParam";
+import { useUrlState } from "@/hooks/useUrlState";
+import { oneOf } from "@/lib/urlState";
+import { planStatusLabel, type PlanStatus } from "./types/PlanWorkspace";
 import { useProject } from "@/providers/ProjectProvider";
 import { useLibrary } from "@/features/library/providers/LibraryProvider";
 
@@ -30,6 +33,35 @@ export function PlansWorkspace() {
   const { createItemFromPlan } = useLibrary();
   const { activeProject, activeProjectId } = useProject();
   const requestedPlanId = useQueryParam("plan");
+
+  /*
+    O mesmo recorte na URL da Biblioteca, aqui. O parâmetro do plano aberto
+    convive com os filtros: quem cola o link manda a fila e o registro juntos,
+    e a escrita preserva o que não é dela.
+  */
+  const [params, writeParams, urlRead] = useUrlState({ busca: "", estagio: "all" });
+  const urlApplied = useRef(false);
+
+  useEffect(() => {
+    if (!urlRead || urlApplied.current) return;
+    urlApplied.current = true;
+
+    setSearch(params.busca);
+    setStatus(
+      oneOf<PlanStatus | "all">(
+        params.estagio,
+        ["all", ...(Object.keys(planStatusLabel) as PlanStatus[])],
+        "all"
+      )
+    );
+  }, [urlRead, params, setSearch, setStatus]);
+
+  useEffect(() => {
+    if (!urlApplied.current) return;
+    if (params.busca === search.trim() && params.estagio === status) return;
+
+    writeParams({ busca: search.trim(), estagio: status });
+  }, [search, status, params, writeParams]);
 
   useEffect(() => {
     // Abre o plano indicado pela busca, quando ele pertence ao projeto ativo.
