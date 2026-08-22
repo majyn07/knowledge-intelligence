@@ -12,7 +12,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useProject } from "@/providers/ProjectProvider";
 import { useTaxonomy } from "@/features/taxonomy/providers/TaxonomyProvider";
 import { sectionPath } from "@/models/Taxonomy";
 import { articleStatusLabel, type ArticleStatus, type ContentFormat } from "@/models/KnowledgeArticle";
@@ -58,7 +57,6 @@ export function ImportDialog({
   onOpenChange: (open: boolean) => void;
 }) {
   const { taxonomy } = useTaxonomy();
-  const { activeProject } = useProject();
   const { items, importArticles } = useLibrary();
 
   const [fileName, setFileName] = useState("");
@@ -109,12 +107,17 @@ export function ImportDialog({
     if (!table || !mapping || !mappingIsComplete(mapping)) return null;
 
     return buildImportPlan(table, mapping, taxonomy, items, {
-      projectId: activeProject?.id ?? "",
+      /*
+        Sem iniciativa: o artigo do portal já existia antes de qualquer esforço
+        nosso. Carimbar o projeto ativo faria mil e oitocentos registros
+        pertencerem a um trabalho que não os originou.
+      */
+      projectId: "",
       contentFormat,
       defaultStatus,
       now: new Date(),
     });
-  }, [table, mapping, taxonomy, items, activeProject, contentFormat, defaultStatus]);
+  }, [table, mapping, taxonomy, items, contentFormat, defaultStatus]);
 
   function confirm() {
     if (!plan) return;

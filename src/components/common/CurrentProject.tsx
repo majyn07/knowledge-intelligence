@@ -22,9 +22,6 @@ export function CurrentProject() {
         {project.name}
       </span>
 
-      <span className="hidden text-muted-foreground sm:inline">
-        / {project.client}
-      </span>
     </div>
   );
 }

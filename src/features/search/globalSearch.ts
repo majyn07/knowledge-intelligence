@@ -127,11 +127,11 @@ export function searchEverything(
   const results: SearchResult[] = [];
 
   for (const project of projects) {
-    push(results, score(query, [project.name, project.client, project.product, project.module, project.goal, project.description]), {
+    push(results, score(query, [project.name, project.product, project.module, project.goal, project.description]), {
       kind: "project",
       id: project.id,
       title: project.name,
-      subtitle: [project.client, project.product].filter(Boolean).join(" · ") || "Sem contexto definido",
+      subtitle: [project.product, project.module].filter(Boolean).join(" · ") || "Sem contexto definido",
       projectId: project.id,
       href: `/projects/${project.id}`,
     });

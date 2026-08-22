@@ -37,6 +37,18 @@ export interface KnowledgeArticle extends Trashable {
   summary: string;
   content: string;
 
+  /**
+   * A iniciativa que originou este artigo, quando ele nasceu de uma.
+   *
+   * **Não é recorte.** O produto é um hub com **um** acervo, espelho de **um**
+   * portal, e o lugar do artigo é a seção — não a iniciativa que por acaso
+   * estava ativa quando alguém o escreveu. Filtrar por aqui esconderia o acervo
+   * da AltoQi de quem trocasse de projeto, e faria a importação do portal
+   * carimbar mil e oitocentos artigos com uma iniciativa que não os originou.
+   *
+   * Vazio é o normal, e é o que artigo importado recebe: ele já existia antes
+   * de qualquer iniciativa nossa.
+   */
   projectId: string;
 
   /** Gênero editorial, vindo do cadastro. Vazio enquanto ninguém escolheu. */

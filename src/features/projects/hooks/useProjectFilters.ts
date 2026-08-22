@@ -25,7 +25,6 @@ export function useProjectFilters(
       const matchesSearch =
         search === "" ||
         project.name.toLowerCase().includes(search) ||
-        project.client.toLowerCase().includes(search) ||
         project.module.toLowerCase().includes(search) ||
         project.owner.toLowerCase().includes(search);
 

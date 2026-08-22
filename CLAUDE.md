@@ -12,8 +12,28 @@ Projeto → Atendimento → Análise por IA → Revisão humana
        → Oportunidade → Plano de Melhoria → Conhecimento → Governança
 ```
 
-O **Projeto** é a unidade de contexto: tudo é escopado a ele, e o projeto ativo
-vem do `ProjectProvider`. Nunca leia projeto de outro lugar.
+O produto é um **hub**: um lugar só onde o atendimento vira levantamento, o
+levantamento vira melhoria e a melhoria vira conteúdo publicado. Ele nasceu de
+um trabalho manual — alguém percorrer o acervo para descobrir o que criar,
+atualizar ou revisar — e existe para que esse levantamento deixe de ser manual.
+
+Disso decorre a divisão que organiza tudo:
+
+**O acervo é do hub, e não tem recorte.** Ele espelha **um** portal, com uma
+taxonomia, e o lugar do artigo é a seção. A Biblioteca, a cobertura documental
+e o aviso de duplicata trabalham sobre o acervo inteiro — sempre.
+
+**O Projeto é uma iniciativa de melhoria**, não a unidade de contexto de tudo:
+um esforço datado, com meta, que os atendimentos alimentam. Ele recorta o que é
+**trabalho** — atendimento, análise, oportunidade, plano — e nunca o acervo.
+
+Confundir os dois já custou um defeito real: a Biblioteca filtrava por projeto
+enquanto o mapa de cobertura media todos, e a semente tinha um artigo invisível
+por estar noutra iniciativa. Com a importação, o mesmo erro carimbaria mil e
+oitocentos artigos do portal com uma iniciativa que não os originou.
+
+O projeto ativo vem do `ProjectProvider`. Nunca leia projeto de outro lugar —
+e, antes de escopar algo por ele, pergunte se aquilo é trabalho ou acervo.
 
 ## Arquitetura
 

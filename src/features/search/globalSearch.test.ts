@@ -11,7 +11,6 @@ const base: GlobalSearchInput = {
     {
       id: "p1",
       name: "Base Visus Produção",
-      client: "AltoQi",
       description: "",
       status: "active",
       product: "AltoQi Visus",

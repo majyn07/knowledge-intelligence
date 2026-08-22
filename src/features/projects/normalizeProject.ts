@@ -17,7 +17,6 @@ export function normalizeProject(raw: unknown): Project {
   return {
     id: text(value.id) || crypto.randomUUID(),
     name: text(value.name),
-    client: text(value.client),
     description: text(value.description),
     status: oneOf(value.status, STATUSES, "active"),
     product: text(value.product),

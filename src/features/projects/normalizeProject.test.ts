@@ -36,7 +36,7 @@ describe("normalizeProject", () => {
   it("campo ausente vira string vazia e sobrevive a .trim()", () => {
     const result = normalizeProject({ id: "p2" });
 
-    expect(() => [result.name, result.client, result.owner].map((f) => f.trim())).not.toThrow();
+    expect(() => [result.name, result.product, result.owner].map((f) => f.trim())).not.toThrow();
   });
 
   it("gera identificador quando o registro não tem", () => {

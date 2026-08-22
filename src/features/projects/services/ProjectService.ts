@@ -7,7 +7,6 @@ import type { ProjectFormData } from "../types/ProjectFormData";
 function normalize(data: ProjectFormData) {
   return {
     name: data.name.trim(),
-    client: data.client.trim(),
     description: data.description.trim(),
     status: data.status,
     product: data.product.trim(),
@@ -50,7 +49,6 @@ export const projectService = {
   toFormData(project: Project): ProjectFormData {
     return {
       name: project.name,
-      client: project.client,
       description: project.description,
       status: project.status,
       product: project.product,

@@ -157,10 +157,14 @@ export function LibraryForm({
       findSimilarArticles({
         articles,
         text: `${formData.title} ${formData.summary}`,
-        projectId: formData.projectId || undefined,
+        /*
+          Procura no acervo inteiro, e não na iniciativa: duplicata que importa
+          é a que já responde a mesma dúvida no portal. Restringir esconderia
+          justamente o artigo que torna este desnecessário.
+        */
         excludeId: editingId,
       }),
-    [articles, editingId, formData.projectId, formData.summary, formData.title]
+    [articles, editingId, formData.summary, formData.title]
   );
 
   // Fora da edição, o status é sempre rascunho; na edição, só os destinos válidos.
@@ -182,7 +186,7 @@ export function LibraryForm({
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
-    if (!formData.title.trim() || !formData.projectId) return;
+    if (!formData.title.trim()) return;
 
     onSubmit({ ...formData, tags: toList(tags), keywords: toList(keywords) });
 
@@ -271,19 +275,31 @@ export function LibraryForm({
 
       <Fieldset legend="Classificação" hint="Como este artigo é encontrado — pela busca e pela análise.">
         <div className="grid gap-4 md:grid-cols-2">
+          {/*
+            Iniciativa de origem, e não recorte: o acervo é do hub inteiro. É
+            opcional porque a maior parte do acervo veio do portal e não nasceu
+            de esforço nosso — exigir aqui obrigaria a inventar uma origem para
+            mil e oitocentos artigos que já existiam.
+          */}
           <div className="space-y-2">
-            <Label htmlFor="article-project">Projeto</Label>
+            <Label htmlFor="article-project">Iniciativa de origem</Label>
             <Select
-              value={formData.projectId}
-              onValueChange={(value) => change("projectId", value ?? "")}
+              value={formData.projectId || UNSET}
+              onValueChange={(value) =>
+                change("projectId", value === UNSET ? "" : (value ?? ""))
+              }
             >
               <SelectTrigger id="article-project">
-                <SelectValue placeholder="Selecione um projeto">
-                  {(id: string) => projects.find((project) => project.id === id)?.name ?? "Selecione um projeto"}
+                <SelectValue>
+                  {(id: string) =>
+                    projects.find((project) => project.id === id)?.name ?? "Nenhuma"
+                  }
                 </SelectValue>
               </SelectTrigger>
 
               <SelectContent>
+                <SelectItem value={UNSET}>Nenhuma</SelectItem>
+
                 {projects.map((project) => (
                   <SelectItem key={project.id} value={project.id}>
                     {project.name}
@@ -291,6 +307,10 @@ export function LibraryForm({
                 ))}
               </SelectContent>
             </Select>
+
+            <p className="text-xs text-muted-foreground">
+              De qual esforço este artigo nasceu. O acervo não é recortado por ela.
+            </p>
           </div>
 
           <div className="space-y-2">
@@ -475,7 +495,7 @@ export function LibraryForm({
           Cancelar
         </Button>
 
-        <Button type="submit" disabled={!formData.title.trim() || !formData.projectId}>
+        <Button type="submit" disabled={!formData.title.trim()}>
           {submitLabel}
         </Button>
       </div>

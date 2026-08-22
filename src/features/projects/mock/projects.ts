@@ -4,7 +4,6 @@ export const projects: Project[] = [
   {
     id: "project-001",
     name: "Base Visus Produção",
-    client: "AltoQi",
     description:
       "Projeto principal destinado à evolução da Base de Conhecimento do Visus.",
     status: "active",
@@ -18,7 +17,6 @@ export const projects: Project[] = [
   {
     id: "project-002",
     name: "Workflow Elétrico Builder",
-    client: "Construtora Horizonte",
     description:
       "Padronização dos fluxos de atendimento e documentação técnica do módulo Elétrico do Builder.",
     status: "active",
@@ -32,7 +30,6 @@ export const projects: Project[] = [
   {
     id: "project-003",
     name: "Cálculo Estrutural Eberick",
-    client: "Engenharia Beta",
     description:
       "Revisão da documentação e artigos relacionados ao módulo de análise estrutural do Eberick.",
     status: "active",
@@ -46,7 +43,6 @@ export const projects: Project[] = [
   {
     id: "project-004",
     name: "Biblioteca BIM & Objetos",
-    client: "Arquitetura Sigma",
     description:
       "Organização e categorização dos artigos técnicos da biblioteca de componentes BIM.",
     status: "inactive",
@@ -60,7 +56,6 @@ export const projects: Project[] = [
   {
     id: "project-005",
     name: "Padronização de Atendimento SAC",
-    client: "Grupo Atlas",
     description:
       "Projeto focado em melhorias dos processos de suporte e base de conhecimento geral.",
     status: "archived",
