@@ -17,6 +17,21 @@ levantamento vira melhoria e a melhoria vira conteúdo publicado. Ele nasceu de
 um trabalho manual — alguém percorrer o acervo para descobrir o que criar,
 atualizar ou revisar — e existe para que esse levantamento deixe de ser manual.
 
+**O Levantamento é a tela que carrega esse propósito.** Ela responde "o que o
+acervo está pedindo", e cada achado diz o que fazer, por que, e leva para onde
+se faz — sem o "por que" seria lista de tarefas, e sem o destino seria painel.
+
+O que dá para derivar dos dados é **calculado e rotulado como tal**; só o que
+exige ler texto e comparar sentido pede modelo, e esse vem marcado como
+proposta. Achado que não pode ser verificado não é gerado: quem segue a lista
+uma vez e encontra trabalho inexistente para de seguir a lista.
+
+Achado se agrupa quando a granularidade vira ruído. Uma linha por seção
+descoberta produziu **117 achados** na primeira execução — a lista do portal
+inteiro, afogando os três que alguém resolveria naquele dia. Por categoria, a
+mesma informação vira mapa: "50 de 50 seções do Builder" diz onde o acervo está
+ausente sem mandar ninguém escrever cinquenta artigos.
+
 Disso decorre a divisão que organiza tudo:
 
 **O acervo é do hub, e não tem recorte.** Ele espelha **um** portal, com uma
@@ -49,8 +64,8 @@ src/services/ai  fronteira de IA, server-only
 src/hooks        utilitários de React sem domínio
 ```
 
-As dez features: `activities`, `analysis`, `dashboard`, `library`, `metrics`,
-`people`, `plans`, `projects`, `search`, `taxonomy`.
+As onze features: `activities`, `analysis`, `dashboard`, `library`, `metrics`,
+`people`, `plans`, `projects`, `search`, `survey`, `taxonomy`.
 
 ### Cadeia de dados
 
@@ -911,7 +926,7 @@ viraria ruído.
 Testes cobrem lógica pura, nunca componentes: motor de busca e busca
 transversal, transições de artigo e de plano, métricas por projeto e por
 período, parsing da resposta da IA, a escolha do provedor com a classificação
-das falhas dele, a leitura da sugestão de seção, o recorte na URL, a central de avisos, índice do artigo, critérios de publicação,
+das falhas dele, a leitura da sugestão de seção, o recorte na URL, a central de avisos, o levantamento, índice do artigo, critérios de publicação,
 fronteira de armazenamento, a leitura de arquivo delimitado com o mapeamento de
 colunas e o plano de importação, a recuperação de texto não salvo, o cadastro
 de taxonomia com a migração da
