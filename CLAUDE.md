@@ -227,6 +227,33 @@ trabalho, ele descreve interesse — e fica numa lista separada de "Meu
 trabalho": juntar as duas faria a fila de alguém crescer por interesse dos
 outros. A política do banco continua a mesma; quem filtra por pessoa é a tela.
 
+**O produto avisa por si, porque não há e-mail para avisar.** A menção existia
+e não chegava a lugar nenhum: quem era mencionado só descobria abrindo a tela
+certa por acaso. A central reúne três coisas — menção a você, movimento no que
+você acompanha e movimento no que está atribuído a você — e é montada do que já
+está em memória, como o painel: nenhuma consulta nova.
+
+**Nem tudo vira aviso**, e a lista é curta de propósito. Um produto que avisa
+demais é um produto cujos avisos ninguém lê, e aí o aviso que importava se
+perde junto. "Alguém editou um artigo" não entra; mudança de estágio, plano
+criado, oportunidade aprovada e exclusão entram.
+
+O que **você** fez não é notícia para você, e menção que você escreveu também
+não — seria o produto conversando consigo. Quando o mesmo registro é
+acompanhado *e* atribuído, a razão exibida é acompanhar: é a escolha explícita
+de quem lê, enquanto a atribuição pode ter vindo de outra pessoa.
+
+O já visto continua na lista, marcado como lido. Escondê-lo deixaria a central
+vazia na segunda abertura, e quem quer reencontrar o que leu ontem não teria
+onde procurar. Marcar como visto acontece ao **fechar**: quem abre ainda não
+leu, e marcar antes apagaria o destaque do que a pessoa está olhando.
+
+**Limite conhecido:** a última visita fica no navegador, então ler no
+computador não marca como lido no celular. A versão certa é uma coluna por
+pessoa no banco, e é outra peça. Guardar aqui responde "o que mudou desde a
+última vez que eu olhei nesta máquina", que é verdade — e é melhor que não
+avisar nada.
+
 **Menção guarda identificador, como a atribuição.** O comentário grava
 `@[Nome](id)`; quem exibe resolve o id e mostra o nome de hoje. O rótulo vai
 junto porque é o que sobra quando a conta some — e sobrar "@Raoni" é melhor
@@ -864,7 +891,7 @@ viraria ruído.
 Testes cobrem lógica pura, nunca componentes: motor de busca e busca
 transversal, transições de artigo e de plano, métricas por projeto e por
 período, parsing da resposta da IA, a escolha do provedor com a classificação
-das falhas dele, a leitura da sugestão de seção, o recorte na URL, índice do artigo, critérios de publicação,
+das falhas dele, a leitura da sugestão de seção, o recorte na URL, a central de avisos, índice do artigo, critérios de publicação,
 fronteira de armazenamento, a leitura de arquivo delimitado com o mapeamento de
 colunas e o plano de importação, a recuperação de texto não salvo, o cadastro
 de taxonomia com a migração da

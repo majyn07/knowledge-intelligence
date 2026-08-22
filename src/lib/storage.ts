@@ -97,6 +97,12 @@ export const STORAGE_KEYS = {
     abas abertas em artigos diferentes não se sobrescreverem.
   */
   libraryRecovery: "visus-library-recovery",
+  /*
+    Quando esta pessoa abriu a central de avisos pela última vez, **neste
+    navegador**. Limite conhecido: ler no computador não marca como lido no
+    celular. A versão certa é uma coluna por pessoa no banco.
+  */
+  noticesSeenAt: "visus-notices-seen-at",
   brandTheme: "visus-brand-theme",
 } as const;
 
