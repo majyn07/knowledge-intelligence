@@ -14,6 +14,7 @@ import {
   applySelection,
   defaultSelection,
   toReviewable,
+  type FillValue,
   type ReviewableProposal,
 } from "./fillSelection";
 import {
@@ -51,8 +52,8 @@ interface FillPanelProps {
   subject: string;
   fields: FieldSpec[];
   /** O que o formulário mostra hoje, para saber o que seria substituído. */
-  current: Record<string, string>;
-  onApply: (values: Record<string, string>) => void;
+  current: Record<string, FillValue>;
+  onApply: (values: Record<string, FillValue>) => void;
   placeholder?: string;
 }
 
@@ -365,7 +366,27 @@ export function FillPanel({
                     {proposal.label}
                   </p>
 
-                  <p className="mt-0.5 text-sm">{proposal.value}</p>
+                  {proposal.kind === "valor" ? (
+                    <p className="mt-0.5 text-sm">{proposal.value}</p>
+                  ) : (
+                    /*
+                      A lista aparece inteira, e não como "12 mensagens": quem
+                      revisa precisa ver o que vai entrar antes de deixar
+                      entrar, e uma contagem não é revisável.
+                    */
+                    <ul className="mt-1 space-y-1.5">
+                      {proposal.items.map((item, indice) => (
+                        <li key={indice} className="rounded border border-border/50 px-2 py-1.5">
+                          {Object.entries(item).map(([coluna, valor]) => (
+                            <p key={coluna} className="text-sm">
+                              <span className="text-xs text-muted-foreground">{coluna}: </span>
+                              {valor}
+                            </p>
+                          ))}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
 
                   {proposal.reason && (
                     <p className="mt-1 text-xs text-muted-foreground">{proposal.reason}</p>
@@ -374,6 +395,17 @@ export function FillPanel({
                   {proposal.overwrites && (
                     <p className="mt-1 text-xs text-amber-600 dark:text-amber-500">
                       Substitui o que está escrito: “{proposal.current}”
+                    </p>
+                  )}
+
+                  {/*
+                    Lista soma, então isto informa e não alerta — cor neutra,
+                    e não a de perda. A distinção importa: âmbar para o que
+                    custa algo, cinza para o que só situa.
+                  */}
+                  {proposal.kind === "lista" && proposal.current !== "" && (
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      Soma ao que já está no formulário ({proposal.current}).
                     </p>
                   )}
                 </div>

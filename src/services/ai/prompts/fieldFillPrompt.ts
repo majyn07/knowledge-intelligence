@@ -31,6 +31,9 @@ const SYSTEM = [
   "  legítima e melhor que palpite: quem revisa precisa saber onde olhar.",
   "- O que faltou para preencher vira pergunta, no máximo cinco, cada uma sobre",
   "  uma informação concreta que só a pessoa tem.",
+  "- **Campo de lista é transcrição, não resumo.** Copie o que está escrito, item a item,",
+  "  na ordem em que aparece. Não junte falas, não reescreva e não invente item que",
+  "  não está no documento. Lista vazia é resposta legítima.",
   "- A justificativa diz de onde o valor saiu, em no máximo uma frase curta.",
   "- Escreva em português, no tom de quem preenche um cadastro: sem floreio.",
 ].join("\n");
@@ -81,6 +84,10 @@ export function buildFieldFillPrompt(request: FieldFillRequest): AIChatMessage[]
     "Responda exclusivamente com JSON válido, sem markdown e sem texto em volta:",
     "",
     '{ "fields": [ { "name": "...", "value": "...", "reason": "..." } ], "questions": ["..."] }',
+    "",
+    "Campo de lista usa `items` no lugar de `value`:",
+    "",
+    '{ "name": "...", "items": [ { "coluna": "..." } ], "reason": "..." }',
     "",
     "Omita o campo que o texto não sustenta. Lista vazia é resposta válida nos dois.",
   ].join("\n");

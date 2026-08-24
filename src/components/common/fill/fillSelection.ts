@@ -6,11 +6,12 @@
  * não se testa neste produto; isto se testa.
  */
 
-export interface FillProposal {
-  name: string;
-  value: string;
-  reason: string;
-}
+export type FillProposal =
+  | { kind: "valor"; name: string; value: string; reason: string }
+  | { kind: "lista"; name: string; items: Record<string, string>[]; reason: string };
+
+/** O que vai para o formulário: um texto, ou uma sequência de itens. */
+export type FillValue = string | Record<string, string>[];
 
 /**
  * A proposta, já cruzada com o que o formulário mostra hoje.
@@ -23,11 +24,12 @@ export interface FillProposal {
  * de dizer qual é qual **antes**, como o diálogo de exclusão diz o número
  * antes do clique.
  */
-export interface ReviewableProposal extends FillProposal {
+export type ReviewableProposal = FillProposal & {
   label: string;
+  /** O que o campo mostra hoje, em texto — para a lista, quantos itens já há. */
   current: string;
   overwrites: boolean;
-}
+};
 
 /**
  * Cruza o que a IA propôs com o que o formulário tem e sabe nomear.
@@ -40,23 +42,47 @@ export interface ReviewableProposal extends FillProposal {
 export function toReviewable(
   proposals: FillProposal[],
   labels: Record<string, string>,
-  current: Record<string, string>
+  current: Record<string, FillValue>
 ): ReviewableProposal[] {
   return proposals
     .filter((proposal) => proposal.name in labels)
     .map((proposal) => {
-      const atual = (current[proposal.name] ?? "").trim();
+      const label = labels[proposal.name] ?? proposal.name;
+      const atual = current[proposal.name];
+
+      /*
+        **Lista soma, não substitui** — e por isso nunca é marcada como perda.
+
+        Quem já digitou uma mensagem à mão antes de anexar o documento não
+        deveria perdê-la, e substituir seria a única forma de isso acontecer.
+        O que já está lá é informado para quem revisa saber o que vai ficar
+        ao lado do que entra, e não para avisar de um estrago que não existe:
+        aviso que não corresponde a nada é o que ensina alguém a ignorar
+        avisos.
+      */
+      if (proposal.kind === "lista") {
+        const quantos = Array.isArray(atual) ? atual.length : 0;
+
+        return {
+          ...proposal,
+          label,
+          current: quantos === 0 ? "" : `${quantos} ${quantos === 1 ? "item" : "itens"}`,
+          overwrites: false,
+        };
+      }
+
+      const texto = (typeof atual === "string" ? atual : "").trim();
 
       return {
         ...proposal,
-        label: labels[proposal.name] ?? proposal.name,
-        current: atual,
+        label,
+        current: texto,
         /*
           Valor igual ao que já está lá não é substituição: marcar como tal
           faria a tela avisar sobre uma perda que não existe, e aviso que não
           corresponde a nada é o que ensina alguém a ignorar avisos.
         */
-        overwrites: atual !== "" && atual !== proposal.value.trim(),
+        overwrites: texto !== "" && texto !== proposal.value.trim(),
       };
     });
 }
@@ -83,11 +109,14 @@ export function defaultSelection(proposals: ReviewableProposal[]): Set<string> {
 export function applySelection(
   proposals: ReviewableProposal[],
   selected: Set<string>
-): Record<string, string> {
-  const resultado: Record<string, string> = {};
+): Record<string, FillValue> {
+  const resultado: Record<string, FillValue> = {};
 
   for (const proposal of proposals) {
-    if (selected.has(proposal.name)) resultado[proposal.name] = proposal.value;
+    if (!selected.has(proposal.name)) continue;
+
+    resultado[proposal.name] =
+      proposal.kind === "lista" ? proposal.items : proposal.value;
   }
 
   return resultado;

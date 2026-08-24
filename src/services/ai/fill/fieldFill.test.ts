@@ -1,6 +1,16 @@
 import { describe, expect, it } from "vitest";
 
-import { parseFieldFill, type FieldFillRequest } from "./fieldFill";
+import {
+  parseFieldFill,
+  type FieldFillRequest,
+  type FilledField,
+  type FilledList,
+} from "./fieldFill";
+
+/** Estreita a união nos testes que falam de valor simples. */
+function valorDe(campo: FilledField | undefined): string | undefined {
+  return campo && campo.kind === "valor" ? campo.value : undefined;
+}
 
 const PEDIDO: FieldFillRequest = {
   subject: "Projeto de melhoria",
@@ -31,7 +41,7 @@ describe("parseFieldFill", () => {
     );
 
     expect(fields).toEqual([
-      { name: "name", value: "Reduzir retrabalho", reason: "Está no título" },
+      { kind: "valor", name: "name", value: "Reduzir retrabalho", reason: "Está no título" },
     ]);
   });
 
@@ -71,7 +81,7 @@ describe("parseFieldFill", () => {
       PEDIDO
     );
 
-    expect(fields[0]?.value).toBe("Eberick");
+    expect(valorDe(fields[0])).toBe("Eberick");
   });
 
   it("fica com o primeiro valor quando o modelo manda dois para o mesmo campo", () => {
@@ -86,7 +96,7 @@ describe("parseFieldFill", () => {
     );
 
     expect(fields).toHaveLength(1);
-    expect(fields[0]?.value).toBe("Primeira");
+    expect(valorDe(fields[0])).toBe("Primeira");
   });
 
   it("valor vazio não vira campo preenchido", () => {
@@ -126,7 +136,7 @@ describe("parseFieldFill", () => {
   it("tolera o JSON cercado de crase", () => {
     const bruto = '```json\n{"fields":[{"name":"goal","value":"Meta"}]}\n```';
 
-    expect(parseFieldFill(bruto, PEDIDO).fields[0]?.value).toBe("Meta");
+    expect(valorDe(parseFieldFill(bruto, PEDIDO).fields[0])).toBe("Meta");
   });
 
   it("resposta ilegível vira resultado vazio, e não exceção", () => {
@@ -146,6 +156,118 @@ describe("parseFieldFill", () => {
     const { fields } = parseFieldFill(
       resposta({ fields: ["texto solto", 42, null] }),
       PEDIDO
+    );
+
+    expect(fields).toEqual([]);
+  });
+});
+
+const COM_LISTA: FieldFillRequest = {
+  subject: "Atendimento",
+  fields: [
+    { name: "title", label: "Título", kind: "texto" },
+    {
+      name: "messages",
+      label: "Conversa",
+      kind: "lista",
+      itemFields: [
+        { name: "author", label: "Quem falou" },
+        { name: "body", label: "Mensagem" },
+      ],
+    },
+  ],
+  source: "texto",
+};
+
+function lista(fields: FilledField[]): FilledList | undefined {
+  return fields.find((campo): campo is FilledList => campo.kind === "lista");
+}
+
+describe("parseFieldFill com campo de lista", () => {
+  it("transcreve a sequência mantendo a ordem do documento", () => {
+    /*
+      A conversa é a evidência que a análise lê depois. Ordem trocada faria a
+      resposta aparecer antes da pergunta.
+    */
+    const { fields } = parseFieldFill(
+      resposta({
+        fields: [
+          {
+            name: "messages",
+            items: [
+              { author: "Cliente", body: "Não consigo processar" },
+              { author: "Analista", body: "Ative o P-Delta" },
+            ],
+          },
+        ],
+      }),
+      COM_LISTA
+    );
+
+    expect(lista(fields)?.items).toEqual([
+      { author: "Cliente", body: "Não consigo processar" },
+      { author: "Analista", body: "Ative o P-Delta" },
+    ]);
+  });
+
+  it("descarta coluna que não perguntamos", () => {
+    const { fields } = parseFieldFill(
+      resposta({
+        fields: [{ name: "messages", items: [{ author: "Cliente", body: "oi", ip: "10.0.0.1" }] }],
+      }),
+      COM_LISTA
+    );
+
+    expect(lista(fields)?.items).toEqual([{ author: "Cliente", body: "oi" }]);
+  });
+
+  it("item sem nenhum valor não vira linha em branco", () => {
+    /*
+      Linha vazia no formulário é pior que linha a menos: parece conteúdo que
+      se perdeu.
+    */
+    const { fields } = parseFieldFill(
+      resposta({
+        fields: [{ name: "messages", items: [{ author: "  ", body: "" }, { body: "vale" }] }],
+      }),
+      COM_LISTA
+    );
+
+    expect(lista(fields)?.items).toEqual([{ body: "vale" }]);
+  });
+
+  it("lista vazia não vira proposta", () => {
+    const { fields } = parseFieldFill(
+      resposta({ fields: [{ name: "messages", items: [] }] }),
+      COM_LISTA
+    );
+
+    expect(fields).toEqual([]);
+  });
+
+  it("limita o número de itens", () => {
+    /*
+      Um documento de duzentas páginas viraria duzentas mensagens, e ninguém
+      revisa duzentas.
+    */
+    const muitos = Array.from({ length: 200 }, (_, i) => ({ body: `mensagem ${i}` }));
+
+    const { fields } = parseFieldFill(
+      resposta({ fields: [{ name: "messages", items: muitos }] }),
+      COM_LISTA
+    );
+
+    expect(lista(fields)?.items).toHaveLength(60);
+  });
+
+  it("campo de valor mandado como lista não vira nada", () => {
+    /*
+      Resposta desalinhada não pode escrever num campo simples uma sequência
+      que ele não sabe mostrar.
+    */
+    const { fields } = parseFieldFill(
+      resposta({ fields: [{ name: "title", items: [{ body: "x" }] }] }),
+      COM_LISTA
     );
 
     expect(fields).toEqual([]);
