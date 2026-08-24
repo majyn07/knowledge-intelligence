@@ -9,7 +9,7 @@ import type { AIChatRequest } from "@/models/AIChatRequest";
 import { AIConfigurationError, AIProviderError } from "../analysis/analysisErrors";
 import { buildAnalysisPrompt } from "../prompts/analysisPromptBuilder";
 import { buildStructuredAnalysisPrompt } from "../prompts/structuredAnalysisPromptBuilder";
-import { AI_TIMEOUT_MS, type AIProvider } from "../providers/AIProvider";
+import { AI_TIMEOUT_MS, type AIProvider, type AIReasoning } from "../providers/AIProvider";
 import { classifyProviderFailure } from "../providers/providerFailure";
 
 /**
@@ -48,7 +48,7 @@ function getClient(): GoogleGenAI {
  */
 async function complete(
   messages: AIChatMessage[],
-  options: { json?: boolean; files?: AIAttachment[] } = {}
+  options: { json?: boolean; files?: AIAttachment[]; reasoning?: AIReasoning } = {}
 ): Promise<string> {
   const client = getClient();
 
@@ -85,6 +85,12 @@ async function complete(
         abortSignal: AbortSignal.timeout(AI_TIMEOUT_MS),
         ...(systemMessage ? { systemInstruction: systemMessage.content } : {}),
         ...(options.json ? { responseMimeType: "application/json" } : {}),
+        /*
+          `thinkingBudget: 0` desliga o raciocínio estendido, que neste modelo
+          vem ligado. Só para quem pediu `minimo`: a análise do atendimento
+          continua deliberando, porque ali a conclusão não está no texto.
+        */
+        ...(options.reasoning === "minimo" ? { thinkingConfig: { thinkingBudget: 0 } } : {}),
       },
     });
 

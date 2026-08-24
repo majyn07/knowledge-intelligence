@@ -16,6 +16,26 @@ import type { AIProviderId } from "./catalog";
  * registro. Nada fora de `services/ai/server` conhece nome de modelo, formato
  * de mensagem ou SDK — foi para isso que a fronteira existe.
  */
+/**
+ * Quanto raciocínio o pedido justifica.
+ *
+ * Não é ajuste fino de desempenho: é a diferença entre a extração funcionar e
+ * estourar o prazo. Medido contra a API, com a mesma página e o mesmo pedido:
+ * com raciocínio, **59 segundos** e 1661 tokens de pensamento; sem,
+ * **14 segundos** e a mesma resposta — 417 contra 421 tokens de saída. Era o
+ * raciocínio que consumia o prazo inteiro e devolvia `503` sob anexo maior.
+ *
+ * `minimo` é para **extrair o que está escrito**: ler um documento e distribuir
+ * o conteúdo por campos não exige deliberação, e pagá-la custa a resposta.
+ * `padrao` é para julgar — a análise do atendimento, onde a conclusão não está
+ * no texto e precisa ser construída.
+ *
+ * É conceito de todos os provedores atuais, e não da Google: cada um mapeia
+ * para o que o seu SDK chama disso. Quem não tiver o conceito ignora, e nada
+ * quebra — a diferença aparece no relógio, não no contrato.
+ */
+export type AIReasoning = "minimo" | "padrao";
+
 export interface AIProvider {
   id: AIProviderId;
   /** Resposta em texto, para a conversa da análise. */
@@ -46,7 +66,7 @@ export interface AIProvider {
    */
   complete(
     messages: AIChatMessage[],
-    options?: { json?: boolean; files?: AIAttachment[] }
+    options?: { json?: boolean; files?: AIAttachment[]; reasoning?: AIReasoning }
   ): Promise<string>;
 }
 

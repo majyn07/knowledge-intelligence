@@ -28,6 +28,12 @@ export const fieldFillService = {
     const raw = await activeProvider().complete(buildFieldFillPrompt(request), {
       json: true,
       /*
+        Extrair o que está escrito não exige deliberação, e pagá-la custa a
+        resposta: com raciocínio ligado este mesmo pedido levava 59 segundos e
+        estourava o prazo sob anexo maior; sem, leva 14 e devolve o mesmo.
+      */
+      reasoning: "minimo",
+      /*
         O anexo vai e não fica. Ele existe durante este pedido, e nada aqui o
         escreve em disco, banco ou registro — o produto guarda o que foi
         extraído e revisado, não o documento.
