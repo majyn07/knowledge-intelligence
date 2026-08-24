@@ -20,8 +20,22 @@ import { ATTACHMENT_TYPES, MAX_ATTACHMENT_BYTES } from "@/models/AIAttachment";
  * como manda a regra do produto.
  */
 
-export const FIELD_KINDS = ["texto", "escolha"] as const;
+export const FIELD_KINDS = ["texto", "escolha", "lista"] as const;
 export type FieldKind = (typeof FIELD_KINDS)[number];
+
+/** Uma coluna de um campo de lista. Sem catálogo: é transcrição, não escolha. */
+export const itemFieldSchema = z
+  .object({
+    name: z.string().min(1),
+    label: z.string().min(1),
+    hint: z.string().optional(),
+  })
+  .strict();
+
+export type ItemField = z.infer<typeof itemFieldSchema>;
+
+/** Teto de itens por lista. Documento longo não vira mil mensagens no formulário. */
+export const MAX_LIST_ITEMS = 60;
 
 /**
  * A descrição de um campo, como o formulário o conhece.
@@ -30,6 +44,15 @@ export type FieldKind = (typeof FIELD_KINDS)[number];
  * escolha só aceita valor do catálogo que veio no pedido. Sem isso o modelo
  * devolve "Eberick 2024" para um produto chamado "Eberick", e a tela precisa
  * decidir sozinha entre gravar errado e ignorar em silêncio.
+ *
+ * `lista` existe porque parte do que se extrai de um documento **não é um
+ * valor, é uma sequência** — a conversa de um atendimento é a evidência que a
+ * análise lê depois, e é o grosso do que um PDF de chamado carrega. Deixá-la
+ * de fora fazia a importação por documento entregar a moldura e perder o
+ * conteúdo.
+ *
+ * Transcrever não é inventar: o que entra é o que está escrito no documento, e
+ * passa pela mesma revisão de todo o resto antes de virar registro.
  */
 export const fieldSpecSchema = z
   .object({
@@ -38,6 +61,8 @@ export const fieldSpecSchema = z
     kind: z.enum(FIELD_KINDS),
     /** Só para `escolha`. O valor proposto tem de sair daqui. */
     options: z.array(z.string().min(1)).optional(),
+    /** Só para `lista`. As colunas de cada item. */
+    itemFields: z.array(itemFieldSchema).min(1).max(8).optional(),
     /** O que o campo espera, em uma linha. Vai para o prompt. */
     hint: z.string().optional(),
   })
@@ -82,13 +107,31 @@ export const fieldFillRequestSchema = z
 
 export type FieldFillRequest = z.infer<typeof fieldFillRequestSchema>;
 
-export interface FilledField {
+/** Uma frase curta dizendo de onde saiu. É o que torna a proposta revisável. */
+interface Justificado {
   /** O `name` do campo pedido — nunca um que não perguntamos. */
   name: string;
-  value: string;
-  /** Uma frase curta dizendo de onde saiu. É o que torna a proposta revisável. */
   reason: string;
 }
+
+export interface FilledValue extends Justificado {
+  kind: "valor";
+  value: string;
+}
+
+export interface FilledList extends Justificado {
+  kind: "lista";
+  items: Record<string, string>[];
+}
+
+/**
+ * União, e não um campo `value` que às vezes é lista.
+ *
+ * Quem consome precisa decidir o que fazer com cada forma — uma vai para um
+ * `input`, a outra vira várias linhas —, e um tipo que esconde a diferença
+ * empurra essa decisão para um `typeof` no meio da tela.
+ */
+export type FilledField = FilledValue | FilledList;
 
 export interface FieldFillResult {
   fields: FilledField[];
@@ -136,6 +179,17 @@ export function parseFieldFill(raw: unknown, request: FieldFillRequest): FieldFi
 
     if (!spec || vistos.has(name)) continue;
 
+    if (spec.kind === "lista") {
+      const items = readItems(item.items, spec.itemFields ?? []);
+
+      // Lista vazia não é proposta: seria uma linha na tela dizendo "nada".
+      if (items.length === 0) continue;
+
+      vistos.add(name);
+      fields.push({ kind: "lista", name, items, reason: reason(item) });
+      continue;
+    }
+
     const value = text(item.value);
     if (value === "") continue;
 
@@ -153,12 +207,12 @@ export function parseFieldFill(raw: unknown, request: FieldFillRequest): FieldFi
       if (!escolhido) continue;
 
       vistos.add(name);
-      fields.push({ name, value: escolhido, reason: reason(item) });
+      fields.push({ kind: "valor", name, value: escolhido, reason: reason(item) });
       continue;
     }
 
     vistos.add(name);
-    fields.push({ name, value, reason: reason(item) });
+    fields.push({ kind: "valor", name, value, reason: reason(item) });
   }
 
   const questions = asList(objeto.questions)
@@ -168,6 +222,37 @@ export function parseFieldFill(raw: unknown, request: FieldFillRequest): FieldFi
     .map((pergunta) => pergunta.slice(0, 240));
 
   return { fields, questions };
+}
+
+/**
+ * Lê os itens de um campo de lista, mantendo só as colunas que perguntamos.
+ *
+ * Item sem nenhum valor é descartado: uma linha em branco no formulário é pior
+ * que uma linha a menos, porque parece conteúdo que se perdeu.
+ *
+ * O teto existe pela mesma razão dos outros tetos deste arquivo — um documento
+ * de duzentas páginas viraria duzentas mensagens no formulário, e ninguém
+ * revisa duzentas.
+ */
+function readItems(raw: unknown, itemFields: ItemField[]): Record<string, string>[] {
+  const nomes = itemFields.map((field) => field.name);
+  const resultado: Record<string, string>[] = [];
+
+  for (const bruto of asList(raw)) {
+    if (!isRecord(bruto)) continue;
+
+    const item: Record<string, string> = {};
+
+    for (const nome of nomes) {
+      const valor = text(bruto[nome]);
+      if (valor !== "") item[nome] = valor;
+    }
+
+    if (Object.keys(item).length > 0) resultado.push(item);
+    if (resultado.length === MAX_LIST_ITEMS) break;
+  }
+
+  return resultado;
 }
 
 function reason(item: Record<string, unknown>): string {

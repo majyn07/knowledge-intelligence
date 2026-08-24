@@ -18,11 +18,16 @@ import type { FieldSpec } from "@/services/ai/fill/fieldFill";
  * navegador sem necessidade.
  */
 
-export interface FillProposalDTO {
-  name: string;
-  value: string;
-  reason: string;
-}
+/**
+ * A proposta como a rota devolve.
+ *
+ * União porque nem tudo que se extrai é um valor: a conversa de um atendimento
+ * é uma sequência, e um tipo que escondesse a diferença empurraria a decisão
+ * de como mostrá-la para um `typeof` no meio da tela.
+ */
+export type FillProposalDTO =
+  | { kind: "valor"; name: string; value: string; reason: string }
+  | { kind: "lista"; name: string; items: Record<string, string>[]; reason: string };
 
 export interface FillResult {
   fields: FillProposalDTO[];

@@ -10,7 +10,11 @@ import {
 const LABELS = { name: "Nome do projeto", goal: "Objetivo", product: "Produto" };
 
 function proposta(name: string, value: string): FillProposal {
-  return { name, value, reason: "porque sim" };
+  return { kind: "valor", name, value, reason: "porque sim" };
+}
+
+function listaDe(name: string, items: Record<string, string>[]): FillProposal {
+  return { kind: "lista", name, items, reason: "porque sim" };
 }
 
 describe("toReviewable", () => {
@@ -89,5 +93,53 @@ describe("applySelection", () => {
     const revisaveis = toReviewable([proposta("name", "Projeto A")], LABELS, {});
 
     expect(applySelection(revisaveis, new Set())).toEqual({});
+  });
+});
+
+describe("propostas de lista", () => {
+  const LABELS_LISTA = { messages: "Conversa" };
+
+  it("lista nunca é substituição, porque soma ao que já existe", () => {
+    /*
+      Quem já digitou uma mensagem à mão antes de anexar o documento não
+      deveria perdê-la. O que já está lá é informado, não alertado — aviso que
+      não corresponde a nada ensina alguém a ignorar avisos.
+    */
+    const [item] = toReviewable([listaDe("messages", [{ body: "nova" }])], LABELS_LISTA, {
+      messages: [{ body: "antiga" }],
+    });
+
+    expect(item?.overwrites).toBe(false);
+    expect(item?.current).toBe("1 item");
+    expect(defaultSelection([item!]).has("messages")).toBe(true);
+  });
+
+  it("lista vazia no formulário não é substituição", () => {
+    const [item] = toReviewable([listaDe("messages", [{ body: "x" }])], LABELS_LISTA, {
+      messages: [],
+    });
+
+    expect(item?.overwrites).toBe(false);
+    expect(defaultSelection([item!]).has("messages")).toBe(true);
+  });
+
+  it("aplicar devolve os itens, e não texto", () => {
+    const revisaveis = toReviewable(
+      [listaDe("messages", [{ author: "Cliente", body: "oi" }])],
+      LABELS_LISTA,
+      {}
+    );
+
+    expect(applySelection(revisaveis, new Set(["messages"]))).toEqual({
+      messages: [{ author: "Cliente", body: "oi" }],
+    });
+  });
+
+  it("concorda em número no texto do que já existe", () => {
+    const [item] = toReviewable([listaDe("messages", [{ body: "x" }])], LABELS_LISTA, {
+      messages: [{ body: "a" }, { body: "b" }],
+    });
+
+    expect(item?.current).toBe("2 itens");
   });
 });

@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 
-import { todayIso } from "@/lib/dates";
+import { todayIso, toIsoDate } from "@/lib/dates";
 import type { FieldSpec } from "@/services/ai/fill/fieldFill";
 
 import type { TicketFormData, TicketMessageFormData } from "../types/TicketFormData";
@@ -132,9 +132,63 @@ export function TicketForm({
         kind: "texto",
         hint: "Dia do atendimento, no formato aaaa-mm-dd.",
       },
+      /*
+        A conversa entra, e isso foi uma correção de rumo.
+
+        Ela ficou de fora na primeira versão com o argumento de que uma
+        conversa proposta por modelo faria a análise citar mensagem que
+        ninguém trocou. O argumento vale para conversa **inventada** — não
+        para a que está escrita no PDF que alguém anexou, onde extrair é
+        transcrever. E a conversa é o grosso de um chamado: sem ela, importar
+        por documento entregava a moldura e perdia o conteúdo que a análise
+        precisa ler.
+
+        A defesa continua sendo a mesma de todo o resto: nada entra sem
+        alguém aprovar, e a lista aparece inteira na revisão.
+      */
+      {
+        name: "messages",
+        label: "Conversa",
+        kind: "lista",
+        itemFields: [
+          { name: "author", label: "Quem falou", hint: "como o documento identifica" },
+          { name: "body", label: "Mensagem" },
+          { name: "createdAt", label: "Quando", hint: "ISO completo, só se o documento disser" },
+        ],
+        hint: "As mensagens trocadas, na ordem em que aparecem.",
+      },
     ],
     []
   );
+
+  /**
+   * Converte a conversa proposta em mensagens do formulário.
+   *
+   * O identificador é nosso — o modelo não tem como saber o que já existe, e
+   * um id vindo dele colidiria com mensagem gravada.
+   *
+   * A hora é o ponto delicado. `createdAt` é instante, e o documento quase
+   * nunca traz um: quando falta, a mensagem herda **o dia do atendimento ao
+   * meio-dia**. Meio-dia e não meia-noite porque `2026-08-01T00:00:00Z` é 31
+   * de julho no Brasil, e a mensagem apareceria no dia anterior ao do próprio
+   * chamado. É aproximação declarada, e não precisão fingida: quem revisa vê
+   * a data no campo e corrige se souber melhor.
+   */
+  function toMessages(items: Record<string, string>[], dia: string): TicketMessageFormData[] {
+    const base = toIsoDate(dia);
+
+    return items.map((item) => ({
+      id: crypto.randomUUID(),
+      author: item.author ?? "",
+      body: item.body ?? "",
+      createdAt:
+        item.createdAt && !Number.isNaN(Date.parse(item.createdAt))
+          ? new Date(item.createdAt).toISOString()
+          : base === ""
+            ? new Date().toISOString()
+            : new Date(`${base}T12:00:00`).toISOString(),
+    }));
+  }
 
   function changeMessage(id: string, patch: Partial<TicketMessageFormData>) {
     onDirty?.();
@@ -190,7 +244,27 @@ export function TicketForm({
         }}
         onApply={(values) => {
           onDirty?.();
-          setFormData((previous) => ({ ...previous, ...values }));
+
+          setFormData((previous) => {
+            const { messages, ...simples } = values;
+            const texto = simples as Partial<TicketFormData>;
+
+            /*
+              A conversa proposta **soma** à que já existe, e não substitui:
+              quem já digitou uma mensagem à mão antes de anexar o documento
+              não deveria perdê-la — e a tela avisou que haveria substituição
+              antes do clique, então quem não quis somar desmarcou.
+            */
+            const conversa = Array.isArray(messages)
+              ? toMessages(messages, texto.date ?? previous.date)
+              : [];
+
+            return {
+              ...previous,
+              ...texto,
+              messages: [...previous.messages, ...conversa],
+            };
+          });
         }}
         placeholder="Cole o atendimento, ou anexe o PDF/print que o cliente enviou."
       />
