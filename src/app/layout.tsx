@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
 
+import { Signature } from "@/components/common/Signature";
 import { Toaster } from "@/components/ui/sonner";
 
 import { PlansProvider } from "@/features/plans/providers/PlansProvider";
@@ -81,6 +82,12 @@ export default function RootLayout({
           aparecer. O resultado era tela branca sem uma linha de explicação.
         */}
         <Toaster position="top-right" richColors closeButton />
+
+        {/*
+          Fora dos portões pelo mesmo motivo do aviso, e por um mais simples:
+          não renderiza nada. Só escreve no console, uma vez por carga.
+        */}
+        <Signature />
 
         {/*
           Nova versão publicada e trabalho pendente ficam **acima** dos portões
