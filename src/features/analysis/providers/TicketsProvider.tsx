@@ -36,6 +36,8 @@ interface TicketsContextValue {
   ticketsOf: (projectId: string | null) => Ticket[];
   conversationOf: (ticketId: string) => SupportConversation | undefined;
   createTicket: (data: TicketFormData) => Ticket;
+  /** Grava uma importação inteira: novos e atualizados numa passada. */
+  importTickets: (create: Ticket[], update: Ticket[]) => void;
   updateTicket: (id: string, data: TicketFormData) => void;
   deleteTicket: (id: string) => void;
   /** O que está na lixeira, para a tela de recuperação. */
@@ -87,6 +89,51 @@ export function TicketsProvider({ children }: { children: ReactNode }) {
   const conversationOf = useCallback(
     (ticketId: string) => conversations.find((item) => item.ticketId === ticketId),
     [conversations]
+  );
+
+
+  /**
+   * Grava o resultado de uma importação numa passada só.
+   *
+   * Mesma razão da Biblioteca: cada gravação da coleção compartilhada é uma ida
+   * ao servidor, e um evento de histórico por atendimento enterraria tudo que
+   * aconteceu antes.
+   *
+   * A conversa não vem junto de propósito. A exportação da HubSpot traz o
+   * ticket, não o fio de mensagens — inventar uma conversa vazia faria a
+   * análise achar que tem evidência quando não tem.
+   */
+  const importTickets = useCallback(
+    (create: Ticket[], update: Ticket[]) => {
+      if (create.length === 0 && update.length === 0) return;
+
+      const porId = new Map(update.map((item) => [item.id, item]));
+
+      setTickets((current) => [
+        ...current.map((item) => porId.get(item.id) ?? item),
+        ...create,
+      ]);
+
+      const partes = [
+        create.length > 0 ? create.length + " novo(s)" : "",
+        update.length > 0 ? update.length + " atualizado(s)" : "",
+      ].filter(Boolean);
+
+      record({
+        type: "ticket_created",
+        projectId: (create[0] ?? update[0]).projectId,
+        actor: currentPerson,
+        subject: {
+          kind: "ticket",
+          id: "import",
+          label: "Importação de " + (create.length + update.length) + " atendimentos",
+        },
+        detail: partes.join(", "),
+      });
+
+      toast.success("Importação concluída: " + partes.join(", ") + ".");
+    },
+    [currentPerson, record, setTickets]
   );
 
   const createTicket = useCallback(
@@ -194,13 +241,14 @@ export function TicketsProvider({ children }: { children: ReactNode }) {
       ticketsOf,
       conversationOf,
       createTicket,
+      importTickets,
       updateTicket,
       deleteTicket,
       deletedTickets,
       restoreTicket,
       purgeTicket,
     }),
-    [conversationOf, conversations, createTicket, deleteTicket, deletedTickets, isHydrated, purgeTicket, restoreTicket, ticketsOf, tickets, updateTicket]
+    [conversationOf, conversations, createTicket, deleteTicket, deletedTickets, importTickets, isHydrated, purgeTicket, restoreTicket, ticketsOf, tickets, updateTicket]
   );
 
   return <TicketsContext.Provider value={value}>{children}</TicketsContext.Provider>;

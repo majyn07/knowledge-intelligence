@@ -26,11 +26,14 @@ exige ler texto e comparar sentido pede modelo, e esse vem marcado como
 proposta. Achado que não pode ser verificado não é gerado: quem segue a lista
 uma vez e encontra trabalho inexistente para de seguir a lista.
 
-Achado se agrupa quando a granularidade vira ruído. Uma linha por seção
-descoberta produziu **117 achados** na primeira execução — a lista do portal
+Achado se agrupa quando a granularidade vira ruído, e isso apareceu duas vezes.
+Uma linha por seção descoberta produziu **117 achados** — a lista do portal
 inteiro, afogando os três que alguém resolveria naquele dia. Por categoria, a
 mesma informação vira mapa: "50 de 50 seções do Builder" diz onde o acervo está
-ausente sem mandar ninguém escrever cinquenta artigos.
+ausente sem mandar ninguém escrever cinquenta artigos. Depois, com o acervo
+importado, "artigo sem seção" produziu **600** — e acima de um punhado vira um
+achado só, porque ali o caminho deixa de ser abrir um registro e passa a ser o
+mutirão da Biblioteca.
 
 Disso decorre a divisão que organiza tudo:
 
@@ -769,6 +772,16 @@ Quem exporta acabou de montá-lo. Exibir e exportar passam pelo mesmo
 
 ### Importar por arquivo
 
+**Artigo e atendimento entram pela mesma porta.** O leitor delimitado vive em
+`lib/delimited` porque não é assunto de nenhuma feature; o vocabulário e o
+plano são de cada uma. O atendimento casa pelo `source.externalId` da HubSpot,
+como o artigo casa pelo `portalArticleId`, e reimportar preserva a iniciativa
+escolhida aqui dentro — ela é decisão nossa, não do CRM.
+
+A conversa **não** vem no lote. A exportação traz o ticket, não o fio de
+mensagens, e semear uma conversa vazia faria a análise achar que tem evidência
+quando não tem.
+
 O acervo entra por arquivo antes de entrar por integração. A HubSpot exporta
 CSV, e arquivo não pede rede, credencial nem autorização de ninguém — o que a
 API acrescenta é o *automático*, que é a segunda versão do problema.
@@ -968,7 +981,7 @@ transversal, transições de artigo e de plano, métricas por projeto e por
 período, parsing da resposta da IA, a escolha do provedor com a classificação
 das falhas dele, a leitura da sugestão de seção, o recorte na URL, a central de avisos, o levantamento, índice do artigo, critérios de publicação,
 fronteira de armazenamento, a leitura de arquivo delimitado com o mapeamento de
-colunas e o plano de importação, a recuperação de texto não salvo, o cadastro
+colunas e os planos de importação de artigo e de atendimento, a recuperação de texto não salvo, o cadastro
 de taxonomia com a migração da
 classificação antiga, os normalizadores de artigo, plano e atendimento, o motor
 e o desenho dos painéis, a trilha de navegação, o recorte por equipe, as

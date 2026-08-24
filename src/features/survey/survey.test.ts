@@ -109,6 +109,32 @@ describe("artigo sem seção", () => {
     expect(achados.find((f) => f.kind === "sem-secao")?.severity).toBe("media");
   });
 
+  it("muitos sem seção viram um achado só, com o caminho do mutirão", () => {
+    /*
+      Depois de uma importação, "sem seção" é a condição de centenas de uma vez.
+      A primeira execução com acervo real produziu 600 linhas iguais — a mesma
+      falha das seções vazias, e a lista deixa de dizer por onde começar.
+    */
+    const muitos = Array.from({ length: 40 }, (_, i) =>
+      artigo({ id: `a${i}`, sectionId: "" })
+    );
+
+    const achados = survey(muitos).filter((f) => f.kind === "sem-secao");
+
+    expect(achados).toHaveLength(1);
+    expect(achados[0].action).toContain("40 artigos");
+    expect(achados[0].href).toBe("/library?categoria=unset");
+    expect(achados[0].why).toContain("sugere a seção de todos");
+  });
+
+  it("poucos continuam um a um, porque dá para resolver abrindo", () => {
+    const poucos = [artigo({ id: "a1", sectionId: "" }), artigo({ id: "a2", sectionId: "" })];
+    const achados = survey(poucos).filter((f) => f.kind === "sem-secao");
+
+    expect(achados).toHaveLength(2);
+    expect(achados[0].href).toBe("/library/a1");
+  });
+
   it("seção que não existe mais no cadastro conta como sem seção", () => {
     // Remover categoria deixa artigos apontando para o vazio, de propósito.
     expect(kinds(survey([artigo({ sectionId: "sec-que-sumiu" })]))).toContain("sem-secao");

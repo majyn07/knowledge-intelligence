@@ -2,7 +2,7 @@ import type { ContentFormat, KnowledgeArticle, ArticleStatus } from "@/models/Kn
 import type { Taxonomy } from "@/models/Taxonomy";
 
 import type { ColumnMapping, ImportField } from "./mapping";
-import type { DelimitedTable } from "./delimited";
+import type { DelimitedTable } from "@/lib/delimited";
 
 /**
  * O que a importação vai fazer, calculado antes de fazer.

@@ -17,7 +17,7 @@ import { sectionPath } from "@/models/Taxonomy";
 import { articleStatusLabel, type ArticleStatus, type ContentFormat } from "@/models/KnowledgeArticle";
 
 import { useLibrary } from "../providers/LibraryProvider";
-import { columnSample, parseDelimited, type DelimitedTable } from "../import/delimited";
+import { columnSample, parseDelimited, type DelimitedTable } from "@/lib/delimited";
 import { buildImportPlan, type ImportPlan } from "../import/importPlan";
 import {
   guessMapping,

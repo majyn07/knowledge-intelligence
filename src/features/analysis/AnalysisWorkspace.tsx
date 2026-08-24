@@ -5,6 +5,7 @@ import { Plus, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 
 import { PageHeader } from "@/components/common/page/PageHeader";
+import { TicketImportButton, TicketImportDialog } from "./components/TicketImportDialog";
 import { Button } from "@/components/ui/button";
 import { DiscardChangesDialog } from "@/components/common/DiscardChangesDialog";
 import { usePersistedState } from "@/hooks/usePersistedState";
@@ -180,8 +181,12 @@ export function AnalysisWorkspace() {
     setDeletingTicketId(null);
   }
 
+  const [importOpen, setImportOpen] = useState(false);
+
   const dialogs = (
     <>
+      <TicketImportDialog open={importOpen} onOpenChange={setImportOpen} />
+
       <TicketDialog
         open={isCreating}
         onOpenChange={(open) => { if (!open) createGuard.requestClose(); }}
@@ -262,10 +267,14 @@ export function AnalysisWorkspace() {
           description="Do atendimento à decisão humana: valide as evidências da IA e encaminhe apenas as oportunidades que fazem sentido para este projeto."
           icon={<Sparkles className="h-6 w-6" />}
           actions={
-            <Button onClick={() => setIsCreating(true)} disabled={!activeProjectId}>
-              <Plus className="mr-1.5 h-4 w-4" />
-              Novo atendimento
-            </Button>
+            <div className="flex flex-wrap gap-2">
+              <TicketImportButton onClick={() => setImportOpen(true)} />
+
+              <Button onClick={() => setIsCreating(true)} disabled={!activeProjectId}>
+                <Plus className="mr-1.5 h-4 w-4" />
+                Novo atendimento
+              </Button>
+            </div>
           }
         />
 
@@ -289,10 +298,14 @@ export function AnalysisWorkspace() {
         description="Do atendimento à decisão humana: valide as evidências da IA e encaminhe apenas as oportunidades que fazem sentido para este projeto."
         icon={<Sparkles className="h-6 w-6" />}
         actions={
-          <Button onClick={() => setIsCreating(true)}>
-            <Plus className="mr-1.5 h-4 w-4" />
-            Novo atendimento
-          </Button>
+          <div className="flex flex-wrap gap-2">
+            <TicketImportButton onClick={() => setImportOpen(true)} />
+
+            <Button onClick={() => setIsCreating(true)}>
+              <Plus className="mr-1.5 h-4 w-4" />
+              Novo atendimento
+            </Button>
+          </div>
         }
       />
 

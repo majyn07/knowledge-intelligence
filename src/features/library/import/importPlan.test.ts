@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import type { KnowledgeArticle } from "@/models/KnowledgeArticle";
 import type { Taxonomy } from "@/models/Taxonomy";
 
-import { parseDelimited } from "./delimited";
+import { parseDelimited } from "@/lib/delimited";
 import { buildImportPlan, readInstant, resolveSection, splitKeywords } from "./importPlan";
 import { guessMapping, type ColumnMapping } from "./mapping";
 

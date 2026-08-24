@@ -59,6 +59,15 @@ export interface SurveyInput {
 /** Meses sem atualização a partir dos quais um publicado merece uma olhada. */
 const MESES_PARA_ENVELHECER = 12;
 
+/**
+ * Até quantos achados do mesmo tipo valem uma linha cada.
+ *
+ * Acima disso a lista deixa de dizer por onde começar e vira o inventário do
+ * acervo — e o caminho de resolução também muda: deixa de ser abrir um
+ * registro e passa a ser o mutirão de uma tela.
+ */
+const INDIVIDUAL_ATE = 5;
+
 /** Dias parado em rascunho ou revisão antes de virar achado. */
 const DIAS_PARADO = 30;
 
@@ -131,15 +140,40 @@ export function buildSurvey(input: SurveyInput): Finding[] {
     });
   }
 
-  for (const article of articles) {
-    const semSecao = findSection(taxonomy, article.sectionId) === undefined;
+  /*
+    Sem seção o artigo não é encontrado no portal e não conta como cobertura em
+    lugar nenhum — é o achado mais barato de resolver e o mais caro de deixar,
+    porque o artigo existe e ninguém acha.
 
-    /*
-      Sem seção o artigo não é encontrado no portal e não conta como cobertura
-      em lugar nenhum — é o achado mais barato de resolver e o mais caro de
-      deixar, porque o artigo existe e ninguém acha.
-    */
-    if (semSecao) {
+    Um por artigo enquanto forem poucos, e **um só** acima disso. Depois de uma
+    importação, "sem seção" é a condição de centenas de registros de uma vez: a
+    primeira execução com o acervo real produziu 600 linhas iguais, que é a
+    mesma falha das seções vazias — a lista deixa de dizer por onde começar.
+    Acima do punhado, o caminho não é abrir um artigo, é o mutirão da Biblioteca
+    com a sugestão de seção.
+  */
+  const semSecao = articles.filter(
+    (article) => findSection(taxonomy, article.sectionId) === undefined
+  );
+
+  if (semSecao.length > INDIVIDUAL_ATE) {
+    const publicados = semSecao.filter((article) => article.status === "published").length;
+
+    achados.push({
+      id: "sem-secao:lote",
+      kind: "sem-secao",
+      origin: "calculado",
+      severity: publicados > 0 ? "alta" : "media",
+      action: `Classificar ${semSecao.length} artigos sem seção`,
+      subject: "Acervo sem classificação",
+      why:
+        publicados > 0
+          ? `${publicados} deles estão publicados e não contam como cobertura em nenhuma seção. A Biblioteca sugere a seção de todos de uma vez.`
+          : "Sem seção, eles não aparecem no lugar em que seriam procurados.",
+      href: "/library?categoria=unset",
+    });
+  } else {
+    for (const article of semSecao) {
       achados.push({
         id: `sem-secao:${article.id}`,
         kind: "sem-secao",
@@ -154,7 +188,9 @@ export function buildSurvey(input: SurveyInput): Finding[] {
         href: `/library/${article.id}`,
       });
     }
+  }
 
+  for (const article of articles) {
     /*
       O resumo não é enfeite: é o que a busca do produto e o contexto enviado à
       IA leem primeiro. Publicado sem resumo é publicado que a análise não
