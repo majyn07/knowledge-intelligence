@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { resolveActiveProvider } from "./catalog";
+import { activeProviderReadsFiles, AI_PROVIDERS, resolveActiveProvider } from "./catalog";
 
 describe("resolveActiveProvider", () => {
   it("sem chave nenhuma não há provedor", () => {
@@ -83,5 +83,41 @@ describe("resolveActiveProvider", () => {
 
     expect(resultado.id).toBe("gemini");
     expect(resultado.reason).toBe("declarado");
+  });
+});
+
+describe("activeProviderReadsFiles", () => {
+  it("diz que lê arquivo quando o provedor ativo declara que lê", () => {
+    expect(activeProviderReadsFiles({ GEMINI_API_KEY: "abc" })).toBe(true);
+  });
+
+  it("ambiente sem provedor não lê arquivo, e não é erro", () => {
+    /*
+      O produto roda sem IA, e sempre rodou. Quem pergunta é a tela, para
+      decidir se mostra o botão de anexar — tratar ausência como falha faria a
+      tela de preenchimento quebrar num ambiente que é legítimo.
+    */
+    expect(activeProviderReadsFiles({})).toBe(false);
+  });
+
+  it("provedor declarado sem chave não lê arquivo", () => {
+    /*
+      Não caímos no outro provedor para responder esta pergunta: seria dizer
+      que o anexo funciona apoiado em quem não vai atender o pedido.
+    */
+    expect(
+      activeProviderReadsFiles({ GEMINI_API_KEY: "abc", AI_PROVIDER: "claude" })
+    ).toBe(false);
+  });
+
+  it("todo provedor do catálogo declara a capacidade", () => {
+    /*
+      Capacidade suposta falha em silêncio: um provedor somado sem declarar
+      cairia no padrão de alguém, e o anexo seria ignorado sem erro. O teste
+      existe para que somar provedor obrigue a decidir.
+    */
+    for (const provider of AI_PROVIDERS) {
+      expect(typeof provider.readsFiles).toBe("boolean");
+    }
   });
 });

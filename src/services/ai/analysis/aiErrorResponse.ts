@@ -1,6 +1,7 @@
 import {
   AIConfigurationError,
   AIProviderError,
+  AIUnsupportedInputError,
   InvalidAnalysisResponseError,
 } from "./analysisErrors";
 
@@ -73,6 +74,18 @@ export function aiErrorResponse(error: unknown): AIErrorResponse {
             : "O provedor de IA falhou sem dizer o motivo.",
         };
     }
+  }
+
+  if (error instanceof AIUnsupportedInputError) {
+    /*
+      422, e não 503: nada está fora do ar. O pedido é que não cabe no
+      provedor que está valendo, e a saída está na mão de quem pediu.
+    */
+    return {
+      status: 422,
+      message:
+        "O provedor de IA configurado neste ambiente não lê arquivos anexados. Descreva em texto, ou peça a quem administra para trocar o provedor.",
+    };
   }
 
   if (error instanceof InvalidAnalysisResponseError) {

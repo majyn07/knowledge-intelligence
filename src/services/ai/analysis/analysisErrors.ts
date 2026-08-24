@@ -37,6 +37,28 @@ export class AIProviderError extends Error {
   }
 }
 
+/**
+ * O pedido trouxe algo que o provedor ativo não sabe receber.
+ *
+ * Existe por causa do anexo: um provedor que só lê texto receberia o PDF e
+ * responderia sobre nada, e a pessoa veria campos vazios sem nada dizendo que
+ * o arquivo não foi lido. Ignorar em silêncio é o pior desfecho, porque parece
+ * resposta.
+ *
+ * Separado de `AIConfigurationError` porque a saída é outra: ali falta
+ * configurar, aqui a configuração está certa e o caminho é remover o anexo ou
+ * trocar o provedor.
+ */
+export class AIUnsupportedInputError extends Error {
+  readonly provider: string;
+
+  constructor(provider: string) {
+    super("O provedor de IA ativo não recebe este tipo de entrada.");
+    this.name = "AIUnsupportedInputError";
+    this.provider = provider;
+  }
+}
+
 export class InvalidAnalysisResponseError extends Error {
   constructor() {
     super("A IA retornou uma análise em formato inválido.");

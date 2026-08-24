@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { CircleHelp, Paperclip, Sparkles, TriangleAlert, X } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -71,6 +71,37 @@ export function FillPanel({
   const [anexo, setAnexo] = useState<Anexo | null>(null);
   const [fileError, setFileError] = useState("");
   const { state, error, result, pedir, limpar } = useFieldFill();
+
+  /**
+   * O provedor ativo lê arquivo?
+   *
+   * Perguntado ao servidor porque qual provedor está valendo é informação
+   * dele, e a resposta traz só a capacidade — a tela não precisa saber o nome
+   * do modelo, e a fronteira existe para que não saiba.
+   *
+   * Começa em `false` e liga quando a resposta chega: oferecer o anexo antes
+   * de saber faria o botão aparecer e sumir na abertura da tela. Ambiente sem
+   * IA nenhuma simplesmente não mostra o anexo, sem erro nenhum — o produto
+   * roda sem provedor, e sempre rodou.
+   */
+  const [readsFiles, setReadsFiles] = useState(false);
+
+  useEffect(() => {
+    let vivo = true;
+
+    fetch("/api/fill")
+      .then((response) => (response.ok ? response.json() : null))
+      .then((body: { readsFiles?: boolean } | null) => {
+        if (vivo && body?.readsFiles) setReadsFiles(true);
+      })
+      .catch(() => {
+        /* Sem resposta, o anexo fica escondido. Silêncio aqui é o padrão seguro. */
+      });
+
+    return () => {
+      vivo = false;
+    };
+  }, []);
 
   const labels = useMemo(
     () => Object.fromEntries(fields.map((field) => [field.name, field.label])),
@@ -255,21 +286,23 @@ export function FillPanel({
             preenche — contexto —, e separá-los faria escolher entre descrever
             e anexar quando os dois juntos descrevem melhor.
           */}
-          <label className="cursor-pointer text-xs text-muted-foreground underline-offset-2 hover:underline">
-            <Paperclip className="mr-1 inline h-3.5 w-3.5" aria-hidden />
-            Anexar arquivo
-            <input
-              type="file"
-              className="sr-only"
-              accept={FILE_ACCEPT}
-              disabled={pedindo}
-              onChange={(event) => {
-                void receber(event.target.files?.[0]);
-                // Permite reescolher o mesmo arquivo depois de removê-lo.
-                event.target.value = "";
-              }}
-            />
-          </label>
+          {readsFiles && (
+            <label className="cursor-pointer text-xs text-muted-foreground underline-offset-2 hover:underline">
+              <Paperclip className="mr-1 inline h-3.5 w-3.5" aria-hidden />
+              Anexar arquivo
+              <input
+                type="file"
+                className="sr-only"
+                accept={FILE_ACCEPT}
+                disabled={pedindo}
+                onChange={(event) => {
+                  void receber(event.target.files?.[0]);
+                  // Permite reescolher o mesmo arquivo depois de removê-lo.
+                  event.target.value = "";
+                }}
+              />
+            </label>
+          )}
 
           {result && (
             <Button

@@ -1,6 +1,8 @@
 import "server-only";
 
+import { AIUnsupportedInputError } from "../analysis/analysisErrors";
 import { buildFieldFillPrompt } from "../prompts/fieldFillPrompt";
+import { activeProviderReadsFiles, resolveActiveProvider } from "../providers/catalog";
 import { activeProvider } from "../server/providerRegistry";
 import { parseFieldFill, type FieldFillRequest, type FieldFillResult } from "./fieldFill";
 
@@ -13,6 +15,16 @@ import { parseFieldFill, type FieldFillRequest, type FieldFillResult } from "./f
  */
 export const fieldFillService = {
   async execute(request: FieldFillRequest): Promise<FieldFillResult> {
+    /*
+      Anexo mandado a um provedor que não lê arquivo é recusado **antes** de
+      sair daqui. Deixar passar produziria a pior resposta possível: campos
+      vazios, sem erro, com o documento ignorado em silêncio — e quem pediu
+      concluiria que o arquivo não tinha a informação.
+    */
+    if (request.file && !activeProviderReadsFiles(process.env)) {
+      throw new AIUnsupportedInputError(resolveActiveProvider(process.env).id ?? "desconhecido");
+    }
+
     const raw = await activeProvider().complete(buildFieldFillPrompt(request), {
       json: true,
       /*
