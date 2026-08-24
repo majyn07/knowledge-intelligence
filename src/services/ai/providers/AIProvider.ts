@@ -1,3 +1,4 @@
+import type { AIAttachment } from "@/models/AIAttachment";
 import type { AIChatMessage } from "@/models/AIChatMessage";
 import type { AIChatRequest } from "@/models/AIChatRequest";
 
@@ -28,8 +29,16 @@ export interface AIProvider {
    * análise dentro do provider — o que obrigava toda operação nova a virar um
    * método novo do contrato. Com isto, o prompt fica onde é assunto do
    * produto, e o provider volta a saber só falar com o modelo.
+   *
+   * `files` entra como opção, e não como método novo, pelo mesmo motivo: um
+   * `completeWithFiles` faria o contrato crescer a cada formato de entrada, e
+   * anexar é detalhe do pedido, não outra operação. Provedor que não souber
+   * receber arquivo ignora a opção — e a fronteira continua com dois métodos.
    */
-  complete(messages: AIChatMessage[], options?: { json?: boolean }): Promise<string>;
+  complete(
+    messages: AIChatMessage[],
+    options?: { json?: boolean; files?: AIAttachment[] }
+  ): Promise<string>;
 }
 
 /**

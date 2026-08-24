@@ -2,6 +2,7 @@ import "server-only";
 
 import { GoogleGenAI } from "@google/genai";
 
+import type { AIAttachment } from "@/models/AIAttachment";
 import type { AIChatMessage } from "@/models/AIChatMessage";
 import type { AIChatRequest } from "@/models/AIChatRequest";
 
@@ -47,15 +48,32 @@ function getClient(): GoogleGenAI {
  */
 async function complete(
   messages: AIChatMessage[],
-  options: { json?: boolean } = {}
+  options: { json?: boolean; files?: AIAttachment[] } = {}
 ): Promise<string> {
   const client = getClient();
 
   const systemMessage = messages.find((message) => message.role === "system");
-  const contents = messages
+  const texto = messages
     .filter((message) => message.role !== "system")
     .map((message) => message.content)
     .join("\n\n");
+
+  /*
+    Sem anexo o conteúdo continua sendo a string de sempre — o SDK aceita as
+    duas formas, e trocar a chamada inteira por partes faria toda análise
+    existente passar por um caminho novo sem necessidade.
+
+    Com anexo, o texto vira a primeira parte e os arquivos vêm depois: o
+    modelo lê a instrução antes do documento, e não o contrário.
+  */
+  const contents = options.files?.length
+    ? [
+        { text: texto },
+        ...options.files.map((file) => ({
+          inlineData: { mimeType: file.mimeType, data: file.data },
+        })),
+      ]
+    : texto;
 
   try {
     const response = await client.models.generateContent({

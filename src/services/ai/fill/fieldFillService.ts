@@ -15,6 +15,12 @@ export const fieldFillService = {
   async execute(request: FieldFillRequest): Promise<FieldFillResult> {
     const raw = await activeProvider().complete(buildFieldFillPrompt(request), {
       json: true,
+      /*
+        O anexo vai e não fica. Ele existe durante este pedido, e nada aqui o
+        escreve em disco, banco ou registro — o produto guarda o que foi
+        extraído e revisado, não o documento.
+      */
+      ...(request.file ? { files: [request.file] } : {}),
     });
 
     return parseFieldFill(raw, request);

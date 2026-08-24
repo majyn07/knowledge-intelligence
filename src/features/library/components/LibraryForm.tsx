@@ -19,6 +19,9 @@ import { useTaxonomy } from "@/features/taxonomy/providers/TaxonomyProvider";
 
 import { PersonSelect } from "@/features/people/components/PersonSelect";
 
+import type { FieldSpec } from "@/services/ai/fill/fieldFill";
+
+import { FillPanel } from "@/components/common/fill/FillPanel";
 import { MarkdownField } from "@/components/common/markdown/MarkdownField";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -207,8 +210,54 @@ export function LibraryForm({
     change("content", templateFor(genreName(formData.genreId)));
   }
 
+  /**
+   * O que a IA pode propor a partir de um documento de conhecimento.
+   *
+   * **Seção e gênero ficam de fora**, e não por descuido: são identificadores
+   * do cadastro, e já existe a sugestão de seção — que manda o vocabulário
+   * inteiro no pedido e confere o identificador na volta. Duplicar aqui uma
+   * classificação por texto livre criaria um segundo caminho, mais fraco, para
+   * a mesma decisão.
+   *
+   * **Responsável também**, pela regra de sempre: a atribuição guarda
+   * identificador, e o modelo só devolve texto.
+   */
+  const fillFields: FieldSpec[] = useMemo(
+    () => [
+      { name: "title", label: "Título", kind: "texto" },
+      {
+        name: "summary",
+        label: "Resumo",
+        kind: "texto",
+        hint: "Uma ou duas frases sobre o que o artigo resolve.",
+      },
+      {
+        name: "content",
+        label: "Conteúdo",
+        kind: "texto",
+        hint: "O corpo do artigo, em Markdown, preservando passos e ordem.",
+      },
+    ],
+    []
+  );
+
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
+      <FillPanel
+        subject="Artigo da base de conhecimento do suporte AltoQi"
+        fields={fillFields}
+        current={{
+          title: formData.title,
+          summary: formData.summary,
+          content: formData.content,
+        }}
+        onApply={(values) => {
+          onDirty?.();
+          setFormData((previous) => ({ ...previous, ...values }));
+        }}
+        placeholder="Cole o material, ou anexe o PDF/documento que vai virar artigo."
+      />
+
       {recovery.recovered && (
         <RecoveryNotice
           draft={recovery.recovered}

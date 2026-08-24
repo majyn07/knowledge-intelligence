@@ -51,6 +51,19 @@ function describeField(field: FieldSpec): string {
 export function buildFieldFillPrompt(request: FieldFillRequest): AIChatMessage[] {
   const campos = request.fields.map(describeField).join("\n");
 
+  /*
+    O anexo é anunciado no texto porque ele chega numa parte separada do
+    pedido, depois desta. Sem o aviso, um pedido só com arquivo parece um
+    pedido sem fonte nenhuma — e a instrução de "deixe de fora o que o texto
+    não sustenta" faria o modelo devolver tudo vazio olhando para o documento.
+  */
+  const fonte = [
+    request.source.trim() === "" ? "" : request.source,
+    request.file ? "O documento anexado a esta mensagem é a fonte. Leia-o." : "",
+  ]
+    .filter(Boolean)
+    .join("\n\n");
+
   const prompt = [
     `# FORMULÁRIO: ${request.subject}`,
     "",
@@ -60,7 +73,7 @@ export function buildFieldFillPrompt(request: FieldFillRequest): AIChatMessage[]
     "",
     "# O QUE A PESSOA ESCREVEU OU ANEXOU",
     "",
-    request.source,
+    fonte,
     "",
     "# TAREFA",
     "",

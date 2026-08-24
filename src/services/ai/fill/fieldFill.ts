@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+import { ATTACHMENT_TYPES, MAX_ATTACHMENT_BYTES } from "@/models/AIAttachment";
+
 /**
  * Preencher um formulário a partir do que alguém escreveu ou anexou.
  *
@@ -43,22 +45,40 @@ export const fieldSpecSchema = z
 
 export type FieldSpec = z.infer<typeof fieldSpecSchema>;
 
+export const attachmentSchema = z
+  .object({
+    mimeType: z.enum(ATTACHMENT_TYPES),
+    /** Conteúdo em base64, sem o prefixo `data:`. */
+    data: z.string().min(1).max(Math.ceil(MAX_ATTACHMENT_BYTES * 1.4)),
+  })
+  .strict();
+
 export const fieldFillRequestSchema = z
   .object({
     /** O que o formulário é, em uma frase. Ancora o modelo no domínio. */
     subject: z.string().min(1).max(200),
     fields: z.array(fieldSpecSchema).min(1).max(30),
     /**
-     * O texto livre: o que a pessoa escreveu, ou o que foi extraído de um
-     * documento anexado.
+     * O texto livre: o que a pessoa escreveu, ou o que foi lido de um arquivo
+     * de texto no navegador.
      *
      * O teto existe pela mesma razão do teto de artigos na sugestão de seção:
-     * sem ele, um PDF de duzentas páginas entra inteiro num prompt só e volta
-     * truncado sem ninguém saber que truncou.
+     * sem ele, um documento de duzentas páginas entra inteiro num prompt só e
+     * volta truncado sem ninguém saber que truncou.
      */
-    source: z.string().min(1).max(60_000),
+    source: z.string().max(60_000).default(""),
+    /** O documento que o modelo precisa **ver**: PDF ou imagem. */
+    file: attachmentSchema.optional(),
   })
-  .strict();
+  .strict()
+  /*
+    Pedido sem texto e sem arquivo não tem do que extrair. Recusar aqui evita
+    uma ida ao provedor que só pode voltar vazia — e uma resposta vazia sem
+    causa aparente é pior que um erro que diz o que faltou.
+  */
+  .refine((request) => request.source.trim() !== "" || request.file !== undefined, {
+    message: "É preciso texto ou arquivo.",
+  });
 
 export type FieldFillRequest = z.infer<typeof fieldFillRequestSchema>;
 
