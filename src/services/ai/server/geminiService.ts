@@ -11,7 +11,26 @@ import { buildStructuredAnalysisPrompt } from "../prompts/structuredAnalysisProm
 import { AI_TIMEOUT_MS, type AIProvider } from "../providers/AIProvider";
 import { classifyProviderFailure } from "../providers/providerFailure";
 
-const MODEL = "gemini-2.5-flash";
+/**
+ * O modelo é **fixado por versão**, e nunca por apelido móvel.
+ *
+ * `gemini-flash-latest` existe e seria mais curto, mas trocaria o modelo por
+ * baixo do produto sem ninguém decidir — e aqui resultado de critério que
+ * ninguém escolheu precisa ser anunciado. Um modelo novo muda o texto que a
+ * análise devolve; isso é mudança de produto, e entra por commit.
+ *
+ * `gemini-2.5-flash` esteve aqui e **parou de existir para chave nova**: o
+ * Google responde `404` dizendo que só quem já usava continua tendo acesso. A
+ * produção seguia funcionando com a chave antiga, então o defeito só aparecia
+ * para quem configurasse o ambiente do zero — que é exatamente quem tem menos
+ * informação para entender o erro.
+ *
+ * A escolha foi medida contra a API, e não contra a documentação: o próprio
+ * erro do Google indicava o `3.6`, que falhou uma vez em quatro com
+ * `UNAVAILABLE`, enquanto o `3.5` respondeu nas quatro em cerca de um segundo.
+ * Documentação diz o que deveria existir; a resposta diz o que existe.
+ */
+const MODEL = "gemini-3.5-flash";
 
 function getClient(): GoogleGenAI {
   const apiKey = process.env.GEMINI_API_KEY;
