@@ -1,14 +1,15 @@
 "use client";
 
 import Image from "next/image";
-import { useState, type FormEvent } from "react";
-import { MailCheck } from "lucide-react";
+import { useEffect, useState, type FormEvent } from "react";
+import { MailCheck, TriangleAlert } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ALLOWED_EMAIL_DOMAIN, isGoogleSignInEnabled } from "@/lib/supabase/client";
 
+import { accessFailureFromSearch } from "../accessError";
 import { useSession } from "../providers/SessionProvider";
 
 /**
@@ -56,10 +57,33 @@ export function SignInScreen() {
   const [sending, setSending] = useState(false);
   const [sent, setSent] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [accessFailure, setAccessFailure] = useState<string | null>(null);
+
+  /**
+   * Por que o link que a pessoa acabou de clicar não abriu.
+   *
+   * Lido de `window` num efeito, e não de `useSearchParams`: o gancho do Next
+   * obriga a envolver a árvore em `Suspense` para renderizar estático, e a
+   * tela de acesso é a primeira coisa que aparece — não vale um limite de
+   * renderização a mais para ler um parâmetro opcional.
+   *
+   * O motivo sai da URL depois de lido. Ele descreve um clique, não o estado
+   * da página: mantê-lo faria a mesma mensagem reaparecer a cada recarga,
+   * inclusive depois de resolvida.
+   */
+  useEffect(() => {
+    const motivo = accessFailureFromSearch(window.location.search);
+
+    if (!motivo) return;
+
+    setAccessFailure(motivo);
+    window.history.replaceState(null, "", window.location.pathname);
+  }, []);
 
   async function handleGoogle() {
     setSending(true);
     setError(null);
+    setAccessFailure(null);
 
     const failure = await signInWithGoogle();
 
@@ -78,6 +102,12 @@ export function SignInScreen() {
 
     setSending(true);
     setError(null);
+    /*
+      O motivo do clique anterior sai daqui, e não só quando o envio dá certo:
+      deixá-lo ao lado do erro de um envio que falhou põe duas explicações
+      concorrentes na tela, e a antiga já não vale.
+    */
+    setAccessFailure(null);
 
     const failure = await requestLink(email);
 
@@ -113,6 +143,25 @@ export function SignInScreen() {
             ? "Não há senha em nenhum dos caminhos."
             : "Enquanto a conta da empresa não está conectada, a entrada é pelo link enviado por e-mail. Não há senha."}
         </p>
+
+        {/*
+          O motivo da falha vem antes do formulário, e não junto do campo: ele
+          fala do clique que trouxe a pessoa até aqui, e não do que ela está
+          prestes a digitar. Some assim que um novo link é pedido — a partir
+          daí a tela descreve o pedido novo, não o anterior.
+        */}
+        {accessFailure && !sent && (
+          <div
+            role="alert"
+            className="mt-6 flex gap-3 rounded-xl border border-destructive/40 bg-destructive/5 p-4"
+          >
+            <TriangleAlert
+              className="mt-0.5 h-4 w-4 shrink-0 text-destructive"
+              aria-hidden
+            />
+            <p className="text-sm text-destructive">{accessFailure}</p>
+          </div>
+        )}
 
         {sent ? (
           <div className="mt-8 rounded-xl border bg-card p-5">
