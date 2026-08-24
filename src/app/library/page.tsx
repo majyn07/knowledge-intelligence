@@ -258,55 +258,61 @@ export default function LibraryPage() {
             )}
 
             {table.mode === "cards" ? (
+              /*
+                A grade pagina como a tabela. Ela recebia o recorte inteiro, e
+                com o acervo real isso significava 1.800 cartões e 81 mil nós no
+                DOM — dez segundos até a Biblioteca aparecer. O dado não era o
+                problema: ler os 11 MB leva 11ms e varrer o conteúdo de todos
+                numa busca leva 9ms. Era só render.
+              */
               <LibraryGrid
-                items={filteredItems}
+                items={table.page.items}
                 projects={projectOptions}
                 onItemEdit={openEditDialog}
                 onItemDelete={openDeleteDialog}
               />
             ) : (
-              <>
-                <LibraryTable
-                  articles={table.page.items}
-                  columns={table.columns}
-                  sort={table.sort}
-                  context={table.context}
-                  selected={table.selected}
-                  onToggle={table.toggle}
-                  onToggleAll={table.toggleAll}
-                  onSort={table.toggleSort}
-                  onEdit={openEditDialog}
-                  onDelete={openDeleteDialog}
-                />
+              <LibraryTable
+                articles={table.page.items}
+                columns={table.columns}
+                sort={table.sort}
+                context={table.context}
+                selected={table.selected}
+                onToggle={table.toggle}
+                onToggleAll={table.toggleAll}
+                onSort={table.toggleSort}
+                onEdit={openEditDialog}
+                onDelete={openDeleteDialog}
+              />
+            )}
 
-                {table.page.pages > 1 && (
-                  <div className="flex items-center justify-between gap-3 text-sm">
-                    <span className="text-muted-foreground">
-                      Página {table.page.page} de {table.page.pages} · {table.page.total} artigo(s)
-                    </span>
+            {/* A paginação vale para os dois modos — a grade também pagina. */}
+            {table.page.pages > 1 && (
+              <div className="flex items-center justify-between gap-3 text-sm">
+                <span className="text-muted-foreground">
+                  Página {table.page.page} de {table.page.pages} · {table.page.total} artigo(s)
+                </span>
 
-                    <span className="flex gap-1.5">
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        disabled={table.page.page === 1}
-                        onClick={() => table.setPage(table.page.page - 1)}
-                      >
-                        Anterior
-                      </Button>
+                <span className="flex gap-1.5">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    disabled={table.page.page === 1}
+                    onClick={() => table.setPage(table.page.page - 1)}
+                  >
+                    Anterior
+                  </Button>
 
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        disabled={table.page.page === table.page.pages}
-                        onClick={() => table.setPage(table.page.page + 1)}
-                      >
-                        Próxima
-                      </Button>
-                    </span>
-                  </div>
-                )}
-              </>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    disabled={table.page.page === table.page.pages}
+                    onClick={() => table.setPage(table.page.page + 1)}
+                  >
+                    Próxima
+                  </Button>
+                </span>
+              </div>
             )}
           </>
         )}
