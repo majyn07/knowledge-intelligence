@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Sparkles } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -52,98 +52,126 @@ export function SuggestSectionDialog({
   articles: KnowledgeArticle[];
 }) {
   const { taxonomy } = useTaxonomy();
-  const { updateItem } = useLibrary();
+  const { classifyMany } = useLibrary();
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [sugestoes, setSugestoes] = useState<Sugestao[] | null>(null);
   const [aceitas, setAceitas] = useState<Set<string>>(new Set());
+  const [progresso, setProgresso] = useState({ feitos: 0, total: 0 });
 
-  const lote = articles.slice(0, LOTE);
+  /*
+    Parar no meio precisa ser possível: com seiscentos artigos são vinte e
+    quatro pedidos, e quem começou pode mudar de ideia no terceiro. A `ref` é
+    lida dentro do laço, onde o estado do render não chegaria.
+  */
+  const parar = useRef(false);
+
+  const lotes = Math.ceil(articles.length / LOTE);
 
   function reset() {
     setSugestoes(null);
     setAceitas(new Set());
     setError("");
+    setProgresso({ feitos: 0, total: 0 });
+    parar.current = false;
   }
 
+  /** Um lote pelo servidor. Erro sobe para quem chamou decidir se continua. */
+  async function pedirLote(bloco: KnowledgeArticle[]): Promise<Sugestao[]> {
+    const response = await fetch("/api/library/suggest-section", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        articles: bloco.map((article) => ({
+          id: article.id,
+          title: article.title,
+          summary: article.summary.slice(0, 300),
+          // O artigo inteiro não cabe no prompt, e não precisa: o assunto
+          // aparece no começo.
+          excerpt: article.content.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").slice(0, 500),
+        })),
+        sections: taxonomy.sections.map((section) => ({
+          id: section.id,
+          path: sectionPath(taxonomy, section.id),
+        })),
+      }),
+    });
+
+    const body: unknown = await response.json();
+
+    if (!response.ok) {
+      throw new Error(
+        typeof body === "object" && body !== null && "message" in body
+          ? String((body as { message: unknown }).message)
+          : "Não foi possível sugerir."
+      );
+    }
+
+    return typeof body === "object" && body !== null && "suggestions" in body
+      ? ((body as { suggestions: Sugestao[] }).suggestions ?? [])
+      : [];
+  }
+
+  /**
+   * Varre o acervo inteiro, um lote por vez.
+   *
+   * Em série, e não em paralelo: vinte e quatro pedidos simultâneos são o
+   * caminho mais curto para o limite de taxa do provedor, e o progresso
+   * honesto vale mais que o ganho de tempo.
+   *
+   * **Lote que falha não derruba o que já veio.** Depois de vinte pedidos bem
+   * sucedidos, perder tudo porque o vigésimo primeiro esbarrou na cota seria
+   * jogar fora trabalho que já está pronto para revisão — a tela guarda o que
+   * tem e diz onde parou.
+   */
   async function pedir() {
     setLoading(true);
     setError("");
+    parar.current = false;
 
-    try {
-      const response = await fetch("/api/library/suggest-section", {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({
-          articles: lote.map((article) => ({
-            id: article.id,
-            title: article.title,
-            summary: article.summary.slice(0, 300),
-            // O artigo inteiro não cabe no prompt, e não precisa: o assunto
-            // aparece no começo.
-            excerpt: article.content.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").slice(0, 500),
-          })),
-          sections: taxonomy.sections.map((section) => ({
-            id: section.id,
-            path: sectionPath(taxonomy, section.id),
-          })),
-        }),
-      });
+    const acumuladas: Sugestao[] = [];
+    setProgresso({ feitos: 0, total: lotes });
 
-      const body: unknown = await response.json();
+    for (let i = 0; i < lotes; i += 1) {
+      if (parar.current) break;
 
-      if (!response.ok) {
-        const message =
-          typeof body === "object" && body !== null && "message" in body
-            ? String((body as { message: unknown }).message)
-            : "Não foi possível sugerir.";
-
-        setError(message);
-        return;
+      try {
+        const bloco = articles.slice(i * LOTE, (i + 1) * LOTE);
+        acumuladas.push(...(await pedirLote(bloco)));
+      } catch (failure) {
+        setError(
+          `${failure instanceof Error ? failure.message : "Falha ao consultar"} — parou no lote ${
+            i + 1
+          } de ${lotes}. As ${acumuladas.length} sugestões já recebidas continuam abaixo.`
+        );
+        break;
       }
 
-      const lista =
-        typeof body === "object" && body !== null && "suggestions" in body
-          ? ((body as { suggestions: Sugestao[] }).suggestions ?? [])
-          : [];
-
-      setSugestoes(lista);
+      setProgresso({ feitos: i + 1, total: lotes });
+      setSugestoes([...acumuladas]);
       // Vêm marcadas: quem abriu a tela pediu sugestão, e desmarcar o que não
       // serve é menos trabalho que marcar o que serve.
-      setAceitas(new Set(lista.map((item) => item.articleId)));
-    } catch (failure) {
-      setError(
-        failure instanceof Error ? failure.message : "Não foi possível falar com o servidor."
-      );
-    } finally {
-      setLoading(false);
+      setAceitas(new Set(acumuladas.map((item) => item.articleId)));
     }
+
+    setSugestoes([...acumuladas]);
+    setAceitas(new Set(acumuladas.map((item) => item.articleId)));
+    setLoading(false);
   }
 
+  /*
+    Uma escrita, um evento, um aviso. Aplicar uma a uma custaria um aviso e uma
+    ida ao servidor por artigo — com seiscentos, seiscentos de cada.
+  */
   function aplicar() {
     if (!sugestoes) return;
 
-    for (const sugestao of sugestoes) {
-      if (!aceitas.has(sugestao.articleId)) continue;
-
-      const article = articles.find((item) => item.id === sugestao.articleId);
-      if (!article) continue;
-
-      updateItem(article.id, {
-        title: article.title,
-        summary: article.summary,
-        content: article.content,
-        projectId: article.projectId,
-        genreId: article.genreId,
-        status: article.status,
-        sectionId: sugestao.sectionId,
-        tags: article.tags,
-        keywords: article.keywords,
-        author: article.author,
-        url: article.url ?? "",
-      });
-    }
+    classifyMany(
+      sugestoes
+        .filter((sugestao) => aceitas.has(sugestao.articleId))
+        .map((sugestao) => ({ id: sugestao.articleId, sectionId: sugestao.sectionId }))
+    );
 
     reset();
     onOpenChange(false);
@@ -163,9 +191,29 @@ export function SuggestSectionDialog({
     >
       <div className="flex flex-col gap-4">
         <p className="text-sm text-muted-foreground">
-          {articles.length} artigo(s) sem seção neste projeto.
-          {articles.length > LOTE && ` Os ${LOTE} primeiros vão neste pedido.`}
+          {articles.length} artigo(s) sem seção no acervo
+          {lotes > 1 && `, em ${lotes} lotes de até ${LOTE}`}.
         </p>
+
+        {loading && progresso.total > 0 && (
+          <div>
+            <p className="text-sm">
+              Consultando {progresso.feitos} de {progresso.total} lotes
+              {sugestoes && sugestoes.length > 0 && ` · ${sugestoes.length} sugestões até agora`}
+            </p>
+
+            {/*
+              Barra sem animação: ela mede pedidos concluídos, e um movimento
+              contínuo insinuaria um progresso que ninguém está medindo.
+            */}
+            <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-muted">
+              <div
+                className="h-full bg-primary"
+                style={{ width: `${Math.round((progresso.feitos / progresso.total) * 100)}%` }}
+              />
+            </div>
+          </div>
+        )}
 
         {error && (
           <p role="alert" className="text-sm text-destructive">
@@ -232,10 +280,14 @@ export function SuggestSectionDialog({
             Cancelar
           </Button>
 
-          {sugestoes === null ? (
-            <Button onClick={() => void pedir()} disabled={loading || lote.length === 0}>
+          {loading ? (
+            <Button variant="outline" onClick={() => (parar.current = true)}>
+              Parar após este lote
+            </Button>
+          ) : sugestoes === null ? (
+            <Button onClick={() => void pedir()} disabled={articles.length === 0}>
               <Sparkles className="mr-1.5 h-4 w-4" />
-              {loading ? "Consultando…" : `Sugerir para ${lote.length}`}
+              Sugerir para {articles.length}
             </Button>
           ) : (
             <Button onClick={aplicar} disabled={aceitas.size === 0}>

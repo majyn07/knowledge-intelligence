@@ -603,6 +603,18 @@ seção que o modelo inventou vira ausência, não classificação. Artigo que n
 cabe em nenhuma seção é omitido de propósito; ficar de fora é resposta
 legítima, e melhor que palpite. Nada é aplicado sem alguém deixar marcado.
 
+A varredura vai em **lotes de 25, em série**, com o progresso na tela. Em
+paralelo seriam vinte e quatro pedidos simultâneos e o limite de taxa do
+provedor logo em seguida. Lote que falha **não derruba o que já veio**: depois
+de vinte pedidos bem sucedidos, perder tudo por causa do vigésimo primeiro
+seria jogar fora revisão pronta — a tela guarda e diz onde parou. E dá para
+parar no meio, porque quem começou vinte e quatro pedidos pode mudar de ideia
+no terceiro.
+
+Aplicar é **uma** escrita, **um** evento e **um** aviso. Uma a uma custaria
+seiscentos avisos empilhados, seiscentas idas ao servidor e seiscentas linhas
+iguais enterrando o histórico.
+
 **Qual provedor vale é declarado, não deduzido da presença de chave**, pelo
 mesmo motivo do modo compartilhado: chave provisionada em ambiente é acidente
 de infraestrutura, não decisão de produto. `AI_PROVIDER` nomeia; sem ele, vale

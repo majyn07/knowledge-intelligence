@@ -47,6 +47,8 @@ interface LibraryContextValue {
   /** Ações em lote sobre a seleção da tabela. */
   changeStatusMany: (ids: string[], status: ArticleStatus) => void;
   assignMany: (ids: string[], author: string) => void;
+  /** Aplica seção a muitos artigos numa passada, depois da revisão humana. */
+  classifyMany: (atribuicoes: { id: string; sectionId: string }[]) => void;
   /** Exclusão em lote, com desfazer do mesmo tamanho. */
   deleteMany: (ids: string[]) => void;
   /** Grava o resultado de uma importação: novos e atualizados de uma vez. */
@@ -251,6 +253,49 @@ export function LibraryProvider({ children }: { children: ReactNode }) {
       toast.success(`${ids.length} artigo(s) reatribuído(s).`);
     },
     [setItems]
+  );
+
+  /**
+   * Classifica muitos artigos de uma vez.
+   *
+   * Aplicar as sugestões com `updateItem` num laço custaria um aviso e uma
+   * gravação por artigo — com seiscentos, são seiscentos avisos empilhados e
+   * seiscentas idas ao servidor. E, pior, o histórico ficaria com seiscentas
+   * linhas iguais enterrando tudo que aconteceu antes.
+   *
+   * Um evento, um aviso, uma escrita — como a importação.
+   */
+  const classifyMany = useCallback(
+    (atribuicoes: { id: string; sectionId: string }[]) => {
+      if (atribuicoes.length === 0) return;
+
+      const porId = new Map(atribuicoes.map((item) => [item.id, item.sectionId]));
+      const at = new Date();
+
+      setItems((previous) =>
+        previous.map((item) => {
+          const sectionId = porId.get(item.id);
+          return sectionId === undefined ? item : { ...item, sectionId, updatedAt: at };
+        })
+      );
+
+      const primeiro = items.find((item) => porId.has(item.id));
+
+      record({
+        type: "article_updated",
+        projectId: primeiro?.projectId ?? "",
+        actor: currentPerson,
+        subject: {
+          kind: "article",
+          id: "classificacao",
+          label: `Classificação de ${atribuicoes.length} artigos`,
+        },
+        detail: "Seção aplicada a partir de sugestão revisada.",
+      });
+
+      toast.success(`${atribuicoes.length} artigo(s) classificado(s).`);
+    },
+    [currentPerson, items, record, setItems]
   );
 
   /**
@@ -466,12 +511,13 @@ export function LibraryProvider({ children }: { children: ReactNode }) {
       discardArticleDraft,
       changeStatusMany,
       assignMany,
+      classifyMany,
       importArticles,
       deleteItem,
       deleteMany,
       createItemFromPlan,
     }),
-    [assignMany, changeStatus, changeStatusMany, discardArticleDraft, publishArticleDraft, saveDraft, createItem, createItemFromPlan, deleteItem, deleteMany, deletedItems, importArticles, isHydrated, items, purgeItem, restoreItem, updateItem]
+    [assignMany, changeStatus, classifyMany, changeStatusMany, discardArticleDraft, publishArticleDraft, saveDraft, createItem, createItemFromPlan, deleteItem, deleteMany, deletedItems, importArticles, isHydrated, items, purgeItem, restoreItem, updateItem]
   );
 
   return <LibraryContext.Provider value={value}>{children}</LibraryContext.Provider>;
