@@ -135,6 +135,14 @@ export function TicketImportDialog({
           <DialogDescription>
             A exportação da HubSpot, em CSV. O arquivo é lido no seu navegador — nada é enviado
             para lugar nenhum.
+            {/*
+              O caminho do documento único é dito aqui porque é aqui que a
+              pessoa chega com ele na mão. Sem isso, quem tem um PDF de um
+              atendimento tenta convertê-lo em planilha — que é trabalho
+              inventado por falta de uma frase.
+            */}{" "}
+            Para <strong>um</strong> atendimento em PDF, imagem ou texto, use “Novo atendimento”:
+            lá a IA lê o documento e propõe os campos.
           </DialogDescription>
         </DialogHeader>
 

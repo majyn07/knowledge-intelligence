@@ -19,6 +19,20 @@ export interface AIProviderInfo {
   /** Variável do ambiente do servidor que guarda a chave. Só a presença é lida. */
   envKey: string;
   purpose: string;
+  /**
+   * O provedor lê documento anexado — PDF, imagem — além de texto?
+   *
+   * É **declarado**, e não deduzido de o provedor existir, pela mesma razão
+   * do resto deste arquivo: capacidade suposta falha em silêncio. Sem isto,
+   * trocar o provedor por um que só lê texto faria o anexo ser ignorado, e a
+   * pessoa receberia campos vazios sem nada dizendo que o arquivo não foi
+   * lido — o pior tipo de defeito, porque parece resposta.
+   *
+   * Quem declara `false` faz a tela **esconder o botão de anexar**, em vez de
+   * oferecer um caminho que termina em nada. É a mesma regra do botão de
+   * entrar com a conta Google.
+   */
+  readsFiles: boolean;
 }
 
 /**
@@ -31,14 +45,32 @@ export const AI_PROVIDERS: AIProviderInfo[] = [
     name: "Google Gemini",
     envKey: "GEMINI_API_KEY",
     purpose: "Análise de atendimentos",
+    readsFiles: true,
   },
   {
     id: "claude",
     name: "Claude",
     envKey: "ANTHROPIC_API_KEY",
     purpose: "Análise e acesso à HubSpot",
+    readsFiles: true,
   },
 ];
+
+/**
+ * O provedor que está valendo lê arquivo?
+ *
+ * Sem provedor ativo a resposta é `false`, e não um erro: quem pergunta é a
+ * tela, para decidir se mostra o botão de anexar, e ela não deve tratar
+ * ausência de configuração como falha — o produto roda sem IA, e a tela de
+ * preenchimento simplesmente não oferece o que não existe.
+ */
+export function activeProviderReadsFiles(
+  env: Record<string, string | undefined>
+): boolean {
+  const { id } = resolveActiveProvider(env);
+
+  return id === null ? false : (findProvider(id)?.readsFiles ?? false);
+}
 
 export function findProvider(id: string): AIProviderInfo | undefined {
   return AI_PROVIDERS.find((provider) => provider.id === id);

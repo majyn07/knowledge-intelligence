@@ -1,3 +1,4 @@
+import type { AIAttachment } from "@/models/AIAttachment";
 import type { AIChatMessage } from "@/models/AIChatMessage";
 import type { AIChatRequest } from "@/models/AIChatRequest";
 
@@ -28,8 +29,25 @@ export interface AIProvider {
    * análise dentro do provider — o que obrigava toda operação nova a virar um
    * método novo do contrato. Com isto, o prompt fica onde é assunto do
    * produto, e o provider volta a saber só falar com o modelo.
+   *
+   * `files` entra como opção, e não como método novo, pelo mesmo motivo: um
+   * `completeWithFiles` faria o contrato crescer a cada formato de entrada, e
+   * anexar é detalhe do pedido, não outra operação.
+   *
+   * **Quem não lê arquivo declara `readsFiles: false` no catálogo, e não
+   * ignora a opção.** Ignorar produziria a pior resposta possível — o modelo
+   * respondendo sobre nada, sem erro, com o documento descartado em silêncio —
+   * e quem pediu concluiria que o arquivo não tinha a informação. Declarado,
+   * o pedido é recusado antes de sair e a tela nem oferece o anexo.
+   *
+   * O anexo chega em base64 com o tipo declarado, que é o formato que Gemini,
+   * Claude e GPT aceitam. Converter para o que o SDK espera é trabalho do
+   * arquivo do provedor, e não sobe daqui.
    */
-  complete(messages: AIChatMessage[], options?: { json?: boolean }): Promise<string>;
+  complete(
+    messages: AIChatMessage[],
+    options?: { json?: boolean; files?: AIAttachment[] }
+  ): Promise<string>;
 }
 
 /**

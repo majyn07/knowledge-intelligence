@@ -2,7 +2,8 @@
 
 O que fazer no dia em que a chave chegar. Nada aqui exige escrever código novo
 além de um arquivo, e a razão é a sprint 12: a fronteira de provider existe, e
-somar um modelo é implementar um contrato de três métodos.
+somar um modelo é implementar um contrato de três métodos e declarar o que ele
+lê.
 
 ## O que já está pronto
 
@@ -53,7 +54,7 @@ export const claudeService: AIProvider = {
 };
 ```
 
-Dentro de `complete`, três coisas não são opcionais:
+Dentro de `complete`, quatro coisas não são opcionais:
 
 - **Prazo.** `AbortSignal.timeout(AI_TIMEOUT_MS)`. Sem ele um pedido pendurado
   prende a rota até o teto da plataforma, e quem pediu fica olhando um botão
@@ -64,12 +65,28 @@ Dentro de `complete`, três coisas não são opcionais:
   classifyProviderFailure(error))`.** É o que separa "chave recusada" de "cota
   estourada" de "modelo sobrecarregado" — as três davam a mesma frase antes, e
   "tente novamente" com a chave errada é convite a tentar para sempre.
+- **`options.files`, se você declarar que lê arquivo.** O anexo chega em base64
+  com o tipo declarado — o formato que Gemini, Claude e GPT aceitam —, e
+  converter para o que o SDK espera é trabalho deste arquivo. **Ignorar a opção
+  não é opção**: o modelo responderia sobre nada, sem erro, e quem anexou
+  concluiria que o documento não tinha a informação.
 
-**2. Citar no registro.** Uma linha em `providerRegistry.ts`:
+**2. Citar no registro, e declarar o que ele lê.** Uma linha em
+`providerRegistry.ts`:
 
 ```ts
 const REGISTRY = { gemini: geminiService, claude: claudeService };
 ```
+
+E `readsFiles` no catálogo, em `providers/catalog.ts`. É o que faz a tela
+esconder o botão de anexar em vez de oferecer um caminho que termina em erro —
+mesma regra do botão de entrar com a conta Google. Um teste cobra a declaração
+de todo provedor do catálogo, justamente para que somar um obrigue a decidir.
+
+**Provedor novo além destes dois** — GPT, por exemplo — entra somando o `id` em
+`AIProviderId`, a entrada em `AI_PROVIDERS` com a variável de ambiente da chave,
+e o arquivo do serviço. Nada acima de `services/ai/server` muda: nem rota, nem
+tela, nem prompt.
 
 **3. Conferir contra a resposta real, e não contra a documentação.** É a única
 parte que não dá para adiantar. O mínimo:

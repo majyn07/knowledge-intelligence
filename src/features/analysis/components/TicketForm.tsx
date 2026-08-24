@@ -1,8 +1,9 @@
 "use client";
 
-import { FormEvent, useEffect, useState, type ReactNode } from "react";
+import { FormEvent, useEffect, useMemo, useState, type ReactNode } from "react";
 import { MessageSquarePlus, Trash2 } from "lucide-react";
 
+import { FillPanel } from "@/components/common/fill/FillPanel";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -16,6 +17,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 
 import { todayIso } from "@/lib/dates";
+import type { FieldSpec } from "@/services/ai/fill/fieldFill";
 
 import type { TicketFormData, TicketMessageFormData } from "../types/TicketFormData";
 
@@ -101,6 +103,39 @@ export function TicketForm({
     setFormData((previous) => ({ ...previous, [field]: value }));
   }
 
+  /**
+   * O que a IA pode propor a partir do documento do atendimento.
+   *
+   * **Projeto fica de fora**: é a iniciativa que o atendimento alimenta, e
+   * decidir isso é escolher onde o trabalho entra — não é informação que o
+   * documento do cliente carregue. **A conversa também**, e por razão mais
+   * forte: ela é a evidência que a análise lê, e uma conversa proposta por
+   * modelo faria a análise citar mensagem que ninguém trocou.
+   *
+   * A data pede ISO no `hint` porque o produto recusa o resto: `dd/mm/aaaa`
+   * vindo do documento vira campo vazio na leitura, e a tela diria que falta
+   * o que estava lá.
+   */
+  const fillFields: FieldSpec[] = useMemo(
+    () => [
+      { name: "title", label: "Título", kind: "texto", hint: "O assunto do atendimento." },
+      { name: "company", label: "Empresa", kind: "texto" },
+      {
+        name: "solution",
+        label: "Solução",
+        kind: "texto",
+        hint: "O que resolveu, como foi registrado.",
+      },
+      {
+        name: "date",
+        label: "Data",
+        kind: "texto",
+        hint: "Dia do atendimento, no formato aaaa-mm-dd.",
+      },
+    ],
+    []
+  );
+
   function changeMessage(id: string, patch: Partial<TicketMessageFormData>) {
     onDirty?.();
     setFormData((previous) => ({
@@ -144,6 +179,22 @@ export function TicketForm({
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
+      <FillPanel
+        subject="Atendimento de suporte técnico da AltoQi"
+        fields={fillFields}
+        current={{
+          title: formData.title,
+          company: formData.company,
+          solution: formData.solution,
+          date: formData.date,
+        }}
+        onApply={(values) => {
+          onDirty?.();
+          setFormData((previous) => ({ ...previous, ...values }));
+        }}
+        placeholder="Cole o atendimento, ou anexe o PDF/print que o cliente enviou."
+      />
+
       <Fieldset legend="Atendimento" hint="Do que o cliente precisou e em qual contexto.">
         <div className="space-y-2">
           <Label htmlFor="ticket-title">Título</Label>

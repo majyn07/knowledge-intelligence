@@ -1,12 +1,14 @@
 "use client";
 
-import { FormEvent, useState, type ReactNode } from "react";
+import { FormEvent, useMemo, useState, type ReactNode } from "react";
 
 import type { ProjectFormData } from "@/features/projects/types/ProjectFormData";
 import { productNamesFrom, UNSET_PRODUCT } from "@/features/projects/constants/products";
 import { useTaxonomy } from "@/features/taxonomy/providers/TaxonomyProvider";
 import { projectStatusLabel, type ProjectStatus } from "@/models/Project";
+import type { FieldSpec } from "@/services/ai/fill/fieldFill";
 
+import { FillPanel } from "@/components/common/fill/FillPanel";
 import { PersonSelect } from "@/features/people/components/PersonSelect";
 
 import { Button } from "@/components/ui/button";
@@ -83,8 +85,68 @@ export function ProjectForm({
     setFormData((previous) => ({ ...previous, [field]: value }));
   }
 
+  /**
+   * O que a IA pode propor neste formulário.
+   *
+   * **Responsável fica de fora, de propósito.** A atribuição guarda
+   * identificador, não nome, e o modelo só sabe devolver texto — propor ali
+   * gravaria um vínculo que não resolve para pessoa nenhuma. Ele continua
+   * aparecendo como pergunta na resposta, que é o comportamento honesto: a
+   * lacuna fica visível e quem escolhe é quem abriu o formulário.
+   *
+   * **Status também fica de fora**, por outro motivo: é decisão de fluxo, e
+   * não informação que um texto de contexto carregue. Projeto novo nasce
+   * ativo, e deduzir isso de uma frase seria inventar intenção.
+   *
+   * O produto vai com o catálogo inteiro no pedido, e a conferência acontece
+   * na volta — a mesma defesa da sugestão de seção.
+   */
+  const fillFields: FieldSpec[] = useMemo(
+    () => [
+      { name: "name", label: "Nome do projeto", kind: "texto" },
+      {
+        name: "goal",
+        label: "Objetivo",
+        kind: "texto",
+        hint: "O resultado documental perseguido, mensurável quando o texto permitir.",
+      },
+      {
+        name: "description",
+        label: "Descrição",
+        kind: "texto",
+        hint: "O que o projeto abrange.",
+      },
+      { name: "product", label: "Produto", kind: "escolha", options: productNames },
+      {
+        name: "module",
+        label: "Módulo",
+        kind: "texto",
+        hint: "O módulo do produto, quando o texto nomear um.",
+      },
+    ],
+    [productNames]
+  );
+
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
+      <FillPanel
+        subject="Projeto de melhoria da base de conhecimento"
+        fields={fillFields}
+        current={{
+          name: formData.name,
+          goal: formData.goal,
+          description: formData.description,
+          /*
+            `UNSET_PRODUCT` é ausência, e mandá-lo como valor atual faria a
+            tela avisar que a proposta substitui algo — quando ela preenche um
+            campo vazio.
+          */
+          product: formData.product === UNSET_PRODUCT ? "" : formData.product,
+          module: formData.module,
+        }}
+        onApply={(values) => setFormData((previous) => ({ ...previous, ...values }))}
+        placeholder="Ex.: precisamos atacar as dúvidas recorrentes de lançamento de vigas no Eberick; não existe artigo no portal cobrindo vigas de transição."
+      />
       <Fieldset legend="Identidade" hint="Como este projeto é reconhecido na plataforma.">
         <div className="space-y-2">
           <Label htmlFor="name">Nome do projeto</Label>

@@ -603,6 +603,36 @@ seção que o modelo inventou vira ausência, não classificação. Artigo que n
 cabe em nenhuma seção é omitido de propósito; ficar de fora é resposta
 legítima, e melhor que palpite. Nada é aplicado sem alguém deixar marcado.
 
+**A IA preenche formulário; a revisão aprova.** O cadastro era digitação, e
+quem registra um atendimento costuma ter a informação num documento que
+ninguém vai transcrever. `FillPanel` é uma peça só, em três telas — projeto,
+atendimento e artigo —, e recebe os campos de quem a monta: o formato "descreva
+e a IA propõe" é o mesmo nas três, e um painel por tela faria três prompts
+divergirem.
+
+Campo de escolha só aceita valor do catálogo que foi no pedido, conferido na
+volta como na sugestão de seção. **Substituição não vem marcada**: preencher
+campo vazio é ganho, cobrir texto que alguém escreveu é decisão, e a tela diz
+qual é qual antes do clique. O que o texto não sustenta **vira pergunta**, e é
+metade do recurso — preenchimento que chuta obriga a conferir todos os campos,
+o que custa mais que digitar todos.
+
+Identificador fica de fora: responsável, autor, seção e gênero continuam
+virando pergunta, porque a atribuição guarda id e o modelo só devolve texto.
+
+Arquivo tem dois caminhos, e a diferença é econômica antes de técnica. Texto é
+lido no navegador e segue como texto — base64 de um `.csv` custa um terço a
+mais de tokens pelo mesmo conteúdo. PDF e imagem vão ao provedor como anexo,
+porque precisam ser **vistos**: extrair texto de PDF no navegador resolveria o
+digital e falharia no escaneado, que é o que mais chega de um suporte. **O
+anexo vai e não fica** — existe durante o pedido e é descartado com a resposta.
+
+**Quem lê arquivo é declarado no catálogo (`readsFiles`), nunca suposto.**
+Provedor que não lê e ignorasse a opção produziria a pior resposta possível:
+campos vazios, sem erro, com o documento descartado em silêncio. Declarado, o
+pedido é recusado antes de sair e a tela nem oferece o anexo — mesma regra do
+botão de entrar com a conta Google.
+
 A varredura vai em **lotes de 25, em série**, com o progresso na tela. Em
 paralelo seriam vinte e quatro pedidos simultâneos e o limite de taxa do
 provedor logo em seguida. Lote que falha **não derruba o que já veio**: depois
@@ -991,7 +1021,9 @@ viraria ruído.
 Testes cobrem lógica pura, nunca componentes: motor de busca e busca
 transversal, transições de artigo e de plano, métricas por projeto e por
 período, parsing da resposta da IA, a escolha do provedor com a classificação
-das falhas dele, a leitura da sugestão de seção, o recorte na URL, a central de avisos, o levantamento, índice do artigo, critérios de publicação,
+das falhas dele, a leitura da sugestão de seção, a leitura do preenchimento de
+formulário com a seleção do que aplicar e a classificação do arquivo
+anexado, o recorte na URL, a central de avisos, o levantamento, índice do artigo, critérios de publicação,
 fronteira de armazenamento, a leitura de arquivo delimitado com o mapeamento de
 colunas e os planos de importação de artigo e de atendimento, a recuperação de texto não salvo, o cadastro
 de taxonomia com a migração da
