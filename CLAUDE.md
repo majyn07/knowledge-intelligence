@@ -806,12 +806,30 @@ A gravação é **uma** passada e **um** evento de histórico. Mil e oitocentas
 chamadas ao servidor deixariam o acervo pela metade se uma falhasse, e mil e
 oitocentas linhas iguais no histórico enterram tudo que aconteceu antes.
 
-**Limite conhecido:** no modo navegador o acervo inteiro vive no
-`localStorage`, que tem teto de poucos megabytes. Medido: 255 artigos de teste
-ocuparam 134 kB, mas artigo real do portal é HTML longo — a projeção para
-1.800 passa do teto. No modo compartilhado o dado está no banco e o teto não
-existe, mas a coleção continua inteira em memória e a busca de artigos roda no
-cliente. É a pergunta que a importação existe para responder com dado real.
+**A escala foi medida, e o acervo real cabe.** A projeção anterior dizia que
+1.800 artigos estourariam o `localStorage`; ela estava errada. Com corpos de
+HTML realistas — 1.800 artigos, 11,3 MB — a compilação de produção entrega:
+
+| | |
+| --- | --- |
+| Ler o CSV e calcular o plano de importação | 833 ms |
+| Gravar os 1.800 e mostrar | 179 ms |
+| `JSON.parse` do acervo na abertura | 11 ms |
+| Gravar o acervo inteiro no `localStorage` | 42 ms |
+| Varrer título, resumo e conteúdo de todos numa busca | 9 ms |
+
+Nada disso é gargalo, e a busca no cliente não precisa ir para o servidor.
+
+**O gargalo era render, e só ele:** a grade de cartões recebia o recorte
+inteiro enquanto a tabela paginava — 1.800 cartões, 81.163 nós no DOM. Agora as
+duas paginam, e a mesma tela fica em 1.278 nós.
+
+Medir em aba oculta não vale: o navegador estrangula o agendamento e o relógio
+marca dez segundos com **zero tarefas longas** registradas. Quando o número de
+parede discordar do tempo de CPU, é o instrumento que está errado.
+
+O teto do `localStorage` continua existindo e varia por navegador — no Safari é
+bem menor. Vale só para o modo local; no compartilhado o dado está no banco.
 
 ## Histórico
 
