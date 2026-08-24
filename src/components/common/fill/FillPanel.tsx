@@ -6,7 +6,7 @@ import { CircleHelp, Paperclip, Sparkles, TriangleAlert, X } from "lucide-react"
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { useFieldFill } from "@/hooks/useFieldFill";
+import { useFieldFill, type FillResult } from "@/hooks/useFieldFill";
 import { MAX_ATTACHMENT_BYTES, type AttachmentType } from "@/models/AIAttachment";
 import type { FieldSpec } from "@/services/ai/fill/fieldFill";
 
@@ -118,6 +118,22 @@ export function FillPanel({
     [result, labels, current]
   );
 
+  /*
+    A marcação inicial é calculada **uma vez por resposta**, e o `result` é a
+    chave disso: recalcular a cada render desfaria o que a pessoa desmarcou no
+    render anterior.
+
+    É o ajuste de estado durante o render que o React documenta, e não um
+    efeito: um `useEffect` pintaria a lista uma vez com a marcação errada
+    antes de corrigir, e a correção seria visível.
+  */
+  const [marcadoPara, setMarcadoPara] = useState<FillResult | null>(null);
+
+  if (result && marcadoPara !== result) {
+    setMarcadoPara(result);
+    setSelected(defaultSelection(revisaveis));
+  }
+
   /**
    * Recebe o arquivo escolhido e decide o caminho dele.
    *
@@ -175,17 +191,6 @@ export function FillPanel({
       source: texto.slice(0, MAX_SOURCE),
       ...(anexo ? { file: { mimeType: anexo.mimeType, data: anexo.data } } : {}),
     });
-  }
-
-  /*
-    A marcação inicial é calculada quando a lista chega, e por isso o `result`
-    é a chave: recalcular a cada render desfaria o que a pessoa desmarcou.
-  */
-  const [marcadoPara, setMarcadoPara] = useState<FillResultRef>(null);
-
-  if (result && marcadoPara !== result) {
-    setMarcadoPara(result);
-    setSelected(defaultSelection(toReviewable(result.fields, labels, current)));
   }
 
   function alternar(name: string, ligado: boolean) {
@@ -414,6 +419,3 @@ export function FillPanel({
     </section>
   );
 }
-
-/** A referência do resultado já usado para calcular a marcação inicial. */
-type FillResultRef = ReturnType<typeof useFieldFill>["result"];
