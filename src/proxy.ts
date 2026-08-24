@@ -1,28 +1,29 @@
 import { NextResponse, type NextRequest } from "next/server";
 
+import { authLandingParams } from "@/app/auth/authLanding";
+
 /**
- * Código de acesso que chegou na raiz é encaminhado para quem sabe trocá-lo.
+ * Link de acesso que chegou na raiz é encaminhado para quem sabe abri-lo.
  *
- * A Supabase manda o link do e-mail para o destino pedido pelo produto — mas
- * só quando esse destino está na lista de permitidos. Fora disso ela usa a
- * `site_url`, e o código cai em `/`, onde nada acontecia: a pessoa via a tela
- * de acesso de novo, sem uma linha explicando por quê.
+ * O que decide vive em `authLanding.ts`, e não aqui: a regra é lógica e se
+ * testa, o encaminhamento é plataforma e não se testa. Os dois formatos — o
+ * `code` do PKCE e o `token_hash` do link que abre em qualquer navegador — são
+ * resgatados, porque encaminhar um e esquecer o outro deixaria metade dos
+ * links no silêncio que este arquivo existe para impedir.
  *
- * Isso não é hipótese. Todo link já enviado carrega o destino que valia na
- * hora do envio, então e-mail antigo continua caindo aqui mesmo com a
- * configuração corrigida — e uma configuração futura errada faria o mesmo.
- *
- * Encaminhar é seguro: `/auth/callback` valida o código contra a Supabase e
- * responde com motivo na URL quando ele não presta. Aqui não se decide nada
- * sobre o código, só para onde ele vai.
+ * Encaminhar é seguro: `/auth/callback` valida contra a Supabase e responde
+ * com motivo na URL quando não presta. Aqui não se decide nada sobre o
+ * conteúdo, só para onde ele vai.
  */
 export function proxy(request: NextRequest) {
-  const code = request.nextUrl.searchParams.get("code");
+  if (request.nextUrl.pathname !== "/") return NextResponse.next();
 
-  if (request.nextUrl.pathname !== "/" || !code) return NextResponse.next();
+  const params = authLandingParams(request.nextUrl.searchParams);
+
+  if (!params) return NextResponse.next();
 
   const destino = new URL("/auth/callback", request.url);
-  destino.searchParams.set("code", code);
+  destino.search = params.toString();
 
   return NextResponse.redirect(destino);
 }
