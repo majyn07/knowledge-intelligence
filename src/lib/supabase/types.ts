@@ -153,7 +153,8 @@ export type ArticleRow = {
   /** A próxima versão, quando existe. Nulo é o normal. */
   draft: unknown;
   id: string;
-  project_id: string;
+  /** Nulo é o normal: o artigo do acervo é do hub, não de uma iniciativa. */
+  project_id: string | null;
   title: string;
   summary: string;
   content: string;

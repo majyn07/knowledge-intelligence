@@ -44,6 +44,20 @@ let writeWarned = false;
  * que permite manter os providers como estão, chamando `definir(proximo)` sem
  * saber que existe um banco atrás.
  */
+/** Quantas linhas por pedido. Cem corpos de artigo dão poucos megabytes. */
+const POR_LOTE = 100;
+
+/** Divide em pedaços, preservando a ordem. */
+function emLotes<T>(lista: T[], tamanho: number): T[][] {
+  const lotes: T[][] = [];
+
+  for (let inicio = 0; inicio < lista.length; inicio += tamanho) {
+    lotes.push(lista.slice(inicio, inicio + tamanho));
+  }
+
+  return lotes;
+}
+
 export function useSharedCollection<T>({
   key,
   table,
@@ -198,14 +212,34 @@ export function useSharedCollection<T>({
         delete: () => { in: (column: string, values: string[]) => Promise<{ error: { message: string } | null }> };
       };
 
-      if (mudados.length > 0) {
-        const { error } = await tabela.upsert(mudados.map(row));
-        if (error) toast.error(`Não foi possível gravar: ${error.message}`);
+      /*
+        Em lotes, e não tudo de uma vez.
+
+        A importação do portal grava 1.822 artigos numa tacada só — cerca de
+        vinte e quatro megabytes de corpo HTML. Um `upsert` único com isso
+        estoura o limite de tamanho do pedido, e a falha chegaria como um erro
+        genérico depois de a pessoa ter esperado a varredura inteira.
+
+        Cem por lote dá pedidos de poucos megabytes, e o `delete` vai junto
+        porque uma lista de mil e oitocentos identificadores também tem teto,
+        agora na URL.
+      */
+      for (const lote of emLotes(mudados, POR_LOTE)) {
+        const { error } = await tabela.upsert(lote.map(row));
+
+        if (error) {
+          toast.error(`Não foi possível gravar: ${error.message}`);
+          return;
+        }
       }
 
-      if (removidos.length > 0) {
-        const { error } = await tabela.delete().in("id", removidos);
-        if (error) toast.error(`Não foi possível remover: ${error.message}`);
+      for (const lote of emLotes(removidos, POR_LOTE)) {
+        const { error } = await tabela.delete().in("id", lote);
+
+        if (error) {
+          toast.error(`Não foi possível remover: ${error.message}`);
+          return;
+        }
       }
     }
 

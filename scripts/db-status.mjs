@@ -27,18 +27,55 @@ function readEnvFile(path) {
 }
 
 const env = readEnvFile(".env.local");
-const url = env.POSTGRES_URL_NON_POOLING ?? env.POSTGRES_URL;
 
-if (!url) {
+/**
+ * A conexão, lida da URL **sem** `new URL()`.
+ *
+ * Duas coisas quebraram aqui, e as duas em silêncio:
+ *
+ * - A senha do Supabase traz caractere que precisaria estar codificado, e
+ *   `new URL()` recusa a string inteira com um "Invalid URL" que não fala em
+ *   senha. Por isso a divisão é manual, e pelo **último** `@`: assim a senha
+ *   pode conter o que quiser.
+ * - `POSTGRES_HOST` aponta para o host direto, que deixou de resolver quando a
+ *   Supabase passou as conexões diretas para IPv6. Quem responde é o pooler, e
+ *   ele só existe dentro da URL.
+ */
+function conexaoDaUrl(url) {
+  const semEsquema = url.replace(/^postgres(ql)?:\/\//, "");
+  const corte = semEsquema.lastIndexOf("@");
+
+  if (corte === -1) return null;
+
+  const credencial = semEsquema.slice(0, corte);
+  const destino = semEsquema.slice(corte + 1);
+
+  const doisPontos = credencial.indexOf(":");
+  const user = doisPontos === -1 ? credencial : credencial.slice(0, doisPontos);
+  const password = doisPontos === -1 ? "" : credencial.slice(doisPontos + 1);
+
+  const [hostPorta, resto = ""] = destino.split("/");
+  const [host, porta] = hostPorta.split(":");
+
+  return {
+    host,
+    port: Number(porta || 5432),
+    user: decodeURIComponent(user),
+    password: decodeURIComponent(password),
+    database: resto.split("?")[0] || "postgres",
+    ssl: { rejectUnauthorized: false },
+  };
+}
+
+const url = env.POSTGRES_URL_NON_POOLING ?? env.POSTGRES_URL;
+const conexao = url ? conexaoDaUrl(url) : null;
+
+if (!conexao) {
   console.error("Sem conexão configurada. Rode `npx vercel env pull` antes.");
   process.exit(1);
 }
 
-const connectionString = url.includes("uselibpqcompat")
-  ? url
-  : `${url}${url.includes("?") ? "&" : "?"}uselibpqcompat=true&sslmode=require`;
-
-const client = new pg.Client({ connectionString });
+const client = new pg.Client(conexao);
 await client.connect();
 
 /*
