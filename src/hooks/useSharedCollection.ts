@@ -44,8 +44,14 @@ let writeWarned = false;
  * que permite manter os providers como estão, chamando `definir(proximo)` sem
  * saber que existe um banco atrás.
  */
-/** Quantas linhas por pedido. Cem corpos de artigo dão poucos megabytes. */
-const POR_LOTE = 100;
+/**
+ * Quantas linhas por pedido.
+ *
+ * Vinte e cinco, e o número veio de uma falha: com cem, cada pedido levava
+ * cerca de 1,3 MB de corpo de artigo, e a gravação dos 1.782 do portal morreu
+ * no quinto lote — sem erro na tela e sem nada no console.
+ */
+const POR_LOTE = 25;
 
 /** Divide em pedaços, preservando a ordem. */
 function emLotes<T>(lista: T[], tamanho: number): T[][] {
@@ -74,6 +80,9 @@ export function useSharedCollection<T>({
     O estado gravado por último. Serve para calcular a diferença sem depender
     da ordem em que o React aplica as atualizações.
   */
+  /** Verdadeiro enquanto uma gravação nossa está em curso. */
+  const gravando = useRef(false);
+
   const persisted = useRef<T[]>(fallback);
   /*
     As conversões chegam como funções novas a cada render do provider. Guardá-
@@ -156,6 +165,15 @@ export function useSharedCollection<T>({
         "postgres_changes",
         { event: "*", schema: "public", table },
         async () => {
+          /*
+            Enquanto **nós** estamos gravando, o eco da própria escrita não pode
+            reler: cada lote dispara um evento, e a releitura devolveria uma
+            visão **parcial** do banco que substituiria o estado local no meio
+            do caminho. Foi assim que uma importação de 1.782 artigos ficou com
+            440 na tela e o resto sumiu da memória.
+          */
+          if (gravando.current) return;
+
           const rows = await fetchAll();
           if (rows) {
             setItems(rows);
@@ -202,6 +220,8 @@ export function useSharedCollection<T>({
     async function sync() {
       if (!supabase) return;
 
+      gravando.current = true;
+
       /*
         `table` é uma união de nomes, então o tipo da linha esperada vira a
         interseção de todas — `never`. O gancho é genérico de propósito: quem
@@ -243,7 +263,20 @@ export function useSharedCollection<T>({
       }
     }
 
-    void sync();
+    /*
+      O `catch` existe porque `void sync()` engolia a exceção: quando um pedido
+      falhava por rede ou por tamanho, o laço morria calado e metade do acervo
+      simplesmente não chegava. Falha silenciosa é pior que falha — ninguém vai
+      atrás do que não sabe que quebrou.
+    */
+    void sync()
+      .catch((erro: unknown) => {
+        const causa = erro instanceof Error ? erro.message : "causa desconhecida";
+        toast.error(`A gravação foi interrompida: ${causa}. Tente de novo.`);
+      })
+      .finally(() => {
+        gravando.current = false;
+      });
   }, [isHydrated, items, key, remote, supabase, table]);
 
   return [items, setItems, isHydrated] as const;
