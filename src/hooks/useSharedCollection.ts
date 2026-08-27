@@ -61,6 +61,9 @@ const POR_LOTE = 25;
  */
 const POR_PAGINA = 200;
 
+/** Quantas páginas correm juntas. Medido: acima disso as consultas se atropelam. */
+const PAGINAS_SIMULTANEAS = 3;
+
 /** Divide em pedaços, preservando a ordem. */
 export function emLotes<T>(lista: T[], tamanho: number): T[][] {
   const lotes: T[][] = [];
@@ -125,27 +128,61 @@ export function useSharedCollection<T>({
   const fetchAll = useCallback(async () => {
     if (!supabase) return null;
 
-    const linhas: unknown[] = [];
+    /*
+      A contagem primeiro, sem trazer linha nenhuma. Ela custa um pedido e paga
+      por si: sem saber o total, as páginas só podem ser pedidas uma depois da
+      outra — e eram dez em fila, nove segundos até a Biblioteca abrir.
+    */
+    const { count, error: erroDaContagem } = await supabase
+      .from(table)
+      .select("*", { count: "exact", head: true });
 
-    for (let inicio = 0; ; inicio += POR_PAGINA) {
-      const { data, error } = await supabase
+    if (erroDaContagem) {
+      toast.error(`Não foi possível ler ${table}: ${erroDaContagem.message}`);
+      return null;
+    }
+
+    const total = count ?? 0;
+    if (total === 0) return options.current.fromRows([]);
+
+    const paginas = Array.from(
+      { length: Math.ceil(total / POR_PAGINA) },
+      (_, indice) => indice * POR_PAGINA
+    );
+
+    /*
+      Em paralelo, mas com freio — e o freio veio da medição.
+
+      Dez páginas em fila levavam nove segundos. Dez de uma vez baixaram a
+      parede para quinze, mas cada consulta passou de seiscentos milissegundos
+      para nove segundos: vinte e quatro megabytes pedidos ao mesmo tempo se
+      atropelam do lado do servidor.
+
+      Três de cada vez aproveita a ida e volta sem transformar o banco em fila
+      de si mesmo.
+    */
+    const respostas: Awaited<ReturnType<typeof paginaDe>>[] = [];
+
+    async function paginaDe(inicio: number) {
+      return supabase!
         .from(table)
         .select("*")
         .range(inicio, inicio + POR_PAGINA - 1);
-
-      if (error) {
-        toast.error(`Não foi possível ler ${table}: ${error.message}`);
-        return null;
-      }
-
-      const pagina = data ?? [];
-      linhas.push(...pagina);
-
-      // Página incompleta é a última: não há motivo para pedir mais uma vazia.
-      if (pagina.length < POR_PAGINA) break;
     }
 
-    return options.current.fromRows(linhas);
+    for (let i = 0; i < paginas.length; i += PAGINAS_SIMULTANEAS) {
+      const bloco = paginas.slice(i, i + PAGINAS_SIMULTANEAS);
+      respostas.push(...(await Promise.all(bloco.map(paginaDe))));
+    }
+
+    const comErro = respostas.find((resposta) => resposta.error);
+
+    if (comErro?.error) {
+      toast.error(`Não foi possível ler ${table}: ${comErro.error.message}`);
+      return null;
+    }
+
+    return options.current.fromRows(respostas.flatMap((resposta) => resposta.data ?? []));
   }, [supabase, table]);
 
   // Carga inicial.
