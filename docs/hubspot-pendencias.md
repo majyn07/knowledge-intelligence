@@ -1,5 +1,11 @@
 # HubSpot: o que está bloqueado, e de quem é cada coisa
 
+> **Atualizado em 27/08, e o quadro melhorou.** O lado do **artigo** deixou de
+> depender da HubSpot: o acervo do portal entra pelo site público, e a
+> Biblioteca já está sendo carregada com os 1.822 artigos. Sobrou **um** pedido,
+> e é o do escopo `tickets` — sem ele metade do ciclo do produto continua sem
+> entrada. Ver a seção 4.
+
 Levantado em 26 e 27/08/2026 contra a API real, com o token de app privado
 `pat-na1-…` (hub `44552714`, app `50542060`, 41 escopos).
 
@@ -230,7 +236,13 @@ atendimento não entra por API de jeito nenhum.
 
 ---
 
-## 6. O artigo não precisa da HubSpot
+## 6. O artigo não precisa da HubSpot — e isso já está funcionando
+
+> **Resultado, 27/08:** o portal foi importado inteiro. 1.825 páginas
+> visitadas, 1.822 artigos, 133 sem seção, 3 páginas sem conteúdo. A varredura
+> é incremental pelo `lastmod`, então a próxima só busca o que mudou. Nenhuma
+> chamada à API da HubSpot foi feita nesse caminho, e nada foi escrito no
+> portal.
 
 Descoberto em 27/08, depois que a API se mostrou fechada dos dois lados.
 
