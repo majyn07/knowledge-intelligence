@@ -53,6 +53,14 @@ let writeWarned = false;
  */
 const POR_LOTE = 25;
 
+/**
+ * Quantas linhas por leitura.
+ *
+ * Abaixo do teto de mil do PostgREST, e pequena o bastante para a consulta não
+ * estourar o tempo do servidor com corpos de artigo de doze mil caracteres.
+ */
+const POR_PAGINA = 200;
+
 /** Divide em pedaços, preservando a ordem. */
 export function emLotes<T>(lista: T[], tamanho: number): T[][] {
   const lotes: T[][] = [];
@@ -102,18 +110,42 @@ export function useSharedCollection<T>({
   const supabase = getSupabase();
   const remote = supabase !== null;
 
-  /** Lê tudo da tabela. Simples de propósito: as coleções são pequenas. */
+  /**
+   * Lê tudo da tabela, em páginas.
+   *
+   * Era um `select("*")` só, com o comentário de que as coleções são pequenas.
+   * Deixaram de ser: com o portal importado são mil e oitocentos artigos e
+   * vinte e quatro megabytes, e a consulta única falhava de duas formas ao
+   * mesmo tempo — estourava o tempo do servidor, e quando não estourava vinha
+   * **cortada em mil linhas**, que é o teto do PostgREST.
+   *
+   * O corte era o pior dos dois: chegava sem erro, e o tempo real substituía o
+   * acervo inteiro por essas mil.
+   */
   const fetchAll = useCallback(async () => {
     if (!supabase) return null;
 
-    const { data, error } = await supabase.from(table).select("*");
+    const linhas: unknown[] = [];
 
-    if (error) {
-      toast.error(`Não foi possível ler ${table}: ${error.message}`);
-      return null;
+    for (let inicio = 0; ; inicio += POR_PAGINA) {
+      const { data, error } = await supabase
+        .from(table)
+        .select("*")
+        .range(inicio, inicio + POR_PAGINA - 1);
+
+      if (error) {
+        toast.error(`Não foi possível ler ${table}: ${error.message}`);
+        return null;
+      }
+
+      const pagina = data ?? [];
+      linhas.push(...pagina);
+
+      // Página incompleta é a última: não há motivo para pedir mais uma vazia.
+      if (pagina.length < POR_PAGINA) break;
     }
 
-    return options.current.fromRows(data ?? []);
+    return options.current.fromRows(linhas);
   }, [supabase, table]);
 
   // Carga inicial.
