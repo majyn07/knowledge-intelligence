@@ -50,6 +50,13 @@ enquanto o mapa de cobertura media todos, e a semente tinha um artigo invisível
 por estar noutra iniciativa. Com a importação, o mesmo erro carimbaria mil e
 oitocentos artigos do portal com uma iniciativa que não os originou.
 
+Essa confusão também estava **no esquema**: `articles.project_id` nasceu
+obrigatório e com `on delete cascade`, de quando todo artigo vinha de um
+projeto. O `localStorage` não tem chave estrangeira, então ninguém notou — até
+mil oitocentos e vinte e dois artigos do portal serem recusados pelo Postgres no
+fim de uma varredura de quarenta e cinco minutos. Hoje aceita nulo, e apagar
+uma iniciativa não leva junto artigo que nunca foi dela.
+
 O projeto ativo vem do `ProjectProvider`. Nunca leia projeto de outro lugar —
 e, antes de escopar algo por ele, pergunte se aquilo é trabalho ou acervo.
 
@@ -481,6 +488,17 @@ Provider não sabe de onde o dado vem, e não deve saber.
 A escrita compara o estado anterior com o novo e manda só a diferença. O tempo
 real relê a coleção inteira em vez de aplicar o evento recebido: aplicar erra
 quando os eventos chegam fora de ordem ou quando um se perde na reconexão.
+
+**Escrita grande vai em lotes, e a falha precisa aparecer.** Uma gravação de
+mil e oitocentos registros num pedido só passa de vinte megabytes e falha — e
+falhou, deixando o acervo em quatrocentos e quarenta com cara de acervo
+inteiro. Vinte e cinco por pedido, com o erro chegando à tela: `void` numa
+promessa engole a exceção, e o laço morre calado.
+
+**E o tempo real não pode reler durante a nossa própria escrita.** Cada lote
+gravado dispara um evento, a releitura devolve uma visão **parcial** do banco,
+e ela substitui o estado local no meio do caminho — a escrita competindo
+consigo mesma. Enquanto a gravação está em curso, o eco é ignorado.
 
 Taxonomia é a exceção — são três tabelas compondo um objeto, com repositório
 próprio, porque a ordem entre elas importa: categoria entra antes de seção e

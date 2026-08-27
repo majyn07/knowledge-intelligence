@@ -54,7 +54,7 @@ let writeWarned = false;
 const POR_LOTE = 25;
 
 /** Divide em pedaços, preservando a ordem. */
-function emLotes<T>(lista: T[], tamanho: number): T[][] {
+export function emLotes<T>(lista: T[], tamanho: number): T[][] {
   const lotes: T[][] = [];
 
   for (let inicio = 0; inicio < lista.length; inicio += tamanho) {
