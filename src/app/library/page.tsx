@@ -28,6 +28,10 @@ import { LibraryTable } from "@/features/library/components/LibraryTable";
 import { LibraryViewBar } from "@/features/library/components/LibraryViewBar";
 import { BulkActions } from "@/features/library/components/BulkActions";
 import { ImportButton, ImportDialog } from "@/features/library/components/ImportDialog";
+import {
+  PortalImportButton,
+  PortalImportDialog,
+} from "@/features/library/components/PortalImportDialog";
 import { SuggestSectionDialog } from "@/features/library/components/SuggestSectionDialog";
 import { findSection } from "@/models/Taxonomy";
 import { useTaxonomy } from "@/features/taxonomy/providers/TaxonomyProvider";
@@ -46,6 +50,7 @@ import { useProject } from "@/providers/ProjectProvider";
 
 export default function LibraryPage() {
   const [importOpen, setImportOpen] = useState(false);
+  const [portalOpen, setPortalOpen] = useState(false);
   const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
   const [suggestOpen, setSuggestOpen] = useState(false);
   const { projects } = useProject();
@@ -189,6 +194,14 @@ export default function LibraryPage() {
               )}
 
               <ImportButton onClick={() => setImportOpen(true)} />
+
+              {/*
+                Duas portas, e as duas continuam valendo. O arquivo funciona sem
+                rede e serve a qualquer exportação; o portal traz o acervo
+                publicado com a seção onde cada artigo mora, e é o caminho que a
+                API da HubSpot não oferece.
+              */}
+              <PortalImportButton onClick={() => setPortalOpen(true)} />
               <Button onClick={openCreateDialog}>Novo artigo</Button>
             </div>
           }
@@ -266,6 +279,7 @@ export default function LibraryPage() {
                 numa busca leva 9ms. Era só render.
               */
               <LibraryGrid
+                searchTerm={filters.search}
                 items={table.page.items}
                 projects={projectOptions}
                 onItemEdit={openEditDialog}
@@ -347,6 +361,8 @@ export default function LibraryPage() {
         />
 
         <ImportDialog open={importOpen} onOpenChange={setImportOpen} />
+
+        <PortalImportDialog open={portalOpen} onOpenChange={setPortalOpen} />
 
         <SuggestSectionDialog
           open={suggestOpen}

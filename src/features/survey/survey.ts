@@ -1,6 +1,8 @@
 import type { KnowledgeArticle } from "@/models/KnowledgeArticle";
 import type { Ticket } from "@/models/Ticket";
-import { findSection, type Taxonomy } from "@/models/Taxonomy";
+import { findSection, sectionPath, type Taxonomy } from "@/models/Taxonomy";
+
+import { findOverlaps } from "./overlap";
 
 /**
  * O levantamento — o trabalho que este produto existe para deixar de ser manual.
@@ -26,6 +28,7 @@ export const FINDING_KINDS = [
   "parado",
   "envelhecido",
   "atendimento-sem-cobertura",
+  "sobreposicao",
 ] as const;
 
 export type FindingKind = (typeof FINDING_KINDS)[number];
@@ -278,6 +281,76 @@ export function buildSurvey(input: SurveyInput): Finding[] {
     });
   }
 
+  /*
+    Artigos que se sobrepõem dentro da mesma seção.
+
+    É o único achado que exige o acervo inteiro na mão — antes da importação do
+    portal não havia o que comparar. E é o problema clássico de uma base que
+    cresceu por anos: dois artigos ensinando a mesma coisa, cada um respondendo
+    metade, e quem procura encontra um dos dois sem saber do outro.
+
+    **O que está calculado é vocabulário em comum, e o achado diz isso.**
+    Concluir que são duplicata exige ler e comparar sentido; aqui sai o número
+    e a evidência, e quem decide é a revisão — com a IA do artigo à disposição
+    para propor, marcada como proposta.
+  */
+  const { pairs, skippedSections } = findOverlaps(articles);
+
+  if (pairs.length > INDIVIDUAL_ATE) {
+    achados.push({
+      id: "sobreposicao:lote",
+      kind: "sobreposicao",
+      origin: "calculado",
+      severity: "media",
+      action: `Revisar ${pairs.length} pares de artigos que se sobrepõem`,
+      subject: "Acervo com conteúdo repetido",
+      why:
+        `Cada par está na mesma seção e compartilha boa parte do vocabulário — ` +
+        `o mais próximo, ${Math.round(pairs[0].score * 100)}%. Dois artigos sobre o mesmo ` +
+        `assunto dividem a resposta entre si, e quem procura acha só um deles.`,
+      href: "/library",
+    });
+  } else {
+    for (const par of pairs) {
+      achados.push({
+        id: `sobreposicao:${par.a.id}:${par.b.id}`,
+        kind: "sobreposicao",
+        origin: "calculado",
+        severity: "media",
+        action: "Comparar e decidir se viram um só",
+        subject: `${par.a.title} · ${par.b.title}`,
+        why:
+          `Na mesma seção (${sectionPath(taxonomy, par.sectionId)}), com ` +
+          `${Math.round(par.score * 100)}% do vocabulário em comum` +
+          (par.shared.length ? `: ${par.shared.slice(0, 5).join(", ")}.` : "."),
+        href: `/library/${par.a.id}`,
+      });
+    }
+  }
+
+  /*
+    Seção grande demais para comparar aos pares é **anunciada**, não pulada em
+    silêncio: número parcial apresentado como completo é pior que número com
+    ressalva — a mesma regra do funil de estágios.
+  */
+  if (skippedSections.length > 0) {
+    achados.push({
+      id: "sobreposicao:nao-comparadas",
+      kind: "sobreposicao",
+      origin: "calculado",
+      severity: "baixa",
+      action: `Conferir à mão ${skippedSections.length} seção(ões) grande(s) demais para comparar`,
+      subject: "Sobreposição não medida em parte do acervo",
+      why:
+        `A comparação é aos pares e cresce ao quadrado. Estas seções passam do teto ` +
+        `e ficaram de fora da medição: ${skippedSections
+          .map((id) => sectionPath(taxonomy, id))
+          .slice(0, 3)
+          .join("; ")}.`,
+      href: "/library",
+    });
+  }
+
   return achados.sort((a, b) => severityOrder[a.severity] - severityOrder[b.severity]);
 }
 
@@ -298,4 +371,5 @@ export const findingKindLabel: Record<FindingKind, string> = {
   parado: "Parado",
   envelhecido: "Envelhecido",
   "atendimento-sem-cobertura": "Atendimento sem artigo",
+  sobreposicao: "Artigos que se sobrepõem",
 };

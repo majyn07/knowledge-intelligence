@@ -138,7 +138,7 @@ export function TicketsProvider({ children }: { children: ReactNode }) {
 
   const createTicket = useCallback(
     (data: TicketFormData) => {
-      const { ticket, conversation } = ticketService.create(data, tickets);
+      const { ticket, conversation } = ticketService.create(data, tickets, new Date());
 
       setTickets((current) => [ticket, ...current]);
       setConversations((current) => [conversation, ...current]);
@@ -162,7 +162,12 @@ export function TicketsProvider({ children }: { children: ReactNode }) {
       const current = tickets.find((ticket) => ticket.id === id);
       if (!current) return;
 
-      const { ticket, conversation } = ticketService.update(current, conversationOf(id), data);
+      const { ticket, conversation } = ticketService.update(
+        current,
+        conversationOf(id),
+        data,
+        new Date()
+      );
 
       setTickets((all) => all.map((item) => (item.id === id ? ticket : item)));
       setConversations((all) => {

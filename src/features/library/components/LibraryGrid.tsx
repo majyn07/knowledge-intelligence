@@ -1,6 +1,7 @@
 "use client";
 
 import type { KnowledgeArticle } from "@/models/KnowledgeArticle";
+import { projectLabel } from "@/features/projects/projectLabel";
 import { sectionPath, type Taxonomy } from "@/models/Taxonomy";
 import { useTaxonomy } from "@/features/taxonomy/providers/TaxonomyProvider";
 import { BrandEmptyState } from "@/components/brand/BrandEmptyState";
@@ -8,6 +9,8 @@ import { LibraryCard } from "./LibraryCard";
 
 interface LibraryGridProps {
   items: KnowledgeArticle[];
+  /** O que está sendo procurado, para o cartão mostrar onde o artigo casa. */
+  searchTerm?: string;
   projects: { id: string; name: string }[];
   onItemEdit?: (item: KnowledgeArticle) => void;
   onItemDelete?: (item: KnowledgeArticle) => void;
@@ -27,7 +30,13 @@ function groupArticles(items: KnowledgeArticle[], taxonomy: Taxonomy) {
   return [...groups.entries()].sort(([a], [b]) => a.localeCompare(b, "pt-BR"));
 }
 
-export function LibraryGrid({ items, projects, onItemEdit, onItemDelete }: LibraryGridProps) {
+export function LibraryGrid({
+  items,
+  projects,
+  searchTerm,
+  onItemEdit,
+  onItemDelete,
+}: LibraryGridProps) {
   // Antes do retorno antecipado: hook não pode ficar atrás de condição.
   const { taxonomy } = useTaxonomy();
 
@@ -58,7 +67,8 @@ export function LibraryGrid({ items, projects, onItemEdit, onItemDelete }: Libra
               <LibraryCard
                 key={item.id}
                 item={item}
-                projectName={projects.find((project) => project.id === item.projectId)?.name ?? "Projeto não encontrado"}
+                projectName={projectLabel(projects, item.projectId)}
+                searchTerm={searchTerm}
                 onEdit={onItemEdit}
                 onDelete={onItemDelete}
               />

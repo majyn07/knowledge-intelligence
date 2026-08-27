@@ -1,6 +1,10 @@
 "use client";
 
 import Link from "next/link";
+import { useMemo } from "react";
+
+import { articleText } from "../content/articleText";
+import { excerptAround } from "../content/articleExcerpt";
 import {
   BookOpen,
   Boxes,
@@ -26,6 +30,8 @@ import { RelativeDate } from "@/components/common/RelativeDate";
 interface LibraryCardProps {
   item: KnowledgeArticle;
   projectName: string;
+  /** O que está sendo procurado, para mostrar onde o artigo casa. */
+  searchTerm?: string;
   onEdit?: (item: KnowledgeArticle) => void;
   onDelete?: (item: KnowledgeArticle) => void;
 }
@@ -50,8 +56,23 @@ const genreIcon: Record<string, typeof FileText> = {
   Template: LayoutTemplate,
 };
 
-export function LibraryCard({ item, projectName, onEdit, onDelete }: LibraryCardProps) {
+export function LibraryCard({
+  item,
+  projectName,
+  searchTerm,
+  onEdit,
+  onDelete,
+}: LibraryCardProps) {
   const { taxonomy } = useTaxonomy();
+
+  /*
+    Só quando há termo: montar o texto limpo do artigo sem necessidade custaria
+    doze mil caracteres de expressão regular por cartão, em cada render.
+  */
+  const trecho = useMemo(
+    () => (searchTerm?.trim() ? excerptAround(articleText(item), searchTerm) : null),
+    [item, searchTerm]
+  );
 
   const genre = taxonomy.genres.find((entry) => entry.id === item.genreId)?.name ?? "";
   const Icon = genreIcon[genre] ?? FileText;
@@ -85,9 +106,25 @@ export function LibraryCard({ item, projectName, onEdit, onDelete }: LibraryCard
             </Link>
           </h2>
 
-          <p className="mt-2 line-clamp-3 text-sm leading-6 text-muted-foreground">
-            {item.summary || "Sem resumo."}
-          </p>
+          {/*
+            Quando a busca casou no corpo, o trecho vale mais que o resumo: é
+            ele que diz se este é o artigo certo sem precisar abrir. Sem isso a
+            lista informa que oito artigos casam e não diz por quê, e a pessoa
+            abre os oito.
+          */}
+          {trecho ? (
+            <p className="mt-2 line-clamp-3 text-sm leading-6 text-muted-foreground">
+              {trecho.before}
+              <mark className="rounded-sm bg-primary/25 px-0.5 text-foreground">
+                {trecho.match}
+              </mark>
+              {trecho.after}
+            </p>
+          ) : (
+            <p className="mt-2 line-clamp-3 text-sm leading-6 text-muted-foreground">
+              {item.summary || "Sem resumo."}
+            </p>
+          )}
         </div>
 
         <p className="flex items-center gap-2 text-sm text-muted-foreground">

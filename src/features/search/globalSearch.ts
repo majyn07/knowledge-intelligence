@@ -1,4 +1,6 @@
 import type { ActivityEvent } from "@/models/ActivityEvent";
+import { projectLabel } from "@/features/projects/projectLabel";
+import { articleText } from "@/features/library/content/articleText";
 import type { AnalysisRecord } from "@/models/KnowledgeLifecycle";
 import type { KnowledgeArticle } from "@/models/KnowledgeArticle";
 import type { PlanWorkspaceItem } from "@/features/plans/types/PlanWorkspace";
@@ -122,7 +124,7 @@ export function searchEverything(
   if (query.trim().length < 2) return [];
 
   const projectName = (id: string) =>
-    projects.find((project) => project.id === id)?.name ?? "Projeto não encontrado";
+    projectLabel(projects, id);
 
   const results: SearchResult[] = [];
 
@@ -184,7 +186,7 @@ export function searchEverything(
   }
 
   for (const article of articles) {
-    push(results, score(query, [article.title, article.summary, article.keywords.join(" "), article.tags.join(" "), sectionPath(taxonomy, article.sectionId), article.content]), {
+    push(results, score(query, [article.title, article.summary, article.keywords.join(" "), article.tags.join(" "), sectionPath(taxonomy, article.sectionId), articleText(article)]), {
       kind: "article",
       id: article.id,
       title: article.title,

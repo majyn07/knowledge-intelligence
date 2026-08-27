@@ -24,8 +24,28 @@ function normalizeMessages(data: TicketFormData): SupportConversationMessage[] {
     }));
 }
 
+/**
+ * A procedência, quando há número de origem.
+ *
+ * `importedAt` é o momento em que o vínculo foi registrado — na importação é
+ * quando o lote entrou, aqui é quando alguém digitou o número. O relógio vem
+ * de fora porque serviço que lê a hora sozinho não tem como ser testado.
+ */
+function externalSource(externalId: string, now: Date) {
+  const limpo = externalId.trim();
+  if (!limpo) return {};
+
+  return {
+    source: {
+      provider: "hubspot" as const,
+      externalId: limpo,
+      importedAt: now.toISOString(),
+    },
+  };
+}
+
 export const ticketService = {
-  create(data: TicketFormData, existing: Ticket[]) {
+  create(data: TicketFormData, existing: Ticket[], now: Date) {
     const id = nextTicketId(existing);
 
     const ticket: Ticket = {
@@ -35,6 +55,7 @@ export const ticketService = {
       solution: data.solution.trim(),
       company: data.company.trim(),
       date: data.date.trim(),
+      ...externalSource(data.externalId, now),
     };
 
     const conversation: SupportConversation = {
@@ -46,14 +67,37 @@ export const ticketService = {
     return { ticket, conversation };
   },
 
-  update(ticket: Ticket, conversation: SupportConversation | undefined, data: TicketFormData) {
+  update(
+    ticket: Ticket,
+    conversation: SupportConversation | undefined,
+    data: TicketFormData,
+    now: Date
+  ) {
+    /*
+      Número inalterado preserva o `importedAt` original: ele registra quando
+      aquele vínculo nasceu, e reescrevê-lo a cada gravação incidental apagaria
+      o fato. Só número novo — ou trocado — carimba data nova.
+    */
+    const informado = data.externalId.trim();
+    const procedencia =
+      informado && informado === ticket.source?.externalId
+        ? { source: ticket.source }
+        : externalSource(informado, now);
+
+    /*
+      Montado campo a campo em vez de espalhar o registro antigo: apagar o
+      número precisa apagar a procedência junto, e `...ticket` a traria de
+      volta por baixo.
+    */
     const updated: Ticket = {
-      ...ticket,
+      id: ticket.id,
       projectId: data.projectId,
       title: data.title.trim(),
       solution: data.solution.trim(),
       company: data.company.trim(),
       date: data.date.trim(),
+      ...(ticket.deletedAt ? { deletedAt: ticket.deletedAt } : {}),
+      ...procedencia,
     };
 
     const updatedConversation: SupportConversation = {
@@ -73,6 +117,7 @@ export const ticketService = {
       solution: ticket.solution,
       date: ticket.date,
       projectId: ticket.projectId,
+      externalId: ticket.source?.externalId ?? "",
       messages: (conversation?.messages ?? []).map((message) => ({
         id: message.id,
         author: message.author,

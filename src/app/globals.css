@@ -488,3 +488,252 @@
     scroll-behavior: auto !important;
   }
 }
+
+/*
+  O artigo que veio do portal.
+  ---------------------------------------------------------------------------
+  O conteúdo é HTML declarado, não convertido — então ele chega com a marcação
+  do portal e sem nenhuma classe nossa. Estes estilos dão a ele a tipografia da
+  ferramenta, sem tocar no conteúdo guardado.
+
+  A cor nunca vem cravada: as declarações de cor do portal são removidas antes
+  de o HTML entrar na página, porque `color: #000000` num tema escuro é texto
+  invisível. Aqui tudo herda o tema.
+*/
+.article-html {
+  color: var(--foreground);
+  font-size: 0.9375rem;
+  line-height: 1.8;
+  /*
+    A medida da linha é o que mais pesa na leitura. Sem teto, num monitor largo
+    o parágrafo atravessa a tela inteira e o olho perde o começo da linha
+    seguinte — foi o que a comparação com o portal mostrou.
+  */
+  max-width: 68ch;
+  /*
+    Centralizada, como no portal. Presa à esquerda num cartão largo, a coluna
+    de texto deixa um vazio do tamanho dela mesma do lado direito — e o olho
+    lê isso como layout quebrado, não como respiro.
+  */
+  margin-inline: auto;
+  overflow-wrap: anywhere;
+}
+
+.article-html > *:first-child { margin-top: 0; }
+.article-html > *:last-child { margin-bottom: 0; }
+
+.article-html p {
+  margin: 0 0 1.15rem;
+}
+
+.article-html h1,
+.article-html h2,
+.article-html h3,
+.article-html h4 {
+  color: var(--foreground);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  line-height: 1.35;
+  /* Mais ar acima que abaixo: o título pertence ao que vem depois dele. */
+  margin: 2.25rem 0 0.85rem;
+  /* O índice lateral aponta para cá — sem isto o título para colado no topo. */
+  scroll-margin-top: 1.5rem;
+}
+
+.article-html h1 { font-size: 1.4rem; }
+.article-html h2 { font-size: 1.2rem; }
+.article-html h3 { font-size: 1.05rem; }
+.article-html h4 { font-size: 0.95rem; }
+
+/* Linha fina sob os títulos de primeiro nível, para separar blocos longos. */
+.article-html h2 {
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 0.4rem;
+}
+
+.article-html strong { font-weight: 600; }
+
+.article-html a {
+  color: var(--primary);
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+  text-decoration-thickness: 1px;
+}
+
+.article-html a:hover {
+  text-decoration-thickness: 2px;
+}
+
+/*
+  Link que continua apontando para o portal abre noutra aba, e o seta avisa
+  disso antes do clique. O que foi resolvido para dentro do acervo não recebe
+  marca nenhuma: ali a navegação é a de sempre.
+*/
+.article-html a[target="_blank"]::after {
+  content: "↗";
+  display: inline-block;
+  font-size: 0.75em;
+  margin-left: 0.15em;
+  opacity: 0.7;
+  text-decoration: none;
+  vertical-align: super;
+}
+
+.article-html ul,
+.article-html ol {
+  margin: 0 0 1.15rem;
+  padding-left: 1.5rem;
+}
+
+.article-html ul { list-style: disc; }
+.article-html ol { list-style: decimal; }
+.article-html li { margin: 0.35rem 0; }
+.article-html li > p { margin-bottom: 0.4rem; }
+
+/*
+  O aviso do portal — "Observação:", "Importante:" — é reconhecido no texto e
+  ganha caixa. É só apresentação: o que está guardado não muda, e o parágrafo
+  que não for reconhecido continua um parágrafo comum.
+*/
+.article-html .article-callout {
+  background: color-mix(in oklab, var(--primary) 7%, transparent);
+  border-left: 3px solid var(--primary);
+  border-radius: 0 0.5rem 0.5rem 0;
+  margin: 1.25rem 0;
+  padding: 0.85rem 1rem;
+}
+
+.article-html .article-callout > strong:first-child {
+  color: var(--primary);
+}
+
+/*
+  Imagem do portal entra com largura fixa em atributo. Sem o teto, uma figura
+  de 1200px estoura a coluna e a página inteira rola para o lado. A moldura
+  existe porque muitas capturas são de tela escura do CAD e se perderiam no
+  fundo do tema.
+*/
+.article-html img {
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+  display: block;
+  height: auto;
+  margin: 1.25rem 0;
+  max-width: 100%;
+}
+
+/* Ícone no meio da frase não é figura: não ganha moldura nem quebra a linha. */
+.article-html p img,
+.article-html li img,
+.article-html strong img {
+  border: 0;
+  display: inline;
+  margin: 0 0.15em;
+  vertical-align: middle;
+}
+
+/*
+  Tabela e bloco de código podem ser mais largos que a coluna de texto: eles
+  rolam no próprio quadro em vez de empurrar a página inteira para o lado.
+*/
+.article-html table {
+  border-collapse: collapse;
+  display: block;
+  margin: 1.25rem 0;
+  max-width: 100%;
+  overflow-x: auto;
+  width: max-content;
+}
+
+.article-html th,
+.article-html td {
+  border: 1px solid var(--border);
+  padding: 0.5rem 0.75rem;
+  text-align: left;
+  vertical-align: top;
+}
+
+.article-html th {
+  background: color-mix(in oklab, var(--muted) 60%, transparent);
+  font-weight: 600;
+}
+
+.article-html blockquote {
+  border-left: 3px solid var(--border);
+  color: var(--muted-foreground);
+  margin: 1.25rem 0;
+  padding: 0.25rem 0 0.25rem 1rem;
+}
+
+.article-html code {
+  background: color-mix(in oklab, var(--muted) 70%, transparent);
+  border-radius: 0.25rem;
+  font-size: 0.85em;
+  padding: 0.1rem 0.3rem;
+}
+
+.article-html pre {
+  background: var(--foreground);
+  border-radius: 0.5rem;
+  color: var(--background);
+  font-size: 0.8rem;
+  margin: 1.25rem 0;
+  overflow-x: auto;
+  padding: 1rem;
+}
+
+.article-html pre code { background: transparent; padding: 0; }
+
+.article-html hr {
+  border: 0;
+  border-top: 1px solid var(--border);
+  margin: 1.75rem 0;
+}
+
+/*
+  O portal usa iframe para vídeo, e a limpeza o remove por segurança. A moldura
+  vazia que sobra sumiria de qualquer jeito, mas explicitar evita o buraco.
+*/
+.article-html div:empty,
+.article-html p:empty,
+.article-html span:empty { display: none; }
+
+/* O que a busca dentro do artigo encontrou. */
+.article-html mark.article-hit {
+  background: color-mix(in oklab, var(--primary) 30%, transparent);
+  border-radius: 0.2rem;
+  color: inherit;
+  padding: 0 0.1em;
+}
+
+.article-html mark.article-hit[data-atual="sim"] {
+  background: var(--primary);
+  color: var(--primary-foreground);
+}
+
+
+/*
+  A guia lateral recolhida precisa encolher a raiz, não só o vão.
+  ---------------------------------------------------------------------------
+  O componente reserva o espaço com um `div` de vão e posiciona o conteúdo por
+  cima, `fixed`. A largura recolhida ia só nesse vão — mas aqui a **raiz** da
+  guia é item flex do invólucro e carrega os 280px por conta própria. Encolher
+  o vão não movia coisa alguma: o estado virava `collapsed`, os ícones
+  apareciam, e o conteúdo continuava começando em 280px.
+
+  Medido: com esta regra o conteúdo vai de `x=280, largura=985` para
+  `x=48, largura=1217`, que é o reflow que faltava.
+
+  Fica aqui e não no componente porque `components/ui` é código de terceiro que
+  se atualiza por cima — a correção precisa sobreviver a um `shadcn add`.
+*/
+[data-slot="sidebar"][data-collapsible="icon"],
+[data-slot="sidebar"][data-collapsible="icon"] [data-slot="sidebar-gap"],
+[data-slot="sidebar"][data-collapsible="icon"] [data-slot="sidebar-container"] {
+  width: var(--sidebar-width-icon);
+}
+
+/* A transição acompanha, senão o conteúdo salta enquanto a guia desliza. */
+[data-slot="sidebar"] {
+  transition: width 200ms linear;
+}

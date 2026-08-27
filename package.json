@@ -13,7 +13,8 @@
     "typecheck": "tsc --noEmit",
     "db:limpar-demo": "node scripts/db-limpar-demo.mjs",
     "db:status": "node scripts/db-status.mjs",
-    "db:migrate": "node scripts/migrate.mjs"
+    "db:migrate": "node scripts/migrate.mjs",
+    "hubspot:conferir": "node scripts/hubspot-conferir.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.6.0",

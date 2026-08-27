@@ -1,13 +1,15 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { projectLabel } from "@/features/projects/projectLabel";
 import Link from "next/link";
 import { ArrowLeft, ExternalLink, FileSearch, Link2, Sparkles } from "lucide-react";
 
 import { ActivityTimeline } from "@/features/activities/components/ActivityTimeline";
 import { useActivity } from "@/features/activities/providers/ActivityProvider";
 import { BrandEmptyState } from "@/components/brand/BrandEmptyState";
-import { MarkdownContent } from "@/components/common/MarkdownContent";
+import { ArticleAssistant } from "./components/ArticleAssistant";
+import { ArticleReader } from "./components/ArticleReader";
 import { PageHeader } from "@/components/common/page/PageHeader";
 import { FollowButton } from "@/features/people/components/FollowButton";
 import { PageSection } from "@/components/common/page/PageSection";
@@ -107,7 +109,7 @@ export function ArticleWorkspace({ articleId }: ArticleWorkspaceProps) {
   }
 
   const projectName =
-    projects.find((project) => project.id === article.projectId)?.name ?? "Projeto não encontrado";
+    projectLabel(projects, article.projectId);
   const transitions = allowedArticleTransitions[article.status];
 
   /*
@@ -255,17 +257,24 @@ export function ArticleWorkspace({ articleId }: ArticleWorkspaceProps) {
 
       <PageSection title="Conteúdo" description="Como o artigo será lido por quem procura ajuda.">
         <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(15rem,0.28fr)]">
-          <div className="min-w-0 rounded-xl border border-border/70 bg-card p-6 sm:p-8">
-            {article.content.trim() ? (
-              <MarkdownContent content={article.content} />
-            ) : (
-              <p className="text-sm text-muted-foreground">
-                Este artigo ainda não tem conteúdo escrito. Edite para começar.
-              </p>
-            )}
-          </div>
+          {/*
+            O leitor carrega o acervo inteiro para resolver as citações entre
+            artigos: o texto do portal aponta para outros artigos do portal, e
+            quando já os temos aqui o link leva para dentro em vez de jogar
+            quem lê para fora.
+          */}
+          <ArticleReader article={article} acervo={items} />
 
-          <ArticleTableOfContents content={article.content} />
+          <div className="space-y-6 xl:sticky xl:top-6 xl:self-start">
+            <ArticleTableOfContents content={article.content} format={article.contentFormat} />
+
+            {/*
+              A IA fica ao lado do texto, e não numa tela à parte: a pergunta
+              nasce enquanto se lê, e mandar alguém para outro lugar para
+              perguntar é o mesmo que não oferecer.
+            */}
+            <ArticleAssistant article={article} />
+          </div>
         </div>
       </PageSection>
 
