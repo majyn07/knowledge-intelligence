@@ -1152,8 +1152,8 @@ viraria ruído.
 Testes cobrem lógica pura, nunca componentes: a leitura do sitemap e da página
 do portal com o plano de importação e a decisão do que revisitar, o preparo do
 HTML do artigo — âncora, cor removida, link resolvido, destaque da busca — com
-a limpeza do que executa, o trecho da busca, a sobreposição entre artigos e a
-comparação de dois, a leitura da conversa da HubSpot com a paginação que não
+a limpeza do que executa, o trecho da busca, a sobreposição entre artigos com o vocabulário que os
+compara e a duplicata de título, a comparação de dois, a leitura da conversa da HubSpot com a paginação que não
 para na página vazia, o mapeamento de mensagens do provedor, a consulta da IA
 sobre o artigo, o rótulo da iniciativa, motor de busca e busca
 transversal, transições de artigo e de plano, métricas por projeto e por
@@ -1161,7 +1161,8 @@ período, parsing da resposta da IA, a escolha do provedor com a classificação
 das falhas dele, a leitura da sugestão de seção, a leitura do preenchimento de
 formulário com a seleção do que aplicar e a classificação do arquivo
 anexado, o recorte na URL, a central de avisos, o levantamento, índice do artigo, critérios de publicação,
-fronteira de armazenamento, a leitura de arquivo delimitado com o mapeamento de
+fronteira de armazenamento com a divisão em lotes da
+gravação compartilhada, a leitura de arquivo delimitado com o mapeamento de
 colunas e os planos de importação de artigo e de atendimento, a recuperação de texto não salvo, o cadastro
 de taxonomia com a migração da
 classificação antiga, os normalizadores de artigo, plano e atendimento, o motor
