@@ -130,6 +130,23 @@ describe("decodeEntities", () => {
   it("deixa passar o que não reconhece", () => {
     expect(decodeEntities("&naoexiste;")).toBe("&naoexiste;");
   });
+
+  /*
+    O portal escreve `&amp;quot;AF-8&amp;quot;` no `meta description`: uma
+    passada devolve `&quot;`, que era o que aparecia na tela.
+  */
+  it("resolve entidade codificada duas vezes", () => {
+    expect(decodeEntities("&amp;quot;AF-8&amp;quot;")).toBe('"AF-8"');
+  });
+
+  it("resolve as letras acentuadas em nome", () => {
+    expect(decodeEntities("c&iacute;rculos e op&ccedil;&otilde;es")).toBe("círculos e opções");
+  });
+
+  /* O teto de duas passadas é deliberado: um artigo que fala sobre `&amp;` fica. */
+  it("não decodifica sem parar", () => {
+    expect(decodeEntities("&amp;amp;amp;")).toBe("&amp;");
+  });
 });
 
 describe("breadcrumbOf", () => {

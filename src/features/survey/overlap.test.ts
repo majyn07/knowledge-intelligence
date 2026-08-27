@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import type { KnowledgeArticle } from "@/models/KnowledgeArticle";
 
-import { findOverlaps, MAXIMO_POR_SECAO, similarity } from "./overlap";
+import { findDuplicates, findOverlaps, MAXIMO_POR_SECAO } from "./overlap";
 
 const artigo = (extra: Partial<KnowledgeArticle> = {}): KnowledgeArticle => ({
   id: crypto.randomUUID(),
@@ -34,27 +34,6 @@ const SOBRE_FLECHA_B =
 const SOBRE_OUTRA_COISA =
   "<p>O detalhamento de armaduras negativas em lajes nervuradas depende do " +
   "espaçamento entre nervuras e da altura da capa de concreto adotada.</p>";
-
-describe("similarity", () => {
-  it("é 1 para conjuntos idênticos", () => {
-    expect(similarity(new Set(["viga", "flecha"]), new Set(["viga", "flecha"]))).toBe(1);
-  });
-
-  it("é 0 quando não há nada em comum", () => {
-    expect(similarity(new Set(["viga"]), new Set(["laje"]))).toBe(0);
-  });
-
-  it("é 0 quando um dos lados está vazio", () => {
-    expect(similarity(new Set(), new Set(["viga"]))).toBe(0);
-  });
-
-  it("é simétrica", () => {
-    const a = new Set(["viga", "flecha", "inercia"]);
-    const b = new Set(["viga", "flecha"]);
-
-    expect(similarity(a, b)).toBe(similarity(b, a));
-  });
-});
 
 describe("findOverlaps", () => {
   it("encontra dois artigos que dizem a mesma coisa na mesma seção", () => {
@@ -141,5 +120,76 @@ describe("findOverlaps", () => {
 
   it("não acusa nada quando a seção tem um artigo só", () => {
     expect(findOverlaps([artigo({ content: SOBRE_FLECHA_A })]).pairs).toHaveLength(0);
+  });
+});
+
+describe("findDuplicates", () => {
+  /*
+    Achado no acervo real: seis títulos repetidos somando treze artigos, um
+    deles publicado três vezes com o corpo idêntico.
+  */
+  it("agrupa o mesmo título na mesma seção", () => {
+    const grupos = findDuplicates([
+      artigo({ title: "Como funciona o suporte", content: SOBRE_FLECHA_A }),
+      artigo({ title: "Como funciona o suporte", content: SOBRE_FLECHA_A }),
+    ]);
+
+    expect(grupos).toHaveLength(1);
+    expect(grupos[0].articles).toHaveLength(2);
+    expect(grupos[0].identical).toBe(true);
+  });
+
+  /* O caso pior: duas versões do mesmo artigo no ar, dizendo coisas diferentes. */
+  it("marca quando o conteúdo diverge entre as cópias", () => {
+    const grupos = findDuplicates([
+      artigo({ title: "Mesmo título", content: SOBRE_FLECHA_A }),
+      artigo({ title: "Mesmo título", content: SOBRE_OUTRA_COISA }),
+    ]);
+
+    expect(grupos[0].identical).toBe(false);
+  });
+
+  /*
+    O portal repete título genérico de propósito entre seções: "Interface" do
+    Builder e "Interface" do Eberick são artigos distintos.
+  */
+  it("não acusa título repetido em seções diferentes", () => {
+    expect(
+      findDuplicates([
+        artigo({ title: "Interface", sectionId: "sec-builder" }),
+        artigo({ title: "Interface", sectionId: "sec-eberick" }),
+      ])
+    ).toHaveLength(0);
+  });
+
+  it("ignora diferença de caixa e espaço no título", () => {
+    expect(
+      findDuplicates([
+        artigo({ title: "  Requisitos Mínimos " }),
+        artigo({ title: "requisitos mínimos" }),
+      ])
+    ).toHaveLength(1);
+  });
+
+  it("olha só o que está publicado", () => {
+    expect(
+      findDuplicates([artigo({ title: "Igual" }), artigo({ title: "Igual", status: "draft" })])
+    ).toHaveLength(0);
+  });
+
+  it("põe o grupo de mais cópias primeiro", () => {
+    const grupos = findDuplicates([
+      artigo({ title: "Duas" }),
+      artigo({ title: "Duas" }),
+      artigo({ title: "Tres" }),
+      artigo({ title: "Tres" }),
+      artigo({ title: "Tres" }),
+    ]);
+
+    expect(grupos[0].articles).toHaveLength(3);
+  });
+
+  it("não acusa título vazio", () => {
+    expect(findDuplicates([artigo({ title: "  " }), artigo({ title: "" })])).toHaveLength(0);
   });
 });

@@ -2,7 +2,7 @@ import type { KnowledgeArticle } from "@/models/KnowledgeArticle";
 import type { Ticket } from "@/models/Ticket";
 import { findSection, sectionPath, type Taxonomy } from "@/models/Taxonomy";
 
-import { findOverlaps } from "./overlap";
+import { findDuplicates, findOverlaps } from "./overlap";
 
 /**
  * O levantamento — o trabalho que este produto existe para deixar de ser manual.
@@ -29,6 +29,7 @@ export const FINDING_KINDS = [
   "envelhecido",
   "atendimento-sem-cobertura",
   "sobreposicao",
+  "duplicado",
 ] as const;
 
 export type FindingKind = (typeof FINDING_KINDS)[number];
@@ -294,6 +295,49 @@ export function buildSurvey(input: SurveyInput): Finding[] {
     e a evidência, e quem decide é a revisão — com a IA do artigo à disposição
     para propor, marcada como proposta.
   */
+  /*
+    O mesmo artigo publicado mais de uma vez.
+
+    Vem antes da sobreposição porque **não é julgamento**: mesmo título, mesma
+    seção. Não é preciso ler nada para saber que há um problema, e por isso a
+    severidade é alta enquanto a da sobreposição é média.
+  */
+  for (const grupo of findDuplicates(articles)) {
+    const quantos = grupo.articles.length;
+
+    achados.push({
+      id: `duplicado:${grupo.articles.map((article) => article.id).join(":")}`,
+      kind: "duplicado",
+      origin: "calculado",
+      severity: "alta",
+      action: `Decidir qual dos ${quantos} fica`,
+      subject: grupo.title,
+      /*
+        O `why` é texto puro: a tela o mostra como veio. Marcação de Markdown
+        aqui sairia com os asteriscos à mostra — e o grupo sem seção precisa de
+        frase própria, senão vira "com o mesmo título em ,".
+      */
+      why: (() => {
+        const caminho = sectionPath(taxonomy, grupo.sectionId);
+        const onde = caminho ? `em ${caminho}` : "e ainda sem seção";
+
+        return grupo.identical
+          ? `${quantos} artigos com o mesmo título, ${onde}, com o conteúdo idêntico ` +
+            `caractere a caractere. São cópias no ar ao mesmo tempo.`
+          : `${quantos} artigos com o mesmo título, ${onde}, e o conteúdo diverge entre ` +
+            `eles. Quem procura acha um sem saber que o outro existe e diz outra coisa.`;
+      })(),
+      /*
+        Dois vão para a comparação; três ou mais não cabem nela, e a busca pelo
+        título é o caminho honesto — a tela mostra os três lado a lado na lista.
+      */
+      href:
+        quantos === 2
+          ? `/library/comparar?a=${grupo.articles[0].id}&b=${grupo.articles[1].id}`
+          : `/library?busca=${encodeURIComponent(grupo.title)}`,
+    });
+  }
+
   const { pairs, skippedSections } = findOverlaps(articles);
 
   if (pairs.length > INDIVIDUAL_ATE) {
@@ -323,7 +367,12 @@ export function buildSurvey(input: SurveyInput): Finding[] {
           `Na mesma seção (${sectionPath(taxonomy, par.sectionId)}), com ` +
           `${Math.round(par.score * 100)}% do vocabulário em comum` +
           (par.shared.length ? `: ${par.shared.slice(0, 5).join(", ")}.` : "."),
-        href: `/library/${par.a.id}`,
+        /*
+          Leva para a comparação, e não para um dos dois: o achado é sobre o
+          par, e abrir só um deles devolve a pessoa ao trabalho de procurar o
+          outro à mão.
+        */
+        href: `/library/comparar?a=${par.a.id}&b=${par.b.id}`,
       });
     }
   }
@@ -372,4 +421,5 @@ export const findingKindLabel: Record<FindingKind, string> = {
   envelhecido: "Envelhecido",
   "atendimento-sem-cobertura": "Atendimento sem artigo",
   sobreposicao: "Artigos que se sobrepõem",
+  duplicado: "Artigo publicado mais de uma vez",
 };

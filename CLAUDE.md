@@ -353,9 +353,28 @@ funcional e de UX, nunca de integração ou de importar o domínio deles. Traduz
 princípio para o nosso ciclo.
 
 **Integração real exige autorização explícita.** Ligar rede ou credencial exige
-pedir antes. O acesso à HubSpot será mediado pela Claude, não por adapter REST
-direto — a fronteira será desenhada na sprint de Atendimentos remotos, contra a
-forma que a Claude realmente devolver.
+pedir antes.
+
+**O acesso à HubSpot é REST direto, somente leitura**, e isso reverteu a decisão
+anterior de mediá-lo pela Claude. A fronteira vive em `services/hubspot`, com
+falha tipada em cinco causas — `credencial-recusada` tem nome próprio porque o
+token é de outra pessoa e pode ser rotacionado sem aviso.
+
+**O que a credencial alcança foi medido, e é pouco.** O escopo `tickets` não
+está nela: o objeto foi procurado por sete endereços — v3, versionado, singular,
+por `objectTypeId`, registro individual — e todos devolvem 403, enquanto
+`schemas`, `contacts`, `companies` e `owners` respondem 200 no mesmo token. Não
+é rota errada: é o objeto que está fechado.
+
+Sobra a conversa, e ela é o que o arquivo não traz: a exportação da HubSpot traz
+o ticket, não o fio de mensagens. O fio se liga ao atendimento pelo
+`associatedTicketId`, que vem **pelo lado da conversa** e não exige o escopo
+ausente.
+
+O que falta e por que está registrado em `docs/hubspot-pendencias.md`, escrito
+para quem administra o app privado. **Publicar de volta na HubSpot fica para a
+sprint ProjetoAprovado** — editar aqui é trabalho interno; escrever no portal é
+publicar para o cliente.
 
 ## Fundação compartilhada
 
@@ -487,6 +506,18 @@ Knowledge Base. A Biblioteca é o espelho local dele, não um acervo paralelo, e
 a estrutura é a dele: **categoria → seção → artigo**. O portal não tem campo
 de tipo.
 
+**E o espelho se faz pelo portal público, não pela API.** Não existe API de
+Base de Conhecimento na HubSpot: o escopo `cms.knowledge_base.articles.read`
+está concedido e não tem endpoint atrás — seis caminhos candidatos devolvem
+404, não 403. Ver o escopo marcado na lista não significa que a API existe.
+
+O portal, sendo público, entrega mais do que a API entregaria: o `sitemap.xml`
+lista **1.827 artigos**, todos com `lastmod`; a página traz título, resumo,
+corpo e a trilha que dá categoria e seção. O corpo mora no campo de texto rico
+da HubSpot (`data-hs-cos-type="inline_richtext_field"`), e **não** no
+`<article>`, que envolve dezenove `div` de grade do layout — importar o
+`<article>` trazia o andaime junto com o texto.
+
 O artigo aponta para `sectionId`, e a categoria vem da seção — guardar as duas
 permitiria que divergissem. `portalArticleId` guarda a identidade no portal,
 sem a qual sincronizar criaria duplicata a cada importação.
@@ -505,8 +536,9 @@ os artigos já apontam para seções do portal, e trocar o cadastro deixaria tod
 em "Sem seção" — que é exatamente a classificação inventada que o resto deste
 documento evita. O "Responde por" da equipe lê o portal.
 
-A classificação da HubSpot entra quando os atendimentos remotos entrarem, como
-vocabulário do atendimento, e não por cima deste.
+A classificação da HubSpot entraria com os atendimentos remotos, como
+vocabulário do atendimento e não por cima deste. **Eles não entraram**: o escopo
+está ausente, e a decisão não é nossa.
 
 **Nada de classificação é fixo no código.** Categoria, seção, gênero e tipo de
 oportunidade são cadastro, editável em Configurações. A semente é a estrutura
@@ -602,6 +634,28 @@ seguinte. O vocabulário vai inteiro no pedido e a resposta escolhe dentro dele
 seção que o modelo inventou vira ausência, não classificação. Artigo que não
 cabe em nenhuma seção é omitido de propósito; ficar de fora é resposta
 legítima, e melhor que palpite. Nada é aplicado sem alguém deixar marcado.
+
+**A IA lê o artigo com quem avalia.** Com o portal importado, avaliar o acervo é
+o trabalho — e fazê-lo sozinho significa reler mil e oitocentos textos. O painel
+fica ao lado do artigo, porque a pergunta nasce enquanto se lê.
+
+O prompt separa **dois tipos de pergunta**, e a separação foi exigida pelo teste
+contra o modelo real: perguntado "resuma este artigo", ele abria com "o artigo
+não trata disso" e só então resumia. Pergunta **sobre** o artigo — resumir,
+avaliar, apontar lacuna — se responde com o texto em mãos. A recusa vale para
+pergunta **respondida pelo** artigo, onde completar com conhecimento de
+treinamento produziria uma resposta com cara de quem leu o texto, e quem avalia
+o acervo não teria como distinguir.
+
+Artigo longo vai cortado num teto, e **a tela e o modelo são avisados disso**:
+resposta baseada em meio artigo apresentada como se fosse sobre o inteiro é erro
+que ninguém percebe.
+
+**Instrução de sistema não é uma só.** O provedor Gemini pegava a primeira e
+descartava as demais em silêncio — o artigo ia no segundo bloco e o modelo
+respondia "como o artigo não foi fornecido", sem erro em lugar nenhum. Quem monta
+prompt tem motivo para separar regra de contexto: a regra é fixa e o contexto
+muda a cada registro.
 
 **A IA preenche formulário; a revisão aprova.** O cadastro era digitação, e
 quem registra um atendimento costuma ter a informação num documento que
@@ -730,9 +784,26 @@ trabalho, a outra diz por onde começar.
 `contentFormat`: o que escrevemos aqui é Markdown, o que vier do portal é
 HTML. Converter nos dois sentidos degrada a cada ida e volta — tabela com
 atributo, âncora, classe e mídia embutida não sobrevivem à viagem —, e guardar
-o formato junto é o que permite **não converter nunca**. O editor rico espera
-haver artigo real do portal na mão: escolher editor sem ver o conteúdo é
-escolher no escuro.
+o formato junto é o que permite **não converter nunca**.
+
+**Guardar o formato só serve se quem exibe consultar.** A tela renderizava tudo
+como Markdown, e o HTML do portal aparecia com as tags à mostra; pior, o
+serviço cravava `contentFormat: "markdown"` em toda gravação, então abrir e
+salvar um artigo importado convertia o registro em silêncio. Quem exibe é
+`ArticleContent`, que decide pelo formato declarado.
+
+**O editor rico edita no próprio HTML renderizado**, e é escolha deliberada
+contra editor de esquema. TipTap, ProseMirror e Slate reserializam o documento
+para o formato que entendem — estilo em atributo, classe da HubSpot e `srcset`
+não sobrevivem à ida e volta, que é exatamente a degradação que `contentFormat`
+existe para evitar. Aqui o que ninguém tocar continua idêntico ao byte, ao
+preço de usar `document.execCommand`, obsoleto na especificação e presente em
+todo navegador que importa.
+
+O que a leitura acrescenta — âncora nos títulos, caixa de aviso, link resolvido
+para dentro do acervo, cor removida para o tema não brigar — **não entra no
+editor**: são camada de apresentação, e editar sobre elas gravaria enfeite
+dentro do artigo.
 
 **O publicado continua no ar enquanto a próxima versão é preparada.** Editar
 um publicado exigia recolhê-lo para revisão, e enquanto estivesse recolhido a
@@ -765,6 +836,33 @@ pergunta e não a resposta.
 
 O título não pode ser escondido: sem ele a linha deixa de identificar o
 registro, e a tabela vira um conjunto de atributos sem sujeito.
+
+**A busca olha o corpo do artigo.** Ela lia título, resumo, seção, tags e
+palavras-chave — e com o portal importado o que se procura quase nunca está no
+título, está no meio do texto. O texto limpo de cada artigo é indexado uma vez
+por acervo, e não a cada tecla: refazer a limpeza de mil e oitocentos HTMLs por
+letra digitada seriam vinte e dois megabytes de expressão regular por toque.
+
+Quando a busca casa, o cartão mostra **o trecho com o termo destacado**. Sem
+ele a lista informa que doze artigos casam e não diz por quê, e a pessoa abre os
+doze. Acento não atrapalha em lugar nenhum: quem digita "secao" acha "seção",
+porque exigir o acento certo é fazer errar duas vezes antes de achar.
+
+**Artigos que se sobrepõem é o achado que só o acervo inteiro permite.** Dois
+artigos ensinando a mesma coisa, cada um respondendo metade, e quem procura
+encontra um dos dois sem saber do outro. A comparação é **dentro da seção** —
+mais barata e mais significativa, porque parecidos em seções diferentes
+costumam ser o mesmo assunto visto de ângulos diferentes, que é o desenho do
+portal e não defeito.
+
+O que o Levantamento calcula é **vocabulário em comum, não duplicata**: dizer
+que dois artigos cobrem o mesmo assunto exige ler e comparar sentido. Seção
+grande demais para comparar aos pares é **anunciada**, não pulada em silêncio.
+
+E apontar não resolve: o achado leva para a tela de comparação, que responde a
+pergunta de quem vai decidir — **o que este tem que aquele não tem?**. Ela não
+funde nada; unir, arquivar ou deixar como está continua sendo decisão de quem
+revisa.
 
 **Paginação, não rolagem infinita.** Com 1.800 linhas a rolagem esconde onde a
 pessoa está e impede voltar ao mesmo ponto — e página não exige biblioteca
@@ -827,6 +925,21 @@ quando não tem.
 O acervo entra por arquivo antes de entrar por integração. A HubSpot exporta
 CSV, e arquivo não pede rede, credencial nem autorização de ninguém — o que a
 API acrescenta é o *automático*, que é a segunda versão do problema.
+
+**E entra pelo portal público, que acabou sendo o caminho melhor.** Duas portas,
+e as duas continuam valendo: o arquivo serve a qualquer exportação e funciona
+sem rede; o portal traz a seção onde cada artigo mora, que o CSV não dá.
+
+A varredura é em lotes de dez, em série, com pausa entre as páginas — é o
+servidor de suporte da AltoQi do outro lado, e varrer a toda velocidade é falta
+de educação com uma máquina que atende cliente. Tem progresso na tela e botão
+de parar, e **pula o que já está em dia** comparando o `lastmod` do sitemap com
+o `updatedAt` do registro: sem isso, parar no meio e continuar depois custaria a
+varredura inteira de novo.
+
+A rota que busca as páginas confere que o destino é o portal, e mais nada. Sem
+essa conferência ela seria um proxy aberto — qualquer pedido faria o servidor
+buscar qualquer endereço, inclusive dentro da rede onde ele roda.
 
 **O mapeamento de colunas é uma tela, não uma adivinhação.** `guessMapping`
 reconhece por correspondência exata e deixa em branco o que não reconhece.
@@ -1018,7 +1131,13 @@ Vistos recentemente ficam no navegador mesmo no modo compartilhado: "onde
 **eu** estava" é sobre esta máquina, e sincronizar entre catorze pessoas
 viraria ruído.
 
-Testes cobrem lógica pura, nunca componentes: motor de busca e busca
+Testes cobrem lógica pura, nunca componentes: a leitura do sitemap e da página
+do portal com o plano de importação e a decisão do que revisitar, o preparo do
+HTML do artigo — âncora, cor removida, link resolvido, destaque da busca — com
+a limpeza do que executa, o trecho da busca, a sobreposição entre artigos e a
+comparação de dois, a leitura da conversa da HubSpot com a paginação que não
+para na página vazia, o mapeamento de mensagens do provedor, a consulta da IA
+sobre o artigo, o rótulo da iniciativa, motor de busca e busca
 transversal, transições de artigo e de plano, métricas por projeto e por
 período, parsing da resposta da IA, a escolha do provedor com a classificação
 das falhas dele, a leitura da sugestão de seção, a leitura do preenchimento de

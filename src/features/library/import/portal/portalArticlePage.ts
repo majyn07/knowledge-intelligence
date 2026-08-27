@@ -33,14 +33,42 @@ const NOMEADAS: Record<string, string> = {
   "&hellip;": "…",
   "&laquo;": "«",
   "&raquo;": "»",
+  /*
+    As letras acentuadas em nome, que o portal usa no `meta description`. Sem
+    elas o resumo aparecia como "c&iacute;rculos indicadores" na tela.
+  */
+  "&aacute;": "á", "&agrave;": "à", "&atilde;": "ã", "&acirc;": "â",
+  "&eacute;": "é", "&ecirc;": "ê", "&iacute;": "í", "&oacute;": "ó",
+  "&otilde;": "õ", "&ocirc;": "ô", "&uacute;": "ú", "&uuml;": "ü",
+  "&ccedil;": "ç",
+  "&Aacute;": "Á", "&Agrave;": "À", "&Atilde;": "Ã", "&Acirc;": "Â",
+  "&Eacute;": "É", "&Ecirc;": "Ê", "&Iacute;": "Í", "&Oacute;": "Ó",
+  "&Otilde;": "Õ", "&Ocirc;": "Ô", "&Uacute;": "Ú", "&Ccedil;": "Ç",
 };
 
-/** Título e resumo vêm de atributo de meta tag, então chegam escapados. */
-export function decodeEntities(raw: string): string {
+/** Sobrou entidade depois de uma passada? Então havia codificação em cima de codificação. */
+const TEM_ENTIDADE = /&(#x?[0-9a-f]+|[a-z]+);/i;
+
+/**
+ * Título e resumo vêm de atributo de meta tag, então chegam escapados — e às
+ * vezes **duas vezes**.
+ *
+ * O portal escreve `&amp;quot;AF-8&amp;quot;` no `meta description`: uma
+ * passada devolve `&quot;AF-8&quot;`, que é o que aparecia na tela. Duas
+ * passadas resolvem, e o teto de duas é deliberado — decodificar até parar
+ * transformaria um artigo que **fala sobre** `&amp;` no caractere solto.
+ */
+function decodeOnce(raw: string): string {
   return raw
     .replace(/&#x([0-9a-f]+);/gi, (_, hex) => String.fromCodePoint(Number.parseInt(hex, 16)))
     .replace(/&#(\d+);/g, (_, dec) => String.fromCodePoint(Number.parseInt(dec, 10)))
-    .replace(/&[a-z]+;/gi, (entidade) => NOMEADAS[entidade.toLowerCase()] ?? entidade);
+    .replace(/&[a-z]+;/gi, (entidade) => NOMEADAS[entidade] ?? NOMEADAS[entidade.toLowerCase()] ?? entidade);
+}
+
+export function decodeEntities(raw: string): string {
+  const uma = decodeOnce(raw);
+
+  return TEM_ENTIDADE.test(uma) ? decodeOnce(uma) : uma;
 }
 
 function meta(html: string, atributo: string, valor: string): string {

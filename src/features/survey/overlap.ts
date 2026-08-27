@@ -1,6 +1,7 @@
 import type { KnowledgeArticle } from "@/models/KnowledgeArticle";
 
 import { articleText } from "@/features/library/content/articleText";
+import { articleVocabulary, jaccard } from "@/features/library/content/articleTerms";
 
 /**
  * Artigos que se sobrepõem dentro da mesma seção.
@@ -17,39 +18,26 @@ import { articleText } from "@/features/library/content/articleText";
  */
 
 /**
- * Palavras que aparecem em quase todo artigo do portal.
- *
- * Sem esta lista, dois artigos quaisquer do Builder se parecem: os dois falam
- * de projeto, janela, comando e clique. O que distingue um artigo do outro é o
- * termo técnico, não o vocabulário da ferramenta.
- */
-const COMUNS = new Set([
-  "para", "com", "que", "dos", "das", "por", "uma", "nao", "como", "mais", "sem",
-  "sobre", "pode", "ser", "esta", "este", "isso", "quando", "onde", "seu", "sua",
-  "aos", "nas", "nos", "foi", "sao", "tem", "caso", "deve", "todos", "toda", "cada",
-  "altoqi", "artigo", "builder", "eberick", "visus", "plataforma", "programa",
-  "projeto", "usuario", "arquivo", "clique", "clicar", "opcao", "opcoes", "janela",
-  "comando", "desenho", "tela", "menu", "botao", "figura", "abaixo", "acima",
-  "seguir", "conforme", "atraves", "possivel", "necessario", "utilizar", "forma",
-  "apresentado", "apresentada", "exemplo", "mostrado", "selecionar", "existe",
-]);
-
-/** Abaixo disso a palavra é curta demais para distinguir assunto. */
-const TAMANHO_MINIMO = 5;
-
-/**
  * A partir de quanto de vocabulário em comum vale olhar.
  *
- * Abaixo disto o par tende a ser só dois artigos da mesma seção falando do
- * mesmo produto, que é o esperado — e um levantamento que aponta o esperado
- * deixa de ser lido.
+ * **Calibrado contra o acervo real**, com os 1.822 artigos do portal
+ * importados: 19.580 pares comparados em 129 seções, e a semelhança se
+ * distribui assim —
  *
- * **O número precisa ser calibrado contra o acervo importado**, medindo a
- * distribuição real das semelhanças por seção. Enquanto isso não acontece, ele
- * é um ponto de partida conservador: erra para menos achados, que é o lado
- * seguro de errar num levantamento.
+ * | limiar | pares |
+ * | --- | --- |
+ * | 0,34 | 330 |
+ * | 0,40 | 223 |
+ * | 0,50 | 129 |
+ * | 0,60 | 58  |
+ * | 0,70 | 31  |
+ *
+ * Meio vocabulário em comum **dentro da mesma seção** já é muito, e abaixo
+ * disso a lista enche de par esperado: dois artigos de instalação do mesmo
+ * produto se parecem por serem o que são. Um levantamento que aponta o
+ * esperado deixa de ser lido.
  */
-export const LIMIAR_DE_SOBREPOSICAO = 0.34;
+export const LIMIAR_DE_SOBREPOSICAO = 0.5;
 
 /**
  * Teto de artigos por seção comparados aos pares.
@@ -59,32 +47,6 @@ export const LIMIAR_DE_SOBREPOSICAO = 0.34;
  * a seção é **anunciada como não comparada** em vez de silenciosamente pulada.
  */
 export const MAXIMO_POR_SECAO = 120;
-
-function vocabulario(article: KnowledgeArticle): Set<string> {
-  const bruto = `${article.title} ${article.summary} ${articleText(article)}`;
-
-  const palavras = bruto
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[̀-ͯ]/g, "")
-    .split(/[^a-z0-9]+/)
-    .filter((palavra) => palavra.length >= TAMANHO_MINIMO && !COMUNS.has(palavra));
-
-  return new Set(palavras);
-}
-
-/** Quanto do vocabulário dos dois é o mesmo, de 0 a 1. */
-export function similarity(a: Set<string>, b: Set<string>): number {
-  if (a.size === 0 || b.size === 0) return 0;
-
-  let comuns = 0;
-  const menor = a.size <= b.size ? a : b;
-  const maior = menor === a ? b : a;
-
-  for (const palavra of menor) if (maior.has(palavra)) comuns += 1;
-
-  return comuns / (a.size + b.size - comuns);
-}
 
 export interface OverlapPair {
   sectionId: string;
@@ -136,11 +98,11 @@ export function findOverlaps(
       continue;
     }
 
-    const vocabularios = lista.map(vocabulario);
+    const vocabularios = lista.map(articleVocabulary);
 
     for (let i = 0; i < lista.length; i += 1) {
       for (let j = i + 1; j < lista.length; j += 1) {
-        const score = similarity(vocabularios[i], vocabularios[j]);
+        const score = jaccard(vocabularios[i], vocabularios[j]);
         if (score < limiar) continue;
 
         const shared = [...vocabularios[i]]
@@ -155,4 +117,64 @@ export function findOverlaps(
   pairs.sort((x, y) => y.score - x.score);
 
   return { pairs, skippedSections };
+}
+
+export interface DuplicateGroup {
+  /** O título que se repete, como está escrito no primeiro deles. */
+  title: string;
+  sectionId: string;
+  articles: KnowledgeArticle[];
+  /** Verdadeiro quando os corpos são iguais caractere a caractere. */
+  identical: boolean;
+}
+
+/**
+ * O mesmo artigo publicado mais de uma vez.
+ *
+ * Diferente da sobreposição, isto **não é julgamento**: mesmo título, mesma
+ * seção, corpo igual ou divergente. Não é preciso ler nada para saber que há um
+ * problema — é preciso ler para decidir qual fica.
+ *
+ * Encontrado no acervo real: seis títulos repetidos somando treze artigos, um
+ * deles publicado **três vezes** com o corpo idêntico. Corpo divergente é o
+ * caso pior — duas versões do mesmo artigo no ar, e quem procura acha uma
+ * delas sem saber que a outra existe e diz outra coisa.
+ */
+export function findDuplicates(articles: KnowledgeArticle[]): DuplicateGroup[] {
+  const porChave = new Map<string, KnowledgeArticle[]>();
+
+  for (const article of articles) {
+    if (article.status !== "published") continue;
+
+    const titulo = article.title.trim().toLowerCase();
+    if (titulo === "") continue;
+
+    /*
+      Título **e** seção: o portal repete de propósito um título genérico em
+      seções diferentes — "Interface" do Builder e "Interface" do Eberick são
+      artigos distintos, e acusá-los seria apontar o desenho como defeito.
+    */
+    const chave = `${article.sectionId}::${titulo}`;
+    const lista = porChave.get(chave) ?? [];
+    lista.push(article);
+    porChave.set(chave, lista);
+  }
+
+  const grupos: DuplicateGroup[] = [];
+
+  for (const lista of porChave.values()) {
+    if (lista.length < 2) continue;
+
+    const textos = new Set(lista.map((article) => articleText(article)));
+
+    grupos.push({
+      title: lista[0].title,
+      sectionId: lista[0].sectionId,
+      articles: lista,
+      identical: textos.size === 1,
+    });
+  }
+
+  // Mais cópias primeiro: três no ar é pior que duas.
+  return grupos.sort((a, b) => b.articles.length - a.articles.length);
 }
