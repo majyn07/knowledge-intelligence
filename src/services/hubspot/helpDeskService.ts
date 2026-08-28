@@ -316,7 +316,14 @@ export async function lerLote(
               deu. Sai do título porque `ia_produto` está atrás do 403; o que o
               título não disser fica vazio.
             */
-            produtos: produtosNoTexto(ticket.title),
+            produtos: produtosNoTexto(
+              [
+                ticket.title,
+                ...toConversationMessages(brutas, atores)
+                  .filter((mensagem) => mensagem.role === "cliente")
+                  .map((mensagem) => mensagem.body),
+              ].join(" ")
+            ),
           },
         });
       }

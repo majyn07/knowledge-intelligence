@@ -51,6 +51,18 @@ describe("produtosNoTexto", () => {
     expect(produtosNoTexto("")).toEqual([]);
   });
 
+  /*
+    Quem diz qual programa está usando é o cliente, e nem sempre no título. O
+    assunto vem genérico e o produto aparece no meio da conversa.
+  */
+  it("acha o produto na fala do cliente quando o título não diz", () => {
+    const titulo = "Não consigo abrir o projeto";
+    const fala = "Bom dia, estou usando o Eberick 2024 e ele fecha ao carregar";
+
+    expect(produtosNoTexto(titulo)).toEqual([]);
+    expect(produtosNoTexto([titulo, fala].join(" "))).toEqual(["AltoQi Eberick"]);
+  });
+
   it("não repete o produto citado duas vezes", () => {
     expect(produtosNoTexto("Builder trava, o Builder fecha sozinho")).toEqual(["AltoQi Builder"]);
   });

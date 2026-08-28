@@ -35,7 +35,8 @@ const NO_TEAM = "__none__";
  * ser responsabilizado, e era exatamente o que o produto tinha antes.
  */
 export function PeopleManager() {
-  const { people, teams, me, updateMe, deactivate } = usePeople();
+  const { people, teams, me, updateMe, updatePerson, deactivate, souAdministrador } =
+    usePeople();
   const { projects } = useProject();
   const { plans } = usePlans();
   const { items: articles } = useLibrary();
@@ -227,6 +228,10 @@ export function PeopleManager() {
                   </span>
 
                   <span className="flex shrink-0 items-center gap-2">
+                    {person.isAdmin && (
+                      <StatusBadge variant="default">Administra</StatusBadge>
+                    )}
+
                     {!person.isActive && <StatusBadge variant="default">Inativa</StatusBadge>}
 
                     {workload(person.id) > 0 && (
@@ -235,14 +240,30 @@ export function PeopleManager() {
                       </StatusBadge>
                     )}
 
-                    {person.id !== me?.id && (
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => void deactivate(person.id, !person.isActive)}
-                      >
-                        {person.isActive ? "Desativar" : "Reativar"}
-                      </Button>
+                    {/*
+                      Só quem administra mexe no perfil dos outros, e o próprio
+                      perfil se edita lá em cima. Quem não administra vê a lista
+                      inteira e nenhum botão: esconder a lista quebraria o
+                      "atribuir a" de toda tela sem proteger nada.
+                    */}
+                    {souAdministrador && person.id !== me?.id && (
+                      <>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => void updatePerson(person.id, { isAdmin: !person.isAdmin })}
+                        >
+                          {person.isAdmin ? "Tirar de administrador" : "Tornar administrador"}
+                        </Button>
+
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => void deactivate(person.id, !person.isActive)}
+                        >
+                          {person.isActive ? "Desativar" : "Reativar"}
+                        </Button>
+                      </>
                     )}
                   </span>
                 </li>
@@ -251,6 +272,12 @@ export function PeopleManager() {
           )}
 
           <p className="mt-3 text-xs text-muted-foreground">
+            {souAdministrador
+              ? "Você administra este espaço: pode editar e desativar o perfil dos outros. Isso não muda o que ninguém enxerga, porque todo mundo vê as mesmas coisas."
+              : "Cada pessoa ajusta o próprio perfil. Editar o de outra é de quem administra, e isso não muda o que ninguém enxerga."}
+          </p>
+
+          <p className="mt-2 text-xs text-muted-foreground">
             Desativar não remove: o histórico já registrou o que a pessoa fez, e
             apagar deixaria esses registros apontando para o vazio.
           </p>

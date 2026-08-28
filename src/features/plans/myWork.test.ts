@@ -19,7 +19,7 @@ const eu: Person = {
   email: "raoni.silva@altoqi.com.br",
   teamId: "team-suporte-visus",
   avatarUrl: "",
-  isActive: true,
+  isActive: true, isAdmin: false,
 };
 
 const outra: Person = { ...eu, id: "pessoa-2", name: "Outra", email: "outra@altoqi.com.br" };
