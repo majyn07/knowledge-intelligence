@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 
 import { AppShell } from "@/components/layout/AppShell";
 import { AI_PROVIDERS, resolveActiveProvider } from "@/services/ai/providers/catalog";
+import { hubspotTicketService } from "@/services/hubspot/ticketService";
 
 export const metadata: Metadata = {
   title: "Integrações",
@@ -33,8 +34,16 @@ type Integration = {
  * afirma estar conectada sem verificar é exatamente o tipo de coisa que este
  * produto não faz.
  */
-function buildIntegrations(): { integrations: Integration[]; caveat: string | null } {
+async function buildIntegrations(): Promise<{ integrations: Integration[]; caveat: string | null }> {
   const active = resolveActiveProvider(process.env);
+
+  /*
+    Pergunta à HubSpot em vez de afirmar. Um pedido, um registro, e o que
+    interessa é a resposta: enquanto o escopo `tickets` não estiver no app
+    privado, ela volta 403, e a tela mostra o motivo em vez de repetir uma
+    frase escrita há semanas. No dia da liberação o texto vira sozinho.
+  */
+  const alcance = await hubspotTicketService.alcance();
 
   const providers: Integration[] = AI_PROVIDERS.map((provider) => {
     const configured = active.configured.includes(provider.id);
@@ -76,8 +85,9 @@ function buildIntegrations(): { integrations: Integration[]; caveat: string | nu
     {
       name: "HubSpot · Atendimentos",
       purpose: "Origem dos atendimentos",
-      detail:
-        "A conversa do atendimento é lida por REST, só leitura. O objeto de ticket em si está fora do que a credencial alcança, então o cadastro vem por arquivo exportado.",
+      detail: alcance.alcanca
+        ? "A conversa e o atendimento são lidos por REST, só leitura. O cadastro por arquivo exportado continua valendo, e as duas portas casam pelo mesmo número do chamado."
+        : `A conversa do atendimento é lida por REST, só leitura. O objeto de ticket em si não: ${alcance.motivo} Até lá o cadastro vem por arquivo exportado.`,
       state: "connected",
     },
     {
@@ -109,8 +119,8 @@ const stateLabel: Record<IntegrationState, string> = {
   planned: "Planejada",
 };
 
-export default function IntegrationsPage() {
-  const { integrations, caveat } = buildIntegrations();
+export default async function IntegrationsPage() {
+  const { integrations, caveat } = await buildIntegrations();
   const ativas = integrations.filter((item) => item.state !== "planned").length;
 
   return (
