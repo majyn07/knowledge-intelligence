@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useMemo, useEffect, useState } from "react";
 import { Plus, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 
@@ -18,6 +18,8 @@ import { AnalysisPanel } from "./components/AnalysisPanel";
 import { AnalysisProgress } from "./components/AnalysisProgress";
 import { TicketDetails } from "./components/TicketDetails";
 import { TicketList } from "./components/TicketList";
+import { useTicketRecorte } from "./hooks/useTicketRecorte";
+import type { TicketCycle } from "./ticketTableView";
 import { TicketForm } from "./components/TicketForm";
 import { TicketDeleteDialog, TicketDialog } from "./components/TicketDialogs";
 import { useAnalysisContext } from "./hooks/useAnalysisContext";
@@ -67,6 +69,29 @@ export function AnalysisWorkspace() {
   const editGuard = useUnsavedGuard(() => setEditingTicketId(null));
 
   const projectTickets = ticketsOf(activeProjectId);
+
+  /*
+    Onde cada atendimento esta no ciclo. Sai de duas fontes ja em memoria: as
+    analises deste projeto e os artigos que nasceram de um atendimento. Nenhuma
+    consulta nova, como o painel.
+  */
+  const ciclo = useMemo<TicketCycle>(
+    () => ({
+      analisados: new Set(
+        analyses
+          .filter((analysis) => analysis.projectId === activeProjectId)
+          .map((analysis) => analysis.ticketId)
+      ),
+      comArtigo: new Set(
+        articles
+          .map((article) => article.source?.ticketId)
+          .filter((id): id is string => Boolean(id))
+      ),
+    }),
+    [activeProjectId, analyses, articles]
+  );
+
+  const recorte = useTicketRecorte(projectTickets, ciclo);
 
   useEffect(() => {
     setSelectedTicketId((current) => {
@@ -321,7 +346,8 @@ export function AnalysisWorkspace() {
       >
         <aside className="min-w-0 xl:sticky xl:top-6 xl:self-start">
           <TicketList
-            tickets={projectTickets}
+            recorte={recorte}
+            ciclo={ciclo}
             selectedTicketId={selectedTicketId}
             onSelectTicket={setSelectedTicketId}
             isCollapsed={isSidebarCollapsed}

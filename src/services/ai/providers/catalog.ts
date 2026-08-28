@@ -11,7 +11,14 @@
  * infraestrutura, e não decisão de produto.
  */
 
-export type AIProviderId = "gemini" | "claude";
+/**
+ * O identificador de um provedor.
+ *
+ * Texto, e não união fechada: quem manda é o catálogo abaixo, e uma união com
+ * um membro só não protege de nada enquanto obriga a inventar um provedor
+ * falso para testar a escolha entre dois.
+ */
+export type AIProviderId = string;
 
 export interface AIProviderInfo {
   id: AIProviderId;
@@ -45,13 +52,6 @@ export const AI_PROVIDERS: AIProviderInfo[] = [
     name: "Google Gemini",
     envKey: "GEMINI_API_KEY",
     purpose: "Análise de atendimentos",
-    readsFiles: true,
-  },
-  {
-    id: "claude",
-    name: "Claude",
-    envKey: "ANTHROPIC_API_KEY",
-    purpose: "Análise e acesso à HubSpot",
     readsFiles: true,
   },
 ];
@@ -109,8 +109,11 @@ export interface ActiveProvider {
  * Recebe o ambiente em vez de ler `process.env`, para poder ser testada sem
  * mexer no processo, e para a tela poder passar só o que ela sabe.
  */
-export function resolveActiveProvider(env: Record<string, string | undefined>): ActiveProvider {
-  const configured = AI_PROVIDERS.filter((provider) => {
+export function resolveActiveProvider(
+  env: Record<string, string | undefined>,
+  catalogo: AIProviderInfo[] = AI_PROVIDERS
+): ActiveProvider {
+  const configured = catalogo.filter((provider) => {
     const value = env[provider.envKey];
     return typeof value === "string" && value.trim() !== "";
   }).map((provider) => provider.id);
@@ -118,7 +121,7 @@ export function resolveActiveProvider(env: Record<string, string | undefined>): 
   const declared = (env.AI_PROVIDER ?? "").trim().toLowerCase();
 
   if (declared !== "") {
-    const known = findProvider(declared);
+    const known = catalogo.find((provider) => provider.id === declared);
 
     if (known && configured.includes(known.id)) {
       return { id: known.id, reason: "declarado", declared, configured };
@@ -130,7 +133,7 @@ export function resolveActiveProvider(env: Record<string, string | undefined>): 
   if (configured.length === 0) return { id: null, reason: "nenhum", configured };
   if (configured.length === 1) return { id: configured[0], reason: "unico", configured };
 
-  const preferido = AI_PROVIDERS.find((provider) => configured.includes(provider.id))!;
+  const preferido = catalogo.find((provider) => configured.includes(provider.id))!;
 
   return { id: preferido.id, reason: "preferencia", configured };
 }

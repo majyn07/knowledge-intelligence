@@ -61,7 +61,7 @@ export interface AIProvider {
    * o pedido é recusado antes de sair e a tela nem oferece o anexo.
    *
    * O anexo chega em base64 com o tipo declarado, que é o formato que Gemini,
-   * Claude e GPT aceitam. Converter para o que o SDK espera é trabalho do
+   * os provedores aceitam. Converter para o que o SDK espera é trabalho do
    * arquivo do provedor, e não sobe daqui.
    */
   complete(

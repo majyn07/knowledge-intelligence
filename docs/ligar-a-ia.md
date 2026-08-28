@@ -30,7 +30,7 @@ Só isto:
    **Configurada**.
 
 Com **um** provedor configurado ele é escolhido sozinho. Com **dois**, declare
-qual vale em `AI_PROVIDER` (`gemini` ou `claude`). Sem essa declaração o
+qual vale em `AI_PROVIDER` (`gemini`, ou o que for escrito). Sem essa declaração o
 produto usa a ordem escrita no catálogo e **diz na tela** que foi ela que
 escolheu, o que é aviso, não conforto.
 
@@ -38,16 +38,16 @@ Declarar um provedor sem a chave dele **não cai em outro**: quem declarou quis
 aquele, e substituir por conta própria faria um erro de digitação virar uma
 análise feita por outro modelo sem ninguém saber. A tela nomeia o problema.
 
-## Se o provedor ainda não está implementado: o caso da Claude
+## Se o provedor ainda não está implementado
 
 Três passos, e o terceiro é o único que exige atenção.
 
-**1. Escrever o arquivo.** `services/ai/server/claudeService.ts`, no molde do
+**1. Escrever o arquivo.** `services/ai/server/novoService.ts`, no molde do
 `geminiService`. O que ele precisa fazer:
 
 ```ts
-export const claudeService: AIProvider = {
-  id: "claude",
+export const novoService: AIProvider = {
+  id: "novo",
   complete,                       // fala com a API, e é só isto
   chat: (r) => complete(buildAnalysisPrompt(r)),
   analyze: (r) => complete(buildStructuredAnalysisPrompt(r), { json: true }),
@@ -59,14 +59,14 @@ Dentro de `complete`, quatro coisas não são opcionais:
 - **Prazo.** `AbortSignal.timeout(AI_TIMEOUT_MS)`. Sem ele um pedido pendurado
   prende a rota até o teto da plataforma, e quem pediu fica olhando um botão
   girar.
-- **Chave ausente vira `AIConfigurationError("claude")`**, e não uma exceção
+- **Chave ausente vira `AIConfigurationError("novo")`**, e não uma exceção
   crua do SDK.
-- **Qualquer outra falha vira `AIProviderError("claude",
+- **Qualquer outra falha vira `AIProviderError("novo",
   classifyProviderFailure(error))`.** É o que separa "chave recusada" de "cota
   estourada" de "modelo sobrecarregado": as três davam a mesma frase antes, e
   "tente novamente" com a chave errada é convite a tentar para sempre.
 - **`options.files`, se você declarar que lê arquivo.** O anexo chega em base64
-  com o tipo declarado (o formato que Gemini, Claude e GPT aceitam), e
+  com o tipo declarado (o formato que a maioria dos provedores aceita), e
   converter para o que o SDK espera é trabalho deste arquivo. **Ignorar a opção
   não é opção**: o modelo responderia sobre nada, sem erro, e quem anexou
   concluiria que o documento não tinha a informação.
@@ -75,7 +75,7 @@ Dentro de `complete`, quatro coisas não são opcionais:
 `providerRegistry.ts`:
 
 ```ts
-const REGISTRY = { gemini: geminiService, claude: claudeService };
+const REGISTRY = { gemini: geminiService, novo: novoService };
 ```
 
 E `readsFiles` no catálogo, em `providers/catalog.ts`. É o que faz a tela

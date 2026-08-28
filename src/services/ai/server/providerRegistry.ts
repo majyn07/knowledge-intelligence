@@ -12,9 +12,9 @@ import { geminiService } from "./geminiService";
  * conhece SDK, nome de modelo ou formato de mensagem: a rota pede análise, e
  * quem responde é quem estiver valendo.
  *
- * A Claude ainda não está aqui **de propósito**: ela entra escrita contra a
- * resposta real da API, e não contra o que a documentação promete. Ligar rede
- * ou credencial exige autorização antes, e a autorização não saiu.
+ * Hoje o catálogo tem um provedor só. Um segundo entra escrito contra a
+ * resposta real da API, e não contra o que a documentação promete: ligar rede
+ * ou credencial exige autorização antes.
  */
 const REGISTRY: Partial<Record<AIProviderId, AIProvider>> = {
   gemini: geminiService,
@@ -35,10 +35,9 @@ export function activeProvider(): AIProvider {
   const provider = REGISTRY[resolved.id];
 
   /*
-    Chave configurada para um provedor que o produto ainda não implementa,
-    hoje, a Claude. Não caímos no outro: quem pôs a chave quis aquele, e
-    responder com outro modelo em silêncio seria trocar o autor da análise sem
-    ninguém saber.
+    Chave configurada para um provedor que o produto ainda não implementa.
+    Não caímos no outro: quem pôs a chave quis aquele, e responder com outro
+    modelo em silêncio seria trocar o autor da análise sem ninguém saber.
   */
   if (!provider) throw new AIConfigurationError(resolved.id);
 

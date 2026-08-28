@@ -234,6 +234,48 @@ describe("atendimento sem artigo", () => {
       "atendimento-sem-cobertura"
     );
   });
+
+  /*
+    Uma linha por atendimento é o mesmo defeito que a seção teve: com mil
+    atendimentos, a lista do suporte inteiro afogaria os três que alguém
+    resolveria hoje. E agrupado o achado passa a dizer o que o produto existe
+    para dizer: quantos perguntaram a mesma coisa.
+  */
+  it("junta os que perguntam a mesma coisa numa linha só", () => {
+    const achados = survey(
+      [artigo({})],
+      [
+        atendimento({
+          id: "t1",
+          title: "Flecha excessiva em viga contínua",
+          solution: "Ajustada a inércia fissurada da seção.",
+        }),
+        atendimento({
+          id: "t2",
+          title: "Viga contínua com flecha acima do limite",
+          solution: "Conferida a inércia fissurada da seção.",
+        }),
+      ]
+    );
+
+    const doAtendimento = achados.filter((f) => f.kind === "atendimento-sem-cobertura");
+
+    expect(doAtendimento).toHaveLength(1);
+    expect(doAtendimento[0].action).toContain("2");
+    expect(doAtendimento[0].why).toContain("2 atendimentos");
+  });
+
+  it("não volta a cobrar o que alguém já analisou", () => {
+    const achados = buildSurvey({
+      articles: [artigo({})],
+      tickets: [atendimento({})],
+      taxonomy,
+      now,
+      analisados: new Set(["t1"]),
+    });
+
+    expect(kinds(achados)).not.toContain("atendimento-sem-cobertura");
+  });
 });
 
 describe("a lista inteira", () => {

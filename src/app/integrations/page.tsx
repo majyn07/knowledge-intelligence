@@ -54,7 +54,7 @@ async function buildIntegrations(): Promise<{ integrations: Integration[]; cavea
         name: provider.name,
         purpose: provider.purpose,
         detail:
-          "É quem lê o atendimento e propõe oportunidades para a revisão humana. A chave está configurada neste ambiente.",
+          "Faz a análise dos atendimentos. Chave configurada aqui.",
         state: "active",
       };
     }
@@ -64,7 +64,7 @@ async function buildIntegrations(): Promise<{ integrations: Integration[]; cavea
         name: provider.name,
         purpose: provider.purpose,
         detail:
-          "Chave configurada, mas não é o provedor em uso. Declare `AI_PROVIDER` para trocar.",
+          "Tem chave, mas não é o que está em uso. Declare `AI_PROVIDER` para trocar.",
         state: "connected",
       };
     }
@@ -72,10 +72,7 @@ async function buildIntegrations(): Promise<{ integrations: Integration[]; cavea
     return {
       name: provider.name,
       purpose: provider.purpose,
-      detail:
-        provider.id === "claude"
-          ? "Entra como segundo provedor de análise, ao lado do Gemini. Falta a credencial."
-          : "Sem chave configurada neste ambiente.",
+      detail: "Sem chave neste ambiente.",
       state: "planned",
     };
   });
@@ -86,15 +83,15 @@ async function buildIntegrations(): Promise<{ integrations: Integration[]; cavea
       name: "HubSpot · Atendimentos",
       purpose: "Origem dos atendimentos",
       detail: alcance.alcanca
-        ? "A conversa e o atendimento são lidos por REST, só leitura. O cadastro por arquivo exportado continua valendo, e as duas portas casam pelo mesmo número do chamado."
-        : `A conversa do atendimento é lida por REST, só leitura. O objeto de ticket em si não: ${alcance.motivo} Até lá o cadastro vem por arquivo exportado.`,
+        ? "Conversa e atendimento vindos por REST, só leitura. A importação por arquivo continua valendo, e as duas casam pelo número do chamado."
+        : `Só a conversa vem por REST. O ticket em si não: ${alcance.motivo} Enquanto isso, o cadastro entra por arquivo.`,
       state: "connected",
     },
     {
       name: "HubSpot · Base de Conhecimento",
       purpose: "Espelho do portal publicado",
       detail:
-        "O suporte.altoqi.com.br é a base publicada, e a Biblioteca espelha os 1.822 artigos dele. Não há API: a leitura é do portal público, e cada artigo guarda a identidade de lá para que reimportar atualize em vez de duplicar.",
+        "A Biblioteca espelha os 1.822 artigos do suporte.altoqi.com.br. Não há API para a base de conhecimento, então a leitura é do portal público. Cada artigo guarda o id de lá, então reimportar atualiza em vez de duplicar.",
       state: "connected",
     },
   ];
@@ -134,8 +131,8 @@ export default async function IntegrationsPage() {
 
             <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
               {ativas === 0
-                ? "Nenhuma integração ativa. Todo dado nesta instalação foi cadastrado por alguém."
-                : `${ativas} de ${integrations.length} conectadas. O restante ainda não existe, e nada nesta tela finge o contrário.`}
+                ? "Nenhuma integração ativa. Tudo aqui foi cadastrado à mão."
+                : `${ativas} de ${integrations.length} conectadas.`}
             </p>
           </div>
         </header>
@@ -182,8 +179,7 @@ export default async function IntegrationsPage() {
         </ul>
 
         <p className="max-w-3xl text-sm text-muted-foreground">
-          Ligar qualquer uma delas envolve rede e credencial, e não acontece sem
-          autorização explícita de quem conduz o projeto.
+          Ligar qualquer uma envolve rede e credencial, e depende de autorização.
         </p>
       </div>
     </AppShell>
