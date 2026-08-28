@@ -59,8 +59,13 @@ contratado na conta. Quem administra o app consegue distinguir; de fora não dá
 **O que isso impede:** trazer assunto, empresa, data e solução do atendimento.
 Hoje o número do chamado é alcançável (ver 1.3), mas o registro dele não.
 
-**O pedido é uma coisa só: o escopo `tickets` de leitura.** Tudo o mais que a
-integração precisa já está alcançável, e isso foi medido no item 1.4.
+**O pedido tem dois itens:**
+
+1. **O escopo `tickets` de leitura.** Tudo o mais que a integração precisa já
+   está alcançável, e isso foi medido no item 1.4.
+2. **Uma assinatura de webhook** para `conversation.creation`, apontando para o
+   endereço do produto. Não exige escopo do nosso lado, só configuração no app
+   privado, e vale três vezes menos requisição que a alternativa (ver 2.6).
 
 ### 1.4 O que **funciona** em volta do ticket, medido em 28/08
 
@@ -321,6 +326,42 @@ bloqueado. O que ele traz pronto é assunto (no e-mail), diálogo, datas e quem
 falou o quê. O que ele não traz é a solução com campo próprio, que teria de sair
 das respostas do suporte, e a empresa, que depende da cadeia contato → empresa
 e é decisão de produto por ser dado pessoal de cliente.
+
+---
+
+### 2.6 O custo de manter atualizado, medido em 28/08
+
+Decidido adiar para a fase de finalização. Os números ficam aqui para ninguém
+precisar medir de novo.
+
+**Cada atendimento custa cinco requisições:** mensagens, atores, associação do
+chamado, associação do contato e leitura do contato. A listagem custa uma a
+cada cem conversas.
+
+Base: 10.978 conversas em três meses da caixa do suporte, ou seja ~122 por dia,
+e uma em cada três vira atendimento (as outras são fluxo de robô, marketing, ou
+não tiveram resposta de gente).
+
+| | de hora em hora | por webhook |
+| --- | --- | --- |
+| listar | 1 por hora | **zero** |
+| ler | 35 a 85 por hora útil | 5 por atendimento novo |
+| por dia | ~700 | ~200 |
+| **por mês** | **~21.000** | **~6.000** |
+| atraso até aparecer aqui | até uma hora | imediato |
+
+E a carga histórica completa, para referência: três meses são 10.969
+atendimentos, ~55 mil requisições, cerca de duas horas com a pausa de 120 ms.
+
+**O webhook é três vezes mais barato e imediato, e depende de quem administra.**
+`GET /webhooks/v3/{app}/subscriptions` é 403, mas isso é só a API que
+**gerencia** assinaturas: webhook configurado à mão no app privado funciona sem
+escopo nenhum do nosso lado, porque quem chama é a HubSpot.
+
+O desenho pretendido é os dois: webhook como caminho normal, e uma varredura
+diária como rede para o que ele perder na reconexão. A rota que recebe o
+webhook é quase a mesma coisa que já existe, ela recebe o identificador da
+conversa e chama a leitura com um item só.
 
 ---
 
