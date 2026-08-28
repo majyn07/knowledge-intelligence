@@ -14,8 +14,10 @@ const conversationSchema = z.object({
   messages: z.array(z.object({
     id: z.string().min(1),
     author: z.string(),
+    role: z.enum(["cliente", "suporte", "automacao", "sistema"]),
     body: z.string(),
     createdAt: z.string(),
+    channel: z.string().optional(),
   }).strict()),
   source: z.object({
     provider: z.literal("hubspot"),

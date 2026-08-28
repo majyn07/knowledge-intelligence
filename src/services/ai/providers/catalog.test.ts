@@ -29,14 +29,29 @@ describe("resolveActiveProvider", () => {
     expect(resolveActiveProvider({ GEMINI_API_KEY: "   " }).id).toBeNull();
   });
 
-  it("a declaração vence a ordem do catálogo", () => {
-    const resultado = resolveActiveProvider({
-      GEMINI_API_KEY: "abc",
-      ANTHROPIC_API_KEY: "def",
-      AI_PROVIDER: "claude",
-    });
+  /*
+    O catálogo tem um provedor só hoje, e a escolha entre dois continua sendo
+    regra viva: entra um catálogo de teste, como o ambiente já entra, em vez de
+    inventar um segundo provedor no código que roda.
+  */
+  const doisProvedores = [
+    ...AI_PROVIDERS,
+    {
+      id: "outro",
+      name: "Outro",
+      envKey: "OUTRO_API_KEY",
+      purpose: "Análise de atendimentos",
+      readsFiles: false,
+    },
+  ];
 
-    expect(resultado.id).toBe("claude");
+  it("a declaração vence a ordem do catálogo", () => {
+    const resultado = resolveActiveProvider(
+      { GEMINI_API_KEY: "abc", OUTRO_API_KEY: "def", AI_PROVIDER: "outro" },
+      doisProvedores
+    );
+
+    expect(resultado.id).toBe("outro");
     expect(resultado.reason).toBe("declarado");
   });
 
@@ -45,14 +60,14 @@ describe("resolveActiveProvider", () => {
       Escolher em silêncio entre dois seria apresentar como decisão o que foi
       acaso. A razão sai junto para a tela poder contar.
     */
-    const resultado = resolveActiveProvider({
-      GEMINI_API_KEY: "abc",
-      ANTHROPIC_API_KEY: "def",
-    });
+    const resultado = resolveActiveProvider(
+      { GEMINI_API_KEY: "abc", OUTRO_API_KEY: "def" },
+      doisProvedores
+    );
 
     expect(resultado.id).toBe("gemini");
     expect(resultado.reason).toBe("preferencia");
-    expect(resultado.configured).toEqual(["gemini", "claude"]);
+    expect(resultado.configured).toEqual(["gemini", "outro"]);
   });
 
   it("declarar um provedor sem chave não cai em outro", () => {
@@ -62,12 +77,12 @@ describe("resolveActiveProvider", () => {
     */
     const resultado = resolveActiveProvider({
       GEMINI_API_KEY: "abc",
-      AI_PROVIDER: "claude",
+      AI_PROVIDER: "outro",
     });
 
     expect(resultado.id).toBeNull();
     expect(resultado.reason).toBe("declarado-sem-chave");
-    expect(resultado.declared).toBe("claude");
+    expect(resultado.declared).toBe("outro");
   });
 
   it("provedor desconhecido é tratado como declarado sem chave", () => {
@@ -106,7 +121,7 @@ describe("activeProviderReadsFiles", () => {
       que o anexo funciona apoiado em quem não vai atender o pedido.
     */
     expect(
-      activeProviderReadsFiles({ GEMINI_API_KEY: "abc", AI_PROVIDER: "claude" })
+      activeProviderReadsFiles({ GEMINI_API_KEY: "abc", AI_PROVIDER: "outro" })
     ).toBe(false);
   });
 

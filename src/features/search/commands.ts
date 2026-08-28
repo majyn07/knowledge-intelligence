@@ -27,7 +27,7 @@ export const commands: Command[] = [
   { id: "go-indicators", label: "Ir para Métricas", keywords: "metricas indicadores numeros", href: "/indicators" },
   { id: "go-plans", label: "Ir para Plano de Melhorias", keywords: "planos melhoria", href: "/improvement-plan" },
   { id: "go-activities", label: "Ir para Atividades", keywords: "atividades historico log eventos", href: "/activities" },
-  { id: "go-integrations", label: "Ir para Integrações", keywords: "integracoes hubspot claude gemini", href: "/integrations" },
+  { id: "go-integrations", label: "Ir para Integrações", keywords: "integracoes hubspot gemini ia", href: "/integrations" },
   { id: "go-settings", label: "Ir para Configurações", keywords: "configuracoes ajustes taxonomia equipes aparencia tema", href: "/settings" },
 ];
 

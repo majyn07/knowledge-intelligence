@@ -1,4 +1,5 @@
 import { articleStatusLabel, type KnowledgeArticle } from "@/models/KnowledgeArticle";
+import { paginate, type Page } from "@/lib/pagination";
 import { sectionPath, type Taxonomy } from "@/models/Taxonomy";
 
 /**
@@ -124,33 +125,6 @@ export function sortArticles(
   });
 }
 
-export interface Page<T> {
-  items: T[];
-  page: number;
-  pages: number;
-  total: number;
-}
 
-/**
- * Uma página da lista.
- *
- * Página e não rolagem infinita: com 1.800 linhas a rolagem esconde onde a
- * pessoa está e impede voltar ao mesmo ponto. E página não exige biblioteca
- * nova no projeto, virtualizar exigiria.
- *
- * Página fora do intervalo é corrigida em vez de devolver vazio: filtrar
- * enquanto se está na página 7 deixaria a tela em branco com registros logo
- * ali.
- */
-export function paginate<T>(items: T[], page: number, size: number): Page<T> {
-  const pages = Math.max(1, Math.ceil(items.length / size));
-  const current = Math.min(Math.max(1, page), pages);
-  const start = (current - 1) * size;
-
-  return {
-    items: items.slice(start, start + size),
-    page: current,
-    pages,
-    total: items.length,
-  };
-}
+/* A paginação é genérica e agora serve às duas listas. */
+export { paginate, type Page };

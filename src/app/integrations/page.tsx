@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 
 import { AppShell } from "@/components/layout/AppShell";
 import { AI_PROVIDERS, resolveActiveProvider } from "@/services/ai/providers/catalog";
+import { hubspotTicketService } from "@/services/hubspot/ticketService";
 
 export const metadata: Metadata = {
   title: "Integrações",
@@ -33,8 +34,16 @@ type Integration = {
  * afirma estar conectada sem verificar é exatamente o tipo de coisa que este
  * produto não faz.
  */
-function buildIntegrations(): { integrations: Integration[]; caveat: string | null } {
+async function buildIntegrations(): Promise<{ integrations: Integration[]; caveat: string | null }> {
   const active = resolveActiveProvider(process.env);
+
+  /*
+    Pergunta à HubSpot em vez de afirmar. Um pedido, um registro, e o que
+    interessa é a resposta: enquanto o escopo `tickets` não estiver no app
+    privado, ela volta 403, e a tela mostra o motivo em vez de repetir uma
+    frase escrita há semanas. No dia da liberação o texto vira sozinho.
+  */
+  const alcance = await hubspotTicketService.alcance();
 
   const providers: Integration[] = AI_PROVIDERS.map((provider) => {
     const configured = active.configured.includes(provider.id);
@@ -45,7 +54,7 @@ function buildIntegrations(): { integrations: Integration[]; caveat: string | nu
         name: provider.name,
         purpose: provider.purpose,
         detail:
-          "É quem lê o atendimento e propõe oportunidades para a revisão humana. A chave está configurada neste ambiente.",
+          "Faz a análise dos atendimentos. Chave configurada aqui.",
         state: "active",
       };
     }
@@ -55,7 +64,7 @@ function buildIntegrations(): { integrations: Integration[]; caveat: string | nu
         name: provider.name,
         purpose: provider.purpose,
         detail:
-          "Chave configurada, mas não é o provedor em uso. Declare `AI_PROVIDER` para trocar.",
+          "Tem chave, mas não é o que está em uso. Declare `AI_PROVIDER` para trocar.",
         state: "connected",
       };
     }
@@ -63,10 +72,7 @@ function buildIntegrations(): { integrations: Integration[]; caveat: string | nu
     return {
       name: provider.name,
       purpose: provider.purpose,
-      detail:
-        provider.id === "claude"
-          ? "Entra como segundo provedor de análise, ao lado do Gemini. Falta a credencial."
-          : "Sem chave configurada neste ambiente.",
+      detail: "Sem chave neste ambiente.",
       state: "planned",
     };
   });
@@ -76,15 +82,16 @@ function buildIntegrations(): { integrations: Integration[]; caveat: string | nu
     {
       name: "HubSpot · Atendimentos",
       purpose: "Origem dos atendimentos",
-      detail:
-        "A conversa do atendimento é lida por REST, só leitura. O objeto de ticket em si está fora do que a credencial alcança, então o cadastro vem por arquivo exportado.",
+      detail: alcance.alcanca
+        ? "Conversa e atendimento vindos por REST, só leitura. A importação por arquivo continua valendo, e as duas casam pelo número do chamado."
+        : `Só a conversa vem por REST. O ticket em si não: ${alcance.motivo} Enquanto isso, o cadastro entra por arquivo.`,
       state: "connected",
     },
     {
       name: "HubSpot · Base de Conhecimento",
       purpose: "Espelho do portal publicado",
       detail:
-        "O suporte.altoqi.com.br é a base publicada, e a Biblioteca espelha os 1.822 artigos dele. Não há API: a leitura é do portal público, e cada artigo guarda a identidade de lá para que reimportar atualize em vez de duplicar.",
+        "A Biblioteca espelha os 1.822 artigos do suporte.altoqi.com.br. Não há API para a base de conhecimento, então a leitura é do portal público. Cada artigo guarda o id de lá, então reimportar atualiza em vez de duplicar.",
       state: "connected",
     },
   ];
@@ -109,8 +116,8 @@ const stateLabel: Record<IntegrationState, string> = {
   planned: "Planejada",
 };
 
-export default function IntegrationsPage() {
-  const { integrations, caveat } = buildIntegrations();
+export default async function IntegrationsPage() {
+  const { integrations, caveat } = await buildIntegrations();
   const ativas = integrations.filter((item) => item.state !== "planned").length;
 
   return (
@@ -124,8 +131,8 @@ export default function IntegrationsPage() {
 
             <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
               {ativas === 0
-                ? "Nenhuma integração ativa. Todo dado nesta instalação foi cadastrado por alguém."
-                : `${ativas} de ${integrations.length} conectadas. O restante ainda não existe, e nada nesta tela finge o contrário.`}
+                ? "Nenhuma integração ativa. Tudo aqui foi cadastrado à mão."
+                : `${ativas} de ${integrations.length} conectadas.`}
             </p>
           </div>
         </header>
@@ -172,8 +179,7 @@ export default function IntegrationsPage() {
         </ul>
 
         <p className="max-w-3xl text-sm text-muted-foreground">
-          Ligar qualquer uma delas envolve rede e credencial, e não acontece sem
-          autorização explícita de quem conduz o projeto.
+          Ligar qualquer uma envolve rede e credencial, e depende de autorização.
         </p>
       </div>
     </AppShell>

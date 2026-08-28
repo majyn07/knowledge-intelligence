@@ -54,9 +54,9 @@ describe("aiErrorResponse", () => {
       Um `AI_PROVIDER` escrito errado e um ambiente sem chave nenhuma são
       problemas diferentes, e quem administra precisa saber qual dos dois é.
     */
-    const resposta = aiErrorResponse(new AIConfigurationError("claude"));
+    const resposta = aiErrorResponse(new AIConfigurationError("outro"));
 
-    expect(resposta.message).toContain("claude");
+    expect(resposta.message).toContain("outro");
     expect(resposta.status).toBe(503);
   });
 

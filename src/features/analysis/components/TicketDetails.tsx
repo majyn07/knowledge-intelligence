@@ -1,6 +1,6 @@
 "use client";
 
-import { Brain, Building2, CalendarDays, Boxes, Pencil, ScanSearch, Trash2 } from "lucide-react";
+import { Brain, Building2, CalendarDays, Boxes, ScanSearch, Trash2 } from "lucide-react";
 
 import { PropertyGrid } from "@/components/common/data/PropertyGrid";
 import { PageSection } from "@/components/common/page/PageSection";
@@ -16,7 +16,6 @@ interface TicketDetailsProps {
   conversation?: SupportConversation;
   isAnalyzing: boolean;
   onAnalyze: () => void;
-  onEdit: () => void;
   onDelete: () => void;
   analysisStatus?: AnalysisStatus;
 }
@@ -26,7 +25,6 @@ export function TicketDetails({
   conversation,
   isAnalyzing,
   onAnalyze,
-  onEdit,
   onDelete,
   analysisStatus,
 }: TicketDetailsProps) {
@@ -44,11 +42,6 @@ export function TicketDetails({
                 : analysisStatus === "completed"
                   ? "Executar nova análise"
                   : "Analisar com IA"}
-            </Button>
-
-            <Button variant="outline" onClick={onEdit}>
-              <Pencil className="mr-1.5 h-3.5 w-3.5" />
-              Editar
             </Button>
 
             <Button variant="ghost" size="icon" aria-label="Excluir atendimento" onClick={onDelete}>
@@ -72,7 +65,7 @@ export function TicketDetails({
             <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">
               {analysisStatus === "in_review"
                 ? "A análise está em revisão humana. Valide as evidências e decida sobre cada oportunidade."
-                : "Revise o atendimento antes de solicitar a análise da IA."}
+                : "Leia o atendimento antes de pedir a análise. Ele veio do suporte e não se edita aqui."}
             </p>
           </div>
         </div>
@@ -118,13 +111,17 @@ export function TicketDetails({
       >
         {messages.length === 0 ? (
           <p className="rounded-xl border border-dashed border-border px-5 py-8 text-center text-sm text-muted-foreground">
-            Nenhum registro de conversa. Edite o atendimento para adicionar a troca com o cliente,
-            sem ela a análise fica limitada ao título e à solução.
+            Este atendimento veio sem a conversa, e sem ela a análise fica limitada ao título e à
+            solução. Quem entra pela caixa do suporte traz o fio junto; o que veio por arquivo, não.
           </p>
         ) : (
           <div className="space-y-4">
             {messages.map((message) => {
-              const isSupport = message.author.toLowerCase().includes("suporte");
+              /*
+                O papel é contrato; adivinhar pelo nome errava com agente chamado
+                de outra coisa, que é a maioria deles.
+              */
+              const isSupport = message.role === "suporte";
 
               return (
                 <div key={message.id} className={`flex ${isSupport ? "justify-end" : "justify-start"}`}>

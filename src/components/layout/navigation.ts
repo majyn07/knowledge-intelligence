@@ -28,7 +28,7 @@ export interface NavItem {
 export const workspaceItems: NavItem[] = [
   { title: "Início", icon: Home, href: "/" },
   { title: "Levantamento", icon: ClipboardCheck, href: "/survey" },
-  { title: "Workspace", icon: Sparkles, href: "/analysis" },
+  { title: "Atendimentos", icon: Sparkles, href: "/analysis" },
   { title: "Projetos", icon: FolderKanban, href: "/projects" },
   { title: "Biblioteca", icon: BookOpen, href: "/library" },
 ];

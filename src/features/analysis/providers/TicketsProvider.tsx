@@ -38,6 +38,10 @@ interface TicketsContextValue {
   createTicket: (data: TicketFormData) => Ticket;
   /** Grava uma importação inteira: novos e atualizados numa passada. */
   importTickets: (create: Ticket[], update: Ticket[]) => void;
+  /** O que veio da caixa do suporte: atendimento e conversa juntos. */
+  importFromHelpDesk: (
+    novos: { ticket: Ticket; conversation: SupportConversation }[]
+  ) => void;
   updateTicket: (id: string, data: TicketFormData) => void;
   deleteTicket: (id: string) => void;
   /** O que está na lixeira, para a tela de recuperação. */
@@ -103,6 +107,65 @@ export function TicketsProvider({ children }: { children: ReactNode }) {
    * ticket, não o fio de mensagens. Inventar uma conversa vazia faria a
    * análise achar que tem evidência quando não tem.
    */
+  /**
+   * O que veio da caixa do suporte: atendimento e conversa, de uma vez.
+   *
+   * Separado de `importTickets` porque o arquivo exportado não traz o fio de
+   * mensagens e a API traz. Gravar em duas chamadas faria a análise poder rodar
+   * no intervalo, sobre um atendimento cuja evidência ainda não chegou.
+   *
+   * Uma escrita, um evento, um aviso, como a importação do acervo. Uma a uma
+   * custaria centenas de avisos empilhados e centenas de linhas iguais
+   * enterrando o histórico.
+   */
+  const importFromHelpDesk = useCallback(
+    (novos: { ticket: Ticket; conversation: SupportConversation }[]) => {
+      if (novos.length === 0) return;
+
+      const porId = new Map(novos.map((item) => [item.ticket.id, item.ticket]));
+      const existentes = new Set(tickets.map((item) => item.id));
+
+      setTickets((current) => [
+        ...current.map((item) => porId.get(item.id) ?? item),
+        ...novos.filter((item) => !existentes.has(item.ticket.id)).map((item) => item.ticket),
+      ]);
+
+      const conversasPorTicket = new Map(
+        novos.map((item) => [item.conversation.ticketId, item.conversation])
+      );
+
+      setConversations((current) => [
+        ...current.map((item) => conversasPorTicket.get(item.ticketId) ?? item),
+        ...novos
+          .filter((item) => !current.some((c) => c.ticketId === item.ticket.id))
+          .map((item) => item.conversation),
+      ]);
+
+      const criados = novos.filter((item) => !existentes.has(item.ticket.id)).length;
+      const atualizados = novos.length - criados;
+
+      const partes = [
+        criados > 0 ? criados + " novo(s)" : "",
+        atualizados > 0 ? atualizados + " atualizado(s)" : "",
+      ].filter(Boolean);
+
+      record({
+        type: "ticket_created",
+        projectId: novos[0].ticket.projectId,
+        actor: currentPerson,
+        subject: {
+          kind: "ticket",
+          id: "help-desk",
+          label: "Busca de " + novos.length + " atendimentos na HubSpot",
+        },
+        detail: partes.join(", "),
+      });
+
+      toast.success("Busca concluída: " + partes.join(", ") + ".");
+    },
+    [currentPerson, record, setConversations, setTickets, tickets]
+  );
+
   const importTickets = useCallback(
     (create: Ticket[], update: Ticket[]) => {
       if (create.length === 0 && update.length === 0) return;
@@ -246,6 +309,7 @@ export function TicketsProvider({ children }: { children: ReactNode }) {
       ticketsOf,
       conversationOf,
       createTicket,
+      importFromHelpDesk,
       importTickets,
       updateTicket,
       deleteTicket,
@@ -253,7 +317,7 @@ export function TicketsProvider({ children }: { children: ReactNode }) {
       restoreTicket,
       purgeTicket,
     }),
-    [conversationOf, conversations, createTicket, deleteTicket, deletedTickets, importTickets, isHydrated, purgeTicket, restoreTicket, ticketsOf, tickets, updateTicket]
+    [conversationOf, conversations, createTicket, deleteTicket, deletedTickets, importFromHelpDesk, importTickets, isHydrated, purgeTicket, restoreTicket, ticketsOf, tickets, updateTicket]
   );
 
   return <TicketsContext.Provider value={value}>{children}</TicketsContext.Provider>;

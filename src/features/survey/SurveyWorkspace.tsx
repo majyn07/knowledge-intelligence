@@ -9,6 +9,7 @@ import { ListSkeleton } from "@/components/common/page/LoadingSkeleton";
 import { StatusBadge } from "@/components/common/status/StatusBadge";
 import { useNow } from "@/hooks/useNow";
 import { useLibrary } from "@/features/library/providers/LibraryProvider";
+import { useKnowledgeLifecycle } from "@/features/analysis/providers/KnowledgeLifecycleProvider";
 import { useTickets } from "@/features/analysis/providers/TicketsProvider";
 import { useTaxonomy } from "@/features/taxonomy/providers/TaxonomyProvider";
 
@@ -49,6 +50,7 @@ export function SurveyWorkspace() {
   const { items: articles, isHydrated } = useLibrary();
   const { tickets } = useTickets();
   const { taxonomy } = useTaxonomy();
+  const { analyses } = useKnowledgeLifecycle();
   const now = useNow();
 
   const [kind, setKind] = useState<FindingKind | "todos">("todos");
@@ -58,9 +60,18 @@ export function SurveyWorkspace() {
     diferentes, e "parado há 45 dias" divergiria na hidratação. Sem ele o
     levantamento ainda não pode ser calculado, e a tela espera.
   */
+  /*
+    Quem já foi lido não volta para a fila. Sem isso, o levantamento apontaria
+    de novo o atendimento que alguém acabou de analisar.
+  */
+  const analisados = useMemo(
+    () => new Set(analyses.map((analysis) => analysis.ticketId)),
+    [analyses]
+  );
+
   const findings = useMemo(
-    () => (now ? buildSurvey({ articles, tickets, taxonomy, now }) : []),
-    [articles, tickets, taxonomy, now]
+    () => (now ? buildSurvey({ articles, tickets, taxonomy, now, analisados }) : []),
+    [analisados, articles, tickets, taxonomy, now]
   );
 
   const summary = surveySummary(findings);

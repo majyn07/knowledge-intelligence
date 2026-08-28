@@ -1,5 +1,8 @@
 import { items, record, text } from "@/lib/shape";
-import type { SupportConversationMessage } from "@/models/SupportConversation";
+import type {
+  SupportConversationMessage,
+  SupportMessageRole,
+} from "@/models/SupportConversation";
 
 /**
  * O que a API de conversas devolve, virando mensagem nossa.
@@ -55,6 +58,35 @@ export interface HubSpotActor {
  * cliente para dentro do hub é decisão de produto, não consequência de uma
  * importação. Os rótulos são os mesmos que o formulário já usa à mão.
  */
+export function authorRole(actor: HubSpotActor | undefined): SupportMessageRole {
+  switch (actor?.type) {
+    case "VISITOR":
+      return "cliente";
+    case "BOT":
+      return "automacao";
+    case "AGENT":
+      return "suporte";
+    default:
+      return "sistema";
+  }
+}
+
+/** O canal da mensagem, traduzido do número que a HubSpot usa. */
+const CANAIS: Record<string, string> = {
+  "1000": "Chat",
+  "1001": "Messenger",
+  "1002": "E-mail",
+  "1003": "Formulário",
+  "1004": "Portal do cliente",
+  "1007": "WhatsApp",
+  "1008": "Ligação",
+  "1009": "SMS",
+};
+
+export function channelLabel(channelId: string): string {
+  return CANAIS[channelId] ?? "";
+}
+
 export function authorLabel(actor: HubSpotActor | undefined): string {
   if (!actor) return "Desconhecido";
 
@@ -115,8 +147,10 @@ export function toConversationMessages(
     .map((message) => ({
       id: text(message.id) || crypto.randomUUID(),
       author: authorLabel(actors.get(text(message.createdBy))),
+      role: authorRole(actors.get(text(message.createdBy))),
       body: stripHtml(message.text),
       createdAt: text(message.createdAt),
+      channel: channelLabel(text(message.channelId)),
     }))
     .filter((message) => message.body !== "")
     .sort((a, b) => a.createdAt.localeCompare(b.createdAt));

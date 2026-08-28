@@ -19,6 +19,11 @@ function normalizeMessages(data: TicketFormData): SupportConversationMessage[] {
     .map((message) => ({
       id: message.id,
       author: message.author.trim() || "Sem autor",
+      /*
+        Conversa digitada à mão não declara papel, e deduzi-lo do nome do autor
+        seria adivinhar. O formulário ganha o campo quando alguém precisar dele.
+      */
+      role: "sistema" as const,
       body: message.body.trim(),
       createdAt: message.createdAt.trim(),
     }));

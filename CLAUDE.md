@@ -652,7 +652,10 @@ produziu dois valores reprovados nesta mesma sprint.
 ## IA
 
 Gemini é o provider atual (`services/ai/server/geminiService.ts`), isolado atrás
-de `analysisAIService`. GPT saiu do roadmap; Claude entra numa sprint própria.
+de `analysisAIService`. GPT e Claude saíram do roadmap, e hoje o catálogo tem
+um provedor só. A escolha entre dois continua no código e continua testada, com
+um catálogo de teste: a regra vale quando um segundo aparecer, e escrevê-la de
+novo depois custaria mais que mantê-la.
 
 **Somar um provedor é escrever um arquivo e citá-lo no registro.** O contrato é
 `AIProvider`, e o que ele realmente faz é `complete(mensagens)`. `chat` e

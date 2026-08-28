@@ -1,5 +1,5 @@
 import { toIsoDate } from "@/lib/dates";
-import { items, record, text } from "@/lib/shape";
+import { oneOf, items, record, text } from "@/lib/shape";
 import type { SupportConversation } from "@/models/SupportConversation";
 import type { Ticket } from "@/models/Ticket";
 
@@ -39,8 +39,24 @@ export function normalizeTicket(raw: unknown): Ticket {
     // Ausente é "em uso": registro gravado antes da lixeira existir.
     ...(text(value.deletedAt) ? { deletedAt: text(value.deletedAt) } : {}),
     ...externalSource(value.source),
+    /*
+      O registro cru entra como veio, sem normalizar campo por campo: ele é
+      justamente o que **não** cabe no nosso modelo, e conferir a forma dele
+      significaria decidir de antemão o que a origem pode ter. Só se confere
+      que é objeto; vazio some em vez de virar `{}`, que pareceria origem
+      presente e vazia.
+    */
+    ...(temConteudo(value.raw) ? { raw: record(value.raw) } : {}),
   };
 }
+
+/** Objeto com pelo menos uma chave. `{}` não é origem, é ausência de origem. */
+function temConteudo(valor: unknown): boolean {
+  return typeof valor === "object" && valor !== null && Object.keys(valor).length > 0;
+}
+
+/** Os papeis conhecidos, para conferir o que veio do armazenamento. */
+const PAPEIS = ["cliente", "suporte", "automacao", "sistema"] as const;
 
 export function normalizeConversation(raw: unknown): SupportConversation {
   const value = record(raw);
@@ -53,8 +69,15 @@ export function normalizeConversation(raw: unknown): SupportConversation {
       return {
         id: text(message.id) || crypto.randomUUID(),
         author: text(message.author),
+        /*
+          Registro gravado antes deste campo não sabe quem era quem. "sistema"
+          é o padrão honesto: não afirma cliente nem suporte, e a tela desenha
+          neutro em vez de escolher um lado por sorteio.
+        */
+        role: oneOf(message.role, PAPEIS, "sistema"),
         body: text(message.body),
         createdAt: text(message.createdAt),
+        ...(text(message.channel) ? { channel: text(message.channel) } : {}),
       };
     }),
     ...externalSource(value.source),

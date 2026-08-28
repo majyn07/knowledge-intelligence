@@ -2,6 +2,8 @@ import type { KnowledgeArticle } from "@/models/KnowledgeArticle";
 import type { Ticket } from "@/models/Ticket";
 import { findSection, sectionPath, type Taxonomy } from "@/models/Taxonomy";
 
+import { triageTickets } from "@/features/analysis/triage";
+
 import { findDuplicates, findOverlaps } from "./overlap";
 
 /**
@@ -58,6 +60,13 @@ export interface SurveyInput {
   tickets: Ticket[];
   taxonomy: Taxonomy;
   now: Date;
+  /**
+   * Quem já foi lido não volta para a fila de leitura.
+   *
+   * Opcional porque nem toda chamada tem as análises em mãos, e a ausência só
+   * torna a fila mais longa, nunca errada.
+   */
+  analisados?: Set<string>;
 }
 
 /** Meses sem atualização a partir dos quais um publicado merece uma olhada. */
@@ -80,7 +89,7 @@ const dias = (de: Date, ate: Date) => Math.floor((ate.getTime() - de.getTime()) 
 const severityOrder: Record<FindingSeverity, number> = { alta: 0, media: 1, baixa: 2 };
 
 export function buildSurvey(input: SurveyInput): Finding[] {
-  const { articles, tickets, taxonomy, now } = input;
+  const { articles, tickets, taxonomy, now, analisados = new Set<string>() } = input;
 
   const publicados = articles.filter((article) => article.status === "published");
   const achados: Finding[] = [];
@@ -262,23 +271,27 @@ export function buildSurvey(input: SurveyInput): Finding[] {
     semântica ("cinco atendimentos perguntam a mesma coisa") exige modelo, e
     entra marcada como proposta.
   */
-  const comArtigoDeOrigem = new Set(
-    articles.map((article) => article.source?.ticketId).filter((id): id is string => !!id)
-  );
+  const triagem = triageTickets(tickets, articles, analisados);
 
-  for (const ticket of tickets) {
-    if (comArtigoDeOrigem.has(ticket.id)) continue;
-    if (ticket.solution.trim() === "") continue;
+  for (const grupo of triagem.groups) {
+    const varios = grupo.tickets.length > 1;
+    const cobertura = Math.round(grupo.coverage * 100);
 
     achados.push({
-      id: `atendimento:${ticket.id}`,
+      id: grupo.id,
       kind: "atendimento-sem-cobertura",
       origin: "calculado",
-      severity: "alta",
-      action: "Avaliar se vira conhecimento",
-      subject: ticket.title,
-      why: "Foi resolvido e nenhum artigo nasceu dele.",
-      href: `/analysis?ticket=${ticket.id}`,
+      severity: varios || grupo.coverage < 0.5 ? "alta" : "media",
+      action: varios
+        ? `Avaliar se os ${grupo.tickets.length} viram um artigo`
+        : "Avaliar se vira conhecimento",
+      subject: grupo.subject,
+      why: varios
+        ? `${grupo.tickets.length} atendimentos resolvidos usam as mesmas palavras (${grupo.terms
+            .slice(0, 4)
+            .join(", ")}) e nenhum virou artigo. O acervo publicado cobre ${cobertura}% desse vocabulário.`
+        : `Foi resolvido e nenhum artigo nasceu dele. O acervo publicado cobre ${cobertura}% do vocabulário dele.`,
+      href: `/analysis?ticket=${grupo.tickets[0].id}`,
     });
   }
 

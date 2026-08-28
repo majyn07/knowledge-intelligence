@@ -45,6 +45,36 @@ describe("normalizeTicket", () => {
       normalizeTicket({ id: "1", source: { externalId: "abc", importedAt: "2026-08-20" } }).source
     ).toEqual({ provider: "hubspot", externalId: "abc", importedAt: "2026-08-20" });
   });
+
+  /*
+    O registro cru é o que **não** cabe no nosso modelo: a classificação que o
+    suporte já fez, e que a análise precisa ler inteira. Reduzi-lo a quatro
+    campos faria a IA analisar a nossa versão do atendimento em vez do que
+    aconteceu.
+  */
+  describe("o registro cru", () => {
+    it("entra como veio, sem normalizar campo por campo", () => {
+      const raw = {
+        linha_do_produto: "Estrutural",
+        categoria___suporte_tecnico: "Erro ou problema durante o uso do software",
+        aninhado: { qualquer: [1, 2, 3] },
+      };
+
+      expect(normalizeTicket({ id: "45812", raw }).raw).toEqual(raw);
+    });
+
+    /* `{}` pareceria origem presente e sem conteúdo, que é outra coisa. */
+    it("ausente não vira objeto vazio", () => {
+      expect(normalizeTicket({ id: "45812" }).raw).toBeUndefined();
+      expect(normalizeTicket({ id: "45812", raw: {} }).raw).toBeUndefined();
+    });
+
+    it("recusa o que não é objeto", () => {
+      expect(normalizeTicket({ id: "45812", raw: "texto" }).raw).toBeUndefined();
+      expect(normalizeTicket({ id: "45812", raw: null }).raw).toBeUndefined();
+      expect(normalizeTicket({ id: "45812", raw: 42 }).raw).toBeUndefined();
+    });
+  });
 });
 
 describe("normalizeConversation", () => {

@@ -36,6 +36,7 @@ questão de rota, de nomenclatura ou de versão da API:
 | `GET /crm/v3/objects/0-5` (pelo objectTypeId) | 403 |
 | `GET /crm/v4/objects/0-5` | 403 |
 | `GET /crm/v3/objects/0-5/47673917220` (um registro) | 403 |
+| `GET /crm/v3/properties/tickets` (só o vocabulário) | 403, mas ver 1.4 |
 
 Todos com a mesma mensagem: *"The scope needed for this API call isn't
 available for public use."*
@@ -57,6 +58,120 @@ contratado na conta. Quem administra o app consegue distinguir; de fora não dá
 
 **O que isso impede:** trazer assunto, empresa, data e solução do atendimento.
 Hoje o número do chamado é alcançável (ver 1.3), mas o registro dele não.
+
+**O pedido é uma coisa só: o escopo `tickets` de leitura.** Tudo o mais que a
+integração precisa já está alcançável, e isso foi medido no item 1.4.
+
+### 1.4 O que **funciona** em volta do ticket, medido em 28/08
+
+Esta seção existe porque a primeira leitura foi incompleta. Sete endereços de
+leitura do objeto foram testados e todos deram 403, e daí eu concluí cedo demais
+que nada em volta do atendimento era alcançável. Faltou testar busca, batch,
+pipelines, associações, exportação, GraphQL e esquemas. Testados agora:
+
+| Chamada | Resposta |
+| --- | --- |
+| `POST /crm/v3/objects/tickets/search` | 403 |
+| `POST /crm/v3/objects/tickets/batch/read` | 403 |
+| `GET /crm/v3/pipelines/tickets` | 403 |
+| `GET /crm/v3/objects/tickets?archived=true` | 403 |
+| `GET /crm/v4/objects/ticket/{id}/associations/contact` | 403 |
+| `POST /crm/v3/exports/export/async` | 403, escopo de exportação ausente |
+| `POST /collector/graphql` | 403, mesmo motivo |
+| **`GET /crm/v3/schemas/0-5`** | **200** |
+| **`GET /crm/v4/objects/conversation/{fio}/associations/ticket`** | **200** |
+| **`GET /crm/v4/objects/conversation/{fio}/associations/contact`** | **200** |
+| `GET /crm/v3/properties/0-11` | 200 |
+| `GET /crm/v3/objects/0-11/...` | 400, `CONVERSATION` não é suportado ali |
+
+**Duas coisas que eu havia dado como impossíveis e são possíveis:**
+
+**1. O vínculo fio → atendimento existe.** A associação devolve o id do ticket,
+então o registro criado aqui pode carregar o número real do chamado. É uma
+requisição por fio, como a das mensagens.
+
+**2. O vocabulário do ticket é legível pelo esquema.** `/crm/v3/schemas/0-5`
+devolve as **795 propriedades**, com nome, tipo, rótulo e opções. Não é preciso
+pedir a lista a quem administra:
+
+| Propriedade | Rótulo | Serve para |
+| --- | --- | --- |
+| `subject` | Ticket name | o assunto |
+| `content` | Ticket description | a descrição |
+| `hs_resolution` | Resolution | 4 opções, entre elas *Sent knowledge document link* |
+| `hs_pipeline_stage` | Ticket status | o estágio |
+| `categoria___suporte_tecnico` | [Support] Categoria \| Motivo principal do contato | 11 opções |
+| `hs_ticket_category` | Categoria | 6 opções |
+| `ia_produto` | [IA] Produto | 7 opções: Builder, Eberick, Visus, Área do Cliente, Licenciamento, Produto anterior, Não se aplica |
+| `linha_do_produto` | [Support] Especialidade técnica | **23 opções**, a lista de disciplinas |
+
+**`hs_resolution` tem uma opção chamada *Sent knowledge document link*.** Isso é
+o próprio suporte marcando, no CRM, que a dúvida foi respondida com um artigo do
+portal. É exatamente o sinal que este produto existe para medir, e ele está
+atrás do mesmo 403.
+
+**O que continua fechado é só o registro.** Nenhum caminho lê o valor das
+propriedades de um ticket. O esquema diz o que existe; o dado não vem.
+
+---
+
+### 1.5 A equipe do atendimento é alcançável, mas não dá o recorte por produto
+
+O recorte que a equipe usa no dia a dia é por produto: Suporte Builder,
+Estruturas, Visus, Setup. Na HubSpot isso **não é caixa de entrada** e não é
+canal: as visualizações do help desk são 403 e a propriedade `ia_produto` mora
+no ticket, que também é 403.
+
+Mas dá para chegar lá por outro caminho: **o fio traz `assignedTo`, e o dono
+traz as equipes dele.** `GET /crm/v3/owners` responde 200 e cada dono vem com
+`teams`.
+
+São 197 donos em 58 equipes. As que interessam:
+
+| Id | Equipe | Pessoas |
+| --- | --- | --- |
+| 43759588 | Setup | 8 |
+| 65055100 | Suporte Builder | 18 |
+| 43825818 | Suporte Builder Elétrica | 18 |
+| 43825811 | Suporte Builder Hidráulica | 18 |
+| 43825790 | Suporte Estruturas | 18 |
+| 43825821 | Suporte Visus | 18 |
+| 43759498 | Suporte Técnico | 18 |
+
+**E a equipe NÃO dá o produto.** Eu escrevi que dava, e a conferência seguinte
+desmentiu: as seis equipes de Suporte têm **exatamente as mesmas 18 pessoas**.
+
+| | Setup | Suporte (as seis) |
+| --- | --- | --- |
+| Setup | 8 | 6 |
+| Suporte Builder | 6 | 18 |
+| Suporte Builder Elétrica | 6 | 18 |
+| Suporte Builder Hidráulica | 6 | 18 |
+| Suporte Estruturas | 6 | 18 |
+| Suporte Técnico | 6 | 18 |
+| Suporte Visus | 6 | 18 |
+
+Sobreposição total. Quem atende Builder atende Eberick e Visus, e está nas seis
+equipes. Só duas pessoas estão em apenas uma equipe, e essa equipe é Setup.
+
+Então `assignedTo` → dono → equipe responde **em qual frente** o atendimento
+caiu, Setup ou Suporte, e não em qual produto. Recortar por produto continua
+dependendo de `ia_produto`, que está no ticket, que é 403.
+
+O que o caminho serve: distinguir Setup de Suporte, e saber quem atendeu. Fio
+sem `assignedTo` fica sem equipe, e isso é estado legítimo: o atendimento ainda
+não foi para ninguém.
+
+**São 20 pessoas hoje**, todas com e-mail `@altoqi.com.br`: 18 no Suporte e 8 no
+Setup, com 6 em ambos. Isso importa para a sugestão de equipe do produto: o
+e-mail de quem entra aqui casa com o e-mail do dono na HubSpot, e dá para
+propor a equipe em vez de pedir que a pessoa escolha.
+
+**As caixas são duas**, e isso também foi medido: `Help Desk` (`474522581`,
+e-mail e chat) e `Caixa de Entrada | Setup` (`1566897190`, WhatsApp e chat). As
+outras oito da conta são marketing, vendas, social e teste.
+
+---
 
 ### 1.2 Falta o escopo `site-search-read`. Bloqueia ler o portal
 
@@ -121,6 +236,91 @@ Mais duas que custaram tentativa:
 Em amostras de 50 fios, entre **16% e 40%** traziam `associatedTicketId`,
 variando por período. Fios de 2024 não traziam nenhum. Fio sem associação é
 conversa que não virou atendimento. É esperado, não é erro.
+
+### 2.4 Dá para varrer as conversas sem o escopo `tickets`, medido em 28/08
+
+A pergunta era se o atendimento pode nascer da conversa em vez de vir por
+arquivo, já que o escopo do ticket está bloqueado. Dá, com limite.
+
+| Teste | Resposta |
+| --- | --- |
+| `GET /conversations/v3/conversations/threads` sem filtro | 200, paginado |
+| `GET .../threads?inboxId=474522581` (Help Desk) | 200, só daquela caixa |
+| `GET /conversations/v3/conversations/inboxes` | 200, **10 caixas** |
+| `GET /conversations/v3/conversations/channels` | 200, 8 canais |
+| `GET .../threads/{id}` | 200 |
+| `?sort=-createdAt` | 400, não é propriedade de ordenação válida |
+
+**A caixa do suporte tem nome próprio e id próprio**, `Help Desk`
+(`474522581`), e filtrar por ela funciona. Sem o filtro, os primeiros cem fios
+são todos de `Geração de Demanda & Sales`, chat ao vivo, de fevereiro de 2024:
+a listagem vem em ordem de criação, do mais antigo.
+
+**O que a conversa não tem**, e é o que decide o desenho:
+
+| Campo nosso | No arquivo exportado | Na API de conversas |
+| --- | --- | --- |
+| assunto | vem pronto | **não existe**, nem no fio nem na mensagem |
+| solução | vem pronto | **não existe**, teria de sair da última resposta do agente |
+| empresa | vem pronto | só `associatedContactId`; contato → empresa é dado pessoal |
+| data | vem pronto | `createdAt` e `closedAt` |
+| número do chamado | vem pronto | **não volta**: `associatedTicketId` é aceito como filtro e não é devolvido |
+
+O fio devolve `id`, `createdAt`, `closedAt`, `status`, `assignedTo`,
+`associatedContactId`, `inboxId`, `originalChannelId`, `spam` e `archived`. Nada
+mais. A mensagem devolve `id`, `createdAt`, `createdBy`, `senders`,
+`recipients`, `type` e o texto, e também não tem assunto.
+
+### 2.5 A caixa Help Desk é o atendimento, e o assunto existe nela
+
+Confirmado com quem conduz o projeto em 28/08: **`Help Desk` (`474522581`) é a
+caixa dos atendimentos.** Isso muda a conclusão anterior, porque a amostra que
+a produziu era de chat de marketing.
+
+**É a caixa que gera o atendimento**, e os dois canais dela contam: chat ao vivo
+e e-mail são atendimento igual. Daí decorre a diferença que o desenho precisa
+tratar.
+
+Os fios vieram 62% por e-mail (canal `1002`) e 38% por chat (`1000`).
+
+| | e-mail | chat |
+| --- | --- | --- |
+| assunto | `subject` na mensagem, **é dado** | não existe, tem de sair do texto |
+| corpo | `text` e `richText` | `text` |
+| quem falou | `direction` | `direction` |
+
+A mensagem traz `direction` (`INCOMING` / `OUTGOING`) nos dois casos, que separa
+o que o cliente escreveu do que o suporte respondeu.
+
+**Nenhum dos 100 primeiros fios do Help Desk trazia `associatedTicketId`.** O
+ticket existe, porque é a caixa que o gera, mas o vínculo não volta por aqui e
+o objeto em si continua fechado pelo 403 do item 1.1.
+
+#### A escala, medida
+
+| | |
+| --- | --- |
+| fios varridos em 25 páginas seguidas | **2.500**, e havia mais |
+| período coberto por eles | 08/04/2024 a 17/05/2024 |
+| ritmo | ~64 fios por dia |
+| estimativa até hoje | **algo em torno de 55 mil fios** |
+
+**E não dá para chegar aos recentes direto.** `?sort=-createdAt` devolve 400, e
+`latestMessageTimestampAfter` é ignorado: a lista sai sempre do mais antigo.
+Alcançar os últimos meses exige percorrer a paginação desde abril de 2024, o que
+são umas 550 requisições de listagem. Isso é barato. O caro é o passo seguinte:
+**o assunto está na mensagem, não no fio**, então cada fio que se queira ler
+custa uma requisição própria.
+
+Varrer tudo seriam ~55 mil requisições contra o CRM de produção. Varrer uma
+janela recente, que é o que a pergunta do produto pede, custa a lista inteira
+mais uma requisição por fio da janela.
+
+**Conclusão:** o atendimento pode nascer da conversa, sem arquivo e sem o escopo
+bloqueado. O que ele traz pronto é assunto (no e-mail), diálogo, datas e quem
+falou o quê. O que ele não traz é a solução com campo próprio, que teria de sair
+das respostas do suporte, e a empresa, que depende da cadeia contato → empresa
+e é decisão de produto por ser dado pessoal de cliente.
 
 ---
 
