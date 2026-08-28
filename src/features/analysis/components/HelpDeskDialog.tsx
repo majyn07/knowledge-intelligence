@@ -77,6 +77,18 @@ export function HelpDeskDialog({
   const [meses, setMeses] = useState(MESES_PADRAO);
 
   /*
+    Um teto de quantos ler, e não só de qual período.
+    
+    Três meses da caixa do suporte são quase onze mil fios, e ler todos custa
+    horas contra o CRM de produção. Quem quer ver como fica, ou mostrar para a
+    equipe, precisa de uma amostra: sem teto a única opção é começar tudo e
+    parar no meio, o que dá no mesmo e assusta mais.
+
+    A fila já sai do mais recente, então o teto corta o passado, não o presente.
+  */
+  const [teto, setTeto] = useState<number | null>(null);
+
+  /*
     A parada é um `ref` e não estado: o laço lê o valor a cada volta, e estado
     ficaria congelado no fechamento em que o laço começou.
   */
@@ -188,10 +200,12 @@ export function HelpDeskDialog({
     let falhas = 0;
 
     try {
-      for (let inicio = 0; inicio < plano.visitar.length; inicio += POR_LOTE) {
+      const aLer = teto === null ? plano.visitar : plano.visitar.slice(0, teto);
+
+      for (let inicio = 0; inicio < aLer.length; inicio += POR_LOTE) {
         if (parar.current) break;
 
-        const lote = plano.visitar.slice(inicio, inicio + POR_LOTE);
+        const lote = aLer.slice(inicio, inicio + POR_LOTE);
         const resposta = await pedir("/api/hubspot/help-desk", { fios: lote });
 
         const atendimentos = (resposta.atendimentos as Record<string, never>[]) ?? [];
@@ -240,7 +254,7 @@ export function HelpDeskDialog({
           });
         }
 
-        setProgresso({ fios: plano.visitar.length, lidos, trazidos: trazidos.length, falhas });
+        setProgresso({ fios: aLer.length, lidos, trazidos: trazidos.length, falhas });
       }
 
       /*
@@ -335,14 +349,39 @@ export function HelpDeskDialog({
               </p>
             ) : (
               <>
+                <label className="flex items-center justify-between gap-3 text-sm">
+                  <span>Ler no máximo</span>
+                  <select
+                    className="h-8 rounded-lg border border-border/70 bg-muted/40 px-2 text-sm"
+                    value={teto === null ? "tudo" : String(teto)}
+                    onChange={(evento) =>
+                      setTeto(evento.target.value === "tudo" ? null : Number(evento.target.value))
+                    }
+                  >
+                    {[20, 100, 500].map((n) => (
+                      <option key={n} value={n}>
+                        {n} mais recentes
+                      </option>
+                    ))}
+                    <option value="tudo">
+                      todos os {plano.visitar.length.toLocaleString("pt-BR")}
+                    </option>
+                  </select>
+                </label>
+
                 <p className="text-xs leading-5 text-muted-foreground">
-                  São {plano.visitar.length.toLocaleString("pt-BR")} fios a ler, do mais recente
-                  para o mais antigo. Dá para parar no meio, e o que já veio fica.
+                  Do mais recente para o mais antigo, então o teto corta o passado. Cada
+                  atendimento custa três idas à HubSpot, e dá para parar no meio: o que já
+                  veio fica.
                 </p>
 
                 <Button onClick={ler} className="w-full">
                   <Download className="mr-1.5 h-4 w-4" />
-                  Ler {plano.visitar.length.toLocaleString("pt-BR")} atendimento(s)
+                  Ler{" "}
+                  {Math.min(teto ?? plano.visitar.length, plano.visitar.length).toLocaleString(
+                    "pt-BR"
+                  )}{" "}
+                  atendimento(s)
                 </Button>
               </>
             )}

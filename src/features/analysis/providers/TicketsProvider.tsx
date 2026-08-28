@@ -161,7 +161,15 @@ export function TicketsProvider({ children }: { children: ReactNode }) {
         detail: partes.join(", "),
       });
 
-      toast.success("Busca concluída: " + partes.join(", ") + ".");
+      /*
+        "Trazidos", e não "gravados". A escrita acontece depois, no efeito que
+        observa a coleção, e quem chama aqui não tem como esperar por ela.
+        Anunciar gravação é anunciar o que ainda não se sabe: numa busca de vinte
+        atendimentos a coluna `raw` faltava no banco, a gravação falhou inteira,
+        e a tela dizia "concluída". Quando a escrita falha, a coleção avisa por
+        cima disto, e agora as duas frases não se contradizem.
+      */
+      toast.success(partes.join(", ") + " da HubSpot. Gravando…");
     },
     [currentPerson, record, setConversations, setTickets, tickets]
   );
