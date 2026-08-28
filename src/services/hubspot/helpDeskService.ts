@@ -7,6 +7,7 @@ import { nextCursor, toConversationMessages, type HubSpotActor } from "./convers
 import type { FioListado } from "./helpDeskSchedule";
 import { hubspot } from "./hubspotClient";
 import { toOwnerTeams, type OwnerTeams } from "./ownerTeams";
+import { produtosNoTexto } from "./produtoDoAtendimento";
 import {
   chamadoDaAssociacao,
   threadsDaPagina,
@@ -309,6 +310,13 @@ export async function lerLote(
             origemDoTitulo: ticket.titleOrigin,
             mensagens: ticket.messageCount,
             ...(contato ? { contato } : {}),
+            /*
+              Quais soluções da AltoQi o atendimento trata. "Solução" aqui é o
+              produto, que é como a empresa fala, e não a resposta que o suporte
+              deu. Sai do título porque `ia_produto` está atrás do 403; o que o
+              título não disser fica vazio.
+            */
+            produtos: produtosNoTexto(ticket.title),
           },
         });
       }

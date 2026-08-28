@@ -1,6 +1,6 @@
 "use client";
 
-import { Bot, Brain, Building2, CalendarDays, Headset, ScanSearch, Trash2, User } from "lucide-react";
+import { Bot, Boxes, Brain, Building2, CalendarDays, Headset, ScanSearch, Trash2, User } from "lucide-react";
 
 import { PropertyGrid } from "@/components/common/data/PropertyGrid";
 import { PageSection } from "@/components/common/page/PageSection";
@@ -12,6 +12,7 @@ import type {
   SupportConversation,
   SupportConversationMessage,
 } from "@/models/SupportConversation";
+import { produtosNoTexto } from "@/services/hubspot/produtoDoAtendimento";
 import type { Ticket } from "@/models/Ticket";
 
 interface TicketDetailsProps {
@@ -41,6 +42,21 @@ export function TicketDetails({
   */
   const chamado =
     typeof ticket.raw?.hubspotTicketId === "string" ? ticket.raw.hubspotTicketId : "";
+
+  /*
+    "Solução" na AltoQi é o produto: Builder, Eberick, Visus. Não é a resposta
+    que o suporte deu, e a tela mostrava um e-mail inteiro nesse campo.
+  */
+  const gravados = Array.isArray(ticket.raw?.produtos)
+    ? (ticket.raw.produtos as unknown[]).map(String).filter(Boolean)
+    : [];
+
+  /*
+    Cai para o título quando o registro não traz. Atendimento que entrou antes
+    deste campo existir não o tem gravado, e reimportar tudo para preencher um
+    campo derivado seria caro por nada: a origem é o título nos dois casos.
+  */
+  const produtos = gravados.length > 0 ? gravados : produtosNoTexto(ticket.title);
 
   const cliente =
     typeof ticket.raw?.contato === "object" && ticket.raw.contato !== null
@@ -114,6 +130,26 @@ export function TicketDetails({
           columns={3}
           items={[
             {
+              label: "Solução",
+              value: (
+                <div className="flex flex-wrap items-center gap-1.5">
+                  <Boxes className="h-4 w-4 shrink-0 text-primary" />
+                  {produtos.length === 0 ? (
+                    <span className="text-muted-foreground">Não identificada</span>
+                  ) : (
+                    produtos.map((produto) => (
+                      <span
+                        key={produto}
+                        className="rounded-md bg-primary/12 px-2 py-0.5 text-xs font-medium text-primary"
+                      >
+                        {produto}
+                      </span>
+                    ))
+                  )}
+                </div>
+              ),
+            },
+            {
               label: "Empresa",
               value: (
                 <div className="flex items-center gap-2">
@@ -137,8 +173,8 @@ export function TicketDetails({
 
       {ticket.solution.trim() !== "" && (
         <PageSection
-          title="Solução registrada"
-          description="A última resposta de quem atendeu. É o que mais se aproxima de uma solução: a conversa não tem campo para ela."
+          title="Última resposta do suporte"
+          description="O que quem atendeu escreveu por último. É o mais próximo de uma resolução que a conversa oferece, e não um campo que alguém preencheu."
         >
           {/*
             Bloco próprio, e não célula de grade. A solução vinda do suporte é um
