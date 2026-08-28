@@ -7,7 +7,12 @@ import { nextCursor, toConversationMessages, type HubSpotActor } from "./convers
 import type { FioListado } from "./helpDeskSchedule";
 import { hubspot } from "./hubspotClient";
 import { toOwnerTeams, type OwnerTeams } from "./ownerTeams";
-import { threadsDaPagina, toThreadTicket, type ThreadTicket } from "./threadTicketMapping";
+import {
+  chamadoDaAssociacao,
+  threadsDaPagina,
+  toThreadTicket,
+  type ThreadTicket,
+} from "./threadTicketMapping";
 
 /**
  * A caixa do suporte, lida em pedaços.
@@ -146,11 +151,7 @@ async function chamadoDoFio(threadId: string): Promise<string | undefined> {
       `/crm/v4/objects/conversation/${threadId}/associations/ticket`
     );
 
-    const lista = record(resposta).results;
-    const primeiro = Array.isArray(lista) ? lista[0] : undefined;
-    const id = text(record(primeiro).toObjectId).trim();
-
-    return id === "" ? undefined : id;
+    return chamadoDaAssociacao(resposta);
   } catch {
     return undefined;
   }

@@ -152,6 +152,24 @@ export function toThreadTicket(
 }
 
 /**
+ * O identificador do chamado, lido da resposta de associação.
+ *
+ * `toObjectId` vem como **número**, e o utilitário de texto devolve vazio para
+ * o que não é string. Isso fez a associação voltar vazia em cem de cem no
+ * piloto, sem erro em lugar nenhum, porque não havia erro: era leitura errada
+ * de um valor válido. Está aqui, e não embutido na chamada, para ter teste.
+ */
+export function chamadoDaAssociacao(bruto: unknown): string | undefined {
+  const lista = record(bruto).results;
+  const primeiro = Array.isArray(lista) ? lista[0] : undefined;
+  const valor = record(primeiro).toObjectId;
+
+  const id = typeof valor === "number" ? String(valor) : text(valor).trim();
+
+  return id === "" ? undefined : id;
+}
+
+/**
  * Os fios de uma página da listagem, já reduzidos ao que interessa.
  *
  * O carimbo da última mensagem vem junto porque é por ele que a próxima

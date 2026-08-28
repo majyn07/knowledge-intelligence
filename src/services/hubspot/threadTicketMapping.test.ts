@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { threadsDaPagina, toThreadTicket } from "./threadTicketMapping";
+import { chamadoDaAssociacao, threadsDaPagina, toThreadTicket } from "./threadTicketMapping";
 
 const fio = (extra: Record<string, unknown> = {}) => ({
   id: "6952014856",
@@ -213,5 +213,39 @@ describe("threadsDaPagina", () => {
   it("não quebra com resposta fora de forma", () => {
     expect(threadsDaPagina(null)).toEqual([]);
     expect(threadsDaPagina({})).toEqual([]);
+  });
+});
+
+describe("chamadoDaAssociacao", () => {
+  /*
+    `toObjectId` vem como número, e o utilitário de texto devolve vazio para o
+    que não é string. Isso fez a associação voltar vazia em cem de cem no
+    piloto, sem erro em lugar nenhum: não havia erro, era leitura errada de um
+    valor válido.
+  */
+  it("lê o identificador que vem como número", () => {
+    expect(chamadoDaAssociacao({ results: [{ toObjectId: 47809640251 }] })).toBe("47809640251");
+  });
+
+  it("lê também quando vem como texto", () => {
+    expect(chamadoDaAssociacao({ results: [{ toObjectId: "47809640251" }] })).toBe("47809640251");
+  });
+
+  /* Fio de robô e de marketing não gera chamado, e isso é estado legítimo. */
+  it("devolve nada quando não há associação", () => {
+    expect(chamadoDaAssociacao({ results: [] })).toBeUndefined();
+    expect(chamadoDaAssociacao({})).toBeUndefined();
+    expect(chamadoDaAssociacao(null)).toBeUndefined();
+  });
+
+  it("devolve nada para valor que não serve de identificador", () => {
+    expect(chamadoDaAssociacao({ results: [{ toObjectId: "  " }] })).toBeUndefined();
+    expect(chamadoDaAssociacao({ results: [{ toObjectId: null }] })).toBeUndefined();
+  });
+
+  it("fica com o primeiro quando há mais de um", () => {
+    expect(
+      chamadoDaAssociacao({ results: [{ toObjectId: 1 }, { toObjectId: 2 }] })
+    ).toBe("1");
   });
 });
