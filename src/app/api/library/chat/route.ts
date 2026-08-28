@@ -4,6 +4,7 @@ import { aiErrorResponse } from "@/services/ai/analysis/aiErrorResponse";
 import { articleChatRequestSchema } from "@/services/ai/library/articleChat";
 import { articleChatService } from "@/services/ai/library/articleChatService";
 import { resolveActiveProvider } from "@/services/ai/providers/catalog";
+import { invalidRequestMessage } from "@/services/ai/analysis/invalidRequest";
 
 /**
  * Consultar a IA sobre o artigo aberto.
@@ -28,7 +29,9 @@ export async function POST(request: Request) {
 
   if (!parsed.success) {
     return NextResponse.json(
-      { message: "Dados inválidos para consultar a IA sobre o artigo." },
+      {
+        message: invalidRequestMessage("Dados inválidos para consultar a IA sobre o artigo.", parsed.error),
+      },
       { status: 400 }
     );
   }

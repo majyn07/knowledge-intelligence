@@ -915,6 +915,37 @@ leitura mais alarmante possível: "o acervo não responde nada disto". Foi o que
 tela mostrou por alguns segundos rodando contra o banco, com os 1.822 artigos a
 caminho. Enquanto não chegou, esqueleto.
 
+### A análise, exercitada contra dado real
+
+Ela estava quebrada de ponta a ponta, e a tela dizia sempre a mesma frase: "não
+foi possível concluir a análise". Foram três defeitos empilhados, e nenhum deles
+tinha como ser diagnosticado da tela.
+
+**O pedido levava o registro cru junto.** O contexto passava o atendimento
+inteiro, e o atendimento passou a carregar `raw`, que é o que a HubSpot devolveu
+sem redução: e-mail, telefone e as 795 propriedades do objeto. Isso ia ao
+provedor de IA **por acidente**, que é a pior forma de decidir sobre dado de
+cliente, e o contrato estrito do servidor recusava todo pedido desde o dia em
+que o campo entrou no modelo. Hoje os campos vão nomeados um a um; se um do
+registro cru fizer falta ao prompt, alguém decide que ele vai.
+
+**O contrato mostrado ao modelo tinha uma chave que não era resposta.**
+`z.toJSONSchema` acrescenta `$schema`, que declara o dialeto do documento. O
+modelo não tem como saber a diferença entre metadado e campo: mostrado o objeto
+e mandado responder naquela forma, ele devolvia `$schema` junto, e o contrato de
+saída, estrito, derrubava a análise.
+
+**Resposta cortada não é resposta inválida.** Sem `maxOutputTokens` declarado
+vale o teto do modelo, e a análise de uma conversa de oitenta mensagens chega
+perto dele: o JSON vinha aberto e sem fechar. Isso subia como "formato inválido,
+peça de novo", que manda repetir um pedido que vai ser cortado no mesmo lugar. O
+`finishReason` decide, e o que não é `STOP` é dito como veio.
+
+**E "dados inválidos" sozinho é detalhe nenhum.** As cinco rotas de IA
+respondiam a frase e mais nada, nem na tela nem no registro do servidor. Agora
+dizem o caminho do campo e o motivo, que é forma e não conteúdo: nenhum valor do
+pedido é copiado para a resposta.
+
 ### O e-mail do suporte não é vocabulário
 
 O que a HubSpot devolve como solução é o **e-mail inteiro**, com saudação,
@@ -930,12 +961,30 @@ primeira vez que a fila rodou contra dado real:
 - `2e82`, `4abd` e `360002887154` listados como as palavras que descrevem um
   grupo, sendo pedaços de identificador dentro de uma URL.
 
-São três cortes, e cada um responde a um desses. Endereço e e-mail saem antes
-de virar palavra; a cortesia da correspondência tem lista própria, que fica em
-`triage` e não em `lib/vocabulary` porque artigo publicado não abre com
-"prezado"; e hora de relógio sai da regra que existe para deixar `D15` e `V10`
-entrarem. Número solto sai um andar abaixo, em `isMeaningfulTerm`, porque
-`47968252511` é chamado e `2024` é ano em qualquer texto deste produto.
+São três cortes, e cada um responde a um desses. Endereço e e-mail saem antes de
+virar palavra; a cortesia da correspondência tem lista própria; e hora de
+relógio sai da regra que existe para deixar `D15` e `V10` entrarem. Número solto
+sai junto das palavras comuns, porque `47968252511` é chamado e `2024` é ano em
+qualquer texto deste produto.
+
+A lista vive em `lib/vocabulary` e é **opt-in**: só o texto do atendimento a
+pede. Artigo publicado não abre com "prezado", e "acesso" ou "atendimento" são
+assunto legítimo dentro de um artigo.
+
+E ela não vale só para a triagem. A busca por artigos relacionados que a análise
+faz casava pela correspondência também: um chamado de importação de IFC no
+Eberick trouxe um artigo sobre o Visus Cost Management, ligado por "situação,
+neste, atendimento, identificamos, solicitação". Relacionado que não se sustenta
+é pior que nenhum, porque a análise apresenta os cinco como o que o acervo tem
+sobre o caso, e quem confia abre os cinco uma vez só.
+
+**Havia três listas de palavras comuns, e elas divergiam.** A comparação entre
+artigos descartava "projeto" e "janela"; a busca por relacionados tinha as suas
+trinta e cinco, sem tirar acento, e as deixava passar. Agora a **lista** é uma
+só, e o **tamanho mínimo** continua de quem chama: comparar dois artigos longos
+quer a barra alta, senão qualquer par do Builder se parece; casar uma consulta
+contra o acervo quer a barra baixa, porque "laje", "viga", "SPDA" e "IFC" são
+justamente o que separa um artigo do outro aqui.
 
 A cobertura que a fila mostrava antes disso estava **inflada pelo mesmo ruído**:
 o que o acervo "cobria" eram as palavras de cortesia.
@@ -1253,8 +1302,8 @@ Testes cobrem lógica pura, nunca componentes: a leitura do sitemap e da página
 do portal com o plano de importação e a decisão do que revisitar, o preparo do
 HTML do artigo (âncora, cor removida, link resolvido, destaque da busca) com
 a limpeza do que executa, o trecho da busca, a sobreposição entre artigos com o vocabulário que os
-compara e a duplicata de título, a triagem do atendimento com o corte do que a
-correspondência traz junto, a comparação de dois, a leitura da conversa da HubSpot com a paginação que não
+compara e a duplicata de título, a triagem do atendimento e a consulta da análise com o corte
+do que a correspondência traz junto, a recusa que diz qual campo, a comparação de dois, a leitura da conversa da HubSpot com a paginação que não
 para na página vazia, o mapeamento de mensagens do provedor, a consulta da IA
 sobre o artigo, o rótulo da iniciativa, motor de busca e busca
 transversal, transições de artigo e de plano, métricas por projeto e por

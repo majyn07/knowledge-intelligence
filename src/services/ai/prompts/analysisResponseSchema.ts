@@ -53,6 +53,21 @@ export const analysisResponseSchema = z.object({
 
 export type GeneratedAnalysisResponse = z.infer<typeof analysisResponseSchema>;
 
+/**
+ * O contrato como o modelo o vê, sem o cabeçalho do formato.
+ *
+ * `z.toJSONSchema` acrescenta `$schema`, que declara qual dialeto de JSON
+ * Schema o documento usa. É metadado do documento, não campo da resposta, e o
+ * modelo não tem como saber a diferença: mostrado um objeto com `$schema`
+ * dentro e a instrução de responder nesta forma, ele devolvia `$schema` junto.
+ *
+ * O contrato de saída é estrito de propósito, então a chave a mais derrubava a
+ * análise inteira. Toda vez, com "não foi possível concluir a análise" na tela,
+ * que é a mesma frase de quando a chave da API está errada.
+ */
 export function getAnalysisResponseJsonSchema() {
-  return z.toJSONSchema(analysisResponseSchema);
+  const contrato: Record<string, unknown> = z.toJSONSchema(analysisResponseSchema);
+  delete contrato.$schema;
+
+  return contrato;
 }

@@ -26,8 +26,37 @@ export function useAnalysisContext(
     const query = buildKnowledgeQuery(ticket, conversation);
 
     return {
-      ticket,
-      conversation,
+      /*
+        Os campos declarados, e não o registro inteiro.
+
+        O atendimento carrega `raw`, que é o que a HubSpot devolveu sem redução:
+        e-mail, telefone, empresa e as setecentas e noventa e cinco
+        propriedades do objeto. Passar o objeto direto mandava tudo isso ao
+        provedor de IA, e mandava por acidente, que é a pior forma de decidir
+        sobre dado de cliente.
+
+        Também era o que quebrava a análise. O contrato do servidor é estrito
+        de propósito, e passou a recusar todo pedido no dia em que o registro
+        cru entrou no modelo: "não foi possível concluir a análise", sem dizer
+        por quê.
+
+        Se um dia um campo do registro cru fizer falta ao prompt, ele entra
+        aqui com nome, e alguém decide que ele vai.
+      */
+      ticket: {
+        id: ticket.id,
+        projectId: ticket.projectId,
+        title: ticket.title,
+        solution: ticket.solution,
+        company: ticket.company,
+        date: ticket.date,
+      },
+      conversation: conversation && {
+        id: conversation.id,
+        ticketId: conversation.ticketId,
+        messages: conversation.messages,
+        source: conversation.source,
+      },
       relatedArticles: searchRelatedArticles(articles, query),
       projectId: ticket.projectId,
     };
