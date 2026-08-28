@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { articleText } from "../content/articleText";
 import { foldText } from "../content/articleExcerpt";
 
@@ -30,29 +30,73 @@ export function useLibraryFilters(items: KnowledgeArticle[]) {
   const buscando = filters.search.trim() !== "";
 
   /*
-    O texto de cada artigo, sem marcação, calculado uma vez por acervo — e só
-    quando há busca em curso.
+    O texto de cada artigo, sem marcação — montado **uma vez por acervo**, e
+    fora do caminho de quem digita.
 
-    Sem o índice, buscar no corpo limparia o HTML de mil e oitocentos artigos a
-    cada tecla: doze mil caracteres vezes mil e oitocentos, por letra digitada.
-    E sem a preguiça, ele seria construído mesmo para quem só abriu a Biblioteca
-    e vai olhar cartão — que é a maioria das visitas, e paga o custo inteiro sem
-    receber nada.
+    Sem índice, buscar no corpo limparia o HTML de mil e oitocentos artigos a
+    cada tecla. Com índice construído dentro do render, a primeira tecla
+    travava a interface por dois segundos e dois. E com o índice preso à busca
+    em curso, ele era jogado fora ao limpar o campo e reconstruído na busca
+    seguinte — o mesmo travamento, de novo.
 
-    O `items` na dependência é de propósito: editar um artigo precisa refletir
-    na busca seguinte, e o índice velho responderia sobre o texto antigo.
+    Agora ele é montado quando o navegador está ocioso, logo depois de o acervo
+    chegar: quem nunca busca não paga nada de tempo de tela, e quem busca
+    encontra o índice pronto. Se a busca começar antes de o ocioso acontecer, o
+    trecho abaixo o constrói na hora — tarde é melhor que nunca.
   */
-  const searchIndex = useMemo(() => {
-    const indice = new Map<string, string>();
+  const [indice, setIndice] = useState<{
+    para: KnowledgeArticle[];
+    mapa: Map<string, string>;
+  } | null>(null);
 
-    if (!buscando) return indice;
+  const montarIndice = useCallback((paraItens: KnowledgeArticle[]) => {
+    const mapa = new Map<string, string>();
 
-    for (const item of items) {
-      indice.set(item.id, foldText(articleText(item)));
+    for (const item of paraItens) {
+      mapa.set(item.id, foldText(articleText(item)));
     }
 
-    return indice;
-  }, [items, buscando]);
+    return mapa;
+  }, []);
+
+  useEffect(() => {
+    if (items.length === 0) return;
+
+    let cancelado = false;
+
+    /*
+      `requestIdleCallback` não existe em todo navegador; o `setTimeout` cobre
+      o resto sem travar a montagem da tela.
+    */
+    const temOcioso = typeof window !== "undefined" && "requestIdleCallback" in window;
+
+    const id = temOcioso
+      ? window.requestIdleCallback(
+          () => {
+            if (!cancelado) setIndice({ para: items, mapa: montarIndice(items) });
+          },
+          { timeout: 4000 }
+        )
+      : window.setTimeout(() => {
+          if (!cancelado) setIndice({ para: items, mapa: montarIndice(items) });
+        }, 300);
+
+    return () => {
+      cancelado = true;
+      if (temOcioso) window.cancelIdleCallback(id);
+      else window.clearTimeout(id);
+    };
+  }, [items, montarIndice]);
+
+  const searchIndex = useMemo(() => {
+    if (!buscando) return new Map<string, string>();
+
+    // O índice velho responderia sobre o texto de antes da edição.
+    if (indice && indice.para === items) return indice.mapa;
+
+    // A busca começou antes de o ocioso acontecer: tarde é melhor que nunca.
+    return montarIndice(items);
+  }, [items, buscando, indice, montarIndice]);
 
   const filteredItems = useMemo(() => {
     return items.filter((item) => {
