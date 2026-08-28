@@ -2,6 +2,8 @@ import type { KnowledgeArticle } from "@/models/KnowledgeArticle";
 import type { KnowledgeQuery } from "@/models/KnowledgeQuery";
 import type { KnowledgeSearchResult } from "@/models/KnowledgeSearchResult";
 
+import { articleText } from "../content/articleText";
+
 /**
  * Palavras muito frequentes em português não indicam proximidade de assunto:
  * sem esta lista, dois artigos passam a se relacionar por "para" ou "como".
@@ -55,7 +57,8 @@ export function searchKnowledge(
 
       const title = article.title.toLowerCase();
       const summary = article.summary.toLowerCase();
-      const content = article.content.toLowerCase();
+      // Sem a marcação: senão "div" e "class" casariam com o portal inteiro.
+      const content = articleText(article).toLowerCase();
       const keywords = article.keywords.join(" ").toLowerCase();
       const tags = article.tags.join(" ").toLowerCase();
 

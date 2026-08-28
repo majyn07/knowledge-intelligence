@@ -1,6 +1,8 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { articleText } from "../content/articleText";
+import { foldText } from "../content/articleExcerpt";
 
 import type { KnowledgeArticle } from "@/models/KnowledgeArticle";
 import { findSection, sectionPath } from "@/models/Taxonomy";
@@ -25,17 +27,49 @@ export function useLibraryFilters(items: KnowledgeArticle[]) {
   const [filters, setFilters] = useState<LibraryFilters>(defaultFilters);
   const { taxonomy } = useTaxonomy();
 
+  const buscando = filters.search.trim() !== "";
+
+  /*
+    O texto de cada artigo, sem marcação, calculado uma vez por acervo — e só
+    quando há busca em curso.
+
+    Sem o índice, buscar no corpo limparia o HTML de mil e oitocentos artigos a
+    cada tecla: doze mil caracteres vezes mil e oitocentos, por letra digitada.
+    E sem a preguiça, ele seria construído mesmo para quem só abriu a Biblioteca
+    e vai olhar cartão — que é a maioria das visitas, e paga o custo inteiro sem
+    receber nada.
+
+    O `items` na dependência é de propósito: editar um artigo precisa refletir
+    na busca seguinte, e o índice velho responderia sobre o texto antigo.
+  */
+  const searchIndex = useMemo(() => {
+    const indice = new Map<string, string>();
+
+    if (!buscando) return indice;
+
+    for (const item of items) {
+      indice.set(item.id, foldText(articleText(item)));
+    }
+
+    return indice;
+  }, [items, buscando]);
+
   const filteredItems = useMemo(() => {
     return items.filter((item) => {
-      const search = filters.search.trim().toLowerCase();
+      const search = foldText(filters.search.trim());
 
+      /*
+        O corpo entra na busca, e é o que faltava: com o portal importado, o que
+        alguém procura quase nunca está no título — está no meio do artigo.
+      */
       const matchesSearch =
         search === "" ||
-        item.title.toLowerCase().includes(search) ||
-        item.summary.toLowerCase().includes(search) ||
-        sectionPath(taxonomy, item.sectionId).toLowerCase().includes(search) ||
-        item.tags.some((tag) => tag.toLowerCase().includes(search)) ||
-        item.keywords.some((keyword) => keyword.toLowerCase().includes(search));
+        foldText(item.title).includes(search) ||
+        foldText(item.summary).includes(search) ||
+        foldText(sectionPath(taxonomy, item.sectionId)).includes(search) ||
+        item.tags.some((tag) => foldText(tag).includes(search)) ||
+        item.keywords.some((keyword) => foldText(keyword).includes(search)) ||
+        (searchIndex.get(item.id) ?? "").includes(search);
 
       const matchesStatus =
         filters.status === "all" || item.status === filters.status;
@@ -50,7 +84,7 @@ export function useLibraryFilters(items: KnowledgeArticle[]) {
 
       return matchesSearch && matchesStatus && matchesCategory;
     });
-  }, [items, filters, taxonomy]);
+  }, [items, filters, taxonomy, searchIndex]);
 
   /** Quantos artigos ficaram sem seção — o filtro só aparece se houver algum. */
   const unclassifiedCount = useMemo(

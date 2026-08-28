@@ -1,7 +1,7 @@
 "use client";
 
 import { FormEvent, useEffect, useMemo, useState, type ReactNode } from "react";
-import { MessageSquarePlus, Trash2 } from "lucide-react";
+import { Download, Loader2, MessageSquarePlus, Trash2 } from "lucide-react";
 
 import { FillPanel } from "@/components/common/fill/FillPanel";
 import { Button } from "@/components/ui/button";
@@ -53,6 +53,7 @@ function emptyForm(projectId: string): TicketFormData {
     solution: "",
     date: "",
     projectId,
+    externalId: "",
     messages: [],
   };
 }
@@ -131,6 +132,22 @@ export function TicketForm({
         label: "Data",
         kind: "texto",
         hint: "Dia do atendimento, no formato aaaa-mm-dd.",
+      },
+      /*
+        O identificador de origem entra, e isso não contraria a regra de que
+        identificador fica fora do preenchimento por IA.
+
+        Aquela regra é sobre identificador **nosso** — responsável, seção,
+        gênero —, onde o modelo devolveria um nome e nós precisaríamos casar
+        com um id do catálogo. Este é de fora: chega escrito no documento,
+        é guardado como texto e não há catálogo a consultar. Deixá-lo de fora
+        era o que fazia o número do chamado ir parar no título.
+      */
+      {
+        name: "externalId",
+        label: "Número na HubSpot",
+        kind: "texto",
+        hint: "Só o número do chamado, se ele aparecer no documento.",
       },
       /*
         A conversa entra, e isso foi uma correção de rumo.
@@ -225,6 +242,91 @@ export function TicketForm({
     }));
   }
 
+  /*
+    A integração é opcional, então a tela pergunta antes de oferecer o botão —
+    mesma regra do botão de entrar com a conta Google: botão que às vezes leva
+    a lugar nenhum é pior que botão que ainda não existe.
+
+    A resposta entra depois da montagem: no primeiro render o servidor não sabe
+    se há credencial, e assumir que sim divergiria na hidratação.
+  */
+  const [hubspotAtiva, setHubspotAtiva] = useState<boolean | null>(null);
+  const [trazendo, setTrazendo] = useState(false);
+  const [avisoDaConversa, setAvisoDaConversa] = useState<string | null>(null);
+
+  useEffect(() => {
+    let vivo = true;
+
+    fetch("/api/hubspot/conversation")
+      .then((resposta) => (resposta.ok ? resposta.json() : { configured: false }))
+      .then((dados: { configured?: boolean }) => {
+        if (vivo) setHubspotAtiva(Boolean(dados.configured));
+      })
+      .catch(() => {
+        if (vivo) setHubspotAtiva(false);
+      });
+
+    return () => {
+      vivo = false;
+    };
+  }, []);
+
+  async function trazerConversa() {
+    const numero = formData.externalId.trim();
+    if (!numero || trazendo) return;
+
+    setTrazendo(true);
+    setAvisoDaConversa(null);
+
+    try {
+      const resposta = await fetch("/api/hubspot/conversation", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ externalId: numero }),
+      });
+
+      const dados: { messages?: TicketMessageFormData[]; message?: string } =
+        await resposta.json();
+
+      if (!resposta.ok) {
+        setAvisoDaConversa(dados.message ?? "Não foi possível trazer a conversa.");
+        return;
+      }
+
+      const vindas = dados.messages ?? [];
+
+      if (vindas.length === 0) {
+        setAvisoDaConversa(
+          `Nenhuma conversa encontrada para o atendimento ${numero} na HubSpot.`
+        );
+        return;
+      }
+
+      onDirty?.();
+
+      setFormData((previous) => {
+        /*
+          Some o que já está aqui: trazer duas vezes duplicaria o fio inteiro, e
+          quem já digitou uma mensagem à mão não deve perdê-la.
+        */
+        const conhecidas = new Set(previous.messages.map((mensagem) => mensagem.id));
+        const novas = vindas.filter((mensagem) => !conhecidas.has(mensagem.id));
+
+        setAvisoDaConversa(
+          novas.length === 0
+            ? "A conversa já estava registrada aqui: nada novo veio."
+            : `${novas.length} mensagem(ns) trazida(s) da HubSpot. Revise antes de salvar.`
+        );
+
+        return { ...previous, messages: [...previous.messages, ...novas] };
+      });
+    } catch {
+      setAvisoDaConversa("Não foi possível falar com o servidor.");
+    } finally {
+      setTrazendo(false);
+    }
+  }
+
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!formData.title.trim() || !formData.projectId) return;
@@ -241,6 +343,7 @@ export function TicketForm({
           company: formData.company,
           solution: formData.solution,
           date: formData.date,
+          externalId: formData.externalId,
         }}
         onApply={(values) => {
           onDirty?.();
@@ -327,6 +430,28 @@ export function TicketForm({
                 atendimento enquanto ela não for informada.
               </p>
             )}
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="ticket-external-id">Número na HubSpot</Label>
+            <Input
+              id="ticket-external-id"
+              value={formData.externalId}
+              placeholder="Ex.: 47673917220"
+              onChange={(event) => change("externalId", event.target.value)}
+            />
+
+            {/*
+              É por este número que a conversa vinda da HubSpot encontra o
+              atendimento. Sem ele o fio existe do lado de lá e não tem onde
+              se ligar aqui — e era o que acontecia com todo atendimento
+              cadastrado à mão.
+            */}
+            <p className="text-xs text-muted-foreground">
+              {formData.externalId.trim()
+                ? "A conversa registrada na HubSpot pode ser trazida por este número."
+                : "Sem o número, a conversa da HubSpot não tem como ser vinculada."}
+            </p>
           </div>
 
           <div className="space-y-2">
@@ -417,7 +542,40 @@ export function TicketForm({
             <MessageSquarePlus className="mr-1.5 h-3.5 w-3.5" />
             Mensagem do suporte
           </Button>
+
+          {/*
+            É a única coisa que a API da HubSpot entrega e o arquivo não: a
+            exportação traz o ticket, não o fio de mensagens. Só aparece com
+            credencial configurada e com o número preenchido — sem o número não
+            há por onde procurar.
+          */}
+          {hubspotAtiva && (
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              disabled={!formData.externalId.trim() || trazendo}
+              onClick={trazerConversa}
+            >
+              {trazendo ? (
+                <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
+              ) : (
+                <Download className="mr-1.5 h-3.5 w-3.5" />
+              )}
+              {trazendo ? "Trazendo..." : "Trazer a conversa da HubSpot"}
+            </Button>
+          )}
         </div>
+
+        {hubspotAtiva && !formData.externalId.trim() && (
+          <p className="text-xs text-muted-foreground">
+            Informe o número na HubSpot, acima, para poder trazer a conversa registrada lá.
+          </p>
+        )}
+
+        {avisoDaConversa && (
+          <p className="text-xs text-muted-foreground">{avisoDaConversa}</p>
+        )}
       </Fieldset>
 
       <div className="flex justify-end gap-2 border-t border-border/70 pt-5">

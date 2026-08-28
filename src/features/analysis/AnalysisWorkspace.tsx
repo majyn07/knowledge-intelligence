@@ -203,6 +203,7 @@ export function AnalysisWorkspace() {
                   title: "",
                   company: "",
                   solution: "",
+                  externalId: "",
                   // Vazia: quem preenche com hoje é o próprio formulário,
                   // depois da montagem. Ler o relógio aqui seria no render.
                   date: "",

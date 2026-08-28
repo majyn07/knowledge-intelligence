@@ -4,6 +4,8 @@ import { GoogleGenAI } from "@google/genai";
 
 import type { AIAttachment } from "@/models/AIAttachment";
 import type { AIChatMessage } from "@/models/AIChatMessage";
+
+import { conversationOf, systemInstructionOf } from "./messageMapping";
 import type { AIChatRequest } from "@/models/AIChatRequest";
 
 import { AIConfigurationError, AIProviderError } from "../analysis/analysisErrors";
@@ -52,11 +54,8 @@ async function complete(
 ): Promise<string> {
   const client = getClient();
 
-  const systemMessage = messages.find((message) => message.role === "system");
-  const texto = messages
-    .filter((message) => message.role !== "system")
-    .map((message) => message.content)
-    .join("\n\n");
+  const systemInstruction = systemInstructionOf(messages);
+  const texto = conversationOf(messages);
 
   /*
     Sem anexo o conteúdo continua sendo a string de sempre — o SDK aceita as
@@ -83,7 +82,7 @@ async function complete(
         // Sem prazo, um pedido pendurado prende a rota até o teto da
         // plataforma, e quem pediu fica olhando um botão girar.
         abortSignal: AbortSignal.timeout(AI_TIMEOUT_MS),
-        ...(systemMessage ? { systemInstruction: systemMessage.content } : {}),
+        ...(systemInstruction ? { systemInstruction } : {}),
         ...(options.json ? { responseMimeType: "application/json" } : {}),
         /*
           `thinkingBudget: 0` desliga o raciocínio estendido, que neste modelo

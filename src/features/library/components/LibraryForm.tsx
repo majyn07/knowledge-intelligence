@@ -1,6 +1,7 @@
 "use client";
 
-import { FormEvent, useMemo, useState, type ReactNode } from "react";
+import { FormEvent, KeyboardEvent, useMemo, useState, type ReactNode } from "react";
+import { ArticleHtmlEditor } from "./ArticleHtmlEditor";
 import { Sparkles } from "lucide-react";
 
 import type { LibraryFormData } from "@/features/library/types/LibraryFormData";
@@ -56,6 +57,8 @@ const emptyForm: LibraryFormData = {
   title: "",
   summary: "",
   content: "",
+  // Artigo escrito aqui nasce Markdown: é o que este editor produz.
+  contentFormat: "markdown",
   projectId: "",
   genreId: "",
   status: "draft",
@@ -186,6 +189,26 @@ export function LibraryForm({
     content: formData.content,
   });
 
+  function salvar() {
+    if (!formData.title.trim()) return;
+
+    onSubmit({ ...formData, tags: toList(tags), keywords: toList(keywords) });
+    recovery.clear();
+  }
+
+  /*
+    Quem edita texto longo salva o tempo todo, e ir até o botão a cada vez tira
+    a mão do teclado. O atalho é o do sistema, então não há o que aprender — e
+    o navegador salvaria a página, que não é o que ninguém quer aqui.
+  */
+  function handleKeyDown(event: KeyboardEvent<HTMLFormElement>) {
+    if (event.key.toLowerCase() !== "s") return;
+    if (!event.ctrlKey && !event.metaKey) return;
+
+    event.preventDefault();
+    salvar();
+  }
+
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
@@ -242,7 +265,7 @@ export function LibraryForm({
   );
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
+    <form onSubmit={handleSubmit} onKeyDown={handleKeyDown} className="space-y-6">
       <FillPanel
         subject="Artigo da base de conhecimento do suporte AltoQi"
         fields={fillFields}
@@ -303,24 +326,52 @@ export function LibraryForm({
         </div>
       </Fieldset>
 
-      <Fieldset legend="Conteúdo" hint="Escreva em Markdown. Os títulos viram o índice do artigo.">
-        <MarkdownField
-          id="content"
-          label="Corpo do artigo"
-          rows={14}
-          value={formData.content}
-          onChange={(value) => change("content", value)}
-          placeholder={"## Problema\n\nDescreva o sintoma como o cliente o relata."}
-          actions={
-            !formData.content.trim() ? (
-              <Button type="button" size="sm" variant="ghost" onClick={applyTemplate}>
-                <Sparkles className="mr-1.5 h-3.5 w-3.5" />
-                Usar modelo de {genreName(formData.genreId).toLowerCase()}
-              </Button>
-            ) : undefined
-          }
-        />
-      </Fieldset>
+      {/*
+        O editor segue o formato **declarado** do artigo.
+
+        Oferecer a barra de Markdown sobre o HTML do portal seria ferramenta que
+        não corresponde ao conteúdo: clicar em negrito escreveria `**` no meio de
+        uma marcação HTML, e o resultado não seria nem um formato nem o outro.
+        Enquanto não houver editor rico, o HTML é editado como marcação — com a
+        tela dizendo o que é, em vez de fingir que é Markdown.
+      */}
+      {formData.contentFormat === "html" ? (
+        <Fieldset
+          legend="Conteúdo"
+          hint="Este artigo veio do portal e está em HTML. A edição acontece na própria marcação, para não degradá-la."
+        >
+          <ArticleHtmlEditor
+            value={formData.content}
+            onChange={(valor) => change("content", valor)}
+            resetKey={initialData?.url ?? "novo"}
+          />
+
+          <p className="text-xs text-muted-foreground">
+            O formato é preservado ao salvar, e o que você não tocar continua idêntico.
+            Converter para Markdown degradaria tabela, âncora e mídia embutida a cada
+            ida e volta — por isso o artigo guarda o formato em que nasceu.
+          </p>
+        </Fieldset>
+      ) : (
+        <Fieldset legend="Conteúdo" hint="Escreva em Markdown. Os títulos viram o índice do artigo.">
+          <MarkdownField
+            id="content"
+            label="Corpo do artigo"
+            rows={14}
+            value={formData.content}
+            onChange={(value) => change("content", value)}
+            placeholder={"## Problema\n\nDescreva o sintoma como o cliente o relata."}
+            actions={
+              !formData.content.trim() ? (
+                <Button type="button" size="sm" variant="ghost" onClick={applyTemplate}>
+                  <Sparkles className="mr-1.5 h-3.5 w-3.5" />
+                  Usar modelo de {genreName(formData.genreId).toLowerCase()}
+                </Button>
+              ) : undefined
+            }
+          />
+        </Fieldset>
+      )}
 
       <Fieldset legend="Classificação" hint="Como este artigo é encontrado — pela busca e pela análise.">
         <div className="grid gap-4 md:grid-cols-2">

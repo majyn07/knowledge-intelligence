@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
+import { articleText } from "../content/articleText";
 import { Sparkles } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -89,7 +90,7 @@ export function SuggestSectionDialog({
           summary: article.summary.slice(0, 300),
           // O artigo inteiro não cabe no prompt, e não precisa: o assunto
           // aparece no começo.
-          excerpt: article.content.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").slice(0, 500),
+          excerpt: articleText(article).slice(0, 500),
         })),
         sections: taxonomy.sections.map((section) => ({
           id: section.id,

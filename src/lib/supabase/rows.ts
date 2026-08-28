@@ -69,7 +69,15 @@ export function toArticle(raw: unknown): KnowledgeArticle {
 export function fromArticle(article: KnowledgeArticle): ArticleRow {
   return {
     id: article.id,
-    project_id: article.projectId,
+    /*
+      Vazio vira nulo, como já acontecia com seção e gênero duas linhas abaixo.
+
+      O artigo do acervo não pertence a iniciativa nenhuma — é do hub. Texto
+      vazio não é ausência para o Postgres, e a chave estrangeira recusava os
+      1.822 artigos do portal no fim de uma varredura de quarenta e cinco
+      minutos.
+    */
+    project_id: article.projectId || null,
     title: article.title,
     summary: article.summary,
     content: article.content,

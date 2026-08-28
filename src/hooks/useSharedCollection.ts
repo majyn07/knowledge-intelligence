@@ -44,6 +44,34 @@ let writeWarned = false;
  * que permite manter os providers como estão, chamando `definir(proximo)` sem
  * saber que existe um banco atrás.
  */
+/**
+ * Quantas linhas por pedido.
+ *
+ * Vinte e cinco, e o número veio de uma falha: com cem, cada pedido levava
+ * cerca de 1,3 MB de corpo de artigo, e a gravação dos 1.782 do portal morreu
+ * no quinto lote — sem erro na tela e sem nada no console.
+ */
+const POR_LOTE = 25;
+
+/**
+ * Quantas linhas por leitura.
+ *
+ * Abaixo do teto de mil do PostgREST, e pequena o bastante para a consulta não
+ * estourar o tempo do servidor com corpos de artigo de doze mil caracteres.
+ */
+const POR_PAGINA = 200;
+
+/** Divide em pedaços, preservando a ordem. */
+export function emLotes<T>(lista: T[], tamanho: number): T[][] {
+  const lotes: T[][] = [];
+
+  for (let inicio = 0; inicio < lista.length; inicio += tamanho) {
+    lotes.push(lista.slice(inicio, inicio + tamanho));
+  }
+
+  return lotes;
+}
+
 export function useSharedCollection<T>({
   key,
   table,
@@ -60,6 +88,9 @@ export function useSharedCollection<T>({
     O estado gravado por último. Serve para calcular a diferença sem depender
     da ordem em que o React aplica as atualizações.
   */
+  /** Verdadeiro enquanto uma gravação nossa está em curso. */
+  const gravando = useRef(false);
+
   const persisted = useRef<T[]>(fallback);
   /*
     As conversões chegam como funções novas a cada render do provider. Guardá-
@@ -79,18 +110,42 @@ export function useSharedCollection<T>({
   const supabase = getSupabase();
   const remote = supabase !== null;
 
-  /** Lê tudo da tabela. Simples de propósito: as coleções são pequenas. */
+  /**
+   * Lê tudo da tabela, em páginas.
+   *
+   * Era um `select("*")` só, com o comentário de que as coleções são pequenas.
+   * Deixaram de ser: com o portal importado são mil e oitocentos artigos e
+   * vinte e quatro megabytes, e a consulta única falhava de duas formas ao
+   * mesmo tempo — estourava o tempo do servidor, e quando não estourava vinha
+   * **cortada em mil linhas**, que é o teto do PostgREST.
+   *
+   * O corte era o pior dos dois: chegava sem erro, e o tempo real substituía o
+   * acervo inteiro por essas mil.
+   */
   const fetchAll = useCallback(async () => {
     if (!supabase) return null;
 
-    const { data, error } = await supabase.from(table).select("*");
+    const linhas: unknown[] = [];
 
-    if (error) {
-      toast.error(`Não foi possível ler ${table}: ${error.message}`);
-      return null;
+    for (let inicio = 0; ; inicio += POR_PAGINA) {
+      const { data, error } = await supabase
+        .from(table)
+        .select("*")
+        .range(inicio, inicio + POR_PAGINA - 1);
+
+      if (error) {
+        toast.error(`Não foi possível ler ${table}: ${error.message}`);
+        return null;
+      }
+
+      const pagina = data ?? [];
+      linhas.push(...pagina);
+
+      // Página incompleta é a última: não há motivo para pedir mais uma vazia.
+      if (pagina.length < POR_PAGINA) break;
     }
 
-    return options.current.fromRows(data ?? []);
+    return options.current.fromRows(linhas);
   }, [supabase, table]);
 
   // Carga inicial.
@@ -142,6 +197,15 @@ export function useSharedCollection<T>({
         "postgres_changes",
         { event: "*", schema: "public", table },
         async () => {
+          /*
+            Enquanto **nós** estamos gravando, o eco da própria escrita não pode
+            reler: cada lote dispara um evento, e a releitura devolveria uma
+            visão **parcial** do banco que substituiria o estado local no meio
+            do caminho. Foi assim que uma importação de 1.782 artigos ficou com
+            440 na tela e o resto sumiu da memória.
+          */
+          if (gravando.current) return;
+
           const rows = await fetchAll();
           if (rows) {
             setItems(rows);
@@ -188,6 +252,8 @@ export function useSharedCollection<T>({
     async function sync() {
       if (!supabase) return;
 
+      gravando.current = true;
+
       /*
         `table` é uma união de nomes, então o tipo da linha esperada vira a
         interseção de todas — `never`. O gancho é genérico de propósito: quem
@@ -198,18 +264,51 @@ export function useSharedCollection<T>({
         delete: () => { in: (column: string, values: string[]) => Promise<{ error: { message: string } | null }> };
       };
 
-      if (mudados.length > 0) {
-        const { error } = await tabela.upsert(mudados.map(row));
-        if (error) toast.error(`Não foi possível gravar: ${error.message}`);
+      /*
+        Em lotes, e não tudo de uma vez.
+
+        A importação do portal grava 1.822 artigos numa tacada só — cerca de
+        vinte e quatro megabytes de corpo HTML. Um `upsert` único com isso
+        estoura o limite de tamanho do pedido, e a falha chegaria como um erro
+        genérico depois de a pessoa ter esperado a varredura inteira.
+
+        Cem por lote dá pedidos de poucos megabytes, e o `delete` vai junto
+        porque uma lista de mil e oitocentos identificadores também tem teto,
+        agora na URL.
+      */
+      for (const lote of emLotes(mudados, POR_LOTE)) {
+        const { error } = await tabela.upsert(lote.map(row));
+
+        if (error) {
+          toast.error(`Não foi possível gravar: ${error.message}`);
+          return;
+        }
       }
 
-      if (removidos.length > 0) {
-        const { error } = await tabela.delete().in("id", removidos);
-        if (error) toast.error(`Não foi possível remover: ${error.message}`);
+      for (const lote of emLotes(removidos, POR_LOTE)) {
+        const { error } = await tabela.delete().in("id", lote);
+
+        if (error) {
+          toast.error(`Não foi possível remover: ${error.message}`);
+          return;
+        }
       }
     }
 
-    void sync();
+    /*
+      O `catch` existe porque `void sync()` engolia a exceção: quando um pedido
+      falhava por rede ou por tamanho, o laço morria calado e metade do acervo
+      simplesmente não chegava. Falha silenciosa é pior que falha — ninguém vai
+      atrás do que não sabe que quebrou.
+    */
+    void sync()
+      .catch((erro: unknown) => {
+        const causa = erro instanceof Error ? erro.message : "causa desconhecida";
+        toast.error(`A gravação foi interrompida: ${causa}. Tente de novo.`);
+      })
+      .finally(() => {
+        gravando.current = false;
+      });
   }, [isHydrated, items, key, remote, supabase, table]);
 
   return [items, setItems, isHydrated] as const;

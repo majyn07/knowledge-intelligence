@@ -18,7 +18,12 @@ function normalize(data: LibraryFormData) {
     tags: data.tags,
     keywords: data.keywords,
     author: data.author.trim(),
-    contentFormat: "markdown" as const,
+    /*
+      Vem do formulário, e não cravado: artigo do portal é HTML, e sobrescrever
+      isso ao salvar convertia o registro sem ninguém pedir — exatamente o que
+      guardar o formato existe para evitar.
+    */
+    contentFormat: data.contentFormat,
     url: data.url.trim() || undefined,
   };
 }
@@ -93,6 +98,7 @@ export const articleService = {
       title: article.title,
       summary: article.summary,
       content: article.content,
+      contentFormat: article.contentFormat,
       projectId: article.projectId,
       genreId: article.genreId,
       sectionId: article.sectionId,
