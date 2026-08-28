@@ -36,7 +36,7 @@ questão de rota, de nomenclatura ou de versão da API:
 | `GET /crm/v3/objects/0-5` (pelo objectTypeId) | 403 |
 | `GET /crm/v4/objects/0-5` | 403 |
 | `GET /crm/v3/objects/0-5/47673917220` (um registro) | 403 |
-| `GET /crm/v3/properties/tickets` (só o vocabulário) | 403 |
+| `GET /crm/v3/properties/tickets` (só o vocabulário) | 403, mas ver 1.4 |
 
 Todos com a mesma mensagem: *"The scope needed for this API call isn't
 available for public use."*
@@ -59,22 +59,61 @@ contratado na conta. Quem administra o app consegue distinguir; de fora não dá
 **O que isso impede:** trazer assunto, empresa, data e solução do atendimento.
 Hoje o número do chamado é alcançável (ver 1.3), mas o registro dele não.
 
-**E impede até preparar o trabalho.** A última linha da tabela foi testada em
-28/08 para descobrir se dava para adiantar o mapeamento enquanto o escopo não
-vem: ler só os **nomes** das propriedades do ticket, sem nenhum registro. Também
-é 403, e aqui a mensagem nomeia o escopo: *"requires one of [tickets-read,
-tickets-access]"*.
+**O pedido é uma coisa só: o escopo `tickets` de leitura.** Tudo o mais que a
+integração precisa já está alcançável, e isso foi medido no item 1.4.
 
-Por isso o pedido tem duas partes, e a segunda não depende da primeira:
+### 1.4 O que **funciona** em volta do ticket, medido em 28/08
 
-1. **O escopo `tickets` no app privado.**
-2. **A lista de propriedades do ticket**, que quem administra tira em um clique
-   pela interface (Configurações → Objetos → Tickets → Propriedades → Exportar).
+Esta seção existe porque a primeira leitura foi incompleta. Sete endereços de
+leitura do objeto foram testados e todos deram 403, e daí eu concluí cedo demais
+que nada em volta do atendimento era alcançável. Faltou testar busca, batch,
+pipelines, associações, exportação, GraphQL e esquemas. Testados agora:
 
-A lista sozinha já vale. Com ela dá para escrever e testar o mapeamento antes
-de o escopo chegar, e no dia da liberação a integração entra pronta em vez de
-começar. Sem ela, o trabalho só começa depois, porque não dá para adivinhar em
-qual propriedade mora a solução do atendimento.
+| Chamada | Resposta |
+| --- | --- |
+| `POST /crm/v3/objects/tickets/search` | 403 |
+| `POST /crm/v3/objects/tickets/batch/read` | 403 |
+| `GET /crm/v3/pipelines/tickets` | 403 |
+| `GET /crm/v3/objects/tickets?archived=true` | 403 |
+| `GET /crm/v4/objects/ticket/{id}/associations/contact` | 403 |
+| `POST /crm/v3/exports/export/async` | 403, escopo de exportação ausente |
+| `POST /collector/graphql` | 403, mesmo motivo |
+| **`GET /crm/v3/schemas/0-5`** | **200** |
+| **`GET /crm/v4/objects/conversation/{fio}/associations/ticket`** | **200** |
+| **`GET /crm/v4/objects/conversation/{fio}/associations/contact`** | **200** |
+| `GET /crm/v3/properties/0-11` | 200 |
+| `GET /crm/v3/objects/0-11/...` | 400, `CONVERSATION` não é suportado ali |
+
+**Duas coisas que eu havia dado como impossíveis e são possíveis:**
+
+**1. O vínculo fio → atendimento existe.** A associação devolve o id do ticket,
+então o registro criado aqui pode carregar o número real do chamado. É uma
+requisição por fio, como a das mensagens.
+
+**2. O vocabulário do ticket é legível pelo esquema.** `/crm/v3/schemas/0-5`
+devolve as **795 propriedades**, com nome, tipo, rótulo e opções. Não é preciso
+pedir a lista a quem administra:
+
+| Propriedade | Rótulo | Serve para |
+| --- | --- | --- |
+| `subject` | Ticket name | o assunto |
+| `content` | Ticket description | a descrição |
+| `hs_resolution` | Resolution | 4 opções, entre elas *Sent knowledge document link* |
+| `hs_pipeline_stage` | Ticket status | o estágio |
+| `categoria___suporte_tecnico` | [Support] Categoria \| Motivo principal do contato | 11 opções |
+| `hs_ticket_category` | Categoria | 6 opções |
+| `ia_produto` | [IA] Produto | 7 opções: Builder, Eberick, Visus, Área do Cliente, Licenciamento, Produto anterior, Não se aplica |
+| `linha_do_produto` | [Support] Especialidade técnica | **23 opções**, a lista de disciplinas |
+
+**`hs_resolution` tem uma opção chamada *Sent knowledge document link*.** Isso é
+o próprio suporte marcando, no CRM, que a dúvida foi respondida com um artigo do
+portal. É exatamente o sinal que este produto existe para medir, e ele está
+atrás do mesmo 403.
+
+**O que continua fechado é só o registro.** Nenhum caminho lê o valor das
+propriedades de um ticket. O esquema diz o que existe; o dado não vem.
+
+---
 
 ### 1.2 Falta o escopo `site-search-read`. Bloqueia ler o portal
 
@@ -180,16 +219,24 @@ Confirmado com quem conduz o projeto em 28/08: **`Help Desk` (`474522581`) é a
 caixa dos atendimentos.** Isso muda a conclusão anterior, porque a amostra que
 a produziu era de chat de marketing.
 
-**Mensagem de e-mail tem `subject`.** Os fios do Help Desk vieram 62% por
-e-mail (canal `1002`) e 38% por chat ao vivo (`1000`), e a primeira mensagem de
-um fio de e-mail traz `subject`, `text` e `richText`. Então o assunto é **dado**
-para a maior parte deles, e não proposta. O chat continua sem assunto.
+**É a caixa que gera o atendimento**, e os dois canais dela contam: chat ao vivo
+e e-mail são atendimento igual. Daí decorre a diferença que o desenho precisa
+tratar.
 
-A mensagem também traz `direction` (`INCOMING` / `OUTGOING`), que separa o que o
-cliente escreveu do que o suporte respondeu.
+Os fios vieram 62% por e-mail (canal `1002`) e 38% por chat (`1000`).
 
-**Nenhum dos 100 primeiros fios do Help Desk trazia `associatedTicketId`**, o
-que reforça que o vínculo com o objeto de ticket não é alcançável por aqui.
+| | e-mail | chat |
+| --- | --- | --- |
+| assunto | `subject` na mensagem, **é dado** | não existe, tem de sair do texto |
+| corpo | `text` e `richText` | `text` |
+| quem falou | `direction` | `direction` |
+
+A mensagem traz `direction` (`INCOMING` / `OUTGOING`) nos dois casos, que separa
+o que o cliente escreveu do que o suporte respondeu.
+
+**Nenhum dos 100 primeiros fios do Help Desk trazia `associatedTicketId`.** O
+ticket existe, porque é a caixa que o gera, mas o vínculo não volta por aqui e
+o objeto em si continua fechado pelo 403 do item 1.1.
 
 #### A escala, medida
 
@@ -211,11 +258,11 @@ Varrer tudo seriam ~55 mil requisições contra o CRM de produção. Varrer uma
 janela recente, que é o que a pergunta do produto pede, custa a lista inteira
 mais uma requisição por fio da janela.
 
-**Conclusão:** arquivo e API não são alternativas, são metades. O arquivo traz a
-estrutura de todos de uma vez; a API traz o diálogo, o assunto real dos fios de
-e-mail, e cobra uma requisição por fio. A solução continua sendo a única coisa
-sem campo próprio nos dois casos: pelo arquivo ela vem declarada, pela API teria
-de sair das respostas do suporte, com revisão.
+**Conclusão:** o atendimento pode nascer da conversa, sem arquivo e sem o escopo
+bloqueado. O que ele traz pronto é assunto (no e-mail), diálogo, datas e quem
+falou o quê. O que ele não traz é a solução com campo próprio, que teria de sair
+das respostas do suporte, e a empresa, que depende da cadeia contato → empresa
+e é decisão de produto por ser dado pessoal de cliente.
 
 ---
 
