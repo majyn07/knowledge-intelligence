@@ -29,6 +29,8 @@ export function toPerson(raw: unknown): Person {
     avatarUrl: text(row.avatar_url),
     // Perfis criados antes da coluna existir não têm o campo; ativo é o padrão.
     isActive: row.is_active === undefined ? true : flag(row.is_active),
+    // Ausente é "não": administrador se concede, nunca se presume.
+    isAdmin: flag(row.is_admin),
   };
 }
 
@@ -69,17 +71,17 @@ export async function readPeopleAndTeams(
 }
 
 /**
- * Atualiza o próprio perfil.
+ * Atualiza um perfil.
  *
- * Só o próprio: as políticas do banco permitem escrever em qualquer linha,
- * porque não há papéis, mas editar o nome ou a equipe de outra pessoa não é
- * uma operação que o produto ofereça, e a interface não expõe caminho para
- * isso. Quem entra ajusta os próprios dados.
+ * Quem pode escrever em qual linha é decidido pelo **banco**, e não por esta
+ * função: a política permite o próprio perfil, ou qualquer um se quem chama for
+ * administrador. Repetir a regra aqui criaria duas respostas para a mesma
+ * pergunta, e a do banco é a que vale mesmo se alguém chamar por fora da tela.
  */
 export async function updateProfile(
   client: Client,
   id: string,
-  fields: { name?: string; role?: string; teamId?: string; avatarUrl?: string }
+  fields: { name?: string; role?: string; teamId?: string; avatarUrl?: string; isAdmin?: boolean }
 ): Promise<void> {
   const payload: Partial<ProfileRow> = {};
 
@@ -88,6 +90,7 @@ export async function updateProfile(
   if (fields.teamId !== undefined) payload.team_id = fields.teamId || null;
   // Vazio limpa o retrato, e limpar é uma operação legítima.
   if (fields.avatarUrl !== undefined) payload.avatar_url = fields.avatarUrl || null;
+  if (fields.isAdmin !== undefined) payload.is_admin = fields.isAdmin;
 
   if (Object.keys(payload).length === 0) return;
 

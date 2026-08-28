@@ -56,6 +56,18 @@ export interface Person {
    * vazio. Ela some das atribuições novas e continua no passado.
    */
   isActive: boolean;
+  /**
+   * Pode editar e desativar o perfil de outras pessoas.
+   *
+   * É a única distinção entre pessoas neste produto, e não é papel: não muda o
+   * que se enxerga, e todo mundo continua vendo as mesmas coisas.
+   *
+   * Existe porque a política do banco era uma só para todas as tabelas, e uma
+   * delas é a de perfis: qualquer pessoa autenticada podia trocar o nome ou
+   * desativar um colega. Isso nunca foi decisão, foi consequência de a política
+   * ser genérica.
+   */
+  isAdmin: boolean;
 }
 
 /** Referência guardada nos campos de atribuição. Vazio é "sem responsável". */

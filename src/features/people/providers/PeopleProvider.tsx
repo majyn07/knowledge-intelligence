@@ -39,7 +39,14 @@ interface PeopleContextValue {
   setCurrentPerson: (name: string) => void;
 
   updateMe: (fields: { name?: string; role?: string; teamId?: string; avatarUrl?: string }) => Promise<void>;
+  /** Edita o perfil de outra pessoa. Quem administra; o banco recusa o resto. */
+  updatePerson: (
+    id: string,
+    fields: { name?: string; role?: string; teamId?: string; isAdmin?: boolean }
+  ) => Promise<void>;
   deactivate: (id: string, isActive: boolean) => Promise<void>;
+  /** Quem está usando administra? A tela pergunta antes de oferecer o botão. */
+  souAdministrador: boolean;
   /** Por quais categorias do portal a equipe responde. */
   setTeamScope: (teamId: string, ids: { categoryIds?: string[]; sectionIds?: string[] }) => Promise<void>;
 
@@ -154,6 +161,34 @@ export function PeopleProvider({ children }: { children: ReactNode }) {
     [me, supabase]
   );
 
+  /**
+   * Edita o perfil de outra pessoa. Só quem administra.
+   *
+   * A conferência de verdade é do banco, e não daqui: a política permite o
+   * próprio perfil ou qualquer um se quem chama for administrador. Esta guarda
+   * existe para a tela não oferecer o que vai ser recusado, e não para proteger.
+   */
+  const updatePerson = useCallback(
+    async (
+      id: string,
+      fields: { name?: string; role?: string; teamId?: string; isAdmin?: boolean }
+    ) => {
+      if (!supabase) return;
+
+      try {
+        await updateProfile(supabase, id, fields);
+        toast.success("Perfil atualizado.");
+      } catch (error) {
+        toast.error(
+          `Não foi possível salvar: ${
+            error instanceof Error ? error.message : "erro desconhecido"
+          }`
+        );
+      }
+    },
+    [supabase]
+  );
+
   const deactivate = useCallback(
     async (id: string, isActive: boolean) => {
       if (!supabase) return;
@@ -207,7 +242,9 @@ export function PeopleProvider({ children }: { children: ReactNode }) {
       currentPerson,
       setCurrentPerson: setLocalActor,
       updateMe,
+      updatePerson,
       deactivate,
+      souAdministrador: me?.isAdmin ?? false,
       setTeamScope,
       peopleOfTeam,
     }),
@@ -222,6 +259,7 @@ export function PeopleProvider({ children }: { children: ReactNode }) {
       setTeamScope,
       teams,
       updateMe,
+      updatePerson,
     ]
   );
 

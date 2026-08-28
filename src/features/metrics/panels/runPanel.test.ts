@@ -46,7 +46,7 @@ function base(): PanelData {
         email: "r@altoqi.com.br",
         teamId: "eq-visus",
         avatarUrl: "",
-        isActive: true,
+        isActive: true, isAdmin: false,
       },
     ],
     teams: [
