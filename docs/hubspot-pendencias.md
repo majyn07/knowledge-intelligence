@@ -140,6 +140,46 @@ Em amostras de 50 fios, entre **16% e 40%** traziam `associatedTicketId`,
 variando por período. Fios de 2024 não traziam nenhum. Fio sem associação é
 conversa que não virou atendimento. É esperado, não é erro.
 
+### 2.4 Dá para varrer as conversas sem o escopo `tickets`, medido em 28/08
+
+A pergunta era se o atendimento pode nascer da conversa em vez de vir por
+arquivo, já que o escopo do ticket está bloqueado. Dá, com limite.
+
+| Teste | Resposta |
+| --- | --- |
+| `GET /conversations/v3/conversations/threads` sem filtro | 200, paginado |
+| `GET .../threads?inboxId=474522581` (Help Desk) | 200, só daquela caixa |
+| `GET /conversations/v3/conversations/inboxes` | 200, **10 caixas** |
+| `GET /conversations/v3/conversations/channels` | 200, 8 canais |
+| `GET .../threads/{id}` | 200 |
+| `?sort=-createdAt` | 400, não é propriedade de ordenação válida |
+
+**A caixa do suporte tem nome próprio e id próprio**, `Help Desk`
+(`474522581`), e filtrar por ela funciona. Sem o filtro, os primeiros cem fios
+são todos de `Geração de Demanda & Sales`, chat ao vivo, de fevereiro de 2024:
+a listagem vem em ordem de criação, do mais antigo.
+
+**O que a conversa não tem**, e é o que decide o desenho:
+
+| Campo nosso | No arquivo exportado | Na API de conversas |
+| --- | --- | --- |
+| assunto | vem pronto | **não existe**, nem no fio nem na mensagem |
+| solução | vem pronto | **não existe**, teria de sair da última resposta do agente |
+| empresa | vem pronto | só `associatedContactId`; contato → empresa é dado pessoal |
+| data | vem pronto | `createdAt` e `closedAt` |
+| número do chamado | vem pronto | **não volta**: `associatedTicketId` é aceito como filtro e não é devolvido |
+
+O fio devolve `id`, `createdAt`, `closedAt`, `status`, `assignedTo`,
+`associatedContactId`, `inboxId`, `originalChannelId`, `spam` e `archived`. Nada
+mais. A mensagem devolve `id`, `createdAt`, `createdBy`, `senders`,
+`recipients`, `type` e o texto, e também não tem assunto.
+
+**Conclusão:** arquivo e API não são alternativas, são metades. O arquivo traz a
+estrutura e não traz o diálogo; a API traz o diálogo e não traz a estrutura.
+Sem o arquivo, assunto e solução teriam de ser propostos por IA sobre o texto da
+conversa, com revisão humana. É um caminho legítimo, e é o mesmo padrão do
+preenchimento de formulário que o produto já usa, mas é proposta e não dado.
+
 ---
 
 ## 3. Falha do nosso lado. Corrigida em 27/08
