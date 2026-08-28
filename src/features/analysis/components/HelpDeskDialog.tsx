@@ -33,6 +33,7 @@ import { RelativeDate } from "@/components/common/RelativeDate";
 
 import { useTickets } from "../providers/TicketsProvider";
 import { usePeople } from "@/features/people/providers/PeopleProvider";
+import { gravarEstado, lerEstado } from "../autoSyncRepository";
 
 /**
  * Buscar os atendimentos na caixa do suporte.
@@ -327,14 +328,41 @@ export function HelpDeskDialog({
         se um falhasse, e encheria o histórico de linhas iguais.
       */
       importFromHelpDesk(trazidos, rotuloDaJanela(janela));
+      await marcarBusca();
       setEtapa("fim");
     } catch (falha) {
       setErro(falha instanceof Error ? falha.message : "A leitura foi interrompida.");
 
       /* O que já veio não se perde: quem esperou minutos não recomeça do zero. */
       if (trazidos.length > 0) importFromHelpDesk(trazidos, rotuloDaJanela(janela));
+
+      /*
+        Marca mesmo tendo sido interrompida, e de propósito. O que já entrou
+        entrou, e não marcar faria a próxima busca automática recuar até a
+        execução anterior, relendo tudo que esta já trouxe.
+      */
+      await marcarBusca();
       setEtapa("fim");
     }
+  }
+
+  /**
+   * Registra que houve busca agora.
+   *
+   * É daqui que a busca automática sabe até onde já foi. Sem o carimbo ela não
+   * tem de onde partir, e a regra é não escolher uma janela por conta própria:
+   * disparar contra o servidor do suporte um tamanho que ninguém pediu é o que
+   * este produto evita em todo lugar.
+   *
+   * Falhar aqui não derruba a busca que acabou de dar certo. A política recusa
+   * quem não administra, e quem não administra nem chegou até aqui; se recusar
+   * por outro motivo, o pior caso é a próxima automática recuar demais, e o
+   * plano de varredura já pula o que não mudou.
+   */
+  async function marcarBusca() {
+    const atual = (await lerEstado()) ?? { ligado: false, ultimaEm: "" };
+
+    await gravarEstado({ ...atual, ultimaEm: new Date().toISOString() });
   }
 
   const lendo = etapa === "listando" || etapa === "lendo";

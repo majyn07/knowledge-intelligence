@@ -16,6 +16,7 @@ import { useProject } from "@/providers/ProjectProvider";
 
 import { AnalysisPanel } from "./components/AnalysisPanel";
 import { AnalysisProgress } from "./components/AnalysisProgress";
+import { AutoSyncSwitch } from "./components/AutoSyncSwitch";
 import { TicketConversation } from "./components/TicketConversation";
 import { TicketHeader } from "./components/TicketHeader";
 import { TicketDetails } from "./components/TicketDetails";
@@ -259,6 +260,8 @@ export function AnalysisWorkspace() {
           </div>
         }
       />
+
+      <AutoSyncSwitch />
 
       <ViewSwitch vista={vista} onChange={setVista} naFila={triagem.groups.length} />
 
