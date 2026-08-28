@@ -79,16 +79,16 @@ pipelines, associações, exportação, GraphQL e esquemas. Testados agora:
 | `POST /crm/v3/exports/export/async` | 403, escopo de exportação ausente |
 | `POST /collector/graphql` | 403, mesmo motivo |
 | **`GET /crm/v3/schemas/0-5`** | **200** |
-| **`GET /crm/v4/objects/conversation/{fio}/associations/ticket`** | **200** |
-| **`GET /crm/v4/objects/conversation/{fio}/associations/contact`** | **200** |
+| **`GET /crm/v4/objects/conversation/{conversa}/associations/ticket`** | **200** |
+| **`GET /crm/v4/objects/conversation/{conversa}/associations/contact`** | **200** |
 | `GET /crm/v3/properties/0-11` | 200 |
 | `GET /crm/v3/objects/0-11/...` | 400, `CONVERSATION` não é suportado ali |
 
 **Duas coisas que eu havia dado como impossíveis e são possíveis:**
 
-**1. O vínculo fio → atendimento existe.** A associação devolve o id do ticket,
+**1. O vínculo conversa → atendimento existe.** A associação devolve o id do ticket,
 então o registro criado aqui pode carregar o número real do chamado. É uma
-requisição por fio, como a das mensagens.
+requisição por conversa, como a das mensagens.
 
 **2. O vocabulário do ticket é legível pelo esquema.** `/crm/v3/schemas/0-5`
 devolve as **795 propriedades**, com nome, tipo, rótulo e opções. Não é preciso
@@ -122,7 +122,7 @@ Estruturas, Visus, Setup. Na HubSpot isso **não é caixa de entrada** e não é
 canal: as visualizações do help desk são 403 e a propriedade `ia_produto` mora
 no ticket, que também é 403.
 
-Mas dá para chegar lá por outro caminho: **o fio traz `assignedTo`, e o dono
+Mas dá para chegar lá por outro caminho: **a conversa traz `assignedTo`, e o dono
 traz as equipes dele.** `GET /crm/v3/owners` responde 200 e cada dono vem com
 `teams`.
 
@@ -189,7 +189,7 @@ escopo **saiu** da lista de pedidos.
 - `crm.objects.contacts.read` / `companies.read`: o cliente e a empresa dele
 
 Foi com isso que a leitura de conversa foi provada de ponta a ponta: o
-atendimento `47673917220` devolveu 1 fio com 32 mensagens reais.
+atendimento `47673917220` devolveu 1 conversa com 32 mensagens reais.
 
 ---
 
@@ -231,10 +231,10 @@ Mais duas que custaram tentativa:
 - `/crm/v3/owners` pagina em 100. São 197 responsáveis: parar na primeira
   página produz "não existe" para quem existe.
 
-### 2.3 Nem todo fio tem atendimento
+### 2.3 Nem todo conversa tem atendimento
 
-Em amostras de 50 fios, entre **16% e 40%** traziam `associatedTicketId`,
-variando por período. Fios de 2024 não traziam nenhum. Fio sem associação é
+Em amostras de 50 conversas, entre **16% e 40%** traziam `associatedTicketId`,
+variando por período. Fios de 2024 não traziam nenhum. Conversa sem associação é
 conversa que não virou atendimento. É esperado, não é erro.
 
 ### 2.4 Dá para varrer as conversas sem o escopo `tickets`, medido em 28/08
@@ -252,7 +252,7 @@ arquivo, já que o escopo do ticket está bloqueado. Dá, com limite.
 | `?sort=-createdAt` | 400, não é propriedade de ordenação válida |
 
 **A caixa do suporte tem nome próprio e id próprio**, `Help Desk`
-(`474522581`), e filtrar por ela funciona. Sem o filtro, os primeiros cem fios
+(`474522581`), e filtrar por ela funciona. Sem o filtro, os primeiros cem conversas
 são todos de `Geração de Demanda & Sales`, chat ao vivo, de fevereiro de 2024:
 a listagem vem em ordem de criação, do mais antigo.
 
@@ -260,13 +260,13 @@ a listagem vem em ordem de criação, do mais antigo.
 
 | Campo nosso | No arquivo exportado | Na API de conversas |
 | --- | --- | --- |
-| assunto | vem pronto | **não existe**, nem no fio nem na mensagem |
+| assunto | vem pronto | **não existe**, nem na conversa nem na mensagem |
 | solução | vem pronto | **não existe**, teria de sair da última resposta do agente |
 | empresa | vem pronto | só `associatedContactId`; contato → empresa é dado pessoal |
 | data | vem pronto | `createdAt` e `closedAt` |
 | número do chamado | vem pronto | **não volta**: `associatedTicketId` é aceito como filtro e não é devolvido |
 
-O fio devolve `id`, `createdAt`, `closedAt`, `status`, `assignedTo`,
+O conversa devolve `id`, `createdAt`, `closedAt`, `status`, `assignedTo`,
 `associatedContactId`, `inboxId`, `originalChannelId`, `spam` e `archived`. Nada
 mais. A mensagem devolve `id`, `createdAt`, `createdBy`, `senders`,
 `recipients`, `type` e o texto, e também não tem assunto.
@@ -281,7 +281,7 @@ a produziu era de chat de marketing.
 e e-mail são atendimento igual. Daí decorre a diferença que o desenho precisa
 tratar.
 
-Os fios vieram 62% por e-mail (canal `1002`) e 38% por chat (`1000`).
+Os conversas vieram 62% por e-mail (canal `1002`) e 38% por chat (`1000`).
 
 | | e-mail | chat |
 | --- | --- | --- |
@@ -292,7 +292,7 @@ Os fios vieram 62% por e-mail (canal `1002`) e 38% por chat (`1000`).
 A mensagem traz `direction` (`INCOMING` / `OUTGOING`) nos dois casos, que separa
 o que o cliente escreveu do que o suporte respondeu.
 
-**Nenhum dos 100 primeiros fios do Help Desk trazia `associatedTicketId`.** O
+**Nenhum dos 100 primeiros conversas do Help Desk trazia `associatedTicketId`.** O
 ticket existe, porque é a caixa que o gera, mas o vínculo não volta por aqui e
 o objeto em si continua fechado pelo 403 do item 1.1.
 
@@ -300,21 +300,21 @@ o objeto em si continua fechado pelo 403 do item 1.1.
 
 | | |
 | --- | --- |
-| fios varridos em 25 páginas seguidas | **2.500**, e havia mais |
+| conversas varridos em 25 páginas seguidas | **2.500**, e havia mais |
 | período coberto por eles | 08/04/2024 a 17/05/2024 |
-| ritmo | ~64 fios por dia |
-| estimativa até hoje | **algo em torno de 55 mil fios** |
+| ritmo | ~64 conversas por dia |
+| estimativa até hoje | **algo em torno de 55 mil conversas** |
 
 **E não dá para chegar aos recentes direto.** `?sort=-createdAt` devolve 400, e
 `latestMessageTimestampAfter` é ignorado: a lista sai sempre do mais antigo.
 Alcançar os últimos meses exige percorrer a paginação desde abril de 2024, o que
 são umas 550 requisições de listagem. Isso é barato. O caro é o passo seguinte:
-**o assunto está na mensagem, não no fio**, então cada fio que se queira ler
+**o assunto está na mensagem, não na conversa**, então cada conversa que se queira ler
 custa uma requisição própria.
 
 Varrer tudo seriam ~55 mil requisições contra o CRM de produção. Varrer uma
 janela recente, que é o que a pergunta do produto pede, custa a lista inteira
-mais uma requisição por fio da janela.
+mais uma requisição por conversa da janela.
 
 **Conclusão:** o atendimento pode nascer da conversa, sem arquivo e sem o escopo
 bloqueado. O que ele traz pronto é assunto (no e-mail), diálogo, datas e quem
@@ -347,9 +347,9 @@ quando o número não muda, e apagando a procedência quando o número é apagad
 ## 4. O que decidir
 
 1. **Os dois escopos do item 1**. Vale pedir, e a resposta muda o tamanho do
-   que dá para entregar. Sem `tickets`, o atendimento precisa nascer do fio, e
+   que dá para entregar. Sem `tickets`, o atendimento precisa nascer da conversa, e
    assunto e solução não têm origem automática.
-2. **Dado pessoal de cliente.** A cadeia fio → contato → empresa funciona. Como
+2. **Dado pessoal de cliente.** A cadeia conversa → contato → empresa funciona. Como
    está hoje, o visitante é gravado como "Cliente", sem nome nem e-mail. Trazer
    a identificação do cliente para dentro do hub é decisão de produto, não
    detalhe de implementação.
@@ -451,9 +451,9 @@ deduzido.
 
 | Escopo | Entrega |
 | --- | --- |
-| `conversations.read` | fios, mensagens e `associatedTicketId`, **provado ponta a ponta** |
+| `conversations.read` | conversas, mensagens e `associatedTicketId`, **provado ponta a ponta** |
 | `crm.objects.owners.read` | 197 responsáveis, com nome, e-mail e equipes |
-| `crm.objects.contacts.read` | contato do fio; encadeia até a empresa |
+| `crm.objects.contacts.read` | contato da conversa; encadeia até a empresa |
 | `crm.objects.companies.read` | nome e domínio da empresa |
 | `oauth` | introspecção do próprio token |
 

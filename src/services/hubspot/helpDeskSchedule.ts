@@ -1,8 +1,8 @@
 /**
  * O que visitar da caixa do suporte, e o que já está em dia.
  *
- * A listagem é barata, cem fios por requisição, e devolve carimbo de última
- * mensagem. Ler o fio é caro: uma requisição por fio, e são dezenas de
+ * A listagem é barata, cem conversas por requisição, e devolve carimbo de última
+ * mensagem. Ler a conversa é caro: uma requisição por conversa, e são dezenas de
  * milhares na caixa inteira.
  *
  * Então a listagem decide e a leitura obedece. É a mesma divisão da varredura
@@ -10,14 +10,14 @@
  * custaria a varredura inteira de novo.
  */
 
-export interface FioListado {
+export interface ConversaListada {
   id: string;
   criadoEm: string;
-  /** Carimbo da última mensagem. É por ele que se sabe se o fio andou. */
+  /** Carimbo da última mensagem. É por ele que se sabe se a conversa andou. */
   ultimaMensagemEm?: string;
 }
 
-/** O que já existe aqui, por identificador do fio. */
+/** O que já existe aqui, por identificador da conversa. */
 export interface AtendimentoConhecido {
   externalId: string;
   /** O carimbo que registramos na última varredura. */
@@ -25,8 +25,8 @@ export interface AtendimentoConhecido {
 }
 
 export interface PlanoDeVarredura {
-  /** Fios a visitar, dos mais recentes para os mais antigos. */
-  visitar: FioListado[];
+  /** Conversas a visitar, dos mais recentes para os mais antigos. */
+  visitar: ConversaListada[];
   /** Já estão aqui e não mudaram desde a última vez. */
   emDia: number;
   /** Estão aqui e ganharam mensagem nova. */
@@ -38,58 +38,58 @@ export interface PlanoDeVarredura {
 }
 
 /**
- * O carimbo que situa o fio no tempo.
+ * O carimbo que situa a conversa no tempo.
  *
  * A última mensagem vence a criação de propósito: atendimento aberto há cinco
  * meses e respondido ontem é trabalho de agora, e a data de criação o jogaria
  * para fora da janela justamente quando ele está vivo.
  */
-export function instanteDo(fio: FioListado): string {
-  return fio.ultimaMensagemEm || fio.criadoEm;
+export function instanteDo(conversa: ConversaListada): string {
+  return conversa.ultimaMensagemEm || conversa.criadoEm;
 }
 
 /**
  * Monta o plano.
  *
- * `desde` é o começo da janela, em ISO. Fio sem carimbo nenhum fica de fora:
+ * `desde` é o começo da janela, em ISO. Conversa sem carimbo nenhum fica de fora:
  * não dá para saber se ele é de ontem ou de 2024, e visitar por via das
  * dúvidas custaria uma requisição por chute.
  */
 export function planejarVarredura(
-  fios: FioListado[],
+  conversas: ConversaListada[],
   conhecidos: AtendimentoConhecido[],
   desde: string
 ): PlanoDeVarredura {
   const registrado = new Map(conhecidos.map((item) => [item.externalId, item.ultimaMensagemEm]));
 
-  const visitar: FioListado[] = [];
+  const visitar: ConversaListada[] = [];
   let emDia = 0;
   let mudaram = 0;
   let novos = 0;
   let foraDaJanela = 0;
 
-  for (const fio of fios) {
-    const instante = instanteDo(fio);
+  for (const conversa of conversas) {
+    const instante = instanteDo(conversa);
 
     if (instante === "" || instante < desde) {
       foraDaJanela += 1;
       continue;
     }
 
-    if (!registrado.has(fio.id)) {
+    if (!registrado.has(conversa.id)) {
       novos += 1;
-      visitar.push(fio);
+      visitar.push(conversa);
       continue;
     }
 
     /*
-      Já está aqui. Só volta a valer uma requisição se o fio andou desde a
+      Já está aqui. Só volta a valer uma requisição se a conversa andou desde a
       última varredura: reler o que não mudou é o custo que faz alguém deixar
       de reexecutar, e uma varredura que ninguém reexecuta envelhece.
     */
-    if (instante > (registrado.get(fio.id) ?? "")) {
+    if (instante > (registrado.get(conversa.id) ?? "")) {
       mudaram += 1;
-      visitar.push(fio);
+      visitar.push(conversa);
     } else {
       emDia += 1;
     }

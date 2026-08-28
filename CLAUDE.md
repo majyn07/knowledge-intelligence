@@ -391,7 +391,7 @@ por `objectTypeId`, registro individual) e todos devolvem 403, enquanto
 é rota errada: é o objeto que está fechado.
 
 Sobra a conversa, e ela é o que o arquivo não traz: a exportação da HubSpot traz
-o ticket, não o fio de mensagens. O fio se liga ao atendimento pelo
+o ticket, não o histórico de mensagens. O conversa se liga ao atendimento pelo
 `associatedTicketId`, que vem **pelo lado da conversa** e não exige o escopo
 ausente.
 
@@ -956,7 +956,7 @@ plano são de cada uma. O atendimento casa pelo `source.externalId` da HubSpot,
 como o artigo casa pelo `portalArticleId`, e reimportar preserva a iniciativa
 escolhida aqui dentro. Ela é decisão nossa, não do CRM.
 
-A conversa **não** vem no lote. A exportação traz o ticket, não o fio de
+A conversa **não** vem no lote. A exportação traz o ticket, não a conversa de
 mensagens, e semear uma conversa vazia faria a análise achar que tem evidência
 quando não tem.
 

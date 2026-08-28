@@ -127,7 +127,7 @@ export function actorIdsOf(rawMessages: unknown[]): string[] {
 }
 
 /**
- * As mensagens de um fio, prontas para o formulário.
+ * As mensagens de uma conversa, prontas para o formulário.
  *
  * Duas regras que não são óbvias e foram medidas:
  *
@@ -161,7 +161,7 @@ export function toConversationMessages(
  *
  * Existe como função nomeada porque a armadilha mora aqui: **uma página pode
  * voltar vazia e ainda ter continuação**. Medido. `limit=3` devolveu zero
- * registros com o cursor presente, e o fio tinha 38. Parar na lista vazia
+ * registros com o cursor presente, e a conversa tinha 38. Parar na lista vazia
  * grava conversa vazia, que é pior que não importar.
  */
 export function nextCursor(raw: unknown): string | null {

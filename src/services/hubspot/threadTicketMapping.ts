@@ -1,7 +1,7 @@
 import { items, record, text } from "@/lib/shape";
 
 import { stripHtml, type HubSpotActor } from "./conversationMapping";
-import type { FioListado } from "./helpDeskSchedule";
+import type { ConversaListada } from "./helpDeskSchedule";
 
 /**
  * O atendimento nascendo da conversa.
@@ -22,7 +22,7 @@ import type { FioListado } from "./helpDeskSchedule";
 export type TitleOrigin = "assunto" | "primeira-mensagem";
 
 export interface ThreadTicket {
-  /** O id do fio, que é como reimportar casa em vez de duplicar. */
+  /** O id da conversa, que é como reimportar casa em vez de duplicar. */
   externalId: string;
   title: string;
   titleOrigin: TitleOrigin;
@@ -30,7 +30,7 @@ export interface ThreadTicket {
   solution: string;
   /** Dia do fechamento, ou da criação enquanto está aberto. */
   date: string;
-  /** Quantas mensagens de gente havia no fio, para a tela dizer o tamanho. */
+  /** Quantas mensagens de gente havia na conversa, para a tela dizer o tamanho. */
   messageCount: number;
 }
 
@@ -79,25 +79,25 @@ function mensagensDe(brutas: unknown[], atores: Map<string, HubSpotActor>): Mens
 /**
  * Abaixo disso a mensagem não descreve um problema.
  *
- * Medido contra os fios reais: o chat começa com o cliente escrevendo só o
+ * Medido contra as conversas reais: o chat começa com o cliente escrevendo só o
  * próprio nome, ou "oi". Um deles virou o título "Alisson", que não diz nada a
  * quem lê a lista depois.
  */
 const CURTA_DEMAIS = 15;
 
 /**
- * Um fio virando atendimento, ou `null` quando não há o que registrar.
+ * Um conversa virando atendimento, ou `null` quando não há o que registrar.
  *
- * Fio sem nenhuma mensagem de gente é evento de sistema (atribuição, mudança
+ * Conversa sem nenhuma mensagem de gente é evento de sistema (atribuição, mudança
  * de estado) e não atendimento. Gravá-lo criaria uma linha sem assunto e sem
  * conversa, e a análise trataria isso como evidência.
  */
 export function toThreadTicket(
-  fio: unknown,
+  conversa: unknown,
   mensagensBrutas: unknown[],
   atores: Map<string, HubSpotActor> = new Map()
 ): ThreadTicket | null {
-  const raiz = record(fio);
+  const raiz = record(conversa);
   const externalId = text(raiz.id).trim();
 
   if (externalId === "") return null;
@@ -130,10 +130,10 @@ export function toThreadTicket(
   /*
     A última resposta de **gente do suporte** é a solução mais provável, e
     "mais provável" é o que dá para afirmar: o campo de solução não existe na
-    conversa. Quem revisa lê o fio inteiro ao lado, que veio junto.
+    conversa. Quem revisa lê a conversa inteira ao lado, que veio junto.
 
     Agente e não "qualquer saída": o robô de triagem responde antes de todo
-    mundo, e a última fala dele é uma pergunta. Fio sem nenhum agente fica sem
+    mundo, e a última fala dele é uma pergunta. Conversa sem nenhum agente fica sem
     solução, o que é verdade: ninguém do suporte falou nele.
   */
   const solution = doSuporte.at(-1)?.texto ?? "";
@@ -170,20 +170,20 @@ export function chamadoDaAssociacao(bruto: unknown): string | undefined {
 }
 
 /**
- * Os fios de uma página da listagem, já reduzidos ao que interessa.
+ * Os conversas de uma página da listagem, já reduzidos ao que interessa.
  *
  * O carimbo da última mensagem vem junto porque é por ele que a próxima
- * varredura sabe se o fio andou. Sem ele, reexecutar releria tudo.
+ * varredura sabe se a conversa andou. Sem ele, reexecutar releria tudo.
  */
-export function threadsDaPagina(bruto: unknown): FioListado[] {
+export function threadsDaPagina(bruto: unknown): ConversaListada[] {
   return items(record(bruto).results)
-    .map((fio) => record(fio))
-    .map((fio) => ({
-      id: text(fio.id).trim(),
-      criadoEm: text(fio.createdAt),
-      ...(text(fio.latestMessageTimestamp)
-        ? { ultimaMensagemEm: text(fio.latestMessageTimestamp) }
+    .map((conversa) => record(conversa))
+    .map((conversa) => ({
+      id: text(conversa.id).trim(),
+      criadoEm: text(conversa.createdAt),
+      ...(text(conversa.latestMessageTimestamp)
+        ? { ultimaMensagemEm: text(conversa.latestMessageTimestamp) }
         : {}),
     }))
-    .filter((fio) => fio.id !== "");
+    .filter((conversa) => conversa.id !== "");
 }

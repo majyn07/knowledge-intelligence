@@ -306,7 +306,7 @@ export function TicketForm({
 
       setFormData((previous) => {
         /*
-          Some o que já está aqui: trazer duas vezes duplicaria o fio inteiro, e
+          Some o que já está aqui: trazer duas vezes duplicaria a conversa inteira, e
           quem já digitou uma mensagem à mão não deve perdê-la.
         */
         const conhecidas = new Set(previous.messages.map((mensagem) => mensagem.id));
@@ -443,7 +443,7 @@ export function TicketForm({
 
             {/*
               É por este número que a conversa vinda da HubSpot encontra o
-              atendimento. Sem ele o fio existe do lado de lá e não tem onde
+              atendimento. Sem ele a conversa existe do lado de lá e não tem onde
               se ligar aqui, e era o que acontecia com todo atendimento
               cadastrado à mão.
             */}
@@ -545,7 +545,7 @@ export function TicketForm({
 
           {/*
             É a única coisa que a API da HubSpot entrega e o arquivo não: a
-            exportação traz o ticket, não o fio de mensagens. Só aparece com
+            exportação traz o ticket, não o histórico de mensagens. Só aparece com
             credencial configurada e com o número preenchido, sem o número não
             há por onde procurar.
           */}

@@ -104,7 +104,7 @@ export function TicketDetails({
           <div>
             {/*
               O número da HubSpot vem primeiro, e o nosso identificador some.
-              `hs-6952014856` é o id do fio de conversa e não acha nada na busca
+              `hs-6952014856` é o id do conversa e não acha nada na busca
               do CRM: quem lê esta tela vai procurar lá, e precisa do número que
               funciona lá.
             */}
@@ -207,7 +207,7 @@ export function TicketDetails({
         {messages.length === 0 ? (
           <p className="rounded-xl border border-dashed border-border px-5 py-8 text-center text-sm text-muted-foreground">
             Este atendimento veio sem a conversa, e sem ela a análise fica limitada ao título e à
-            solução. Quem entra pela caixa do suporte traz o fio junto; o que veio por arquivo, não.
+            solução. Quem entra pela caixa do suporte traz a conversa junto; o que veio por arquivo, não.
           </p>
         ) : (
           <div className="space-y-3">
@@ -222,10 +222,10 @@ export function TicketDetails({
 }
 
 /**
- * Uma fala do fio.
+ * Uma fala da conversa.
  *
  * São três vozes e não duas, e essa era a confusão: o robô de triagem caía do
- * mesmo lado do cliente, com a mesma cara, e quem lia o fio não distinguia
+ * mesmo lado do cliente, com a mesma cara, e quem lia a conversa não distinguia
  * quem tinha respondido o quê. O cliente e o suporte ficam em lados opostos,
  * com cor própria; automação e sistema ficam no meio, apagados e estreitos,
  * porque são contexto e não conversa.
