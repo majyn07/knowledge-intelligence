@@ -174,11 +174,48 @@ O fio devolve `id`, `createdAt`, `closedAt`, `status`, `assignedTo`,
 mais. A mensagem devolve `id`, `createdAt`, `createdBy`, `senders`,
 `recipients`, `type` e o texto, e também não tem assunto.
 
+### 2.5 A caixa Help Desk é o atendimento, e o assunto existe nela
+
+Confirmado com quem conduz o projeto em 28/08: **`Help Desk` (`474522581`) é a
+caixa dos atendimentos.** Isso muda a conclusão anterior, porque a amostra que
+a produziu era de chat de marketing.
+
+**Mensagem de e-mail tem `subject`.** Os fios do Help Desk vieram 62% por
+e-mail (canal `1002`) e 38% por chat ao vivo (`1000`), e a primeira mensagem de
+um fio de e-mail traz `subject`, `text` e `richText`. Então o assunto é **dado**
+para a maior parte deles, e não proposta. O chat continua sem assunto.
+
+A mensagem também traz `direction` (`INCOMING` / `OUTGOING`), que separa o que o
+cliente escreveu do que o suporte respondeu.
+
+**Nenhum dos 100 primeiros fios do Help Desk trazia `associatedTicketId`**, o
+que reforça que o vínculo com o objeto de ticket não é alcançável por aqui.
+
+#### A escala, medida
+
+| | |
+| --- | --- |
+| fios varridos em 25 páginas seguidas | **2.500**, e havia mais |
+| período coberto por eles | 08/04/2024 a 17/05/2024 |
+| ritmo | ~64 fios por dia |
+| estimativa até hoje | **algo em torno de 55 mil fios** |
+
+**E não dá para chegar aos recentes direto.** `?sort=-createdAt` devolve 400, e
+`latestMessageTimestampAfter` é ignorado: a lista sai sempre do mais antigo.
+Alcançar os últimos meses exige percorrer a paginação desde abril de 2024, o que
+são umas 550 requisições de listagem. Isso é barato. O caro é o passo seguinte:
+**o assunto está na mensagem, não no fio**, então cada fio que se queira ler
+custa uma requisição própria.
+
+Varrer tudo seriam ~55 mil requisições contra o CRM de produção. Varrer uma
+janela recente, que é o que a pergunta do produto pede, custa a lista inteira
+mais uma requisição por fio da janela.
+
 **Conclusão:** arquivo e API não são alternativas, são metades. O arquivo traz a
-estrutura e não traz o diálogo; a API traz o diálogo e não traz a estrutura.
-Sem o arquivo, assunto e solução teriam de ser propostos por IA sobre o texto da
-conversa, com revisão humana. É um caminho legítimo, e é o mesmo padrão do
-preenchimento de formulário que o produto já usa, mas é proposta e não dado.
+estrutura de todos de uma vez; a API traz o diálogo, o assunto real dos fios de
+e-mail, e cobra uma requisição por fio. A solução continua sendo a única coisa
+sem campo próprio nos dois casos: pelo arquivo ela vem declarada, pela API teria
+de sair das respostas do suporte, com revisão.
 
 ---
 
