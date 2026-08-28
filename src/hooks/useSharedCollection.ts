@@ -8,6 +8,8 @@ import { getSupabase } from "@/lib/supabase/client";
 import type { RealtimeTable } from "@/lib/supabase/types";
 import { readRaw, writeJSON } from "@/lib/storage";
 
+import { criarCoalescer } from "./coalescer";
+
 interface UseSharedCollectionOptions<T> {
   /** Chave do `localStorage`, usada enquanto não há servidor. */
   key: string;
@@ -79,6 +81,21 @@ const POR_PAGINA = 200;
 
 /** Quantas páginas correm juntas. Medido: acima disso as consultas se atropelam. */
 const PAGINAS_SIMULTANEAS = 3;
+
+/**
+ * Quanto silêncio espera antes de reler o que outra pessoa mudou.
+ *
+ * Curto o bastante para a mudança de um colega aparecer sem parecer travada, e
+ * longo o bastante para uma gravação em lote virar uma releitura só.
+ */
+const ESPERA_DO_ECO = 400;
+
+/**
+ * E quanto tempo, no máximo, a tela pode ficar sem atualizar durante uma
+ * gravação que não para. A importação do portal grava por quarenta e cinco
+ * minutos: sem teto, quem estivesse acompanhando não veria nada até o fim.
+ */
+const TETO_DO_ECO = 4_000;
 
 /** Divide em pedaços, preservando a ordem. */
 export function emLotes<T>(lista: T[], tamanho: number): T[][] {
@@ -274,37 +291,50 @@ export function useSharedCollection<T>({
 
   /*
     Tempo real. Qualquer mudança na tabela relê a coleção inteira em vez de
-    aplicar o payload: relemos pouco, e aplicar evento a evento erra quando
-    eles chegam fora de ordem ou quando um se perde na reconexão.
+    aplicar o payload: aplicar evento a evento erra quando eles chegam fora de
+    ordem ou quando um se perde na reconexão.
+
+    Mas o aviso vem **por linha**, e a releitura custa o acervo inteiro. Uma
+    classificação em massa de noventa e oito artigos produzia noventa e oito
+    releituras de 22,7 MB em cada aba aberta da equipe, e o trabalho das
+    noventa e oito era o mesmo: a releitura busca o estado atual, não o evento.
+    Por isso a rajada vira uma execução só.
   */
   useEffect(() => {
     if (!supabase || !isHydrated) return;
 
-    const channel = supabase
-      .channel(`sync:${table}`)
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table },
-        async () => {
-          /*
-            Enquanto **nós** estamos gravando, o eco da própria escrita não pode
-            reler: cada lote dispara um evento, e a releitura devolveria uma
-            visão **parcial** do banco que substituiria o estado local no meio
-            do caminho. Foi assim que uma importação de 1.782 artigos ficou com
-            440 na tela e o resto sumiu da memória.
-          */
-          if (gravando.current) return;
-
+    const coalescer = criarCoalescer(
+      () => {
+        void (async () => {
           const rows = await fetchAll();
           if (rows) {
             setItems(rows);
             persisted.current = rows;
           }
-        }
-      )
+        })();
+      },
+      ESPERA_DO_ECO,
+      TETO_DO_ECO
+    );
+
+    const channel = supabase
+      .channel(`sync:${table}`)
+      .on("postgres_changes", { event: "*", schema: "public", table }, () => {
+        /*
+          Enquanto **nós** estamos gravando, o eco da própria escrita não pode
+          reler: cada lote dispara um evento, e a releitura devolveria uma
+          visão **parcial** do banco que substituiria o estado local no meio
+          do caminho. Foi assim que uma importação de 1.782 artigos ficou com
+          440 na tela e o resto sumiu da memória.
+        */
+        if (gravando.current) return;
+
+        coalescer.pedir();
+      })
       .subscribe();
 
     return () => {
+      coalescer.cancelar();
       supabase.removeChannel(channel);
     };
   }, [fetchAll, isHydrated, supabase, table]);
