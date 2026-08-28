@@ -54,6 +54,22 @@ let writeWarned = false;
 const POR_LOTE = 25;
 
 /**
+ * Teto de bytes por pedido, que é o que de fato importa.
+ *
+ * Contar linhas não descreve o pedido quando as linhas têm tamanhos muito
+ * diferentes. No acervo real o artigo médio tem 12,7 KB de corpo e o maior tem
+ * 311 KB: um lote de 25 medianos dá 300 KB, e um lote que calhe de reunir os
+ * 25 maiores dá 2,5 MB, quase dez vezes mais pelo mesmo número de linhas.
+ *
+ * Foi assim que 91 classificações se perderam. O lote grande falhou, e como é
+ * no primeiro lote que isso acontece, nenhuma das 91 chegou ao banco.
+ *
+ * Meio megabyte deixa o pedido previsível: o lote grande se divide sozinho, e
+ * o lote pequeno continua indo inteiro.
+ */
+const BYTES_POR_LOTE = 512 * 1024;
+
+/**
  * Quantas linhas por leitura.
  *
  * Abaixo do teto de mil do PostgREST, e pequena o bastante para a consulta não
@@ -71,6 +87,42 @@ export function emLotes<T>(lista: T[], tamanho: number): T[][] {
   for (let inicio = 0; inicio < lista.length; inicio += tamanho) {
     lotes.push(lista.slice(inicio, inicio + tamanho));
   }
+
+  return lotes;
+}
+
+/**
+ * Divide pelo tamanho do que vai no pedido, e não só pela contagem.
+ *
+ * O teto de linhas continua valendo, porque muitas linhas pequenas também
+ * custam. Item que sozinho já passa do teto de bytes vai sozinho: recusá-lo
+ * seria perder o registro em silêncio, e o pedido de um item só é o menor que
+ * dá para fazer.
+ */
+export function emLotesPorTamanho<T>(
+  lista: T[],
+  linhas: number,
+  bytes: number,
+  medir: (item: T) => number
+): T[][] {
+  const lotes: T[][] = [];
+  let atual: T[] = [];
+  let soma = 0;
+
+  for (const item of lista) {
+    const tamanho = medir(item);
+
+    if (atual.length > 0 && (atual.length >= linhas || soma + tamanho > bytes)) {
+      lotes.push(atual);
+      atual = [];
+      soma = 0;
+    }
+
+    atual.push(item);
+    soma += tamanho;
+  }
+
+  if (atual.length > 0) lotes.push(atual);
 
   return lotes;
 }
@@ -304,20 +356,39 @@ export function useSharedCollection<T>({
       /*
         Em lotes, e não tudo de uma vez.
 
-        A importação do portal grava 1.822 artigos numa tacada só. Cerca de
-        vinte e quatro megabytes de corpo HTML. Um `upsert` único com isso
-        estoura o limite de tamanho do pedido, e a falha chegaria como um erro
-        genérico depois de a pessoa ter esperado a varredura inteira.
+        A importação do portal grava 1.822 artigos. São 22,7 MB de corpo HTML,
+        e um `upsert` único com isso estoura o limite de tamanho do pedido: a
+        falha chegaria como erro genérico depois de a pessoa ter esperado a
+        varredura inteira.
 
-        Cem por lote dá pedidos de poucos megabytes, e o `delete` vai junto
-        porque uma lista de mil e oitocentos identificadores também tem teto,
-        agora na URL.
+        O lote fecha por bytes antes de fechar por contagem, porque o corpo do
+        artigo varia de um par de KB a 311 KB e vinte e cinco linhas podem ser
+        300 KB ou 2,5 MB. O `delete` continua contando linhas: ali só vão
+        identificadores, e o teto é o tamanho da URL.
       */
-      for (const lote of emLotes(mudados, POR_LOTE)) {
-        const { error } = await tabela.upsert(lote.map(row));
+      const linhas = mudados.map(row);
+
+      for (const lote of emLotesPorTamanho(
+        linhas,
+        POR_LOTE,
+        BYTES_POR_LOTE,
+        (linha) => JSON.stringify(linha).length
+      )) {
+        const { error } = await tabela.upsert(lote);
 
         if (error) {
-          toast.error(`Não foi possível gravar: ${error.message}`);
+          /*
+            A consequência vai junto porque a tela já disse que deu certo.
+
+            A mudança fica só nesta aba: a operação avisa "aplicado" assim que
+            o estado local muda, e a gravação acontece depois, aqui. Quem ler
+            só "não foi possível gravar" fecha a aba achando que perdeu pouco,
+            e perde o trabalho inteiro. Foi assim que 91 classificações de
+            artigo sumiram entre a tela e o banco.
+          */
+          toast.error(
+            `Não foi possível gravar: ${error.message}. A mudança está só nesta aba, e recarregar a página perde ela.`
+          );
           return;
         }
       }
@@ -326,7 +397,9 @@ export function useSharedCollection<T>({
         const { error } = await tabela.delete().in("id", lote);
 
         if (error) {
-          toast.error(`Não foi possível remover: ${error.message}`);
+          toast.error(
+            `Não foi possível remover: ${error.message}. A mudança está só nesta aba, e recarregar a página perde ela.`
+          );
           return;
         }
       }
