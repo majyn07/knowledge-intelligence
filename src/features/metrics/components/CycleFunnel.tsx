@@ -9,6 +9,7 @@ import { PageSection } from "@/components/common/page/PageSection";
 import { Button } from "@/components/ui/button";
 import { StatusBadge } from "@/components/common/status/StatusBadge";
 import { RelativeDate } from "@/components/common/RelativeDate";
+import { eventsInScope } from "@/features/activities/eventScope";
 import { useActivity } from "@/features/activities/providers/ActivityProvider";
 import { useNow } from "@/hooks/useNow";
 import { useProject } from "@/providers/ProjectProvider";
@@ -61,7 +62,7 @@ export function CycleFunnel({ days: inicial = 30 }: { days?: number }) {
   const [days, setDays] = useState(inicial);
 
   const scoped = useMemo(
-    () => (activeProjectId ? events.filter((e) => e.projectId === activeProjectId) : events),
+    () => eventsInScope(events, activeProjectId ?? ""),
     [activeProjectId, events]
   );
 

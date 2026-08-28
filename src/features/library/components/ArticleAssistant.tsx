@@ -7,6 +7,7 @@ import { MarkdownContent } from "@/components/common/MarkdownContent";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useTaxonomy } from "@/features/taxonomy/providers/TaxonomyProvider";
+import { dayOf } from "@/lib/dates";
 import { articleStatusLabel, type KnowledgeArticle } from "@/models/KnowledgeArticle";
 import { sectionPath } from "@/models/Taxonomy";
 import {
@@ -84,7 +85,7 @@ export function ArticleAssistant({ article }: { article: KnowledgeArticle }) {
       text,
       sectionPath: sectionPath(taxonomy, article.sectionId),
       status: articleStatusLabel[article.status],
-      updatedAt: article.updatedAt.toISOString().slice(0, 10),
+      updatedAt: dayOf(article.updatedAt),
       truncated,
     };
   }, [article, taxonomy]);

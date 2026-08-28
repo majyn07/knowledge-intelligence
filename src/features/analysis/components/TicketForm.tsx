@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 
-import { todayIso, toIsoDate } from "@/lib/dates";
+import { dayOf, toIsoDate } from "@/lib/dates";
 import type { FieldSpec } from "@/services/ai/fill/fieldFill";
 
 import type { TicketFormData, TicketMessageFormData } from "../types/TicketFormData";
@@ -95,7 +95,7 @@ export function TicketForm({
     if (!isNew) return;
 
     setFormData((previous) =>
-      previous.date === "" ? { ...previous, date: todayIso(new Date()) } : previous
+      previous.date === "" ? { ...previous, date: dayOf(new Date()) } : previous
     );
   }, [isNew]);
 

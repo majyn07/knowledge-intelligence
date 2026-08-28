@@ -77,7 +77,7 @@ export function compareFields(
   b: KnowledgeArticle,
   sectionNameOf: (sectionId: string) => string
 ): FieldDifference[] {
-  const dia = (data: Date) => data.toISOString().slice(0, 10);
+  const dia = (data: Date) => dayOf(data);
   const tamanho = (article: KnowledgeArticle) =>
     `${articleText(article).length.toLocaleString("pt-BR")} caracteres`;
 
@@ -98,3 +98,5 @@ export function compareFields(
 
   return campos.map((campo) => ({ ...campo, same: campo.a === campo.b }));
 }
+
+import { dayOf } from "@/lib/dates";

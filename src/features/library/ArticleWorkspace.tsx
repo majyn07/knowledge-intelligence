@@ -85,7 +85,6 @@ export function ArticleWorkspace({ articleId }: ArticleWorkspaceProps) {
         ? findSimilarArticles({
             articles: items,
             text: `${article.title} ${article.summary} ${article.keywords.join(" ")}`,
-            projectId: article.projectId,
             excludeId: article.id,
           })
         : [],

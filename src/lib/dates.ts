@@ -81,8 +81,15 @@ export function formatDay(value: string): string {
   return `${day}/${month}/${year}`;
 }
 
-/** O dia de hoje em `aaaa-mm-dd`, no fuso de quem está usando. */
-export function todayIso(now: Date): string {
+/**
+ * O dia de calendário de um instante, em `aaaa-mm-dd`, no fuso de quem lê.
+ *
+ * Nunca `toISOString().slice(0, 10)`: aquilo é o dia em Greenwich, e um
+ * artigo salvo às 21h de 27 de agosto no Brasil apareceria como 28. Duas
+ * gravações a segundos de distância cairiam em dias diferentes, e a
+ * comparação marcaria como divergente um campo que não mudou.
+ */
+export function dayOf(now: Date): string {
   const year = now.getFullYear();
   const month = String(now.getMonth() + 1).padStart(2, "0");
   const day = String(now.getDate()).padStart(2, "0");

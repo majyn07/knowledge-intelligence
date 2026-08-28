@@ -11,6 +11,7 @@ import { activityStage } from "@/models/ActivityEvent";
 import { useProject } from "@/providers/ProjectProvider";
 
 import { ActivityTimeline } from "./components/ActivityTimeline";
+import { eventsInScope } from "./eventScope";
 import { useActivity } from "./providers/ActivityProvider";
 
 type StageFilter = "all" | "analise" | "decisao" | "execucao" | "conhecimento" | "projeto";
@@ -42,10 +43,8 @@ export function ActivitiesWorkspace() {
 
   const projectEvents = useMemo(
     () =>
-      events.filter(
-        (event) =>
-          event.projectId === activeProjectId &&
-          (stage === "all" || activityStage[event.type] === stage)
+      eventsInScope(events, activeProjectId ?? "").filter(
+        (event) => stage === "all" || activityStage[event.type] === stage
       ),
     [activeProjectId, events, stage]
   );

@@ -99,6 +99,27 @@ describe("compareFields", () => {
     expect(campos.find((c) => c.label === "Resumo")?.a).toBe("sem resumo");
   });
 
+  /*
+    O dia é o de quem lê, não o de Greenwich. Com `toISOString`, um artigo
+    salvo às 21h no Brasil aparecia como sendo do dia seguinte, e dois salvos
+    com uma hora de diferença caíam em dias distintos.
+  */
+  it("mostra o dia no fuso de quem lê", () => {
+    const noite = new Date(2026, 7, 27, 21, 30);
+    const manha = new Date(2026, 7, 27, 9, 0);
+
+    const campos = compareFields(
+      artigo({ updatedAt: noite }),
+      artigo({ updatedAt: manha }),
+      secao
+    );
+
+    const atualizado = campos.find((c) => c.label === "Atualizado em")!;
+
+    expect(atualizado.a).toBe("2026-08-27");
+    expect(atualizado.same).toBe(true);
+  });
+
   it("mede o tamanho pelo texto, não pela marcação", () => {
     const campos = compareFields(
       artigo({ content: "<div><p>abc</p></div>" }),

@@ -57,6 +57,23 @@ mil oitocentos e vinte e dois artigos do portal serem recusados pelo Postgres no
 fim de uma varredura de quarenta e cinco minutos. Hoje aceita nulo, e apagar
 uma iniciativa não leva junto artigo que nunca foi dela.
 
+E estava **nas telas**, em quatro lugares, cada um errando de um jeito
+diferente pelo mesmo motivo. O pior: a busca que a análise faz por artigos
+relacionados recortava pelo projeto do atendimento, então toda análise
+respondia "nada cobre isto" sobre um portal que cobre. Os outros três: o
+histórico não mostrava nada do acervo, o funil perdia a última perna e o cartão
+"Conteúdos publicados" marcava zero com a Biblioteca cheia.
+
+Nenhum deles aparecia enquanto o acervo cabia numa iniciativa. O que os revelou
+foi o `projectId` vazio de mil oitocentos e vinte e dois artigos — a mesma
+mudança, vista de quatro ângulos.
+
+Evento sem iniciativa é do acervo e **acompanha qualquer uma**, porque não
+existe iniciativa a que ele pertença; quem decide isso é `eventsInScope`, numa
+peça só, para as duas telas não divergirem. Já vazio da iniciativa continua
+sendo sobre **trabalho**: contar o acervo ali faria uma iniciativa recém-criada
+nunca parecer nova.
+
 O projeto ativo vem do `ProjectProvider`. Nunca leia projeto de outro lugar —
 e, antes de escopar algo por ele, pergunte se aquilo é trabalho ou acervo.
 

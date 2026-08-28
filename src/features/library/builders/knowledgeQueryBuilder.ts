@@ -20,8 +20,6 @@ export function buildKnowledgeQuery(
       .filter(Boolean)
       .join("\n\n"),
 
-    projectId: ticket.projectId,
-
     company: ticket.company,
 
     limit: 5,
