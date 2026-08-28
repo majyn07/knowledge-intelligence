@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useEffect, useState } from "react";
+import { useCallback, useMemo, useEffect, useState } from "react";
 import { Sparkles } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -12,6 +12,7 @@ import { TicketImportButton, TicketImportDialog } from "./components/TicketImpor
 import { usePersistedState } from "@/hooks/usePersistedState";
 import { useQueryParam } from "@/hooks/useQueryParam";
 import { countOrphans } from "@/models/Trash";
+import { usePeople } from "@/features/people/providers/PeopleProvider";
 import { useProject } from "@/providers/ProjectProvider";
 
 import { AnalysisPanel } from "./components/AnalysisPanel";
@@ -23,7 +24,11 @@ import { TicketDetails } from "./components/TicketDetails";
 import { TicketList } from "./components/TicketList";
 import { TriageQueue } from "./components/TriageQueue";
 import { triageTickets } from "./triage";
+import { useAutoSync } from "./hooks/useAutoSync";
 import { useTicketRecorte } from "./hooks/useTicketRecorte";
+import { renovarTranca, soltarTranca, tomarTranca } from "./autoSyncRepository";
+import { caixasDoSuporte, lerConversas, listarConversas } from "./helpDeskScan";
+import { planejarVarredura } from "@/services/hubspot/helpDeskSchedule";
 import type { TicketCycle } from "./ticketTableView";
 import { TicketDeleteDialog } from "./components/TicketDialogs";
 import { useAnalysisContext } from "./hooks/useAnalysisContext";
@@ -42,7 +47,8 @@ const SIDEBAR_STORAGE_KEY = "visus-workspace-sidebar-collapsed";
 
 export function AnalysisWorkspace() {
   const { activeProject, activeProjectId } = useProject();
-  const { ticketsOf, conversationOf, deleteTicket } = useTickets();
+  const { ticketsOf, conversationOf, deleteTicket, importFromHelpDesk } = useTickets();
+  const { currentPerson } = usePeople();
   const {
     getAnalysis,
     saveAnalysis,
@@ -89,6 +95,58 @@ export function AnalysisWorkspace() {
   );
 
   const recorte = useTicketRecorte(projectTickets, ciclo);
+
+  /*
+    A busca automática, quando ligada e quando quem está aqui administra.
+
+    Ela usa o mesmo motor do diálogo, e não uma segunda cópia: duas varreduras
+    escritas em separado divergem, e a que roda sozinha seria justamente a que
+    ninguém está olhando quando divergir.
+
+    Sem teto de quantos ler, ao contrário da busca à mão. Ali o teto existe
+    porque alguém escolheu a janela e pode ter escolhido grande demais; aqui a
+    janela é o intervalo desde a última busca, que é pequeno por construção.
+  */
+  const buscarSozinho = useCallback(
+    async (desde: string) => {
+      const tranca = await tomarTranca(currentPerson);
+
+      if (!tranca.tomada) return;
+
+      try {
+        const conversas = await listarConversas({ caixas: await caixasDoSuporte(), desde });
+
+        const conhecidos = projectTickets
+          .filter((ticket) => ticket.source?.provider === "hubspot")
+          .map((ticket) => ({
+            externalId: ticket.source?.externalId ?? "",
+            ultimaMensagemEm: String(ticket.raw?.ultimaMensagemEm ?? ""),
+          }));
+
+        const plano = planejarVarredura(conversas, conhecidos, desde);
+
+        const { trazidos } = await lerConversas({
+          visitar: plano.visitar,
+          projectId: activeProjectId ?? "",
+          aoLote: () => void renovarTranca(currentPerson),
+        });
+
+        importFromHelpDesk(trazidos, "automática");
+        await soltarTranca(true);
+      } catch {
+        /*
+          Em silêncio, e de propósito. Ninguém pediu esta busca: um aviso de
+          falha no meio do trabalho de outra pessoa é ruído sobre algo que ela
+          não começou, e a próxima conferência tenta de novo em cinco minutos.
+          A tranca volta de qualquer jeito, senão a falha trancaria a equipe.
+        */
+        await soltarTranca(false);
+      }
+    },
+    [activeProjectId, currentPerson, importFromHelpDesk, projectTickets]
+  );
+
+  useAutoSync(buscarSozinho);
 
   /*
     Duas perguntas, duas vistas. Atender é "este atendimento aqui"; a triagem é

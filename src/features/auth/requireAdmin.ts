@@ -73,5 +73,41 @@ export async function requireAdmin(): Promise<Autorizacao> {
     };
   }
 
+  /*
+    O freio de mão, e ele é conferido **aqui** e não só na tela.
+
+    Um freio que esconde botão não freia nada: quem já tem uma varredura
+    rodando no navegador continua disparando requisições, e quem sabe o
+    endereço chama a rota direto. Conferir por requisição é o que faz o
+    interruptor parar uma varredura em curso, que é justamente o caso em que
+    alguém quer parar.
+
+    Custa uma leitura por chamada, na chave primária de uma tabela de uma
+    linha. É o mesmo custo que a conferência de administrador logo acima já
+    paga, e o alternativo é um freio que só funciona antes de o problema
+    começar.
+  */
+  const { data: config } = await supabase
+    .from("app_settings" as never)
+    .select("value")
+    .eq("key", "hubspot_auto_sync")
+    .maybeSingle();
+
+  const valor = (config as { value?: { bloqueado?: unknown } } | null)?.value;
+
+  if (valor?.bloqueado === true) {
+    return {
+      ok: false,
+      /*
+        423, e não 403. O 403 diz "você não pode"; aqui qualquer administrador
+        poderia, e o que impede é um estado que alguém ligou e alguém desliga.
+        A diferença importa para quem lê o registro do servidor depois.
+      */
+      status: 423,
+      message:
+        "As chamadas à HubSpot estão bloqueadas. Quem administra desbloqueia na tela de Atendimentos.",
+    };
+  }
+
   return { ok: true };
 }

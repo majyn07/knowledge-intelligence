@@ -43,10 +43,55 @@ export const FOLGA_MS = 10 * MINUTO;
 export const RETOMADA_MAXIMA_MS = 14 * 24 * HORA;
 
 export interface EstadoDaSincronizacao {
-  /** O interruptor, que só quem administra muda. */
+  /** O interruptor da busca automática, que só quem administra muda. */
   ligado: boolean;
+  /**
+   * O freio de mão: nenhuma chamada à HubSpot sai, nem automática nem à mão.
+   *
+   * É outro interruptor de propósito. Desligar a automática ainda deixa
+   * qualquer administrador varrer três meses à mão, e a pergunta que originou
+   * este campo é outra: "como impeço que alguém sobrecarregue o servidor do
+   * suporte". A resposta precisa alcançar também quem clica.
+   *
+   * Vale **no servidor**. Um freio que só esconde botão não freia nada.
+   */
+  bloqueado: boolean;
   /** Quando a última busca terminou, em ISO. Vazio se nunca houve. */
   ultimaEm: string;
+  /**
+   * Quando a varredura em curso deu sinal de vida, em ISO. Vazio se não há.
+   *
+   * É o que impede duas varreduras ao mesmo tempo. Sem ele, dois
+   * administradores com a tela aberta disparam duas varreduras de três meses
+   * contra a mesma caixa, e o servidor do suporte sente as duas somadas.
+   *
+   * Renovado a cada lote, e não gravado uma vez no começo: uma aba fechada no
+   * meio deixaria a tranca fechada para sempre, e ninguém teria como abrir.
+   */
+  execucaoEm: string;
+  /** Quem está com a varredura em curso, para a tela dizer a quem perguntar. */
+  execucaoPor: string;
+}
+
+/**
+ * Quanto tempo sem sinal de vida até a varredura ser dada como abandonada.
+ *
+ * A varredura renova o carimbo a cada lote, e um lote são vinte conversas com
+ * pausa entre elas: passar disto significa aba fechada, rede caída ou máquina
+ * suspensa. Curto o bastante para não travar a equipe por causa de um
+ * navegador fechado, e longo o bastante para não atropelar quem está lendo.
+ */
+export const TRANCA_ABANDONADA_MS = 5 * 60 * 1000;
+
+/** A varredura está em curso, e não é uma tranca esquecida. */
+export function varreduraEmCurso(estado: EstadoDaSincronizacao, agora: Date): boolean {
+  if (estado.execucaoEm === "") return false;
+
+  const desde = new Date(estado.execucaoEm).getTime();
+
+  if (Number.isNaN(desde)) return false;
+
+  return agora.getTime() - desde < TRANCA_ABANDONADA_MS;
 }
 
 export type Decisao =
@@ -55,6 +100,8 @@ export type Decisao =
 
 export type MotivoDeNaoSincronizar =
   | "desligado"
+  | "bloqueado"
+  | "ja-em-curso"
   | "cedo-demais"
   | "parado-tempo-demais"
   | "sem-registro";
@@ -70,7 +117,14 @@ export function decidirSincronizacao(
   agora: Date,
   intervaloMs = INTERVALO_PADRAO_MS
 ): Decisao {
+  /*
+    O freio vem antes de tudo. Ele existe para responder "como impeço que
+    alguém sobrecarregue o servidor do suporte", e uma resposta que depende da
+    ordem em que as condições são lidas não responde nada.
+  */
+  if (estado.bloqueado) return { sincronizar: false, motivo: "bloqueado" };
   if (!estado.ligado) return { sincronizar: false, motivo: "desligado" };
+  if (varreduraEmCurso(estado, agora)) return { sincronizar: false, motivo: "ja-em-curso" };
 
   /*
     Sem registro de execução anterior não dá para saber o que ficou para trás, e
@@ -104,6 +158,8 @@ export function decidirSincronizacao(
 
 export const motivoLegivel: Record<MotivoDeNaoSincronizar, string> = {
   desligado: "A busca automática está desligada.",
+  bloqueado: "As chamadas à HubSpot estão bloqueadas.",
+  "ja-em-curso": "Já há uma varredura em curso.",
   "cedo-demais": "A última busca foi há pouco.",
   "parado-tempo-demais":
     "Faz mais de duas semanas sem buscar. Uma janela desse tamanho é escolha de gente, na busca manual.",

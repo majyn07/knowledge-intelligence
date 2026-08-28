@@ -12,13 +12,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { useProject } from "@/providers/ProjectProvider";
-import type { SupportConversation } from "@/models/SupportConversation";
-import type { Ticket } from "@/models/Ticket";
-import {
-  planejarVarredura,
-  type ConversaListada,
-  type PlanoDeVarredura,
-} from "@/services/hubspot/helpDeskSchedule";
+import { planejarVarredura, type PlanoDeVarredura } from "@/services/hubspot/helpDeskSchedule";
 import {
   ATALHOS,
   ATALHO_PADRAO,
@@ -33,7 +27,8 @@ import { RelativeDate } from "@/components/common/RelativeDate";
 
 import { useTickets } from "../providers/TicketsProvider";
 import { usePeople } from "@/features/people/providers/PeopleProvider";
-import { gravarEstado, lerEstado } from "../autoSyncRepository";
+import { renovarTranca, soltarTranca, tomarTranca } from "../autoSyncRepository";
+import { caixasDoSuporte, lerConversas, listarConversas } from "../helpDeskScan";
 
 /**
  * Buscar os atendimentos na caixa do suporte.
@@ -59,8 +54,6 @@ interface Progresso {
 
 const VAZIO: Progresso = { conversas: 0, lidos: 0, trazidos: 0, falhas: 0 };
 
-/** Quantos conversas por lote de leitura. O servidor recusa acima disso. */
-const POR_LOTE = 20;
 
 /**
  * Quantos atendimentos uma busca traz.
@@ -93,6 +86,7 @@ export function HelpDeskDialog({
   onOpenChange: (open: boolean) => void;
 }) {
   const { tickets, importFromHelpDesk } = useTickets();
+  const { currentPerson } = usePeople();
   const { activeProjectId } = useProject();
   const { events } = useActivity();
 
@@ -163,25 +157,6 @@ export function HelpDeskDialog({
     [onOpenChange]
   );
 
-  async function pedir(caminho: string, corpo?: unknown) {
-    const resposta = await fetch(caminho, {
-      method: corpo ? "POST" : "GET",
-      ...(corpo ? { headers: { "content-type": "application/json" }, body: JSON.stringify(corpo) } : {}),
-    });
-
-    const dados: unknown = await resposta.json();
-
-    if (!resposta.ok) {
-      const mensagem =
-        typeof dados === "object" && dados !== null && "message" in dados
-          ? String((dados as { message: unknown }).message)
-          : "Não foi possível falar com a HubSpot.";
-
-      throw new Error(mensagem);
-    }
-
-    return dados as Record<string, unknown>;
-  }
 
   /** Primeira passada: lista o que existe nas caixas e monta o plano. */
   async function listar() {
@@ -191,8 +166,7 @@ export function HelpDeskDialog({
     setProgresso(VAZIO);
 
     try {
-      const inicio = await pedir("/api/hubspot/help-desk");
-      const caixas = (inicio.caixas as string[]) ?? [];
+      const caixas = await caixasDoSuporte();
 
       /*
         A janela vai para o servidor, e é o que torna isto viável. A caixa do
@@ -212,25 +186,13 @@ export function HelpDeskDialog({
       }
 
       const { desde, ate: fim } = periodo;
-      const conversas: ConversaListada[] = [];
 
-      for (const caixa of caixas) {
-        let cursor: string | undefined;
-
-        do {
-          if (parar.current) break;
-
-          const query = new URLSearchParams({ caixa, desde });
-          if (cursor) query.set("apos", cursor);
-
-          const pagina = await pedir(`/api/hubspot/help-desk?${query}`);
-
-          conversas.push(...((pagina.conversas as ConversaListada[]) ?? []));
-          cursor = (pagina.proxima as string | null) ?? undefined;
-
-          setProgresso((atual) => ({ ...atual, conversas: conversas.length }));
-        } while (cursor);
-      }
+      const conversas = await listarConversas({
+        caixas,
+        desde,
+        aoProgredir: (quantas) => setProgresso((atual) => ({ ...atual, conversas: quantas })),
+        parou: () => parar.current,
+      });
 
       /*
         O que já está aqui, com o carimbo da última varredura. É por ele que a
@@ -256,113 +218,69 @@ export function HelpDeskDialog({
   async function ler() {
     if (!plano) return;
 
+    /*
+      Uma varredura por vez, e a tranca é do banco e não desta aba.
+
+      Sem ela, dois administradores com a tela aberta disparam duas varreduras
+      contra a mesma caixa, e o servidor do suporte sente as duas somadas. É o
+      caso que a pergunta "como impeço que alguém sobrecarregue" quer evitar.
+    */
+    const tranca = await tomarTranca(currentPerson);
+
+    if (!tranca.tomada) {
+      setErro(
+        tranca.por === ""
+          ? "Já há uma varredura em curso. Espere ela terminar."
+          : `${tranca.por} já está com uma varredura em curso. Espere ela terminar.`
+      );
+      return;
+    }
+
     parar.current = false;
     setErro(null);
     setEtapa("lendo");
 
-    const trazidos: { ticket: Ticket; conversation: SupportConversation }[] = [];
-    let lidos = 0;
-    let falhas = 0;
-
     try {
       const aLer = teto === null ? plano.visitar : plano.visitar.slice(0, teto);
 
-      for (let inicio = 0; inicio < aLer.length; inicio += POR_LOTE) {
-        if (parar.current) break;
-
-        const lote = aLer.slice(inicio, inicio + POR_LOTE);
-        const resposta = await pedir("/api/hubspot/help-desk", { conversas: lote });
-
-        const atendimentos = (resposta.atendimentos as Record<string, never>[]) ?? [];
-        falhas += Number(resposta.falhas ?? 0);
-        lidos += lote.length;
-
-        for (const bruto of atendimentos) {
-          const dados = bruto as unknown as {
-            ticket: { externalId: string; title: string; solution: string; date: string };
-            messages: SupportConversation["messages"];
-            contato?: { nome: string; empresa: string };
-            raw: Record<string, unknown>;
-          };
-
-          const id = `hs-${dados.ticket.externalId}`;
-
-          trazidos.push({
-            ticket: {
-              id,
-              projectId: activeProjectId ?? "",
-              title: dados.ticket.title,
-              solution: dados.ticket.solution,
-              /*
-                A empresa vem do contato associado. É dado pessoal, e entrou por
-                pedido explícito de quem conduz o projeto: sem ela não dá para
-                reencontrar o atendimento na HubSpot, que é o que a equipe faz.
-              */
-              company: dados.contato?.empresa ?? "",
-              date: dados.ticket.date,
-              source: {
-                provider: "hubspot",
-                externalId: dados.ticket.externalId,
-                importedAt: new Date().toISOString(),
-              },
-              raw: dados.raw,
-            },
-            conversation: {
-              id: `conv-${dados.ticket.externalId}`,
-              ticketId: id,
-              messages: dados.messages,
-              source: {
-                provider: "hubspot",
-                externalId: dados.ticket.externalId,
-                importedAt: new Date().toISOString(),
-              },
-            },
-          });
-        }
-
-        setProgresso({ conversas: aLer.length, lidos, trazidos: trazidos.length, falhas });
-      }
+      const { trazidos } = await lerConversas({
+        visitar: aLer,
+        projectId: activeProjectId ?? "",
+        /*
+          Sinal de vida a cada lote. A tranca sem renovação é dada como
+          abandonada, que é o que a devolve quando alguém fecha a aba no meio de
+          uma varredura de duas horas.
+        */
+        aoLote: () => void renovarTranca(currentPerson),
+        aoProgredir: (parcial) =>
+          setProgresso({
+            conversas: aLer.length,
+            lidos: parcial.lidos,
+            trazidos: parcial.trazidos.length,
+            falhas: parcial.falhas,
+          }),
+        parou: () => parar.current,
+      });
 
       /*
         Uma escrita só, no fim. Gravar lote a lote deixaria o acervo pela metade
         se um falhasse, e encheria o histórico de linhas iguais.
       */
       importFromHelpDesk(trazidos, rotuloDaJanela(janela));
-      await marcarBusca();
+      await soltarTranca(true);
       setEtapa("fim");
     } catch (falha) {
       setErro(falha instanceof Error ? falha.message : "A leitura foi interrompida.");
 
-      /* O que já veio não se perde: quem esperou minutos não recomeça do zero. */
-      if (trazidos.length > 0) importFromHelpDesk(trazidos, rotuloDaJanela(janela));
-
       /*
-        Marca mesmo tendo sido interrompida, e de propósito. O que já entrou
-        entrou, e não marcar faria a próxima busca automática recuar até a
-        execução anterior, relendo tudo que esta já trouxe.
+        Solta a tranca de qualquer jeito, senão uma falha de rede deixaria a
+        equipe trancada até o carimbo envelhecer. O que já entrou não se perde:
+        `lerConversas` devolve o parcial junto com o erro só quando ela mesma
+        para, e quando estoura antes disso não há o que gravar.
       */
-      await marcarBusca();
+      await soltarTranca(false);
       setEtapa("fim");
     }
-  }
-
-  /**
-   * Registra que houve busca agora.
-   *
-   * É daqui que a busca automática sabe até onde já foi. Sem o carimbo ela não
-   * tem de onde partir, e a regra é não escolher uma janela por conta própria:
-   * disparar contra o servidor do suporte um tamanho que ninguém pediu é o que
-   * este produto evita em todo lugar.
-   *
-   * Falhar aqui não derruba a busca que acabou de dar certo. A política recusa
-   * quem não administra, e quem não administra nem chegou até aqui; se recusar
-   * por outro motivo, o pior caso é a próxima automática recuar demais, e o
-   * plano de varredura já pula o que não mudou.
-   */
-  async function marcarBusca() {
-    const atual = (await lerEstado()) ?? { ligado: false, ultimaEm: "" };
-
-    await gravarEstado({ ...atual, ultimaEm: new Date().toISOString() });
   }
 
   const lendo = etapa === "listando" || etapa === "lendo";

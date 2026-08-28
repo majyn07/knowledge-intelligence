@@ -6,27 +6,39 @@ import {
   INTERVALO_PADRAO_MS,
   intervaloLegivel,
   RETOMADA_MAXIMA_MS,
+  TRANCA_ABANDONADA_MS,
+  varreduraEmCurso,
+  type EstadoDaSincronizacao,
 } from "./autoSync";
 
 const AGORA = new Date("2026-08-28T15:00:00.000Z");
 
 const horasAtras = (h: number) => new Date(AGORA.getTime() - h * 60 * 60 * 1000).toISOString();
 
+const estado = (extra: Partial<EstadoDaSincronizacao> = {}): EstadoDaSincronizacao => ({
+  ligado: true,
+  bloqueado: false,
+  ultimaEm: "",
+  execucaoEm: "",
+  execucaoPor: "",
+  ...extra,
+});
+
 describe("decidirSincronizacao", () => {
   it("não busca com o interruptor desligado", () => {
-    const decisao = decidirSincronizacao({ ligado: false, ultimaEm: horasAtras(5) }, AGORA);
+    const decisao = decidirSincronizacao(estado({ ligado: false, ultimaEm: horasAtras(5) }), AGORA);
 
     expect(decisao).toEqual({ sincronizar: false, motivo: "desligado" });
   });
 
   it("não busca antes de o intervalo fechar", () => {
-    const decisao = decidirSincronizacao({ ligado: true, ultimaEm: horasAtras(0.5) }, AGORA);
+    const decisao = decidirSincronizacao(estado({ ligado: true, ultimaEm: horasAtras(0.5) }), AGORA);
 
     expect(decisao).toEqual({ sincronizar: false, motivo: "cedo-demais" });
   });
 
   it("busca quando o intervalo fechou", () => {
-    const decisao = decidirSincronizacao({ ligado: true, ultimaEm: horasAtras(2) }, AGORA);
+    const decisao = decidirSincronizacao(estado({ ligado: true, ultimaEm: horasAtras(2) }), AGORA);
 
     expect(decisao.sincronizar).toBe(true);
   });
@@ -37,7 +49,7 @@ describe("decidirSincronizacao", () => {
     silêncio.
   */
   it("a janela cobre o intervalo perdido, e não a última hora", () => {
-    const decisao = decidirSincronizacao({ ligado: true, ultimaEm: horasAtras(72) }, AGORA);
+    const decisao = decidirSincronizacao(estado({ ligado: true, ultimaEm: horasAtras(72) }), AGORA);
 
     if (!decisao.sincronizar) throw new Error("deveria sincronizar");
 
@@ -51,7 +63,7 @@ describe("decidirSincronizacao", () => {
     na virada cai no vão entre duas execuções, sem erro nenhum.
   */
   it("recua um pouco além da última execução", () => {
-    const decisao = decidirSincronizacao({ ligado: true, ultimaEm: horasAtras(2) }, AGORA);
+    const decisao = decidirSincronizacao(estado({ ligado: true, ultimaEm: horasAtras(2) }), AGORA);
 
     if (!decisao.sincronizar) throw new Error("deveria sincronizar");
 
@@ -67,29 +79,29 @@ describe("decidirSincronizacao", () => {
   it("não retoma sozinha depois de parada longa demais", () => {
     const parada = new Date(AGORA.getTime() - RETOMADA_MAXIMA_MS - 1000).toISOString();
 
-    const decisao = decidirSincronizacao({ ligado: true, ultimaEm: parada }, AGORA);
+    const decisao = decidirSincronizacao(estado({ ligado: true, ultimaEm: parada }), AGORA);
 
     expect(decisao).toEqual({ sincronizar: false, motivo: "parado-tempo-demais" });
   });
 
   /* A primeira busca é de gente: escolher a janela sozinho seria disparar um tamanho que ninguém pediu. */
   it("não faz a primeira busca sozinha", () => {
-    const decisao = decidirSincronizacao({ ligado: true, ultimaEm: "" }, AGORA);
+    const decisao = decidirSincronizacao(estado({ ligado: true, ultimaEm: "" }), AGORA);
 
     expect(decisao).toEqual({ sincronizar: false, motivo: "sem-registro" });
   });
 
   it("trata carimbo ilegível como se não houvesse registro", () => {
-    const decisao = decidirSincronizacao({ ligado: true, ultimaEm: "ontem" }, AGORA);
+    const decisao = decidirSincronizacao(estado({ ligado: true, ultimaEm: "ontem" }), AGORA);
 
     expect(decisao).toEqual({ sincronizar: false, motivo: "sem-registro" });
   });
 
   it("aceita intervalo diferente do padrão", () => {
-    const estado = { ligado: true, ultimaEm: horasAtras(0.5) };
+    const comMeiaHora = estado({ ligado: true, ultimaEm: horasAtras(0.5) });
 
-    expect(decidirSincronizacao(estado, AGORA).sincronizar).toBe(false);
-    expect(decidirSincronizacao(estado, AGORA, 10 * 60 * 1000).sincronizar).toBe(true);
+    expect(decidirSincronizacao(comMeiaHora, AGORA).sincronizar).toBe(false);
+    expect(decidirSincronizacao(comMeiaHora, AGORA, 10 * 60 * 1000).sincronizar).toBe(true);
   });
 
   it("o padrão é de uma hora", () => {
@@ -105,5 +117,67 @@ describe("intervaloLegivel", () => {
 
   it("cai em minutos abaixo de uma hora", () => {
     expect(intervaloLegivel(15 * 60 * 1000)).toBe("a cada 15 minutos");
+  });
+});
+
+/*
+  A pergunta que originou o freio: "como impeço que alguém sobrecarregue o
+  servidor do suporte". Desligar a automática não responde, porque qualquer
+  administrador ainda varre três meses à mão.
+*/
+describe("o freio", () => {
+  it("bloqueado vence tudo, inclusive a automática ligada", () => {
+    const decisao = decidirSincronizacao(
+      estado({ bloqueado: true, ultimaEm: horasAtras(5) }),
+      AGORA
+    );
+
+    expect(decisao).toEqual({ sincronizar: false, motivo: "bloqueado" });
+  });
+
+  it("bloqueado vence mesmo com a automática desligada", () => {
+    const decisao = decidirSincronizacao(
+      estado({ ligado: false, bloqueado: true, ultimaEm: horasAtras(5) }),
+      AGORA
+    );
+
+    expect(decisao.sincronizar).toBe(false);
+    if (decisao.sincronizar) return;
+    expect(decisao.motivo).toBe("bloqueado");
+  });
+});
+
+/*
+  Dois administradores com a tela aberta disparariam duas varreduras de três
+  meses contra a mesma caixa, e o servidor do suporte sentiria as duas somadas.
+*/
+describe("uma varredura por vez", () => {
+  it("não começa com outra em curso", () => {
+    const decisao = decidirSincronizacao(
+      estado({ ultimaEm: horasAtras(5), execucaoEm: horasAtras(0.01), execucaoPor: "Outra pessoa" }),
+      AGORA
+    );
+
+    expect(decisao).toEqual({ sincronizar: false, motivo: "ja-em-curso" });
+  });
+
+  /* Aba fechada no meio deixaria a tranca fechada para sempre. */
+  it("tranca sem sinal de vida é dada como abandonada", () => {
+    const abandonada = new Date(AGORA.getTime() - TRANCA_ABANDONADA_MS - 1000).toISOString();
+
+    const decisao = decidirSincronizacao(
+      estado({ ultimaEm: horasAtras(5), execucaoEm: abandonada }),
+      AGORA
+    );
+
+    expect(decisao.sincronizar).toBe(true);
+  });
+
+  it("sem tranca não há varredura em curso", () => {
+    expect(varreduraEmCurso(estado(), AGORA)).toBe(false);
+  });
+
+  it("carimbo ilegível não tranca ninguém", () => {
+    expect(varreduraEmCurso(estado({ execucaoEm: "ontem" }), AGORA)).toBe(false);
   });
 });

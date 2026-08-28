@@ -3,7 +3,7 @@
 import { getSupabase } from "@/lib/supabase/client";
 import type { AppSettingRow } from "@/lib/supabase/types";
 
-import type { EstadoDaSincronizacao } from "./autoSync";
+import { varreduraEmCurso, type EstadoDaSincronizacao } from "./autoSync";
 
 /**
  * O interruptor da busca automática, que vive no banco e não no navegador.
@@ -22,7 +22,13 @@ import type { EstadoDaSincronizacao } from "./autoSync";
 
 export const CHAVE = "hubspot_auto_sync";
 
-const VAZIO: EstadoDaSincronizacao = { ligado: false, ultimaEm: "" };
+const VAZIO: EstadoDaSincronizacao = {
+  ligado: false,
+  bloqueado: false,
+  ultimaEm: "",
+  execucaoEm: "",
+  execucaoPor: "",
+};
 
 /**
  * Garante a forma, venha o que vier.
@@ -34,11 +40,21 @@ const VAZIO: EstadoDaSincronizacao = { ligado: false, ultimaEm: "" };
 export function normalizarEstado(valor: unknown): EstadoDaSincronizacao {
   if (typeof valor !== "object" || valor === null) return VAZIO;
 
-  const bruto = valor as { ligado?: unknown; ultimaEm?: unknown };
+  const bruto = valor as Record<string, unknown>;
+
+  const texto = (chave: string) => (typeof bruto[chave] === "string" ? (bruto[chave] as string) : "");
 
   return {
     ligado: bruto.ligado === true,
-    ultimaEm: typeof bruto.ultimaEm === "string" ? bruto.ultimaEm : "",
+    /*
+      Ausente é `false`, e é o lado certo do erro: uma linha gravada antes deste
+      campo existir não pode chegar bloqueando a equipe inteira sem ninguém ter
+      ligado nada.
+    */
+    bloqueado: bruto.bloqueado === true,
+    ultimaEm: texto("ultimaEm"),
+    execucaoEm: texto("execucaoEm"),
+    execucaoPor: texto("execucaoPor"),
   };
 }
 
@@ -94,4 +110,56 @@ export async function gravarEstado(
   });
 
   return error ? { erro: error.message } : null;
+}
+
+/**
+ * Toma a tranca da varredura, ou diz quem já está com ela.
+ *
+ * A leitura e a escrita são dois passos, então duas abas que começam no mesmo
+ * segundo podem passar as duas. Não há transação aqui, e não vale inventar uma:
+ * o caso que importa é o comum (alguém já está varrendo há minutos), e o
+ * empate exato de dois cliques simultâneos custa uma varredura duplicada, não
+ * um dado errado.
+ */
+export async function tomarTranca(
+  quem: string
+): Promise<{ tomada: true } | { tomada: false; por: string }> {
+  const atual = (await lerEstado()) ?? VAZIO;
+
+  if (varreduraEmCurso(atual, new Date())) {
+    return { tomada: false, por: atual.execucaoPor };
+  }
+
+  await gravarEstado({ ...atual, execucaoEm: new Date().toISOString(), execucaoPor: quem });
+
+  return { tomada: true };
+}
+
+/**
+ * Diz que a varredura continua viva.
+ *
+ * Chamado a cada lote, e não uma vez no começo: uma aba fechada no meio
+ * deixaria a tranca fechada para sempre, e ninguém teria como abrir. Com o
+ * sinal de vida, a tranca sem renovação é dada como abandonada sozinha.
+ */
+export async function renovarTranca(quem: string): Promise<void> {
+  const atual = await lerEstado();
+
+  if (!atual) return;
+
+  await gravarEstado({ ...atual, execucaoEm: new Date().toISOString(), execucaoPor: quem });
+}
+
+/** Devolve a tranca e registra que houve busca agora. */
+export async function soltarTranca(marcarBusca: boolean): Promise<void> {
+  const atual = await lerEstado();
+
+  if (!atual) return;
+
+  await gravarEstado({
+    ...atual,
+    execucaoEm: "",
+    execucaoPor: "",
+    ultimaEm: marcarBusca ? new Date().toISOString() : atual.ultimaEm,
+  });
 }
