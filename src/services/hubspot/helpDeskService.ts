@@ -119,8 +119,14 @@ export async function umaPaginaDeFios(
 export interface AtendimentoDoFio {
   ticket: ThreadTicket;
   messages: SupportConversationMessage[];
-  /** O identificador do chamado na HubSpot, quando a associação devolve um. */
-  ticketId?: string;
+  /** Quem abriu, e de qual empresa. Vazio quando o fio não tem contato ligado. */
+  contato?: ContatoDoFio;
+  /**
+   * O identificador do chamado na HubSpot.
+   *
+   * Obrigatório: fio sem chamado associado não entra, porque não é atendimento.
+   */
+  ticketId: string;
   /** O registro cru, como a origem devolveu. */
   raw: Record<string, unknown>;
 }
@@ -152,6 +158,51 @@ async function chamadoDoFio(threadId: string): Promise<string | undefined> {
     );
 
     return chamadoDaAssociacao(resposta);
+  } catch {
+    return undefined;
+  }
+}
+
+export interface ContatoDoFio {
+  nome: string;
+  empresa: string;
+}
+
+/**
+ * Quem abriu o atendimento, e de qual empresa.
+ *
+ * Duas idas: a associação dá o identificador do contato, e a leitura dá os
+ * campos. São dado pessoal de cliente, e por isso vieram por pedido explícito
+ * de quem conduz o projeto: sem o nome não dá para reencontrar o atendimento na
+ * HubSpot, que é o que a equipe faz o dia inteiro.
+ *
+ * Pede só nome e empresa. Telefone e e-mail existem no contato e não são
+ * pedidos: eles não ajudam a reencontrar nada aqui, e dado que não serve não
+ * entra.
+ *
+ * Falha em silêncio, como o chamado: sem contato o atendimento continua válido.
+ */
+async function contatoDoFio(threadId: string): Promise<ContatoDoFio | undefined> {
+  try {
+    const assoc: unknown = await hubspot.get(
+      `/crm/v4/objects/conversation/${threadId}/associations/contact`
+    );
+
+    const id = chamadoDaAssociacao(assoc);
+    if (!id) return undefined;
+
+    const query = new URLSearchParams({ properties: "firstname,lastname,company" });
+    const contato: unknown = await hubspot.get(`/crm/v3/objects/contacts/${id}?${query}`);
+    const props = record(record(contato).properties);
+
+    const nome = [text(props.firstname), text(props.lastname)]
+      .map((parte) => parte.trim())
+      .filter(Boolean)
+      .join(" ");
+
+    const empresa = text(props.company).trim();
+
+    return nome === "" && empresa === "" ? undefined : { nome, empresa };
   } catch {
     return undefined;
   }
@@ -214,19 +265,37 @@ export async function lerLote(
         distingue o agente do robô de triagem, e a solução sai da última fala
         de gente do suporte.
       */
-      const [atores, ticketId] = await Promise.all([
+      const [atores, ticketId, contato] = await Promise.all([
         resolverAtores(brutas),
         chamadoDoFio(fio.id),
+        contatoDoFio(fio.id),
       ]);
 
       const ticket = toThreadTicket({ id: fio.id, createdAt: fio.criadoEm }, brutas, atores);
 
-      if (ticket) {
+      /*
+        Duas condições, e as duas vieram de errar antes.
+        
+        **Chamado associado.** Se o CRM não gerou ticket, não era um chamado:
+        disparo de marketing e fluxo de página não viram atendimento.
+        
+        **E alguém do suporte falou.** Só a associação não basta, e isso foi
+        medido: o fluxo de consentimento do WhatsApp ("Estou ciente e desejo
+        continuar") gera ticket igual, e numa busca de trinta ele era a maioria.
+        O que ele não tem é resposta de gente.
+        
+        A regra já existia no produto, do outro lado: atendimento sem solução não
+        entra na fila de triagem, porque escrever exige saber a resposta. Aqui
+        ela entra antes, na porta: sem resposta do suporte não há o que analisar,
+        e trazer esses registros só afogaria os que têm.
+      */
+      if (ticket && ticketId && ticket.solution.trim() !== "") {
 
         atendimentos.push({
           ticket,
           messages: toConversationMessages(brutas, atores),
-          ...(ticketId ? { ticketId } : {}),
+          ticketId,
+          ...(contato ? { contato } : {}),
           /*
             O registro cru guarda o que o nosso modelo não tem onde pôr, e é o
             que a análise lê inteiro. Não é normalizado: conferir a forma seria
@@ -236,9 +305,10 @@ export async function lerLote(
             threadId: fio.id,
             criadoEm: fio.criadoEm,
             ...(fio.ultimaMensagemEm ? { ultimaMensagemEm: fio.ultimaMensagemEm } : {}),
-            ...(ticketId ? { hubspotTicketId: ticketId } : {}),
+            hubspotTicketId: ticketId,
             origemDoTitulo: ticket.titleOrigin,
             mensagens: ticket.messageCount,
+            ...(contato ? { contato } : {}),
           },
         });
       }

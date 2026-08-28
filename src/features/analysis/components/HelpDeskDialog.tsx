@@ -51,6 +51,20 @@ const VAZIO: Progresso = { fios: 0, lidos: 0, trazidos: 0, falhas: 0 };
 /** Quantos fios por lote de leitura. O servidor recusa acima disso. */
 const POR_LOTE = 20;
 
+/**
+ * Quantos atendimentos uma busca traz.
+ *
+ * O padrão é pequeno de propósito, e a carga grande continua disponível. Três
+ * meses da caixa do suporte são quase onze mil, e cada um custa três idas ao
+ * CRM de produção: começar por trinta faz a escolha do tamanho ser deliberada,
+ * e não consequência de abrir a tela e clicar.
+ *
+ * Sem trava, porque um dia a carga inteira vai ser o que se quer, e limite
+ * escrito no código vira obstáculo justamente nesse dia.
+ */
+const TETOS = [10, 30, 100, 500];
+const TETO_PADRAO = 30;
+
 function Numero({ valor, rotulo }: { valor: number; rotulo: string }) {
   return (
     <div className="rounded-lg border border-border/70 bg-muted/30 px-3 py-2">
@@ -86,7 +100,7 @@ export function HelpDeskDialog({
 
     A fila já sai do mais recente, então o teto corta o passado, não o presente.
   */
-  const [teto, setTeto] = useState<number | null>(null);
+  const [teto, setTeto] = useState<number | null>(TETO_PADRAO);
 
   /*
     A parada é um `ref` e não estado: o laço lê o valor a cada volta, e estado
@@ -216,6 +230,7 @@ export function HelpDeskDialog({
           const dados = bruto as unknown as {
             ticket: { externalId: string; title: string; solution: string; date: string };
             messages: SupportConversation["messages"];
+            contato?: { nome: string; empresa: string };
             raw: Record<string, unknown>;
           };
 
@@ -228,11 +243,11 @@ export function HelpDeskDialog({
               title: dados.ticket.title,
               solution: dados.ticket.solution,
               /*
-                A empresa fica vazia. Ela viria da cadeia contato → empresa, e
-                trazer identificação de cliente para dentro do hub é decisão de
-                produto, não consequência de uma busca.
+                A empresa vem do contato associado. É dado pessoal, e entrou por
+                pedido explícito de quem conduz o projeto: sem ela não dá para
+                reencontrar o atendimento na HubSpot, que é o que a equipe faz.
               */
-              company: "",
+              company: dados.contato?.empresa ?? "",
               date: dados.ticket.date,
               source: {
                 provider: "hubspot",
@@ -358,7 +373,7 @@ export function HelpDeskDialog({
                       setTeto(evento.target.value === "tudo" ? null : Number(evento.target.value))
                     }
                   >
-                    {[20, 100, 500].map((n) => (
+                    {TETOS.map((n) => (
                       <option key={n} value={n}>
                         {n} mais recentes
                       </option>
