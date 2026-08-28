@@ -1,7 +1,7 @@
 /**
  * Chaves que o modelo devolve na análise estruturada.
  *
- * Não são o vocabulário do produto — o tipo de oportunidade virou cadastro, e
+ * Não são o vocabulário do produto: o tipo de oportunidade virou cadastro, e
  * a lista é da equipe. Estas cinco são o que a IA conhece hoje, e existem para
  * ser **traduzidas** para um item do cadastro pelo nome. Ensinar o cadastro ao
  * modelo é trabalho da sprint de IA.

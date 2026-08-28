@@ -53,7 +53,7 @@ const PeopleContext = createContext<PeopleContextValue | null>(null);
  * Pessoas e equipes.
  *
  * Com servidor, pessoa é conta: a lista é quem entrou, e ninguém é cadastrado
- * à mão. Sem servidor, não há login — a lista fica vazia e o seletor de
+ * à mão. Sem servidor, não há login: a lista fica vazia e o seletor de
  * "atuando como" continua sendo texto, como sempre foi.
  *
  * As equipes existem nos dois modos, porque classificam o trabalho e não
@@ -68,7 +68,7 @@ export function PeopleProvider({ children }: { children: ReactNode }) {
 
   /*
     Sem servidor não há sessão, e o histórico ficaria com autor vazio. O
-    seletor manual continua existindo só para esse caso — e desaparece assim
+    seletor manual continua existindo só para esse caso, e desaparece assim
     que há conta, porque aí quem opera é fato, não escolha.
   */
   const [localActor, setLocalActor] = useSharedActor();

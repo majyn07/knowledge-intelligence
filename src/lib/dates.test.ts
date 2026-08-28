@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { formatDay, todayIso, toIsoDate } from "./dates";
+import { dayOf, formatDay, toIsoDate } from "./dates";
 
 describe("toIsoDate", () => {
   it("aceita o formato guardado", () => {
@@ -46,7 +46,7 @@ describe("toIsoDate", () => {
 describe("formatDay", () => {
   it("mostra o dia guardado sem passar por fuso", () => {
     /*
-      `new Date("2026-08-20")` é meia-noite UTC, que no Brasil é o dia 19 — o
+      `new Date("2026-08-20")` é meia-noite UTC, que no Brasil é o dia 19: o
       atendimento apareceria um dia antes do que aconteceu.
     */
     expect(formatDay("2026-08-20")).toBe("20/08/2026");
@@ -60,7 +60,7 @@ describe("formatDay", () => {
   });
 });
 
-describe("todayIso", () => {
+describe("dayOf", () => {
   it("usa o dia local, e não o dia UTC", () => {
     /*
       Às 22h em São Paulo já é o dia seguinte em UTC. Um atendimento registrado
@@ -68,10 +68,10 @@ describe("todayIso", () => {
     */
     const noite = new Date(2026, 7, 20, 22, 30);
 
-    expect(todayIso(noite)).toBe("2026-08-20");
+    expect(dayOf(noite)).toBe("2026-08-20");
   });
 
   it("preenche mês e dia com zero à esquerda", () => {
-    expect(todayIso(new Date(2026, 0, 5))).toBe("2026-01-05");
+    expect(dayOf(new Date(2026, 0, 5))).toBe("2026-01-05");
   });
 });

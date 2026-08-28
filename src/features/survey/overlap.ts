@@ -7,13 +7,13 @@ import { articleVocabulary, jaccard } from "@/features/library/content/articleTe
  * Artigos que se sobrepõem dentro da mesma seção.
  *
  * É o problema clássico de uma base que cresceu por anos: dois artigos
- * ensinando a mesma coisa, cada um respondendo metade — e quem procura ajuda
+ * ensinando a mesma coisa, cada um respondendo metade, e quem procura ajuda
  * encontra um dos dois, nunca sabe do outro. Só dá para enxergar isso com o
  * acervo inteiro na mão, que é o que a importação do portal passou a permitir.
  *
  * **O que é calculado aqui é vocabulário em comum, não duplicata.** Dizer que
  * dois artigos cobrem o mesmo assunto exige ler e comparar sentido, e isso é
- * trabalho de quem revisa — com a IA propondo, marcada como proposta. Aqui sai
+ * trabalho de quem revisa, com a IA propondo, marcada como proposta. Aqui sai
  * o número e a evidência; a conclusão é de gente.
  */
 
@@ -22,7 +22,7 @@ import { articleVocabulary, jaccard } from "@/features/library/content/articleTe
  *
  * **Calibrado contra o acervo real**, com os 1.822 artigos do portal
  * importados: 19.580 pares comparados em 129 seções, e a semelhança se
- * distribui assim —
+ * distribui assim.
  *
  * | limiar | pares |
  * | --- | --- |
@@ -133,11 +133,11 @@ export interface DuplicateGroup {
  *
  * Diferente da sobreposição, isto **não é julgamento**: mesmo título, mesma
  * seção, corpo igual ou divergente. Não é preciso ler nada para saber que há um
- * problema — é preciso ler para decidir qual fica.
+ * problema. É preciso ler para decidir qual fica.
  *
  * Encontrado no acervo real: seis títulos repetidos somando treze artigos, um
  * deles publicado **três vezes** com o corpo idêntico. Corpo divergente é o
- * caso pior — duas versões do mesmo artigo no ar, e quem procura acha uma
+ * caso pior. Duas versões do mesmo artigo no ar, e quem procura acha uma
  * delas sem saber que a outra existe e diz outra coisa.
  */
 export function findDuplicates(articles: KnowledgeArticle[]): DuplicateGroup[] {
@@ -151,7 +151,7 @@ export function findDuplicates(articles: KnowledgeArticle[]): DuplicateGroup[] {
 
     /*
       Título **e** seção: o portal repete de propósito um título genérico em
-      seções diferentes — "Interface" do Builder e "Interface" do Eberick são
+      seções diferentes. "Interface" do Builder e "Interface" do Eberick são
       artigos distintos, e acusá-los seria apontar o desenho como defeito.
     */
     const chave = `${article.sectionId}::${titulo}`;

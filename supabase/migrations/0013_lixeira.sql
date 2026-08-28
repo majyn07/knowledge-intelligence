@@ -2,7 +2,7 @@
 --
 -- Excluir apagava a linha. Com dado compartilhado isso mudou de tamanho: quem
 -- apaga apaga para catorze pessoas, e o único recurso era o diálogo de
--- confirmação — que quem clica rápido não lê.
+-- confirmação, que quem clica rápido não lê.
 --
 -- A partir daqui o registro sai da vista e continua existindo. Não há prazo de
 -- expurgo automático de propósito: apagar trabalho sozinho, num horário que
@@ -28,5 +28,5 @@ create index on public.articles (deleted_at) where deleted_at is not null;
 -- A conversa não ganha coluna: ela não tem vida própria, acompanha o
 -- atendimento. Some e volta junto com ele.
 --
--- O histórico também não. Ele é append-only e registra o que aconteceu — um
+-- O histórico também não. Ele é append-only e registra o que aconteceu: um
 -- evento não deixa de ter acontecido porque o registro foi para a lixeira.

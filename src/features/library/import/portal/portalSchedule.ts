@@ -22,7 +22,7 @@ export interface PortalVisitPlan {
   missing: number;
   /** Existe e o portal diz que mudou depois da última importação. */
   outdated: number;
-  /** Existe e está em dia — pulado. */
+  /** Existe e está em dia, pulado. */
   upToDate: number;
   /** Sem `lastmod` no sitemap: visitado, porque não dá para afirmar que está em dia. */
   undated: number;
@@ -71,7 +71,7 @@ export function planVisits(
 
     /*
       Sem data no sitemap não dá para afirmar que está em dia, e pular sem saber
-      deixaria uma alteração de fora para sempre. Na dúvida, visita — e a
+      deixaria uma alteração de fora para sempre. Na dúvida, visita, e a
       contagem diz quantas foram por esse motivo.
     */
     if (doPortal === null) {

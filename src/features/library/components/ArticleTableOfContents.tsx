@@ -17,7 +17,7 @@ interface ArticleTableOfContentsProps {
  *
  * O item da seção que está sendo lida fica marcado. Num artigo do portal com
  * nove seções e vinte mil caracteres, um índice que não diz onde você está
- * obriga a reler título por título para se localizar — que é justamente o que
+ * obriga a reler título por título para se localizar, que é justamente o que
  * o índice existe para evitar.
  */
 export function ArticleTableOfContents({ content, format }: ArticleTableOfContentsProps) {

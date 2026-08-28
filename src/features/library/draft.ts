@@ -3,13 +3,13 @@ import type { KnowledgeArticle } from "@/models/KnowledgeArticle";
 /**
  * A próxima versão de um artigo, preparada ao lado da que está no ar.
  *
- * Antes disto, editar um publicado exigia recolhê-lo para revisão — e enquanto
+ * Antes disto, editar um publicado exigia recolhê-lo para revisão, e enquanto
  * ele estivesse recolhido, a análise deixava de contá-lo como cobertura
  * documental. Corrigir uma vírgula fazia uma seção do portal parecer
  * descoberta.
  *
  * Guarda só o que se edita. Classificação, responsável e estágio continuam
- * únicos: são atributos do artigo, não do texto — e duplicá-los criaria duas
+ * únicos: são atributos do artigo, não do texto, e duplicá-los criaria duas
  * respostas para "em que seção isto está".
  */
 export interface ArticleDraft {
@@ -81,7 +81,7 @@ export function draftChanges(article: KnowledgeArticle): DraftField[] {
 /**
  * Publicar o rascunho: ele vira o artigo, e some.
  *
- * Devolve um artigo novo em vez de alterar o recebido — o resto do produto
+ * Devolve um artigo novo em vez de alterar o recebido: o resto do produto
  * trata registro como imutável, e o histórico depende disso para guardar o
  * antes.
  */

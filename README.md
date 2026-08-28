@@ -31,7 +31,7 @@ npm run build
 ```
 
 Um hook do Claude Code roda `typecheck` e `test` automaticamente após edições
-em arquivos `.ts`/`.tsx` — veja `.claude/settings.json`.
+em arquivos `.ts`/`.tsx`, veja `.claude/settings.json`.
 
 ## Estado dos dados
 
@@ -42,6 +42,6 @@ não alcance a interface.
 
 ## Onde olhar primeiro
 
-- `CLAUDE.md` — arquitetura, convenções e regras de produto
-- `docs/product/VISION.md` — o que o produto se propõe a fazer
-- `docs/adr/ADR-001.md` — a decisão de organizar por feature
+- `CLAUDE.md`. Arquitetura, convenções e regras de produto
+- `docs/product/VISION.md`: o que o produto se propõe a fazer
+- `docs/adr/ADR-001.md`: a decisão de organizar por feature

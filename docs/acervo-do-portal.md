@@ -9,8 +9,8 @@ Escrito para quem vai operar isso, não para quem escreveu o código.
 
 ## O que é, em uma frase
 
-A Biblioteca espelha o portal publicado. A importação lê o site **público** —
-sem credencial, sem API, sem tocar em nada do lado da HubSpot — e grava os
+A Biblioteca espelha o portal publicado. A importação lê o site **público**
+(sem credencial, sem API, sem tocar em nada do lado da HubSpot) e grava os
 artigos aqui, com a seção onde cada um mora.
 
 **Nada é escrito no portal.** Não existe caminho para isso no produto, e
@@ -22,11 +22,11 @@ publicar de volta está reservado para uma sprint futura.
 
 **Biblioteca → Do portal.**
 
-1. **Ver o que há no portal** — um pedido, alguns segundos. Mostra quantos
+1. **Ver o que há no portal**: um pedido, alguns segundos. Mostra quantos
    artigos existem e quantos já estão em dia aqui.
-2. **Visitar N página(s)** — cerca de meia hora para o portal inteiro. Tem
+2. **Visitar N página(s)**, cerca de meia hora para o portal inteiro. Tem
    progresso e botão de parar.
-3. **Importar N artigo(s)** — grava. Até aqui nada foi gravado.
+3. **Importar N artigo(s)**, grava. Até aqui nada foi gravado.
 
 ### Dá para fatiar
 
@@ -53,7 +53,7 @@ visitada se perde e precisa ser refeita.
 portal em português; eles entrariam sem seção sem que ninguém entendesse por
 quê.
 
-**Os ~133 sem seção** são artigos cuja trilha no portal tem só dois degraus —
+**Os ~133 sem seção** são artigos cuja trilha no portal tem só dois degraus,
 categoria, sem seção. É estado legítimo: eles aparecem no filtro "Sem seção" da
 Biblioteca, e a sugestão de seção por IA classifica todos de uma vez.
 
@@ -71,7 +71,7 @@ Reimportar **não apaga o trabalho feito aqui dentro**:
 - o **conteúdo** é substituído pelo do portal, que é a fonte
 
 O casamento é pelo identificador do artigo no portal. Cerca de 140 artigos usam
-endereço com nome em vez de número, e para esses o nome é a identidade — as
+endereço com nome em vez de número, e para esses o nome é a identidade: as
 duas formas são estáveis.
 
 ---
@@ -94,7 +94,7 @@ que mata a varredura em curso.
 
 **A varredura fica muito mais lenta que meia hora**
 É o servidor do portal do outro lado. A varredura é em série e com pausa de
-propósito — varrer a toda velocidade é falta de educação com uma máquina que
+propósito. Varrer a toda velocidade é falta de educação com uma máquina que
 atende cliente. Pare e continue depois; nada se perde.
 
 ---

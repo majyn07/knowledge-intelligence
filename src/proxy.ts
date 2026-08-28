@@ -6,8 +6,8 @@ import { authLandingParams } from "@/app/auth/authLanding";
  * Link de acesso que chegou na raiz é encaminhado para quem sabe abri-lo.
  *
  * O que decide vive em `authLanding.ts`, e não aqui: a regra é lógica e se
- * testa, o encaminhamento é plataforma e não se testa. Os dois formatos — o
- * `code` do PKCE e o `token_hash` do link que abre em qualquer navegador — são
+ * testa, o encaminhamento é plataforma e não se testa. Os dois formatos: o
+ * `code` do PKCE e o `token_hash` do link que abre em qualquer navegador. São
  * resgatados, porque encaminhar um e esquecer o outro deixaria metade dos
  * links no silêncio que este arquivo existe para impedir.
  *

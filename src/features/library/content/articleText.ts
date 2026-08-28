@@ -4,7 +4,7 @@ import type { KnowledgeArticle } from "@/models/KnowledgeArticle";
  * O texto de um artigo, sem a marcação.
  *
  * O artigo do portal é HTML, e procurar dentro dele cru faz "div", "span" e
- * "class" casarem com mil e oitocentos artigos de uma vez — o buscador
+ * "class" casarem com mil e oitocentos artigos de uma vez: o buscador
  * passaria a responder qualquer coisa. Pior: o trecho exibido no resultado
  * viria com tag no meio da frase.
  *

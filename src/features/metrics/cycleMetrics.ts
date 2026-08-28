@@ -4,7 +4,7 @@ import type { ActivityEvent } from "@/models/ActivityEvent";
  * O que o evento estruturado passou a permitir.
  *
  * Antes dele o histórico sabia que **houve** mudança de estágio, mas não para
- * onde — a transição vivia só no texto do `detail`. "Quantos artigos foram
+ * onde: a transição vivia só no texto do `detail`. "Quantos artigos foram
  * publicados neste mês", que é a pergunta da VISION sobre reduzir recorrência,
  * não tinha resposta possível sem interpretar frase.
  */
@@ -21,7 +21,7 @@ function inWindow(at: string, from: number, to: number) {
  *
  * Existe para a tela poder dizer que o número é parcial. Eventos gravados
  * antes do campo existir não têm transição, e preenchê-los agora exigiria
- * interpretar o texto — que é o problema que o campo resolve. Número
+ * interpretar o texto, que é o problema que o campo resolve. Número
  * incompleto apresentado como completo é pior que número com ressalva.
  */
 export function transitionCoverage(events: ActivityEvent[]) {
@@ -65,7 +65,7 @@ export interface FunnelStep {
  * por revisão e foi publicado passou pelos dois, e contar só onde ele está
  * agora esconderia metade do caminho.
  *
- * Por isso os números não decrescem necessariamente — e é essa a informação:
+ * Por isso os números não decrescem necessariamente, e é essa a informação:
  * onde as chegadas caem é onde o fluxo trava.
  */
 export function buildFunnel(
@@ -83,7 +83,7 @@ export function buildFunnel(
 /**
  * Tempo médio até chegar a um estágio, em dias.
  *
- * Mede da primeira aparição do registro no histórico até a chegada — e só para
+ * Mede da primeira aparição do registro no histórico até a chegada, e só para
  * quem de fato chegou. Incluir quem ainda não chegou puxaria a média para
  * baixo, dizendo que o ciclo é mais rápido do que é.
  *
@@ -150,7 +150,7 @@ export function arrivalsAt(
     if (kind !== undefined && event.subject.kind !== kind) continue;
     if (!inWindow(event.at, window.from, window.to)) continue;
 
-    // O mesmo registro pode chegar duas vezes ao estágio — recolhido e
+    // O mesmo registro pode chegar duas vezes ao estágio, recolhido e
     // publicado de novo. Para a lista, ele é um.
     if (seen.has(event.subject.id)) continue;
     seen.add(event.subject.id);

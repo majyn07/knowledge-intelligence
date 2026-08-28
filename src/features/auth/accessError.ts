@@ -3,13 +3,13 @@
  *
  * A rota `/auth/callback` sempre soube nomear a falha: ela redireciona para
  * `/?acesso=<motivo>` em vez de mostrar página de erro crua. Faltava a outra
- * metade — ninguém lia o parâmetro. Quem clicava num link que não funcionou
+ * metade, ninguém lia o parâmetro. Quem clicava num link que não funcionou
  * voltava para a tela de acesso **sem uma palavra**, e a reação natural é
  * pedir outro link.
  *
  * Foi o que aconteceu no primeiro teste com alguém de fora da administração,
  * em 24/08/2026: o acesso "só funcionava no segundo e-mail". Não era o
- * segundo e-mail que funcionava — era o segundo pedido que passava a sair do
+ * segundo e-mail que funcionava. Era o segundo pedido que passava a sair do
  * navegador certo, e o silêncio da tela escondia isso.
  *
  * Motivo desconhecido devolve `null` de propósito: um código que não
@@ -33,7 +33,7 @@ const MESSAGES: Record<AccessFailure, string> = {
     "Este endereço não tem um link de acesso válido. Peça um novo e-mail abaixo.",
 
   "link-expirado":
-    "Este link não vale mais — ou já foi usado, ou passou do prazo. Peça um novo abaixo; o mais recente é sempre o que funciona.",
+    "Este link não vale mais, ou já foi usado, ou passou do prazo. Peça um novo abaixo; o mais recente é sempre o que funciona.",
 
   /*
     O caso que parecia falha de entrega de e-mail.

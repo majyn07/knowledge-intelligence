@@ -1,7 +1,7 @@
 -- Corrige recursão infinita nas políticas de acesso.
 --
 -- `is_member()` verificava a existência de uma linha em `profiles`. Mas a
--- política de `profiles` chama `is_member()` — então ler a tabela dispara a
+-- política de `profiles` chama `is_member()`. Então ler a tabela dispara a
 -- política, que consulta a tabela, que dispara a política. O Postgres derruba
 -- com "stack depth limit exceeded", e o erro aparece na primeira escrita.
 --

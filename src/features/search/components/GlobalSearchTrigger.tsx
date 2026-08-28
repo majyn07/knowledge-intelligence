@@ -11,7 +11,7 @@ import { ShortcutsDialog } from "./ShortcutsDialog";
 /**
  * Um atalho de tecla só não pode disparar enquanto a pessoa escreve.
  *
- * "/" e "?" são caracteres comuns em português — sem esta guarda, digitar
+ * "/" e "?" são caracteres comuns em português. Sem esta guarda, digitar
  * "e/ou" numa descrição abriria a paleta no meio da frase.
  */
 function isTyping(target: EventTarget | null): boolean {

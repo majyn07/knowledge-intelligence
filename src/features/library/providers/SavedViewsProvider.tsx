@@ -26,7 +26,7 @@ const SavedViewsContext = createContext<SavedViewsContextValue | null>(null);
  *
  * Compartilhados, como os painéis: "Elétrica pendentes" é útil para quem
  * trabalha em Elétrica, não só para quem montou. Inventar "minha visão" criaria
- * uma noção de dono que, no produto, só o acompanhamento tem — e ele descreve
+ * uma noção de dono que, no produto, só o acompanhamento tem, e ele descreve
  * interesse, enquanto isto descreve trabalho.
  */
 export function SavedViewsProvider({ children }: { children: ReactNode }) {

@@ -3,7 +3,7 @@ import type { KnowledgeArticle } from "@/models/KnowledgeArticle";
 import { articleText } from "./articleText";
 
 /**
- * O vocabulário de um artigo — a base de toda comparação entre eles.
+ * O vocabulário de um artigo: a base de toda comparação entre eles.
  *
  * Vive num lugar só porque duas listas do mesmo vocabulário divergem, e a
  * divergência apareceria como o Levantamento apontando um par que a tela de
@@ -32,7 +32,7 @@ const COMUNS = new Set([
 const TAMANHO_MINIMO = 5;
 
 /**
- * Códigos entram mesmo sendo curtos — e essa regra veio da medição.
+ * Códigos entram mesmo sendo curtos, e essa regra veio da medição.
  *
  * Numa base técnica o que separa dois artigos vizinhos costuma ser justamente
  * um código curto: `D15` e `D16` são erros diferentes, `V9` e `V10` são versões

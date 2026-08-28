@@ -31,7 +31,7 @@ const NO_TEAM = "__none__";
  * Pessoas e equipes.
  *
  * Não há cadastro de pessoa: quem existe é quem entrou. Isso é decisão, não
- * limitação — uma lista de nomes digitados não corresponde a ninguém que possa
+ * limitação: uma lista de nomes digitados não corresponde a ninguém que possa
  * ser responsabilizado, e era exatamente o que o produto tinha antes.
  */
 export function PeopleManager() {
@@ -63,7 +63,7 @@ export function PeopleManager() {
   return (
     <PageSection
       title="Pessoas e equipes"
-      description="Quem conduz o trabalho. A lista é formada por quem acessou — não há cadastro manual."
+      description="Quem conduz o trabalho. A lista é formada por quem acessou, não há cadastro manual."
     >
       <div className="flex flex-col gap-6">
         {me ? (
@@ -146,7 +146,7 @@ export function PeopleManager() {
         ) : (
           <div className="rounded-xl border bg-card p-5">
             <p className="text-sm text-muted-foreground">
-              Sem servidor configurado, não há conta — e o histórico registra
+              Sem servidor configurado, não há conta, e o histórico registra
               autoria pelo nome escolhido no cabeçalho.
             </p>
           </div>

@@ -7,7 +7,6 @@ interface SimilarArticlesInput {
   articles: KnowledgeArticle[];
   /** Texto de referência: o próprio artigo, ou o título sendo digitado. */
   text: string;
-  projectId?: string;
   excludeId?: string;
   limit?: number;
 }
@@ -20,7 +19,6 @@ interface SimilarArticlesInput {
 export function findSimilarArticles({
   articles,
   text,
-  projectId,
   excludeId,
   limit = 3,
 }: SimilarArticlesInput): KnowledgeSearchResult[] {
@@ -30,6 +28,6 @@ export function findSimilarArticles({
 
   return searchKnowledge(
     articles.filter((article) => article.id !== excludeId),
-    { text, projectId, limit }
+    { text, limit }
   );
 }

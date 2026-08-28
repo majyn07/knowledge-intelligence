@@ -4,11 +4,11 @@ import type { SearchGroup, SearchResult } from "./globalSearch";
  * Comandos da paleta.
  *
  * Antes disto, `Ctrl+K` com o campo vazio mostrava "digite ao menos dois
- * caracteres" — uma tela que não faz nada. Comandos preenchem esse vazio com o
+ * caracteres": uma tela que não faz nada. Comandos preenchem esse vazio com o
  * que a pessoa mais quer dali: ir a algum lugar.
  *
  * Só navegação e criação. Publicar, aprovar e excluir ficam de fora de
- * propósito: são decisões do ciclo, e o produto pede intenção para elas — uma
+ * propósito: são decisões do ciclo, e o produto pede intenção para elas: uma
  * lista que se percorre com a seta não é lugar para isso.
  */
 export interface Command {

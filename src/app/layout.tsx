@@ -27,7 +27,7 @@ import "./globals.css";
 
 /**
  * Poppins é a fonte da identidade AltoQi e vem do kit de marca, servida daqui
- * e não do Google — a família toda está em `src/fonts`. Dos 18 pesos do kit,
+ * e não do Google: a família toda está em `src/fonts`. Dos 18 pesos do kit,
  * quatro cobrem a interface; carregar os outros custaria banda sem uso.
  */
 const poppins = localFont({
@@ -62,7 +62,7 @@ export default function RootLayout({
     /*
       A supressão vale só para os atributos do `<html>`, e existe porque o
       script de aparência escreve `data-appearance` antes da primeira pintura.
-      O servidor não tem como saber a preferência de quem abre — e sem o
+      O servidor não tem como saber a preferência de quem abre, e sem o
       script a tela pisca clara antes de escurecer.
     */
     <html lang="pt-BR" className={poppins.variable} suppressHydrationWarning>
@@ -77,8 +77,8 @@ export default function RootLayout({
       <body className="min-h-screen bg-background font-sans text-foreground antialiased">
         {/*
           O aviso fica **fora** dos portões de acesso e de migração.
-          Estava dentro, e quando um deles não renderizava — leitura de sessão
-          falhando, verificação pendurada — o toast de erro não tinha onde
+          Estava dentro, e quando um deles não renderizava. Leitura de sessão
+          falhando, verificação pendurada: o toast de erro não tinha onde
           aparecer. O resultado era tela branca sem uma linha de explicação.
         */}
         <Toaster position="top-right" richColors closeButton />

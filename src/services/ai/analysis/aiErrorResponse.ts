@@ -9,7 +9,7 @@ import {
  * O que a rota responde quando a análise não sai.
  *
  * Puro, e compartilhado pelas duas rotas: escritos em separado, os dois
- * divergem — é a mesma razão de exibir e exportar passarem pelo mesmo
+ * divergem. É a mesma razão de exibir e exportar passarem pelo mesmo
  * `cellValue`.
  *
  * As mensagens dizem **o que fazer**, e não o que aconteceu por dentro. Antes
@@ -38,7 +38,7 @@ export function aiErrorResponse(error: unknown): AIErrorResponse {
         return {
           status: 503,
           message:
-            "A chave do provedor de IA não foi aceita. Isso se resolve na configuração — tentar de novo não muda.",
+            "A chave do provedor de IA não foi aceita. Isso se resolve na configuração, tentar de novo não muda.",
         };
 
       case "limite":

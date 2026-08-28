@@ -16,7 +16,7 @@ import type { PlanWorkspaceItem } from "@/features/plans/types/PlanWorkspace";
  *
  * A conversão é só de nome de campo: o banco usa `snake_case` e o modelo
  * `camelCase`. Toda a garantia de forma continua nos normalizadores das
- * features — eles são a mesma defesa que valia para o `localStorage`, e não
+ * features. Eles são a mesma defesa que valia para o `localStorage`, e não
  * deixam de valer porque o dado passou a vir da rede.
  */
 

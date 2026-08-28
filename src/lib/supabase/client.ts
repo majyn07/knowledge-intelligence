@@ -10,7 +10,7 @@ import type { Database } from "./types";
  *
  * As variáveis podem não existir: enquanto o projeto do Supabase não estiver
  * provisionado, o produto continua funcionando sobre o `localStorage`. Isso
- * não é gambiarra de transição — é o que permite rodar o app sem depender de
+ * não é gambiarra de transição. É o que permite rodar o app sem depender de
  * rede, e o que faz uma falha de configuração degradar em vez de derrubar.
  *
  * Quem consome pergunta `isBackendConfigured()` antes e escolhe a fonte. Não
@@ -26,7 +26,7 @@ const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "";
  * A integração da Vercel injeta as variáveis do Supabase em todos os
  * ambientes assim que é provisionada. Se só a presença delas decidisse, o
  * primeiro deploy passaria a exigir login com a camada de dados ainda pela
- * metade — todo mundo trancado do lado de fora de um produto sem conteúdo.
+ * metade. Todo mundo trancado do lado de fora de um produto sem conteúdo.
  *
  * Por isso a virada é uma decisão declarada, não um efeito colateral de
  * provisionar. Definir `NEXT_PUBLIC_SHARED_WORKSPACE=on` liga o modo
@@ -44,7 +44,7 @@ export function isBackendConfigured(): boolean {
  *
  * É declarada pelo mesmo motivo do modo compartilhado, e por um defeito
  * concreto: com o provedor desligado, a Supabase responde `400 Unsupported
- * provider` à navegação — o botão tirava a pessoa do produto e a deixava
+ * provider` à navegação: o botão tirava a pessoa do produto e a deixava
  * olhando um JSON em inglês, fora da aplicação, sem botão de voltar.
  *
  * Não dá para deduzir isso do navegador sem perguntar antes ao servidor a cada

@@ -11,7 +11,7 @@ type Client = SupabaseClient<Database>;
 /**
  * Pessoas e equipes vindas do servidor.
  *
- * A pessoa é o perfil de quem entrou — não há cadastro manual. A defesa de
+ * A pessoa é o perfil de quem entrou, não há cadastro manual. A defesa de
  * forma continua valendo: o que chega da rede não tem tipo garantido em tempo
  * de execução, e uma coluna adicionada depois não existe nos registros de
  * antes.
@@ -72,7 +72,7 @@ export async function readPeopleAndTeams(
  * Atualiza o próprio perfil.
  *
  * Só o próprio: as políticas do banco permitem escrever em qualquer linha,
- * porque não há papéis — mas editar o nome ou a equipe de outra pessoa não é
+ * porque não há papéis, mas editar o nome ou a equipe de outra pessoa não é
  * uma operação que o produto ofereça, e a interface não expõe caminho para
  * isso. Quem entra ajusta os próprios dados.
  */

@@ -40,15 +40,22 @@ describe("searchKnowledge", () => {
     expect(results.map((result) => result.article.id)).toEqual(["publicado"]);
   });
 
-  it("restringe ao projeto quando a consulta define um", () => {
+  /*
+    O acervo é do hub: o artigo do portal não tem iniciativa, e recortar por
+    ela fazia a análise não encontrar nenhum dos 1.822 artigos importados.
+  */
+  it("procura no acervo inteiro, sem recorte por iniciativa", () => {
     const articles = [
-      article({ id: "mesmo", projectId: "p1" }),
-      article({ id: "outro", projectId: "p2" }),
+      article({ id: "do-portal", projectId: "" }),
+      article({ id: "de-outra", projectId: "p2" }),
     ];
 
-    const results = searchKnowledge(articles, query("autenticar", { projectId: "p1" }));
+    const results = searchKnowledge(articles, query("autenticar"));
 
-    expect(results.map((result) => result.article.id)).toEqual(["mesmo"]);
+    expect(results.map((result) => result.article.id).sort()).toEqual([
+      "de-outra",
+      "do-portal",
+    ]);
   });
 
   it("ignora palavras vazias do português", () => {

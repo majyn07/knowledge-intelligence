@@ -45,7 +45,7 @@ describe("buildCoverage", () => {
   });
 
   it("só publicado conta como cobertura", () => {
-    // A análise não enxerga rascunho nem revisão — a regra é a mesma aqui.
+    // A análise não enxerga rascunho nem revisão: a regra é a mesma aqui.
     const coverage = buildCoverage(taxonomy, [
       artigo("sec-altoqi-visus-workflow", "draft"),
       artigo("sec-altoqi-visus-collab", "review"),
@@ -62,7 +62,7 @@ describe("buildCoverage", () => {
     expect(workflow.inProgress).toBe(1);
   });
 
-  it("arquivado não conta em nenhum dos dois — saiu de circulação", () => {
+  it("arquivado não conta em nenhum dos dois. Saiu de circulação", () => {
     const coverage = buildCoverage(taxonomy, [
       artigo("sec-altoqi-visus-bid", "archived"),
     ]);

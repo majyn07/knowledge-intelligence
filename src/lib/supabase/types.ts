@@ -7,7 +7,7 @@
  *
  * Nada que sai daqui é confiável sem normalizar. O tipo descreve o contrato do
  * banco; o normalizador é quem garante que o registro lido tem a forma que o
- * modelo espera — a mesma disciplina que valia para o `localStorage`.
+ * modelo espera: a mesma disciplina que valia para o `localStorage`.
  */
 
 export type ProfileRow = {
@@ -65,7 +65,7 @@ export type TeamRow = {
   position: number;
   /** Categorias do portal pelas quais a equipe responde. */
   category_ids: string[];
-  /** Seções — mais específicas que a categoria, e decidem primeiro. */
+  /** Seções. Mais específicas que a categoria, e decidem primeiro. */
   section_ids: string[];
 };
 

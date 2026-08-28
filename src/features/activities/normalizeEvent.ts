@@ -9,7 +9,7 @@ import {
  * Garante a forma do evento.
  *
  * O histórico é acrescentado e nunca editado, então um registro gravado por
- * uma versão anterior fica lá para sempre — e vai ser lido por versões que não
+ * uma versão anterior fica lá para sempre, e vai ser lido por versões que não
  * conhecem o formato dele. Tipo ou assunto desconhecido não derruba a lista:
  * cai no valor mais genérico e o evento continua visível, porque perder um
  * fato do histórico é pior que exibi-lo com rótulo impreciso.

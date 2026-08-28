@@ -13,7 +13,7 @@ import { cn } from "@/lib/utils";
 
 /**
  * Marca de cada produto, do kit oficial. O arquivo já traz o nome do produto,
- * então o cartão não repete o rótulo em texto — repetir seria ruído.
+ * então o cartão não repete o rótulo em texto, repetir seria ruído.
  */
 const productMark: Record<BrandTheme, string> = {
   visus: "/brand/produto-visus.png",

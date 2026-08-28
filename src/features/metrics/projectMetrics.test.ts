@@ -72,7 +72,7 @@ const ticket = (overrides: Partial<Ticket> = {}): Ticket => ({
 });
 
 describe("selectProjectMetrics", () => {
-  it("escopa tudo ao projeto informado", () => {
+  it("escopa o trabalho ao projeto informado", () => {
     const metrics = selectProjectMetrics({
       projectId: "p1",
       analyses: [analysis(), analysis({ id: "an2", projectId: "p2" })],
@@ -83,8 +83,35 @@ describe("selectProjectMetrics", () => {
 
     expect(metrics.analysis.total).toBe(1);
     expect(metrics.plan.total).toBe(1);
-    expect(metrics.article.total).toBe(1);
     expect(metrics.ticket.total).toBe(1);
+  });
+
+  /*
+    O acervo é do hub e não tem iniciativa. Recortá-lo aqui zerava o cartão
+    "Conteúdos publicados" com a Biblioteca cheia, porque todo artigo vindo do
+    portal tem `projectId` vazio.
+  */
+  it("conta o acervo inteiro, que não se recorta por iniciativa", () => {
+    const metrics = selectProjectMetrics({
+      projectId: "p1",
+      analyses: [],
+      plans: [],
+      articles: [article({ projectId: "" }), article({ id: "ar2", projectId: "p2" })],
+    });
+
+    expect(metrics.article.total).toBe(2);
+  });
+
+  /* Iniciativa nova continua parecendo nova, mesmo com o hub cheio. */
+  it("não considera o acervo ao dizer que a iniciativa está vazia", () => {
+    const metrics = selectProjectMetrics({
+      projectId: "p1",
+      analyses: [],
+      plans: [],
+      articles: [article({ projectId: "" })],
+    });
+
+    expect(metrics.isEmpty).toBe(true);
   });
 
   it("devolve tudo zerado quando não há projeto ativo", () => {

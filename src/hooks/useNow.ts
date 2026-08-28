@@ -8,7 +8,7 @@ import { useEffect, useState } from "react";
  * Ler o relógio durante o render é impuro e produz divergência de hidratação:
  * o servidor renderiza com a hora dele, o cliente com a dele, e "atrasado 2
  * dias" pode não coincidir. Até o valor chegar, quem usa recebe `null` e
- * mostra espera — que é honesto, porque de fato ainda não dá para dizer.
+ * mostra espera, que é honesto, porque de fato ainda não dá para dizer.
  *
  * Atualiza de minuto em minuto: com a tela aberta, "vence hoje" precisa deixar
  * de ser hoje na virada do dia.

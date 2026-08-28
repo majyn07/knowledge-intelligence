@@ -23,7 +23,7 @@ import { managementItems, systemItems, workspaceItems } from "./navigation";
  *
  * Antes era o texto fixo "Build de desenvolvimento", que apareceu numa tela de
  * produção. Rótulo de ambiente que não olha o ambiente é exatamente o tipo de
- * afirmação que este produto não faz — e em produção o certo é não afirmar
+ * afirmação que este produto não faz, e em produção o certo é não afirmar
  * nada, porque quem está lá não precisa ser lembrado disso.
  */
 const environmentLabel = (() => {
@@ -46,7 +46,7 @@ export function AppSidebar() {
           {/*
             Duas marcas, uma por estado. O lockup horizontal traz o nome e só
             cabe expandido; recolhido sobra o símbolo. Ambos são a versão para
-            fundo escuro — verde e branco — porque o sidebar é escuro.
+            fundo escuro (verde e branco) porque o sidebar é escuro.
           */}
           <Image
             src="/brand/altoqi-horizontal-dark.png"

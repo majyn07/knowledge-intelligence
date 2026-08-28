@@ -72,9 +72,9 @@ const emptyForm: LibraryFormData = {
 /**
  * Valor sentinela do seletor. Um `<SelectItem>` não aceita valor vazio, então
  * "sem escolha" precisa de um texto próprio que nunca colide com um id do
- * cadastro — todos eles começam com `cat-`, `sec-` ou `gen-`.
+ * cadastro. Todos eles começam com `cat-`, `sec-` ou `gen-`.
  */
-const UNSET = "—";
+const UNSET = ",";
 
 function toList(value: string) {
   return value.split(",").map((item) => item.trim()).filter(Boolean);
@@ -112,7 +112,7 @@ export function LibraryForm({
   const { taxonomy } = useTaxonomy();
 
   /*
-    A categoria não é guardada no artigo — ela é a metade de cima da cascata e
+    A categoria não é guardada no artigo. Ela é a metade de cima da cascata e
     existe só para filtrar as seções. Ao abrir um artigo já classificado, ela é
     deduzida da seção dele; a partir daí é escolha de quem edita.
   */
@@ -140,7 +140,7 @@ export function LibraryForm({
    * Nunca sobrescreve: quem já escolheu alguém decidiu, e trocar por baixo
    * seria o produto discordando de uma escolha humana. A sugestão sai do
    * cadastro de equipes, não de um mapa no código, e some quando duas equipes
-   * declaram a mesma categoria — aí escolher uma delas seria arbitrário.
+   * declaram a mesma categoria, aí escolher uma delas seria arbitrário.
    */
   function chooseSection(sectionId: string) {
     change("sectionId", sectionId);
@@ -198,7 +198,7 @@ export function LibraryForm({
 
   /*
     Quem edita texto longo salva o tempo todo, e ir até o botão a cada vez tira
-    a mão do teclado. O atalho é o do sistema, então não há o que aprender — e
+    a mão do teclado. O atalho é o do sistema, então não há o que aprender, e
     o navegador salvaria a página, que não é o que ninguém quer aqui.
   */
   function handleKeyDown(event: KeyboardEvent<HTMLFormElement>) {
@@ -237,7 +237,7 @@ export function LibraryForm({
    * O que a IA pode propor a partir de um documento de conhecimento.
    *
    * **Seção e gênero ficam de fora**, e não por descuido: são identificadores
-   * do cadastro, e já existe a sugestão de seção — que manda o vocabulário
+   * do cadastro, e já existe a sugestão de seção. Que manda o vocabulário
    * inteiro no pedido e confere o identificador na volta. Duplicar aqui uma
    * classificação por texto livre criaria um segundo caminho, mais fraco, para
    * a mesma decisão.
@@ -332,7 +332,7 @@ export function LibraryForm({
         Oferecer a barra de Markdown sobre o HTML do portal seria ferramenta que
         não corresponde ao conteúdo: clicar em negrito escreveria `**` no meio de
         uma marcação HTML, e o resultado não seria nem um formato nem o outro.
-        Enquanto não houver editor rico, o HTML é editado como marcação — com a
+        Enquanto não houver editor rico, o HTML é editado como marcação, com a
         tela dizendo o que é, em vez de fingir que é Markdown.
       */}
       {formData.contentFormat === "html" ? (
@@ -349,7 +349,7 @@ export function LibraryForm({
           <p className="text-xs text-muted-foreground">
             O formato é preservado ao salvar, e o que você não tocar continua idêntico.
             Converter para Markdown degradaria tabela, âncora e mídia embutida a cada
-            ida e volta — por isso o artigo guarda o formato em que nasceu.
+            ida e volta, por isso o artigo guarda o formato em que nasceu.
           </p>
         </Fieldset>
       ) : (
@@ -373,12 +373,12 @@ export function LibraryForm({
         </Fieldset>
       )}
 
-      <Fieldset legend="Classificação" hint="Como este artigo é encontrado — pela busca e pela análise.">
+      <Fieldset legend="Classificação" hint="Como este artigo é encontrado, pela busca e pela análise.">
         <div className="grid gap-4 md:grid-cols-2">
           {/*
             Iniciativa de origem, e não recorte: o acervo é do hub inteiro. É
             opcional porque a maior parte do acervo veio do portal e não nasceu
-            de esforço nosso — exigir aqui obrigaria a inventar uma origem para
+            de esforço nosso. Exigir aqui obrigaria a inventar uma origem para
             mil e oitocentos artigos que já existiam.
           */}
           <div className="space-y-2">
@@ -586,8 +586,8 @@ export function LibraryForm({
       </Fieldset>
 
       {/*
-        As ações grudam no rodapé enquanto o formulário rola. Ele é longo — nove
-        campos e um editor —, e num diálogo com rolagem própria os botões
+        As ações grudam no rodapé enquanto o formulário rola. Ele é longo. Nove
+        campos e um editor., e num diálogo com rolagem própria os botões
         ficavam a uma tela de distância de quem acabou de digitar o título.
       */}
       <div className="sticky bottom-0 -mx-4 -mb-4 flex justify-end gap-2 border-t border-border/70 bg-popover px-4 py-4">

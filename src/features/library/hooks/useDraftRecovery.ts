@@ -17,7 +17,7 @@ import {
  * Aguarda a digitação parar antes de gravar.
  *
  * Gravar a cada tecla escreveria centenas de vezes num artigo longo, e o
- * `localStorage` é síncrono — cada escrita trava a linha principal. Um segundo
+ * `localStorage` é síncrono, cada escrita trava a linha principal. Um segundo
  * e meio é curto o bastante para não perder trabalho e longo o bastante para
  * não gravar no meio de uma palavra.
  */
@@ -27,7 +27,7 @@ const ESPERA_MS = 1500;
  * Guarda o texto em edição para o caso de a aba não voltar.
  *
  * O guarda de alterações pendentes cobre quem está lá para responder: fecha o
- * diálogo, o produto pergunta. Este cobre quem não está — aba fechada por
+ * diálogo, o produto pergunta. Este cobre quem não está. Aba fechada por
  * engano, navegador reiniciado, energia. Nesses casos ninguém pergunta nada, e
  * até aqui o texto simplesmente não existia mais.
  *
@@ -42,7 +42,7 @@ export function useDraftRecovery(id: string, current: RecoverableFields) {
   const [dismissed, setDismissed] = useState(false);
 
   /*
-    Lido uma vez, na montagem — e não a cada render. Depois da montagem quem
+    Lido uma vez, na montagem, e não a cada render. Depois da montagem quem
     escreve nessa chave somos nós, então reler devolveria o que acabamos de
     gravar e o aviso reapareceria a cada tecla.
   */
@@ -55,7 +55,7 @@ export function useDraftRecovery(id: string, current: RecoverableFields) {
   /*
     As dependências são os três textos, e não o objeto: o pai monta um objeto
     novo a cada render, e depender dele reiniciaria a espera a cada re-render
-    alheio — adiando para sempre a gravação que o hook existe para fazer.
+    alheio. Adiando para sempre a gravação que o hook existe para fazer.
   */
   useEffect(() => {
     // Formulário ainda intocado não vira registro de recuperação.

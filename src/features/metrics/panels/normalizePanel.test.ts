@@ -24,7 +24,7 @@ describe("normalizePanel", () => {
     /*
       `null` é janela legítima. Se caísse no mesmo caminho de "campo ausente",
       um painel gravado como "desde o início" voltaria recortado em 30 dias
-      sem ninguém pedir — e o número mudaria sozinho.
+      sem ninguém pedir, e o número mudaria sozinho.
     */
     expect(normalizePanel({ id: "a", window: null }).window).toBeNull();
     expect(normalizePanel({ id: "b" }).window).toBe(30);

@@ -3,7 +3,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 /**
  * Espera com a forma do que vem.
  *
- * Enquanto o conteúdo guardado não é lido, a tela mostra a semente — e a
+ * Enquanto o conteúdo guardado não é lido, a tela mostra a semente, e a
  * semente tem cara de dado real. Quem abre a Biblioteca vê artigos que não são
  * dela e, um instante depois, vê a lista trocar. Piscar conteúdo falso é pior
  * que dizer "ainda não sei": o esqueleto diz.
@@ -14,7 +14,7 @@ import { Skeleton } from "@/components/ui/skeleton";
  * conhece.
  */
 
-/** Cartões em grade — Projetos, painéis, cartões de indicador. */
+/** Cartões em grade, Projetos, painéis, cartões de indicador. */
 export function CardsSkeleton({ count = 6, columns = "sm:grid-cols-2 xl:grid-cols-3" }) {
   return (
     <div className={`grid gap-4 ${columns}`} role="status" aria-label="Carregando">
@@ -30,7 +30,7 @@ export function CardsSkeleton({ count = 6, columns = "sm:grid-cols-2 xl:grid-col
   );
 }
 
-/** Linhas empilhadas — Biblioteca, Planos, Atendimentos. */
+/** Linhas empilhadas, Biblioteca, Planos, Atendimentos. */
 export function ListSkeleton({ count = 5 }: { count?: number }) {
   return (
     <div className="flex flex-col gap-3" role="status" aria-label="Carregando">
@@ -53,7 +53,7 @@ export function ListSkeleton({ count = 5 }: { count?: number }) {
   );
 }
 
-/** Números lado a lado — a faixa de indicadores. */
+/** Números lado a lado: a faixa de indicadores. */
 export function MetricsSkeleton({ count = 4 }: { count?: number }) {
   return (
     <div
@@ -72,7 +72,7 @@ export function MetricsSkeleton({ count = 4 }: { count?: number }) {
   );
 }
 
-/** Eventos em coluna — o histórico. */
+/** Eventos em coluna: o histórico. */
 export function TimelineSkeleton({ count = 6 }: { count?: number }) {
   return (
     <div className="flex flex-col gap-4" role="status" aria-label="Carregando">

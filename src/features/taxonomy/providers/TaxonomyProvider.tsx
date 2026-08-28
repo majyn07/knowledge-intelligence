@@ -61,7 +61,7 @@ export function TaxonomyProvider({ children }: { children: ReactNode }) {
   const [taxonomy, setTaxonomy, isHydrated] = useTaxonomyState();
 
   /**
-   * As operações são puras e devolvem a taxonomia inalterada quando recusam —
+   * As operações são puras e devolvem a taxonomia inalterada quando recusam,
    * nome vazio, repetido, último item da lista. Comparar a referência é o que
    * permite avisar sem duplicar a regra aqui dentro.
    */

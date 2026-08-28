@@ -2,12 +2,12 @@
  * O recorte da tela, escrito na URL.
  *
  * Filtro, busca, ordenação e página não viviam no endereço, então não existia
- * link que reproduzisse a tela exata — que é justamente o que se cola no chat
+ * link que reproduzisse a tela exata. Que é justamente o que se cola no chat
  * da equipe para dizer "olha isto aqui". Com o acervo importado isso passou a
  * pesar: apontar para "os 187 sem seção" precisa de um endereço.
  *
  * Puro de propósito. Quem mexe no `window` é o hook; aqui só entra e sai texto,
- * o que permite testar as regras que de fato erram — valor inválido vindo de
+ * o que permite testar as regras que de fato erram. Valor inválido vindo de
  * link antigo, parâmetro de outra tela sendo apagado sem querer, e URL que
  * cresce com o que é igual ao padrão.
  */
@@ -17,7 +17,7 @@ export type ParamValues = Record<string, string>;
 /**
  * Aplica os valores sobre a busca atual, preservando o que não é nosso.
  *
- * Reescrever a query inteira apagaria parâmetros de outra funcionalidade —
+ * Reescrever a query inteira apagaria parâmetros de outra funcionalidade,
  * `?ticket=` e `?plan=` já existem, e um deles sumir por causa de um filtro
  * seria a tela derrubando a navegação de outra.
  *
@@ -48,7 +48,7 @@ export function applyParams(
  * Lê os valores conhecidos, com o padrão para o que falta.
  *
  * Só as chaves declaradas em `defaults` são lidas. Aceitar qualquer parâmetro
- * deixaria a tela obedecer a algo que ninguém escreveu — e o endereço vem de
+ * deixaria a tela obedecer a algo que ninguém escreveu, e o endereço vem de
  * fora, colado por outra pessoa.
  */
 export function readParams(search: string, defaults: ParamValues): ParamValues {
@@ -68,7 +68,7 @@ export function readParams(search: string, defaults: ParamValues): ParamValues {
  *
  * Link colado envelhece: a categoria pode ter sido removida do cadastro, o
  * estágio pode ter mudado de nome. Filtrar por um valor que não existe mais
- * mostra uma tela vazia com cara de acervo vazio — e quem abriu o link não tem
+ * mostra uma tela vazia com cara de acervo vazio, e quem abriu o link não tem
  * como saber que o problema é o link.
  */
 export function oneOf<T extends string>(

@@ -12,7 +12,7 @@ export interface CreatePlanFromOpportunityInput {
 /**
  * O instante, em ISO.
  *
- * Era um texto de exibição — "20 de ago. de 2026, 18:23" — apesar de o modelo
+ * Era um texto de exibição, "20 de ago. de 2026, 18:23", apesar de o modelo
  * dizer ISO. O plano nascia com uma data que não se ordena nem se compara, e
  * o painel de planos por mês simplesmente não contava nenhum plano criado
  * dentro do produto. Quem formata é a tela, na leitura.

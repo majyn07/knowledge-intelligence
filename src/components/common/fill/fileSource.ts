@@ -13,7 +13,7 @@ import {
  *   base64 custaria um terço a mais de tokens para entregar exatamente o
  *   mesmo conteúdo.
  * - **anexo** é o que precisa ser *visto*: PDF e imagem. Extrair texto de PDF
- *   no navegador resolveria o digital e falharia no escaneado — que é o que
+ *   no navegador resolveria o digital e falharia no escaneado, que é o que
  *   mais chega de um suporte.
  *
  * O tipo declarado pelo navegador **não basta**. `.md` costuma chegar com
@@ -58,7 +58,7 @@ function extensionOf(name: string): string {
  * Decide o caminho do arquivo, ou `null` quando ele não serve.
  *
  * `null` em vez de exceção porque arquivo não suportado é escolha comum, e não
- * erro de programa — quem chama transforma em frase na tela.
+ * erro de programa. Quem chama transforma em frase na tela.
  */
 export function classifyFile(name: string, type: string): FileVerdict | null {
   const extensao = extensionOf(name);
@@ -111,7 +111,7 @@ export type ReadFile =
  *
  * Fica separado da classificação de propósito: decidir o caminho é lógica e se
  * testa, ler bytes é navegador e não se testa. A conversão para base64 passa
- * pelo `FileReader` em vez de montar a string a partir do `ArrayBuffer` —
+ * pelo `FileReader` em vez de montar a string a partir do `ArrayBuffer`,
  * `String.fromCharCode` sobre um megabyte estoura a pilha de argumentos, e o
  * caminho manual precisaria de um laço em blocos para evitar isso.
  */
@@ -130,7 +130,7 @@ export async function readFileForFill(file: File): Promise<ReadFile | null> {
     reader.onerror = () => reject(reader.error ?? new Error("Falha ao ler o arquivo."));
     reader.onload = () => {
       const resultado = String(reader.result ?? "");
-      // `data:<tipo>;base64,<conteúdo>` — só o conteúdo interessa ao provedor.
+      // `data:<tipo>;base64,<conteúdo>`, só o conteúdo interessa ao provedor.
       resolve(resultado.slice(resultado.indexOf(",") + 1));
     };
 

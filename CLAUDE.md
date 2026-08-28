@@ -14,12 +14,12 @@ Projeto → Atendimento → Análise por IA → Revisão humana
 
 O produto é um **hub**: um lugar só onde o atendimento vira levantamento, o
 levantamento vira melhoria e a melhoria vira conteúdo publicado. Ele nasceu de
-um trabalho manual — alguém percorrer o acervo para descobrir o que criar,
-atualizar ou revisar — e existe para que esse levantamento deixe de ser manual.
+um trabalho manual (alguém percorrer o acervo para descobrir o que criar,
+atualizar ou revisar) e existe para que esse levantamento deixe de ser manual.
 
 **O Levantamento é a tela que carrega esse propósito.** Ela responde "o que o
 acervo está pedindo", e cada achado diz o que fazer, por que, e leva para onde
-se faz — sem o "por que" seria lista de tarefas, e sem o destino seria painel.
+se faz. Sem o "por que" seria lista de tarefas, e sem o destino seria painel.
 
 O que dá para derivar dos dados é **calculado e rotulado como tal**; só o que
 exige ler texto e comparar sentido pede modelo, e esse vem marcado como
@@ -27,11 +27,11 @@ proposta. Achado que não pode ser verificado não é gerado: quem segue a lista
 uma vez e encontra trabalho inexistente para de seguir a lista.
 
 Achado se agrupa quando a granularidade vira ruído, e isso apareceu duas vezes.
-Uma linha por seção descoberta produziu **117 achados** — a lista do portal
+Uma linha por seção descoberta produziu **117 achados**: a lista do portal
 inteiro, afogando os três que alguém resolveria naquele dia. Por categoria, a
 mesma informação vira mapa: "50 de 50 seções do Builder" diz onde o acervo está
 ausente sem mandar ninguém escrever cinquenta artigos. Depois, com o acervo
-importado, "artigo sem seção" produziu **600** — e acima de um punhado vira um
+importado, "artigo sem seção" produziu **600**, e acima de um punhado vira um
 achado só, porque ali o caminho deixa de ser abrir um registro e passa a ser o
 mutirão da Biblioteca.
 
@@ -39,11 +39,11 @@ Disso decorre a divisão que organiza tudo:
 
 **O acervo é do hub, e não tem recorte.** Ele espelha **um** portal, com uma
 taxonomia, e o lugar do artigo é a seção. A Biblioteca, a cobertura documental
-e o aviso de duplicata trabalham sobre o acervo inteiro — sempre.
+e o aviso de duplicata trabalham sobre o acervo inteiro, sempre.
 
 **O Projeto é uma iniciativa de melhoria**, não a unidade de contexto de tudo:
 um esforço datado, com meta, que os atendimentos alimentam. Ele recorta o que é
-**trabalho** — atendimento, análise, oportunidade, plano — e nunca o acervo.
+**trabalho** (atendimento, análise, oportunidade, plano) e nunca o acervo.
 
 Confundir os dois já custou um defeito real: a Biblioteca filtrava por projeto
 enquanto o mapa de cobertura media todos, e a semente tinha um artigo invisível
@@ -52,12 +52,29 @@ oitocentos artigos do portal com uma iniciativa que não os originou.
 
 Essa confusão também estava **no esquema**: `articles.project_id` nasceu
 obrigatório e com `on delete cascade`, de quando todo artigo vinha de um
-projeto. O `localStorage` não tem chave estrangeira, então ninguém notou — até
+projeto. O `localStorage` não tem chave estrangeira, então ninguém notou. Até
 mil oitocentos e vinte e dois artigos do portal serem recusados pelo Postgres no
 fim de uma varredura de quarenta e cinco minutos. Hoje aceita nulo, e apagar
 uma iniciativa não leva junto artigo que nunca foi dela.
 
-O projeto ativo vem do `ProjectProvider`. Nunca leia projeto de outro lugar —
+E estava **nas telas**, em quatro lugares, cada um errando de um jeito
+diferente pelo mesmo motivo. O pior: a busca que a análise faz por artigos
+relacionados recortava pelo projeto do atendimento, então toda análise
+respondia "nada cobre isto" sobre um portal que cobre. Os outros três: o
+histórico não mostrava nada do acervo, o funil perdia a última perna e o cartão
+"Conteúdos publicados" marcava zero com a Biblioteca cheia.
+
+Nenhum deles aparecia enquanto o acervo cabia numa iniciativa. O que os revelou
+foi o `projectId` vazio de mil oitocentos e vinte e dois artigos: a mesma
+mudança, vista de quatro ângulos.
+
+Evento sem iniciativa é do acervo e **acompanha qualquer uma**, porque não
+existe iniciativa a que ele pertença; quem decide isso é `eventsInScope`, numa
+peça só, para as duas telas não divergirem. Já vazio da iniciativa continua
+sendo sobre **trabalho**: contar o acervo ali faria uma iniciativa recém-criada
+nunca parecer nova.
+
+O projeto ativo vem do `ProjectProvider`. Nunca leia projeto de outro lugar,
 e, antes de escopar algo por ele, pergunte se aquilo é trabalho ou acervo.
 
 ## Arquitetura
@@ -85,7 +102,7 @@ UI → hook → service → repository → localStorage
 
 Persistência sempre atrás de um provider ou repository. **Nunca** leia ou
 escreva `localStorage` direto num componente, e nunca mute um array de mock
-importado — o mock é semente, não banco.
+importado: o mock é semente, não banco.
 
 **A semente é o que é real e estrutural, e nada além.** Taxonomia do portal,
 equipes do suporte e painéis padrão ficam; projeto, atendimento, conversa,
@@ -99,8 +116,8 @@ conta o que existe, e `npm run db:limpar-demo` só apaga com `--confirmar`, numa
 transação, preservando taxonomia, equipes, perfis e painéis. Apagar dado
 compartilhado apaga para catorze pessoas.
 
-Todo acesso ao armazenamento passa por `lib/storage`. Escrever pode falhar —
-cota estourada, modo privado, acesso negado — e sem tratamento o erro sobe de
+Todo acesso ao armazenamento passa por `lib/storage`. Escrever pode falhar
+(cota estourada, modo privado, acesso negado) e sem tratamento o erro sobe de
 dentro de um efeito e derruba a aplicação inteira. Ali a falha vira resultado,
 nunca exceção. Não chame `localStorage` diretamente em lugar nenhum.
 
@@ -108,7 +125,7 @@ nunca exceção. Não chame `localStorage` diretamente em lugar nenhum.
 gravado por alguma versão do produto, possivelmente anterior à atual, e não
 conhece campos que vieram depois. O normalizador recebe `unknown` e garante a
 forma completa do modelo, usando os utilitários de `lib/shape`. Sem isso, a
-primeira leitura de um campo ausente derruba a tela — foi o que aconteceu com
+primeira leitura de um campo ausente derruba a tela. Foi o que aconteceu com
 `author` na Biblioteca. Campo novo no modelo é campo novo no normalizador.
 
 Acervos não têm teto artificial. Cortar análises ou artigos antigos para caber
@@ -145,21 +162,21 @@ hidratação quebra.
 
 A regra: **servidor e primeiro render do cliente produzem o mesmo HTML**, a
 partir da semente canônica. O valor guardado entra num efeito após a montagem.
-Vale para qualquer coisa que só o navegador conhece — `localStorage`,
+Vale para qualquer coisa que só o navegador conhece, `localStorage`,
 `window.innerWidth`, `matchMedia`, parâmetros de URL (`useQueryParam`). Nunca
 resolva com `suppressHydrationWarning` nem `dynamic({ ssr: false })`.
 
 Há **uma** exceção, no `<html>`: o script de aparência escreve
 `data-appearance` antes da primeira pintura, e o servidor não tem como saber a
 preferência de quem vai abrir. A supressão vale só para os atributos daquele
-elemento — nada dentro dele deixa de ser comparado — e sem ela o console
+elemento (nada dentro dele deixa de ser comparado) e sem ela o console
 acusava divergência em toda página.
 
 **Enquanto o dado não chegou, a tela mostra esqueleto.** Os providers de
 coleção devolvem `isHydrated`, e a semente não deve ser exibida como se fosse
 o acervo de quem abriu: piscar conteúdo falso é pior que dizer "ainda não
 sei". Os esqueletos vivem em `components/common/page/LoadingSkeleton`, um por
-forma de conteúdo, e servidor e primeiro render produzem o mesmo — a regra
+forma de conteúdo, e servidor e primeiro render produzem o mesmo: a regra
 acima continua valendo.
 
 ### Formulários
@@ -182,13 +199,13 @@ O mesmo aviso sobe um nível: enquanto houver alteração pendente, o guarda
 registra no `ReleaseProvider` que existe trabalho aberto, e é isso que faz o
 aviso de nova versão dizer "salve antes" em vez de oferecer um recarregar que
 descarta o texto. Quem fecha a aba inteira merece a mesma pergunta de quem
-fecha o diálogo — por isso também há `beforeunload` enquanto houver pendência.
+fecha o diálogo, por isso também há `beforeunload` enquanto houver pendência.
 
 **Perguntar só serve para quem está lá.** Aba fechada por engano, navegador
 reiniciado e queda de energia não perguntam nada, e até então o texto
 simplesmente deixava de existir. `useDraftRecovery` grava o que está sendo
-digitado um segundo e meio depois de a digitação parar — a cada tecla seriam
-centenas de escritas síncronas num artigo longo — e o formulário oferece
+digitado um segundo e meio depois de a digitação parar (a cada tecla seriam
+centenas de escritas síncronas num artigo longo) e o formulário oferece
 restaurar na próxima abertura.
 
 Fica **no navegador**, mesmo no modo compartilhado: texto pela metade no
@@ -201,7 +218,7 @@ Igual significa que a gravação aconteceu, e pedir decisão sobre nada é o que
 ensina alguém a ignorar avisos. Restaurar devolve o texto aos campos e não
 grava: salvar continua sendo ato de quem edita.
 
-A chave é uma por registro, com prefixo — duas abas em artigos diferentes se
+A chave é uma por registro, com prefixo. Duas abas em artigos diferentes se
 sobrescreveriam. Por isso `clearAppStorage` varre também as chaves derivadas
 de uma nossa: apagar só os nomes exatos deixaria conteúdo para trás na tela que
 promete voltar à semente.
@@ -214,7 +231,7 @@ A referência é a **primeira versão que aquela aba viu**, e não uma constante
 embutida na compilação: assim o aviso funciona sem depender de a plataforma
 expor o identificador do deploy para o navegador.
 
-Recarregar sozinho está fora de questão — quem está no meio de um artigo
+Recarregar sozinho está fora de questão. Quem está no meio de um artigo
 perderia o texto, e o produto teria decidido por ela. O aviso fica no canto,
 não bloqueia, e atualizar é ato de alguém.
 
@@ -227,7 +244,7 @@ salvamento, e um aviso a cada tecla seria ruído.
 de render não pode deixar a tela em branco.
 
 Como os dados vivem no navegador, a causa provável de um erro de render é
-conteúdo guardado em formato inesperado — por isso a tela de falha oferece
+conteúdo guardado em formato inesperado. Por isso a tela de falha oferece
 apagar o armazenamento e voltar à semente, com a consequência escrita antes do
 clique.
 
@@ -236,14 +253,14 @@ clique.
 **Nada inventado.** Se um número não pode ser derivado dos dados reais, ele não
 aparece. Não rotule métrica calculada como saída de IA. Estado vazio honesto é
 sempre melhor que preenchimento. Quando uma seção não tem como ser verdadeira,
-ela sai — foi assim com anexos e "Copiloto de IA" no Plano.
+ela sai. Foi assim com anexos e "Copiloto de IA" no Plano.
 
 **A Biblioteca é a Base de Conhecimento.** Existe um único acervo,
-`KnowledgeArticle`. Só artigo **publicado** conta como cobertura documental — a
+`KnowledgeArticle`. Só artigo **publicado** conta como cobertura documental: a
 análise não enxerga rascunho nem revisão.
 
 **Excluir manda para a lixeira.** O registro sai da vista e continua
-existindo — com dado compartilhado, quem apaga apaga para catorze pessoas, e o
+existindo. Com dado compartilhado, quem apaga apaga para catorze pessoas, e o
 diálogo de confirmação era a única barreira. Não há prazo de expurgo
 automático: apagar trabalho sozinho, num horário que ninguém escolheu, é o
 mesmo problema que a exclusão direta tem. Esvaziar é ato de alguém, e a tela
@@ -258,7 +275,7 @@ antes do clique: "excluir este atendimento" e "excluir este atendimento, a
 análise dele e o plano que ele originou" são decisões diferentes, e a tela
 apresentava as duas do mesmo jeito.
 
-A coleção guarda vivo e excluído juntos, e **quem separa é o provider** — não
+A coleção guarda vivo e excluído juntos, e **quem separa é o provider**, não
 cada tela. Foi o que impede um artigo na lixeira de contar como cobertura
 documental numa análise.
 
@@ -267,27 +284,27 @@ revisão reprovada volta para rascunho, publicado pode ser recolhido. Um fluxo q
 só avança esconde o erro em vez de corrigi-lo.
 
 **Publicar exige intenção, não permissão.** Artigo e plano passam por
-`PublishConfirmDialog`, que mostra o que continua incompleto — medido nos
-próprios campos — e o efeito da publicação. Nada bloqueia: a equipe é treinada e
+`PublishConfirmDialog`, que mostra o que continua incompleto (medido nos
+próprios campos) e o efeito da publicação. Nada bloqueia: a equipe é treinada e
 decide. Fricção que informa, não que atrapalha.
 
 **Pessoa é conta; equipe é cadastro.** No modo compartilhado a lista de
-pessoas é quem entrou — não há cadastro manual, e nenhum nome de colaborador
+pessoas é quem entrou, não há cadastro manual, e nenhum nome de colaborador
 vive no código. Enquanto um colega não acessa, a equipe dele recebe a
 atribuição. Sem servidor não há login, e o campo "atuando como" volta a ser
 texto: melhor um nome digitado que histórico com autoria vazia.
 
 **Acompanhar não é assumir.** Quem abriu o atendimento que originou o plano
 quer saber quando ele publica, e não vai virar responsável por isso. O
-acompanhamento é a única coleção **por pessoa** do produto — o resto descreve
-trabalho, ele descreve interesse — e fica numa lista separada de "Meu
+acompanhamento é a única coleção **por pessoa** do produto (o resto descreve
+trabalho, ele descreve interesse) e fica numa lista separada de "Meu
 trabalho": juntar as duas faria a fila de alguém crescer por interesse dos
 outros. A política do banco continua a mesma; quem filtra por pessoa é a tela.
 
 **O produto avisa por si, porque não há e-mail para avisar.** A menção existia
 e não chegava a lugar nenhum: quem era mencionado só descobria abrindo a tela
-certa por acaso. A central reúne três coisas — menção a você, movimento no que
-você acompanha e movimento no que está atribuído a você — e é montada do que já
+certa por acaso. A central reúne três coisas (menção a você, movimento no que
+você acompanha e movimento no que está atribuído a você) e é montada do que já
 está em memória, como o painel: nenhuma consulta nova.
 
 **Nem tudo vira aviso**, e a lista é curta de propósito. Um produto que avisa
@@ -296,7 +313,7 @@ perde junto. "Alguém editou um artigo" não entra; mudança de estágio, plano
 criado, oportunidade aprovada e exclusão entram.
 
 O que **você** fez não é notícia para você, e menção que você escreveu também
-não — seria o produto conversando consigo. Quando o mesmo registro é
+não. Seria o produto conversando consigo. Quando o mesmo registro é
 acompanhado *e* atribuído, a razão exibida é acompanhar: é a escolha explícita
 de quem lê, enquanto a atribuição pode ter vindo de outra pessoa.
 
@@ -308,12 +325,12 @@ leu, e marcar antes apagaria o destaque do que a pessoa está olhando.
 **Limite conhecido:** a última visita fica no navegador, então ler no
 computador não marca como lido no celular. A versão certa é uma coluna por
 pessoa no banco, e é outra peça. Guardar aqui responde "o que mudou desde a
-última vez que eu olhei nesta máquina", que é verdade — e é melhor que não
+última vez que eu olhei nesta máquina", que é verdade, e é melhor que não
 avisar nada.
 
 **Menção guarda identificador, como a atribuição.** O comentário grava
 `@[Nome](id)`; quem exibe resolve o id e mostra o nome de hoje. O rótulo vai
-junto porque é o que sobra quando a conta some — e sobrar "@Raoni" é melhor
+junto porque é o que sobra quando a conta some, e sobrar "@Raoni" é melhor
 que sobrar "@pes-7f3a". Menção que não resolve mais **não é apagada**: o
 comentário é registro do que foi dito, e não se reescreve.
 
@@ -323,7 +340,7 @@ houver papéis, ela muda ali e em nenhum outro lugar.
 
 **A equipe é sugerida, nunca derivada.** Cada equipe declara em Configurações
 por quais categorias do portal responde, e classificar um artigo preenche o
-autor a partir disso — sem sobrescrever quem já foi escolhido, e dizendo na
+autor a partir disso. Sem sobrescrever quem já foi escolhido, e dizendo na
 tela que a sugestão foi dela. Derivar automaticamente criaria um responsável
 que ninguém escolheu, e em QiOnboarding ou Novidades de Release, que não têm
 equipe óbvia, o palpite apareceria com cara de decisão. Duas equipes na mesma
@@ -334,14 +351,14 @@ cara de sugestão é pior que campo vazio.
 Builder é dividido por disciplina, e disciplina no portal é seção, não
 categoria: Builder Elétrica e Builder Hidráulica teriam de declarar a mesma
 categoria e desligariam a sugestão uma da outra. Quem responde pelo produto
-inteiro — Visus, Eberick — declara só a categoria, e a seção que ninguém
+inteiro (Visus, Eberick) declara só a categoria, e a seção que ninguém
 declarou continua caindo nela.
 
 Por isso a categoria disputada só vira aviso quando **nenhuma** seção dela foi
 declarada: apontar como defeito o arranjo que a própria tela pediu seria
 ensinar a desconfiar da orientação certa.
 
-O mapa é **cadastro, não constante** — mesma razão do resto da classificação:
+O mapa é **cadastro, não constante**, mesma razão do resto da classificação:
 as categorias do portal mudam e as equipes mudam, e ninguém vai abrir o código
 para acompanhar. Vale para o nome da equipe também: renomear preserva o id, que
 é o vínculo com tudo que já foi atribuído.
@@ -352,7 +369,7 @@ passou a ser editável pela própria pessoa, e renomear orfanaria tudo. Quem
 preserva o passado é o histórico, que guarda o rótulo do evento.
 
 O resolvedor reconhece nome também, então registro anterior continua legível e
-vira identificador sozinho na próxima gravação — sem migração de dados. O que
+vira identificador sozinho na próxima gravação, sem migração de dados. O que
 não resolve é exibido como veio, nunca como "sem responsável".
 
 **Referências a HubSpot, Zendesk, Vercel e CRMs são pedidos de maturidade**
@@ -364,12 +381,12 @@ pedir antes.
 
 **O acesso à HubSpot é REST direto, somente leitura**, e isso reverteu a decisão
 anterior de mediá-lo pela Claude. A fronteira vive em `services/hubspot`, com
-falha tipada em cinco causas — `credencial-recusada` tem nome próprio porque o
+falha tipada em cinco causas. `credencial-recusada` tem nome próprio porque o
 token é de outra pessoa e pode ser rotacionado sem aviso.
 
 **O que a credencial alcança foi medido, e é pouco.** O escopo `tickets` não
-está nela: o objeto foi procurado por sete endereços — v3, versionado, singular,
-por `objectTypeId`, registro individual — e todos devolvem 403, enquanto
+está nela: o objeto foi procurado por sete endereços (v3, versionado, singular,
+por `objectTypeId`, registro individual) e todos devolvem 403, enquanto
 `schemas`, `contacts`, `companies` e `owners` respondem 200 no mesmo token. Não
 é rota errada: é o objeto que está fechado.
 
@@ -380,7 +397,7 @@ ausente.
 
 O que falta e por que está registrado em `docs/hubspot-pendencias.md`, escrito
 para quem administra o app privado. **Publicar de volta na HubSpot fica para a
-sprint ProjetoAprovado** — editar aqui é trabalho interno; escrever no portal é
+sprint ProjetoAprovado**, editar aqui é trabalho interno; escrever no portal é
 publicar para o cliente.
 
 ## Fundação compartilhada
@@ -400,7 +417,7 @@ login com a camada de dados pela metade.
 estado previsto, não erro: nenhuma variável faltando vira exceção dentro de um
 efeito.
 
-A restrição de domínio vive **no banco** — `check constraint` na tabela de
+A restrição de domínio vive **no banco**. `check constraint` na tabela de
 perfis e gatilho em `auth.users`. A conferência na interface existe só para
 dar erro legível, e o `hd` que o produto manda ao Google é conveniência pelo
 mesmo motivo: parâmetro que sai do navegador não restringe ninguém.
@@ -409,14 +426,14 @@ Não há senha em lugar nenhum. São dois caminhos: a conta Google da AltoQi, qu
 é o principal, e o link por e-mail como alternativa.
 
 **O botão do Google só aparece quando está ligado do outro lado**, declarado
-por `NEXT_PUBLIC_GOOGLE_SIGN_IN=on` — mesma razão do modo compartilhado, e um
+por `NEXT_PUBLIC_GOOGLE_SIGN_IN=on`. Mesma razão do modo compartilhado, e um
 defeito concreto: com o provedor desligado, a Supabase responde `400
 Unsupported provider` à navegação, e a pessoa saía do produto para um JSON em
 inglês, sem botão de voltar. Deduzir do navegador exigiria perguntar ao
 servidor a cada abertura da tela. Botão que às vezes leva a lugar nenhum é pior
 que botão que ainda não existe.
 
-Enquanto ele está desligado, a tela diz que a entrada é pelo link — em vez de
+Enquanto ele está desligado, a tela diz que a entrada é pelo link, em vez de
 prometer dois caminhos e oferecer um.
 
 O que falta para a equipe entrar não é código, e está escrito em
@@ -426,10 +443,10 @@ equipe do projeto.
 
 **O caminho escolhido é o SMTP**, e não o Google: criar credencial no Google
 Cloud Console da empresa depende da TI, que está adiada junto com o resto do
-bloco de credenciais. O Google continua sendo o desenho principal do código —
+bloco de credenciais. O Google continua sendo o desenho principal do código,
 só não é o próximo passo.
 
-As chaves privilegiadas — service role, secret e JWT — **foram removidas do
+As chaves privilegiadas (service role, secret e JWT) **foram removidas do
 ambiente**. Elas ignoram as políticas de acesso, e nenhuma operação do produto
 precisa disso. As `POSTGRES_*` ficam porque `npm run db:migrate` depende delas
 via `vercel env pull`, e nenhuma vai para o navegador.
@@ -443,25 +460,25 @@ depois.
 **O SMTP próprio foi ligado no painel em 21/08/2026**, e não está declarado no
 arquivo porque a senha de envio não entra no repositório. Isso cria um risco
 que está anotado em maiúsculas dentro dele: um `config push` desligaria o SMTP
-e devolveria a equipe ao serviço embutido — dois e-mails por hora, e só para
-quem está na equipe do projeto —, sem nada no push avisando que foi isso.
+e devolveria a equipe ao serviço embutido (dois e-mails por hora, e só para
+quem está na equipe do projeto), sem nada no push avisando que foi isso.
 
 **`supabase config push` aplica o arquivo inteiro, e o que não está declarado
 volta ao padrão da CLI.** Isso não é teoria: um push que só pretendia ajustar
 duas URLs baixou o tamanho do código de acesso de 8 para 6, encurtou o
 intervalo mínimo entre e-mails de um minuto para um segundo e desligou o
 segundo fator. Por isso o arquivo declara valores que não são preferência
-nossa — são os que o projeto já tinha. **Confira o diff que o push imprime
+nossa. São os que o projeto já tinha. **Confira o diff que o push imprime
 antes de aceitar.**
 
 `site_url` e `additional_redirect_urls` precisam conter o destino que o
 produto pede. Fora da lista, a Supabase ignora o pedido e manda o link para a
-`site_url` — foi assim que todo link de acesso caiu em `localhost`.
+`site_url`. Foi assim que todo link de acesso caiu em `localhost`.
 
 Código que chega em `/` é encaminhado por `src/proxy.ts` para
 `/auth/callback`, que é quem o troca por sessão. Todo link já enviado carrega
 o destino que valia na hora do envio, então e-mail antigo continua caindo na
-raiz mesmo com a configuração certa — e antes disso nada acontecia ali.
+raiz mesmo com a configuração certa, e antes disso nada acontecia ali.
 
 O serviço de e-mail embutido da Supabase entrega **dois por hora e recusa
 endereços de fora da equipe do projeto**. Não sustenta uma equipe: ou há SMTP
@@ -481,8 +498,8 @@ alcançável.
 
 ### Como o dado chega às telas
 
-`useSharedCollection` devolve `[itens, definir, hidratado]` — a mesma
-assinatura de `usePersistedState` — e decide sozinho entre banco e navegador.
+`useSharedCollection` devolve `[itens, definir, hidratado]` (a mesma
+assinatura de `usePersistedState`) e decide sozinho entre banco e navegador.
 Provider não sabe de onde o dado vem, e não deve saber.
 
 A escrita compara o estado anterior com o novo e manda só a diferença. O tempo
@@ -490,17 +507,17 @@ real relê a coleção inteira em vez de aplicar o evento recebido: aplicar erra
 quando os eventos chegam fora de ordem ou quando um se perde na reconexão.
 
 **Escrita grande vai em lotes, e a falha precisa aparecer.** Uma gravação de
-mil e oitocentos registros num pedido só passa de vinte megabytes e falha — e
+mil e oitocentos registros num pedido só passa de vinte megabytes e falha, e
 falhou, deixando o acervo em quatrocentos e quarenta com cara de acervo
 inteiro. Vinte e cinco por pedido, com o erro chegando à tela: `void` numa
 promessa engole a exceção, e o laço morre calado.
 
 **E o tempo real não pode reler durante a nossa própria escrita.** Cada lote
 gravado dispara um evento, a releitura devolve uma visão **parcial** do banco,
-e ela substitui o estado local no meio do caminho — a escrita competindo
+e ela substitui o estado local no meio do caminho: a escrita competindo
 consigo mesma. Enquanto a gravação está em curso, o eco é ignorado.
 
-Taxonomia é a exceção — são três tabelas compondo um objeto, com repositório
+Taxonomia é a exceção. São três tabelas compondo um objeto, com repositório
 próprio, porque a ordem entre elas importa: categoria entra antes de seção e
 sai depois.
 
@@ -526,32 +543,32 @@ de tipo.
 
 **E o espelho se faz pelo portal público, não pela API.** Não existe API de
 Base de Conhecimento na HubSpot: o escopo `cms.knowledge_base.articles.read`
-está concedido e não tem endpoint atrás — seis caminhos candidatos devolvem
+está concedido e não tem endpoint atrás. Seis caminhos candidatos devolvem
 404, não 403. Ver o escopo marcado na lista não significa que a API existe.
 
 O portal, sendo público, entrega mais do que a API entregaria: o `sitemap.xml`
 lista **1.827 artigos**, todos com `lastmod`; a página traz título, resumo,
 corpo e a trilha que dá categoria e seção. O corpo mora no campo de texto rico
 da HubSpot (`data-hs-cos-type="inline_richtext_field"`), e **não** no
-`<article>`, que envolve dezenove `div` de grade do layout — importar o
+`<article>`, que envolve dezenove `div` de grade do layout. Importar o
 `<article>` trazia o andaime junto com o texto.
 
-O artigo aponta para `sectionId`, e a categoria vem da seção — guardar as duas
+O artigo aponta para `sectionId`, e a categoria vem da seção, guardar as duas
 permitiria que divergissem. `portalArticleId` guarda a identidade no portal,
 sem a qual sincronizar criaria duplicata a cada importação.
 
 **A classificação do atendimento é outra, e continua separada.** O suporte
-classifica o ticket na HubSpot por `[Support] Produto` — Builder, Eberick,
-Visus, Área do Cliente, Produtos anteriores, Não é produto — e por uma lista de
+classifica o ticket na HubSpot por `[Support] Produto` (Builder, Eberick,
+Visus, Área do Cliente, Produtos anteriores, Não é produto) e por uma lista de
 23 categorias dentro do produto: Cabeamento, Climatização, Elétrico, Elétrico |
 Barramento, Elétrico | Fotovoltaico, Gás, Hidrossanitário, Incêndio, SPDA, as
 seis Estrutural, as sete Visus e Geral / Plataforma.
 
-A forma é a mesma da nossa — produto em cima, disciplina embaixo —, mas o
+A forma é a mesma da nossa (produto em cima, disciplina embaixo), mas o
 vocabulário responde a outra pergunta: um classifica o **atendimento**, o outro
 classifica o **artigo publicado**. Unificar os dois foi considerado e recusado:
 os artigos já apontam para seções do portal, e trocar o cadastro deixaria todos
-em "Sem seção" — que é exatamente a classificação inventada que o resto deste
+em "Sem seção". Que é exatamente a classificação inventada que o resto deste
 documento evita. O "Responde por" da equipe lê o portal.
 
 A classificação da HubSpot entraria com os atendimentos remotos, como
@@ -560,7 +577,7 @@ está ausente, e a decisão não é nossa.
 
 **Nada de classificação é fixo no código.** Categoria, seção, gênero e tipo de
 oportunidade são cadastro, editável em Configurações. A semente é a estrutura
-do portal como levantada — 13 categorias e 146 seções —, mas o portal muda e
+do portal como levantada (13 categorias e 146 seções), mas o portal muda e
 ninguém vai abrir o código para acompanhar.
 
 Disso decorre uma regra: **filtro lê do cadastro, nunca de constante**. Vale
@@ -573,7 +590,7 @@ chutar**: encaixar na seção mais parecida seria classificação inventada, e
 ninguém saberia que foi palpite. O artigo aparece no filtro "Sem seção" e
 alguém decide.
 
-Renomear preserva o id — o vínculo com o artigo é o identificador, não o
+Renomear preserva o id: o vínculo com o artigo é o identificador, não o
 texto. Remover categoria leva junto as seções dela e deixa os artigos
 apontando para o vazio, de propósito, pelo mesmo motivo.
 
@@ -583,7 +600,7 @@ amarrados. O status da oportunidade também.
 
 ## Identidade visual
 
-O kit de marca vive em `brand/`, **fora de `public/`** — são arquivos de
+O kit de marca vive em `brand/`, **fora de `public/`**. São arquivos de
 impressão, de até 2,6 MB, que ninguém deve baixar pelo navegador. Em
 `public/brand/` ficam só as versões de web, geradas a partir dele com `sharp`
 e recortadas na margem transparente: nenhuma passa de 8 kB.
@@ -603,13 +620,13 @@ deformada na largura.
 
 Poppins é a fonte da identidade e vem de `src/fonts`, servida por
 `next/font/local`. A família tem 18 pesos; a interface carrega quatro.
-Não voltar para fonte do Google — a marca não depende de terceiro.
+Não voltar para fonte do Google: a marca não depende de terceiro.
 
 ### Aparência
 
 A aparência vive em `data-appearance` no `<html>`, e não numa classe. O tema
-precisa estar aplicado antes da primeira pintura, senão a tela pisca clara —
-isso exige um script antes do React, e mexer em `className` do `<html>` nesse
+precisa estar aplicado antes da primeira pintura, senão a tela pisca clara.
+Isso exige um script antes do React, e mexer em `className` do `<html>` nesse
 momento produziria divergência de hidratação. Atributo que não aparece no JSX
 o React não compara.
 
@@ -638,7 +655,7 @@ Gemini é o provider atual (`services/ai/server/geminiService.ts`), isolado atr�
 de `analysisAIService`. GPT saiu do roadmap; Claude entra numa sprint própria.
 
 **Somar um provedor é escrever um arquivo e citá-lo no registro.** O contrato é
-`AIProvider`, e o que ele realmente faz é `complete(mensagens)` — `chat` e
+`AIProvider`, e o que ele realmente faz é `complete(mensagens)`. `chat` e
 `analyze` são atalhos escritos sobre ela. Antes o construtor de prompt da
 análise vivia dentro do provider, o que obrigava toda operação nova a virar um
 método novo do contrato; agora o prompt fica onde é assunto do produto, e nada
@@ -648,19 +665,19 @@ mensagem.
 **A IA propõe seção; a revisão humana aprova.** A importação por arquivo deixa
 artigo sem seção de propósito, e classificar centenas à mão é o problema
 seguinte. O vocabulário vai inteiro no pedido e a resposta escolhe dentro dele
-— e o identificador é **conferido na volta**, porque instrução não é garantia:
+, e o identificador é **conferido na volta**, porque instrução não é garantia:
 seção que o modelo inventou vira ausência, não classificação. Artigo que não
 cabe em nenhuma seção é omitido de propósito; ficar de fora é resposta
 legítima, e melhor que palpite. Nada é aplicado sem alguém deixar marcado.
 
 **A IA lê o artigo com quem avalia.** Com o portal importado, avaliar o acervo é
-o trabalho — e fazê-lo sozinho significa reler mil e oitocentos textos. O painel
+o trabalho, e fazê-lo sozinho significa reler mil e oitocentos textos. O painel
 fica ao lado do artigo, porque a pergunta nasce enquanto se lê.
 
 O prompt separa **dois tipos de pergunta**, e a separação foi exigida pelo teste
 contra o modelo real: perguntado "resuma este artigo", ele abria com "o artigo
-não trata disso" e só então resumia. Pergunta **sobre** o artigo — resumir,
-avaliar, apontar lacuna — se responde com o texto em mãos. A recusa vale para
+não trata disso" e só então resumia. Pergunta **sobre** o artigo (resumir,
+avaliar, apontar lacuna) se responde com o texto em mãos. A recusa vale para
 pergunta **respondida pelo** artigo, onde completar com conhecimento de
 treinamento produziria uma resposta com cara de quem leu o texto, e quem avalia
 o acervo não teria como distinguir.
@@ -670,15 +687,15 @@ resposta baseada em meio artigo apresentada como se fosse sobre o inteiro é err
 que ninguém percebe.
 
 **Instrução de sistema não é uma só.** O provedor Gemini pegava a primeira e
-descartava as demais em silêncio — o artigo ia no segundo bloco e o modelo
+descartava as demais em silêncio: o artigo ia no segundo bloco e o modelo
 respondia "como o artigo não foi fornecido", sem erro em lugar nenhum. Quem monta
 prompt tem motivo para separar regra de contexto: a regra é fixa e o contexto
 muda a cada registro.
 
 **A IA preenche formulário; a revisão aprova.** O cadastro era digitação, e
 quem registra um atendimento costuma ter a informação num documento que
-ninguém vai transcrever. `FillPanel` é uma peça só, em três telas — projeto,
-atendimento e artigo —, e recebe os campos de quem a monta: o formato "descreva
+ninguém vai transcrever. `FillPanel` é uma peça só, em três telas (projeto,
+atendimento e artigo), e recebe os campos de quem a monta: o formato "descreva
 e a IA propõe" é o mesmo nas três, e um painel por tela faria três prompts
 divergirem.
 
@@ -686,30 +703,30 @@ Campo de escolha só aceita valor do catálogo que foi no pedido, conferido na
 volta como na sugestão de seção. **Substituição não vem marcada**: preencher
 campo vazio é ganho, cobrir texto que alguém escreveu é decisão, e a tela diz
 qual é qual antes do clique. O que o texto não sustenta **vira pergunta**, e é
-metade do recurso — preenchimento que chuta obriga a conferir todos os campos,
+metade do recurso. Preenchimento que chuta obriga a conferir todos os campos,
 o que custa mais que digitar todos.
 
 Identificador fica de fora: responsável, autor, seção e gênero continuam
 virando pergunta, porque a atribuição guarda id e o modelo só devolve texto.
 
 Arquivo tem dois caminhos, e a diferença é econômica antes de técnica. Texto é
-lido no navegador e segue como texto — base64 de um `.csv` custa um terço a
+lido no navegador e segue como texto, base64 de um `.csv` custa um terço a
 mais de tokens pelo mesmo conteúdo. PDF e imagem vão ao provedor como anexo,
 porque precisam ser **vistos**: extrair texto de PDF no navegador resolveria o
 digital e falharia no escaneado, que é o que mais chega de um suporte. **O
-anexo vai e não fica** — existe durante o pedido e é descartado com a resposta.
+anexo vai e não fica**. Existe durante o pedido e é descartado com a resposta.
 
 **Quem lê arquivo é declarado no catálogo (`readsFiles`), nunca suposto.**
 Provedor que não lê e ignorasse a opção produziria a pior resposta possível:
 campos vazios, sem erro, com o documento descartado em silêncio. Declarado, o
-pedido é recusado antes de sair e a tela nem oferece o anexo — mesma regra do
+pedido é recusado antes de sair e a tela nem oferece o anexo. Mesma regra do
 botão de entrar com a conta Google.
 
 A varredura vai em **lotes de 25, em série**, com o progresso na tela. Em
 paralelo seriam vinte e quatro pedidos simultâneos e o limite de taxa do
 provedor logo em seguida. Lote que falha **não derruba o que já veio**: depois
 de vinte pedidos bem sucedidos, perder tudo por causa do vigésimo primeiro
-seria jogar fora revisão pronta — a tela guarda e diz onde parou. E dá para
+seria jogar fora revisão pronta: a tela guarda e diz onde parou. E dá para
 parar no meio, porque quem começou vinte e quatro pedidos pode mudar de ideia
 no terceiro.
 
@@ -721,7 +738,7 @@ iguais enterrando o histórico.
 mesmo motivo do modo compartilhado: chave provisionada em ambiente é acidente
 de infraestrutura, não decisão de produto. `AI_PROVIDER` nomeia; sem ele, vale
 o único configurado. Com dois configurados e nenhum declarado vale a ordem
-escrita em `AI_PROVIDERS`, e **a tela de Integrações diz que foi ela** — como a
+escrita em `AI_PROVIDERS`, e **a tela de Integrações diz que foi ela**. Como a
 ressalva de data no painel, resultado de critério que ninguém escolheu precisa
 ser anunciado.
 
@@ -734,14 +751,14 @@ escolher. Duas listas do mesmo vocabulário divergem, e a divergência apareceri
 como a tela dizendo "conectado" sobre um provedor que a análise não usa.
 
 **Falha de provedor tem tipo.** Chave recusada, cota estourada, modelo
-sobrecarregado e pedido que passou do prazo eram a mesma frase — "tente
-novamente" —, inclusive quando tentar de novo não mudava nada. `classifyProvider‑
+sobrecarregado e pedido que passou do prazo eram a mesma frase ("tente
+novamente"), inclusive quando tentar de novo não mudava nada. `classifyProvider‑
 Failure` separa as quatro, e o que não é reconhecido **leva a mensagem original
 junto**, como na tradução do erro de acesso: ela é a única pista de quem
 administra. As duas rotas respondem pelo mesmo `aiErrorResponse`; escritas em
 separado, divergem.
 
-**O passo a passo de ligar um provedor está em `docs/ligar-a-ia.md`** — o que
+**O passo a passo de ligar um provedor está em `docs/ligar-a-ia.md`**: o que
 já está pronto, o que é uma linha no registro, e o que só dá para conferir
 contra a resposta real da API.
 
@@ -750,34 +767,34 @@ rota até o teto da plataforma, e quem pediu a análise fica olhando um botão
 girar.
 
 O acervo vive no navegador, então a **busca de artigos roda no cliente** e o
-contexto chega ao servidor com a evidência já resolvida — atendimento, conversa e
+contexto chega ao servidor com a evidência já resolvida, atendimento, conversa e
 artigos relacionados. O servidor valida com schema estrito
 (`analysisRequestSchema`) e monta o prompt. A resposta estruturada também é
 validada (`analysisResponseSchema`); id e status de oportunidade são atribuídos
-internamente, **nunca pelo modelo** — quem decide é a revisão humana.
+internamente, **nunca pelo modelo**. Quem decide é a revisão humana.
 
 ## Prazos
 
 Data só é data em **ISO 8601**, e a leitura recusa o resto. `new Date("15 jul.
-2026")` funciona em alguns motores e falha em outros — aceitar significaria o
+2026")` funciona em alguns motores e falha em outros. Aceitar significaria o
 mesmo registro mostrando prazos diferentes em máquinas diferentes, sem nada
 indicando o problema.
 
 **Dia de calendário não é instante.** A data do atendimento é o dia em que ele
 aconteceu, e dia não tem fuso: `lib/dates` trabalha sobre os componentes do
 texto e nunca sobre um `Date`, porque `new Date("2026-08-01")` é meia-noite em
-Greenwich — 31 de julho no Brasil. O erro só aparece na virada do mês, que é
+Greenwich, 31 de julho no Brasil. O erro só aparece na virada do mês, que é
 justamente onde ninguém olharia para conferir. Instante continua em ISO
 completo; dia fica em `aaaa-mm-dd`.
 
 Campo de data é **campo de data**, não texto livre. O do atendimento aceitava
 "ontem", e o que não dá para situar no tempo cai fora de toda janela. O
 normalizador converte o `dd/mm/aaaa` que está gravado e esvazia o que não é
-data — a tela diz que falta, em vez de deixar o campo parecer preenchido.
+data: a tela diz que falta, em vez de deixar o campo parecer preenchido.
 
 Isso vale para o que o produto **grava**, e não só para o que ele lê: o plano
-nascia com `createdAt` em texto de exibição — "20 de ago. de 2026, 18:23" —
-apesar de o modelo dizer ISO, e por isso o painel de planos por mês não
+nascia com `createdAt` em texto de exibição, "20 de ago. de 2026, 18:23".
+Apesar de o modelo dizer ISO, e por isso o painel de planos por mês não
 contava nenhum plano criado dentro do produto. Quem formata é a tela, na
 leitura, com `RelativeDate`.
 
@@ -791,7 +808,7 @@ problema.
 
 Parada se mede pelo último evento do histórico, nunca por `updatedAt`: o
 histórico registra o que aconteceu, e `updatedAt` muda por gravação
-incidental — uma delas faria um plano parado há um mês parecer recém-tocado.
+incidental: uma delas faria um plano parado há um mês parecer recém-tocado.
 
 Contador e fila convivem porque respondem coisas diferentes: um diz que existe
 trabalho, a outra diz por onde começar.
@@ -800,8 +817,8 @@ trabalho, a outra diz por onde começar.
 
 **O formato é declarado, nunca adivinhado.** O artigo carrega
 `contentFormat`: o que escrevemos aqui é Markdown, o que vier do portal é
-HTML. Converter nos dois sentidos degrada a cada ida e volta — tabela com
-atributo, âncora, classe e mídia embutida não sobrevivem à viagem —, e guardar
+HTML. Converter nos dois sentidos degrada a cada ida e volta (tabela com
+atributo, âncora, classe e mídia embutida não sobrevivem à viagem), e guardar
 o formato junto é o que permite **não converter nunca**.
 
 **Guardar o formato só serve se quem exibe consultar.** A tela renderizava tudo
@@ -812,20 +829,20 @@ salvar um artigo importado convertia o registro em silêncio. Quem exibe é
 
 **O editor rico edita no próprio HTML renderizado**, e é escolha deliberada
 contra editor de esquema. TipTap, ProseMirror e Slate reserializam o documento
-para o formato que entendem — estilo em atributo, classe da HubSpot e `srcset`
+para o formato que entendem. Estilo em atributo, classe da HubSpot e `srcset`
 não sobrevivem à ida e volta, que é exatamente a degradação que `contentFormat`
 existe para evitar. Aqui o que ninguém tocar continua idêntico ao byte, ao
 preço de usar `document.execCommand`, obsoleto na especificação e presente em
 todo navegador que importa.
 
-O que a leitura acrescenta — âncora nos títulos, caixa de aviso, link resolvido
-para dentro do acervo, cor removida para o tema não brigar — **não entra no
+O que a leitura acrescenta (âncora nos títulos, caixa de aviso, link resolvido
+para dentro do acervo, cor removida para o tema não brigar) **não entra no
 editor**: são camada de apresentação, e editar sobre elas gravaria enfeite
 dentro do artigo.
 
 **O publicado continua no ar enquanto a próxima versão é preparada.** Editar
 um publicado exigia recolhê-lo para revisão, e enquanto estivesse recolhido a
-análise deixava de contá-lo como cobertura — corrigir uma vírgula fazia uma
+análise deixava de contá-lo como cobertura. Corrigir uma vírgula fazia uma
 seção do portal parecer descoberta. O rascunho guarda só título, resumo e
 conteúdo: classificação e responsável são atributos do **artigo**, não do
 texto, e duplicá-los criaria duas respostas para "em que seção isto está".
@@ -835,7 +852,7 @@ republicar?", e para isso basta saber o que foi tocado.
 
 **Quem está editando aparece; nada trava.** Travar o registro transformaria uma
 aba esquecida aberta na sexta num artigo inacessível até segunda, sem ninguém
-para destravar — não há papéis. A presença vem do tempo real e não de tabela:
+para destravar, não há papéis. A presença vem do tempo real e não de tabela:
 numa tabela, quem fechasse o navegador sem avisar ficaria "editando" para
 sempre. O aviso de presença cobre o antes; `useStaleRecordWarning` cobre o
 depois, quando alguém gravou enquanto você digitava.
@@ -847,7 +864,7 @@ poucos; a tabela responde "onde está este e o que falta nele", que é a
 pergunta de quem opera um acervo de 1.800. Trocar uma pela outra responderia
 metade.
 
-Forma e colunas ficam **no navegador** — "prefiro tabela" é sobre esta máquina,
+Forma e colunas ficam **no navegador**. "prefiro tabela" é sobre esta máquina,
 como o tema. O que é da equipe são as **visões salvas**, que guardam o recorte
 inteiro: filtros, ordenação e colunas. Como o painel, a visão guarda a
 pergunta e não a resposta.
@@ -856,7 +873,7 @@ O título não pode ser escondido: sem ele a linha deixa de identificar o
 registro, e a tabela vira um conjunto de atributos sem sujeito.
 
 **A busca olha o corpo do artigo.** Ela lia título, resumo, seção, tags e
-palavras-chave — e com o portal importado o que se procura quase nunca está no
+palavras-chave, e com o portal importado o que se procura quase nunca está no
 título, está no meio do texto. O texto limpo de cada artigo é indexado uma vez
 por acervo, e não a cada tecla: refazer a limpeza de mil e oitocentos HTMLs por
 letra digitada seriam vinte e dois megabytes de expressão regular por toque.
@@ -868,8 +885,8 @@ porque exigir o acento certo é fazer errar duas vezes antes de achar.
 
 **Artigos que se sobrepõem é o achado que só o acervo inteiro permite.** Dois
 artigos ensinando a mesma coisa, cada um respondendo metade, e quem procura
-encontra um dos dois sem saber do outro. A comparação é **dentro da seção** —
-mais barata e mais significativa, porque parecidos em seções diferentes
+encontra um dos dois sem saber do outro. A comparação é **dentro da seção**.
+Mais barata e mais significativa, porque parecidos em seções diferentes
 costumam ser o mesmo assunto visto de ângulos diferentes, que é o desenho do
 portal e não defeito.
 
@@ -878,12 +895,12 @@ que dois artigos cobrem o mesmo assunto exige ler e comparar sentido. Seção
 grande demais para comparar aos pares é **anunciada**, não pulada em silêncio.
 
 E apontar não resolve: o achado leva para a tela de comparação, que responde a
-pergunta de quem vai decidir — **o que este tem que aquele não tem?**. Ela não
+pergunta de quem vai decidir, **o que este tem que aquele não tem?**. Ela não
 funde nada; unir, arquivar ou deixar como está continua sendo decisão de quem
 revisa.
 
 **Paginação, não rolagem infinita.** Com 1.800 linhas a rolagem esconde onde a
-pessoa está e impede voltar ao mesmo ponto — e página não exige biblioteca
+pessoa está e impede voltar ao mesmo ponto, e página não exige biblioteca
 nova no projeto, que virtualizar exigiria. Página fora do intervalo é
 corrigida em vez de devolver vazio: filtrar estando na página 7 deixaria a
 tela em branco com registros logo ali.
@@ -891,9 +908,9 @@ tela em branco com registros logo ali.
 **Em lote só o que toda a seleção alcança.** O estágio oferecido é a interseção
 das transições possíveis; oferecer o que vale para parte aplicaria a metade e
 falharia na outra, em silêncio. Marcar tudo marca **a página**, e não o recorte
-inteiro — o atrito é proposital.
+inteiro: o atrito é proposital.
 
-Excluir em lote existe desde que o **desfazer em lote** existe — e nessa ordem.
+Excluir em lote existe desde que o **desfazer em lote** existe, e nessa ordem.
 Um clique que manda duzentos artigos para a lixeira precisa de um caminho de
 volta do mesmo tamanho, e desfazer duzentas vezes não é caminho de volta.
 
@@ -906,7 +923,7 @@ pode ser restaurado" é uma frase escrita para um caso e usada noutro, e quem
 lê rápido uma frase que não concorda desconfia da tela inteira.
 
 **O recorte vive na URL.** Filtro, busca, ordenação e página não viviam no
-endereço, então não existia link que reproduzisse a tela exata — que é o que
+endereço, então não existia link que reproduzisse a tela exata, que é o que
 se cola no chat da equipe. Com o acervo importado isso pesa: apontar para "os
 que ficaram sem seção" precisa de um endereço.
 
@@ -920,7 +937,7 @@ O que está no padrão **sai** da URL, e o que não é nosso **fica**: `?ticket=
 derrubando a navegação de outra.
 
 Valor vindo de fora é conferido contra o cadastro de hoje. Link colado
-envelhece — categoria removida, coluna renomeada —, e filtrar por algo que não
+envelhece (categoria removida, coluna renomeada), e filtrar por algo que não
 existe mais mostra tela vazia com cara de acervo vazio, sem quem abriu ter como
 saber que o problema é o link.
 
@@ -934,21 +951,21 @@ Quem exporta acabou de montá-lo. Exibir e exportar passam pelo mesmo
 `lib/delimited` porque não é assunto de nenhuma feature; o vocabulário e o
 plano são de cada uma. O atendimento casa pelo `source.externalId` da HubSpot,
 como o artigo casa pelo `portalArticleId`, e reimportar preserva a iniciativa
-escolhida aqui dentro — ela é decisão nossa, não do CRM.
+escolhida aqui dentro. Ela é decisão nossa, não do CRM.
 
 A conversa **não** vem no lote. A exportação traz o ticket, não o fio de
 mensagens, e semear uma conversa vazia faria a análise achar que tem evidência
 quando não tem.
 
 O acervo entra por arquivo antes de entrar por integração. A HubSpot exporta
-CSV, e arquivo não pede rede, credencial nem autorização de ninguém — o que a
+CSV, e arquivo não pede rede, credencial nem autorização de ninguém: o que a
 API acrescenta é o *automático*, que é a segunda versão do problema.
 
 **E entra pelo portal público, que acabou sendo o caminho melhor.** Duas portas,
 e as duas continuam valendo: o arquivo serve a qualquer exportação e funciona
 sem rede; o portal traz a seção onde cada artigo mora, que o CSV não dá.
 
-A varredura é em lotes de dez, em série, com pausa entre as páginas — é o
+A varredura é em lotes de dez, em série, com pausa entre as páginas. É o
 servidor de suporte da AltoQi do outro lado, e varrer a toda velocidade é falta
 de educação com uma máquina que atende cliente. Tem progresso na tela e botão
 de parar, e **pula o que já está em dia** comparando o `lastmod` do sitemap com
@@ -956,17 +973,17 @@ o `updatedAt` do registro: sem isso, parar no meio e continuar depois custaria a
 varredura inteira de novo.
 
 A rota que busca as páginas confere que o destino é o portal, e mais nada. Sem
-essa conferência ela seria um proxy aberto — qualquer pedido faria o servidor
+essa conferência ela seria um proxy aberto. Qualquer pedido faria o servidor
 buscar qualquer endereço, inclusive dentro da rede onde ele roda.
 
 **O mapeamento de colunas é uma tela, não uma adivinhação.** `guessMapping`
 reconhece por correspondência exata e deixa em branco o que não reconhece.
 Casar por trecho faria "nome do autor" virar título em mil e oitocentos
-registros de uma vez — e ninguém revisa um por um para descobrir. Mesma regra
+registros de uma vez, e ninguém revisa um por um para descobrir. Mesma regra
 da seção: nome que não existe no cadastro vira vazio e é **contado**, nunca
 encaixado no mais parecido.
 
-O plano é calculado antes de gravar e mostrado inteiro — quantos entram,
+O plano é calculado antes de gravar e mostrado inteiro. Quantos entram,
 quantos atualizam, quantos ficam sem seção, quantas linhas o arquivo perde.
 É a mesma regra do diálogo de exclusão: o número vem antes do clique.
 
@@ -974,8 +991,8 @@ quantos atualizam, quantos ficam sem seção, quantas linhas o arquivo perde.
 um valor de exemplo, porque cabeçalho de exportação costuma ser `hs_body` ou
 `col_12` e o nome não diz o que a coluna guarda. E a tela monta **o primeiro
 registro como ele vai ficar**: contagem certa com mapeamento trocado é
-perfeitamente possível — mil e oitocentos resumos no lugar do título somam mil
-e oitocentos do mesmo jeito —, e ver um registro pronto é o que denuncia.
+perfeitamente possível (mil e oitocentos resumos no lugar do título somam mil
+e oitocentos do mesmo jeito), e ver um registro pronto é o que denuncia.
 
 Reimportar **atualiza** pelo `portalArticleId`, e o que o arquivo não traz é
 preservado: gênero e responsável são nossos, não do portal, e a segunda
@@ -984,7 +1001,7 @@ importação não pode apagar a classificação que alguém fez aqui dentro.
 O leitor de CSV é nosso porque o caso que importa é específico: conteúdo de
 artigo tem vírgula, aspas e quebra de linha **dentro** do campo, e um leitor
 que parte no `\n` corta o artigo ao meio sem avisar. Ele também detecta o
-separador — exportação brasileira sai com ponto e vírgula — e descarta o BOM
+separador (exportação brasileira sai com ponto e vírgula) e descarta o BOM
 do Excel, que gruda invisível no primeiro cabeçalho e faz a coluna não ser
 reconhecida.
 
@@ -994,7 +1011,7 @@ oitocentas linhas iguais no histórico enterram tudo que aconteceu antes.
 
 **A escala foi medida, e o acervo real cabe.** A projeção anterior dizia que
 1.800 artigos estourariam o `localStorage`; ela estava errada. Com corpos de
-HTML realistas — 1.800 artigos, 11,3 MB — a compilação de produção entrega:
+HTML realistas, 1.800 artigos, 11,3 MB: a compilação de produção entrega:
 
 | | |
 | --- | --- |
@@ -1007,14 +1024,14 @@ HTML realistas — 1.800 artigos, 11,3 MB — a compilação de produção entre
 Nada disso é gargalo, e a busca no cliente não precisa ir para o servidor.
 
 **O gargalo era render, e só ele:** a grade de cartões recebia o recorte
-inteiro enquanto a tabela paginava — 1.800 cartões, 81.163 nós no DOM. Agora as
+inteiro enquanto a tabela paginava, 1.800 cartões, 81.163 nós no DOM. Agora as
 duas paginam, e a mesma tela fica em 1.278 nós.
 
 Medir em aba oculta não vale: o navegador estrangula o agendamento e o relógio
 marca dez segundos com **zero tarefas longas** registradas. Quando o número de
 parede discordar do tempo de CPU, é o instrumento que está errado.
 
-O teto do `localStorage` continua existindo e varia por navegador — no Safari é
+O teto do `localStorage` continua existindo e varia por navegador, no Safari é
 bem menor. Vale só para o modo local; no compartilhado o dado está no banco.
 
 ## Histórico
@@ -1030,7 +1047,7 @@ vivia só no texto do `detail`, e "quantos artigos foram publicados neste mês"
 não tinha resposta sem interpretar frase.
 
 Eventos anteriores ao campo não têm transição e ficam de fora das contagens por
-destino — **a tela diz isso**. Preenchê-los exigiria interpretar o texto, que é
+destino, **a tela diz isso**. Preenchê-los exigiria interpretar o texto, que é
 o problema que o campo resolve; e número parcial apresentado como completo é
 pior que número com ressalva.
 
@@ -1038,7 +1055,7 @@ O funil conta **chegadas**, não registros parados no estágio: um artigo que
 passou por revisão e foi publicado passou pelos dois, e contar só onde ele está
 agora esconderia metade do caminho.
 
-Média de nada é `null`, nunca zero — zero diria "chega instantaneamente".
+Média de nada é `null`, nunca zero, zero diria "chega instantaneamente".
 
 Relógio nunca é lido durante o render. Use `useNow`: ler no render é impuro e
 diverge na hidratação, porque servidor e cliente têm horas diferentes.
@@ -1047,7 +1064,7 @@ diverge na hidratação, porque servidor e cliente têm horas diferentes.
 
 O painel guarda a **pergunta**, não a resposta: origem, quebra, janela e forma
 de visualizar. O número é recalculado a cada abertura, sobre os dados que
-existem agora — gravar o resultado seria gravar um número que envelhece em
+existem agora. Gravar o resultado seria gravar um número que envelhece em
 silêncio.
 
 `runPanel(spec, dados, agora)` é puro e recebe tudo pronto: os providers já têm
@@ -1055,20 +1072,20 @@ as coleções em memória, então somar mais um cartão não custa consulta nenh
 
 **Nem toda quebra serve a toda origem.** `allowedBreakdowns` diz o que cada uma
 sabe responder, e `reconcileSpec` conserta a combinação impossível em vez de
-gravá-la — "atendimentos por gênero" produziria uma coluna vazia com cara de
+gravá-la. "atendimentos por gênero" produziria uma coluna vazia com cara de
 dado. A correção acontece na frente de quem edita, não depois.
 
 Painel é **compartilhado**, como o resto do produto: não há papéis, e inventar
 "meu painel" criaria uma noção de dono que nada mais aqui tem. Os padrão são
-semente editável, com `defaultPanels` de volta pelo botão de restaurar — e os
+semente editável, com `defaultPanels` de volta pelo botão de restaurar, e os
 que a equipe criou continuam onde estavam.
 
 A quebra para em **duas dimensões**. Três não cabem numa tabela que se lê de
-relance, e a leitura passaria a exigir girar um cubo — que é outro tipo de
+relance, e a leitura passaria a exigir girar um cubo. Que é outro tipo de
 ferramenta, não uma versão mais completa desta. Cruzamento só sai em tabela:
 barra empilhada esconderia metade dos números.
 
-A imagem é desenhada por `panelToSvg`, que é **puro** — o mesmo painel produz
+A imagem é desenhada por `panelToSvg`, que é **puro**: o mesmo painel produz
 sempre o mesmo arquivo, e o desenho é conferido por teste em vez de olhado. Só
 a rasterização para PNG precisa do navegador. As cores vão escritas no
 arquivo: a imagem sai daqui para uma apresentação, onde não existe `:root`
@@ -1079,8 +1096,8 @@ faria a soma das linhas não bater com o total, sem ninguém saber por quê.
 
 Data que não dá para situar no tempo fica fora da janela e **vira ressalva**.
 `timeOf` lê ISO e `dd/mm/aaaa`, porque o atendimento guarda `"15/07/2026"`
-desde a primeira versão — sem isso o painel mostrava zero com três atendimentos
-na tela. O que sobra — `"Ontem, 16:20"` dos planos migrados — não é chutado:
+desde a primeira versão. Sem isso o painel mostrava zero com três atendimentos
+na tela. O que sobra, `"Ontem, 16:20"` dos planos migrados, não é chutado:
 aparece contado à parte, na ressalva.
 
 ## Convenções
@@ -1112,7 +1129,7 @@ npm run build
 ```
 
 `npm run dev:local` sobe o produto com a fundação compartilhada desligada, sem
-mexer no `.env.local` — conferir o modo navegador exigia editar o arquivo e
+mexer no `.env.local`. Conferir o modo navegador exigia editar o arquivo e
 lembrar de desfazer, e esquecer o desfazer deixa a equipe inteira sem banco.
 
 Um hook `PostToolUse` em `.claude/settings.json` roda `typecheck` e `test` em
@@ -1123,14 +1140,14 @@ conferir deploy, ambiente e configuração sem abrir painel. No PowerShell chame
 `vercel.cmd`: a política de execução recusa o `.ps1`.
 
 Data na tela é `RelativeDate`: relativo no texto, instante exato no título.
-O valor relativo entra depois da montagem — servidor e cliente têm relógios
+O valor relativo entra depois da montagem. Servidor e cliente têm relógios
 diferentes, e "há 2 minutos" divergiria na hidratação.
 
 A trilha de navegação sai do **mesmo cadastro de rotas** do menu
 (`components/layout/navigation`): duas listas do mesmo vocabulário divergem, e
 a divergência apareceria como o menu dizendo "Métricas" e a trilha dizendo
 outra coisa. O identificador do registro só vira degrau quando a tela passa o
-nome — `uuid` na trilha é pior que trilha curta.
+nome, `uuid` na trilha é pior que trilha curta.
 
 Indicador tem **recorte por equipe**, e ele vale só para plano e artigo, que
 têm responsável. Atendimento e análise não têm atribuição, e a tela diz isso
@@ -1139,7 +1156,7 @@ em vez de deixar supor que tudo foi recortado.
 `Ctrl+K` abre busca, comandos e "onde você estava". Comando é navegação;
 publicar, aprovar e excluir ficam de fora, porque pedem intenção e uma lista
 percorrida com a seta não é lugar para isso. `/` faz o mesmo e `?` lista os
-atalhos — convenção de mercado, não invenção nossa.
+atalhos, convenção de mercado, não invenção nossa.
 
 Atalho de tecla única precisa da guarda de digitação: `/` e `?` são caracteres
 comuns em português, e sem ela escrever "e/ou" abriria a paleta no meio da
@@ -1151,7 +1168,7 @@ viraria ruído.
 
 Testes cobrem lógica pura, nunca componentes: a leitura do sitemap e da página
 do portal com o plano de importação e a decisão do que revisitar, o preparo do
-HTML do artigo — âncora, cor removida, link resolvido, destaque da busca — com
+HTML do artigo (âncora, cor removida, link resolvido, destaque da busca) com
 a limpeza do que executa, o trecho da busca, a sobreposição entre artigos com o vocabulário que os
 compara e a duplicata de título, a comparação de dois, a leitura da conversa da HubSpot com a paginação que não
 para na página vazia, o mapeamento de mensagens do provedor, a consulta da IA
@@ -1171,6 +1188,6 @@ menções, o que se acompanha, a lixeira, a tabela com suas visões salvas, o ra
 do erro de acesso.
 Ao mexer em qualquer uma delas, o teste vem junto.
 
-Dois cuidados que já custaram tempo: `npm test` **não** faz typecheck — só o
+Dois cuidados que já custaram tempo: `npm test` **não** faz typecheck, só o
 `typecheck` pega erro de tipo em arquivo de teste; e o hook roda em segundo
 plano, então o aviso de falha chega depois da edição, não junto dela.

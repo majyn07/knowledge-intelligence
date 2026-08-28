@@ -69,7 +69,7 @@ describe("buildWatching", () => {
   it("menção à minha equipe também é minha", () => {
     /*
       Enquanto a maior parte do time não entrou, mencionar a equipe é o caminho
-      que de fato existe — ignorá-lo esvaziaria a lista de quem mais precisa.
+      que de fato existe. Ignorá-lo esvaziaria a lista de quem mais precisa.
     */
     const items = buildWatching({
       ...base,
@@ -149,7 +149,7 @@ describe("buildWatching", () => {
 
   it("acompanhamento de outra pessoa não entra na minha lista", () => {
     // Quem filtra por pessoa é o provider; aqui a lista já chega filtrada, e o
-    // teste registra que ela é a fonte — não há segunda checagem escondida.
+    // teste registra que ela é a fonte, não há segunda checagem escondida.
     const items = buildWatching({ ...base, plans: [plano()], follows: [] });
 
     expect(items).toEqual([]);

@@ -118,7 +118,7 @@ export function TicketDetails({
       >
         {messages.length === 0 ? (
           <p className="rounded-xl border border-dashed border-border px-5 py-8 text-center text-sm text-muted-foreground">
-            Nenhum registro de conversa. Edite o atendimento para adicionar a troca com o cliente —
+            Nenhum registro de conversa. Edite o atendimento para adicionar a troca com o cliente,
             sem ela a análise fica limitada ao título e à solução.
           </p>
         ) : (

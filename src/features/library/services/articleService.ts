@@ -20,7 +20,7 @@ function normalize(data: LibraryFormData) {
     author: data.author.trim(),
     /*
       Vem do formulário, e não cravado: artigo do portal é HTML, e sobrescrever
-      isso ao salvar convertia o registro sem ninguém pedir — exatamente o que
+      isso ao salvar convertia o registro sem ninguém pedir. Exatamente o que
       guardar o formato existe para evitar.
     */
     contentFormat: data.contentFormat,

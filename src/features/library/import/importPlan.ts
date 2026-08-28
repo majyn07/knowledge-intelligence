@@ -8,7 +8,7 @@ import type { DelimitedTable } from "@/lib/delimited";
  * O que a importação vai fazer, calculado antes de fazer.
  *
  * Puro, e é o ponto: com mil e oitocentos registros, "gravar e ver no que dá"
- * não é opção — quem confirma precisa saber quantos entram, quantos atualizam
+ * não é opção. Quem confirma precisa saber quantos entram, quantos atualizam
  * e quantos vão ficar sem classificação **antes** do clique. É a mesma regra
  * do diálogo de exclusão, que diz o número antes.
  *
@@ -31,7 +31,7 @@ export interface ImportPlan {
   create: KnowledgeArticle[];
   /** Registros que já existem e serão sobrescritos, casados pelo id do portal. */
   update: KnowledgeArticle[];
-  /** Linhas sem título — não dá para criar registro sem sujeito. */
+  /** Linhas sem título, não dá para criar registro sem sujeito. */
   skippedNoTitle: number;
   /** Linhas repetidas dentro do próprio arquivo, casadas pelo id do portal. */
   duplicatedInFile: number;
@@ -72,7 +72,7 @@ export function readInstant(value: string): Date | null {
   return null;
 }
 
-/** Minúsculas, sem acento — só para casar nome de seção e de categoria. */
+/** Minúsculas, sem acento, só para casar nome de seção e de categoria. */
 function fold(value: string): string {
   return value
     .normalize("NFD")

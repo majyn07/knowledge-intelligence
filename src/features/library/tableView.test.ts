@@ -136,7 +136,7 @@ describe("paginate", () => {
   it("página fora do intervalo é corrigida, e não devolve vazio", () => {
     /*
       Filtrar estando na página 7 deixaria a tela em branco com registros logo
-      ali — e ninguém entenderia por quê.
+      ali, e ninguém entenderia por quê.
     */
     expect(paginate(itens, 99, 10).page).toBe(3);
     expect(paginate(itens, 99, 10).items).toHaveLength(5);

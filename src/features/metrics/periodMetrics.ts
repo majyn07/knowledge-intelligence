@@ -28,7 +28,7 @@ function withinWindow(at: string, start: number, end: number) {
 /**
  * Leitura temporal do ciclo, montada sobre o registro de eventos.
  *
- * Só reporta o que o evento expressa sem ambiguidade — criações e conclusões.
+ * Só reporta o que o evento expressa sem ambiguidade, criações e conclusões.
  * Movimentações de estágio entram somadas, porque o evento guarda a transição
  * como texto e inferir o destino a partir dele seria adivinhação.
  */

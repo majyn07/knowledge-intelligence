@@ -28,7 +28,7 @@ describe("buildTrail", () => {
     ]);
   });
 
-  it("sem nome, o identificador não vira degrau — e a seção continua link", () => {
+  it("sem nome, o identificador não vira degrau, e a seção continua link", () => {
     /*
       Mostrar um `uuid` na trilha seria pior que trilha curta: ele não diz
       nada e ocupa o lugar de quem diria.

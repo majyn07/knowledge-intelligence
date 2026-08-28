@@ -64,7 +64,7 @@ export function SignInScreen() {
    *
    * Lido de `window` num efeito, e não de `useSearchParams`: o gancho do Next
    * obriga a envolver a árvore em `Suspense` para renderizar estático, e a
-   * tela de acesso é a primeira coisa que aparece — não vale um limite de
+   * tela de acesso é a primeira coisa que aparece, não vale um limite de
    * renderização a mais para ler um parâmetro opcional.
    *
    * O motivo sai da URL depois de lido. Ele descreve um clique, não o estado
@@ -147,7 +147,7 @@ export function SignInScreen() {
         {/*
           O motivo da falha vem antes do formulário, e não junto do campo: ele
           fala do clique que trouxe a pessoa até aqui, e não do que ela está
-          prestes a digitar. Some assim que um novo link é pedido — a partir
+          prestes a digitar. Some assim que um novo link é pedido: a partir
           daí a tela descreve o pedido novo, não o anterior.
         */}
         {accessFailure && !sent && (
@@ -192,11 +192,11 @@ export function SignInScreen() {
           <form onSubmit={handleSubmit} className="mt-8 space-y-4">
             {/*
               O Google vem primeiro porque é o caminho que não depende de
-              entrega de e-mail — e entrega falha. O link continua abaixo, para
+              entrega de e-mail, e entrega falha. O link continua abaixo, para
               quem estiver num navegador sem a conta da empresa.
 
               Só aparece quando está ligado do outro lado. Com o provedor
-              desligado, a navegação termina num `400` da Supabase — a pessoa
+              desligado, a navegação termina num `400` da Supabase: a pessoa
               sai do produto e fica olhando um JSON em inglês. Botão que às
               vezes leva a lugar nenhum é pior que botão que ainda não existe.
             */}

@@ -11,8 +11,8 @@ import {
  *
  * É semente, não verdade permanente: o portal muda e o cadastro é editável.
  *
- * O Visus é uma **linha com sete módulos** — Plataforma, Collab, Planning,
- * Bid, Tracking, Cost Management, Workflow e Control Tower —, confirmados em
+ * O Visus é uma **linha com sete módulos**. Plataforma, Collab, Planning,
+ * Bid, Tracking, Cost Management, Workflow e Control Tower,, confirmados em
  * `altoqi.com.br/visus/*`. Eles aparecem duas vezes de propósito: como seções
  * dentro de `AltoQi Visus` e, para dois deles, como categoria própria no
  * portal. Isso é o portal, não um erro de levantamento, e espelhá-lo é o
@@ -20,8 +20,8 @@ import {
  *
  * Duas categorias ficam sem seções, e as duas foram conferidas no portal:
  * `AltoQi Visus Workflow`, que no dia do levantamento não tinha nenhuma, e
- * `Quero falar com o Suporte`, que é categoria de verdade — aparece entre as
- * treze da página inicial — mas serve de porta de entrada para o atendimento,
+ * `Quero falar com o Suporte`, que é categoria de verdade. Aparece entre as
+ * treze da página inicial, mas serve de porta de entrada para o atendimento,
  * não de prateleira de artigo. Ficam vazias porque é o que elas são;
  * inventar seção seria pior que admitir a lacuna.
  */
@@ -243,7 +243,7 @@ const portal: { name: string; isProduct: boolean; sections: string[] }[] = [
 ];
 
 /**
- * Gênero do artigo — os mesmos valores que o produto já usava. Decisão
+ * Gênero do artigo: os mesmos valores que o produto já usava. Decisão
  * explícita de não mexer neles: o que muda é deixarem de ser enum fixo no
  * código e passarem a ser cadastro, não o conteúdo da lista.
  */
@@ -258,7 +258,7 @@ const seedGenres = [
 /**
  * O que uma oportunidade pode ser. Começa com o que o produto já usava, para
  * que nada mude de comportamento na virada, e daqui em diante é a equipe que
- * define — foi decisão explícita não adotar a classificação do CRM.
+ * define. Foi decisão explícita não adotar a classificação do CRM.
  */
 const seedOpportunityTypes = [
   "Novo artigo",
@@ -280,7 +280,7 @@ function entries(prefix: string, names: string[]): TaxonomyEntry[] {
  * Monta a semente com identificadores estáveis.
  *
  * A seção leva a categoria no próprio id porque os nomes se repetem entre
- * categorias — "Interface", "Cadastro", "Configurações" e "Outros" aparecem em
+ * categorias. "Interface", "Cadastro", "Configurações" e "Outros" aparecem em
  * mais de uma. A guarda de sufixo cobre o resto: dois nomes distintos podem
  * produzir o mesmo slug depois de perderem acento e pontuação.
  */

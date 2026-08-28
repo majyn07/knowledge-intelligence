@@ -13,7 +13,7 @@ export interface SectionCoverage {
   section: TaxonomySection;
   /** Só publicado conta: a análise não enxerga rascunho nem revisão. */
   published: number;
-  /** Em rascunho ou revisão — trabalho começado, cobertura ainda não. */
+  /** Em rascunho ou revisão, trabalho começado, cobertura ainda não. */
   inProgress: number;
 }
 
@@ -28,7 +28,7 @@ export interface CategoryCoverage {
 /**
  * Conta por seção, e só entre as categorias de linha de produto.
  *
- * As áreas de apoio — QiOnboarding, Education, Novidades de Release —
+ * As áreas de apoio (QiOnboarding, Education, Novidades de Release)
  * publicam artigo, mas não são alvo do ciclo de conhecimento: medir lacuna
  * nelas produziria um número grande e sem ação por trás.
  */
@@ -71,7 +71,7 @@ export function buildCoverage(
     });
 }
 
-/** Quantos artigos ficaram sem seção — eles não contam para cobertura nenhuma. */
+/** Quantos artigos ficaram sem seção. Eles não contam para cobertura nenhuma. */
 export function unclassifiedCount(articles: KnowledgeArticle[]): number {
   return articles.filter(
     (article) => article.sectionId === "" && article.status !== "archived"
@@ -92,7 +92,7 @@ export function coverageSummary(coverage: CategoryCoverage[]) {
     sections,
     gaps,
     covered: sections - gaps,
-    /** Fração coberta, ou `null` quando não há seção — evita dividir por zero. */
+    /** Fração coberta, ou `null` quando não há seção, evita dividir por zero. */
     ratio: sections === 0 ? null : (sections - gaps) / sections,
   };
 }

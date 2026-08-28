@@ -2,7 +2,7 @@
 --
 -- A primeira versão usou "Suporte X" para as quatro, por simetria. A equipe se
 -- chama Builder Elétrica, Builder Hidráulica, Eberick Estruturas e Suporte
--- Visus — e nome de equipe não é rótulo nosso para inventar simetria.
+-- Visus, e nome de equipe não é rótulo nosso para inventar simetria.
 --
 -- Os identificadores não mudam: eles são o vínculo com tudo que já foi
 -- atribuído, e é a mesma regra que vale para categoria e seção. Renomear

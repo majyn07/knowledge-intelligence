@@ -1,7 +1,7 @@
 -- Rascunho convivendo com a versão publicada, e o formato do conteúdo.
 --
 -- Editar um artigo publicado exigia recolhê-lo para revisão. Enquanto isso a
--- análise deixava de contá-lo como cobertura documental — corrigir uma vírgula
+-- análise deixava de contá-lo como cobertura documental. Corrigir uma vírgula
 -- fazia uma seção do portal parecer descoberta.
 --
 -- Agora o artigo publicado continua publicado, e a próxima versão é preparada

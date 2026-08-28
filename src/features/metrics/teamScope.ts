@@ -6,7 +6,7 @@ import type { PlanWorkspaceItem } from "@/features/plans/types/PlanWorkspace";
  * O recorte por equipe.
  *
  * Nem tudo no ciclo tem dono. O plano tem responsável e o artigo tem autor;
- * o atendimento e a análise não têm — ninguém é atribuído a eles, e inventar
+ * o atendimento e a análise não têm. Ninguém é atribuído a eles, e inventar
  * um vínculo por proximidade seria classificação inventada.
  *
  * Por isso a função devolve, junto com o que filtrou, **o que o filtro não
@@ -30,7 +30,7 @@ export interface TeamScope {
   /**
    * Registros sem atribuição nenhuma.
    *
-   * Ficam de fora de qualquer equipe — não porque são de outra, mas porque não
+   * Ficam de fora de qualquer equipe, não porque são de outra, mas porque não
    * são de ninguém. É outra informação, e a tela oferece vê-los.
    */
   unassigned: number;
@@ -40,7 +40,7 @@ export interface TeamScope {
 /**
  * A equipe por trás de uma atribuição, ou vazio quando não há.
  *
- * A referência guardada pode ser equipe, pessoa ou — nos registros antigos —
+ * A referência guardada pode ser equipe, pessoa ou (nos registros antigos)
  * um nome solto. Uma pessoa responde pela equipe dela: medir por equipe é o
  * recorte desta fase, e o individual vem depois.
  */

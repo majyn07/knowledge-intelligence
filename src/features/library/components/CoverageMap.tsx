@@ -49,7 +49,7 @@ export function CoverageMap() {
           <p className="mt-1 text-xs text-muted-foreground">
             {summary.gaps === 0
               ? "Nenhuma seção sem cobertura."
-              : `${summary.gaps} seções ainda não têm nenhum. Rascunho e revisão não contam — a análise não os enxerga.`}
+              : `${summary.gaps} seções ainda não têm nenhum. Rascunho e revisão não contam: a análise não os enxerga.`}
           </p>
 
           {orphans > 0 && (

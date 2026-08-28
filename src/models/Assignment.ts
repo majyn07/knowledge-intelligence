@@ -14,7 +14,7 @@ export interface Team {
    * Categorias do portal pelas quais a equipe responde.
    *
    * Serve para **sugerir** o responsável, nunca para decidi-lo: quem escolhe
-   * continua sendo quem preenche o formulário. Vazio é o normal — equipe que
+   * continua sendo quem preenche o formulário. Vazio é o normal. Equipe que
    * não declarou nada simplesmente não é sugerida.
    */
   categoryIds: string[];
@@ -31,7 +31,7 @@ export interface Team {
 /**
  * Pessoa é conta, não registro digitado.
  *
- * Só existe quem acessou pelo menos uma vez — ninguém é cadastrado à mão, e
+ * Só existe quem acessou pelo menos uma vez. Ninguém é cadastrado à mão, e
  * nenhum nome de colaborador vive no código. Enquanto um colega não entra, a
  * equipe dele recebe a atribuição.
  */
@@ -69,7 +69,7 @@ export interface ResolvedAssignment {
 /**
  * Traduz a referência guardada para algo exibível.
  *
- * O terceiro caso — `unknown` — não é defensivo à toa. Os registros anteriores
+ * O terceiro caso (`unknown`) não é defensivo à toa. Os registros anteriores
  * guardavam o **nome** de quem conduzia, e a migração converte para
  * identificador só o que encontra correspondência. O que sobra continua sendo
  * o texto original, e é exibido como veio: dizer "sem responsável" apagaria

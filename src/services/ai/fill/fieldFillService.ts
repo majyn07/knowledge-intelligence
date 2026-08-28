@@ -18,7 +18,7 @@ export const fieldFillService = {
     /*
       Anexo mandado a um provedor que não lê arquivo é recusado **antes** de
       sair daqui. Deixar passar produziria a pior resposta possível: campos
-      vazios, sem erro, com o documento ignorado em silêncio — e quem pediu
+      vazios, sem erro, com o documento ignorado em silêncio, e quem pediu
       concluiria que o arquivo não tinha a informação.
     */
     if (request.file && !activeProviderReadsFiles(process.env)) {
@@ -35,7 +35,7 @@ export const fieldFillService = {
       reasoning: "minimo",
       /*
         O anexo vai e não fica. Ele existe durante este pedido, e nada aqui o
-        escreve em disco, banco ou registro — o produto guarda o que foi
+        escreve em disco, banco ou registro: o produto guarda o que foi
         extraído e revisado, não o documento.
       */
       ...(request.file ? { files: [request.file] } : {}),

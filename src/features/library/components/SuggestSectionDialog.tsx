@@ -32,7 +32,7 @@ const confiancaLabel: Record<Sugestao["confidence"], string> = {
 /**
  * A IA propõe a seção; a revisão humana aprova.
  *
- * A importação por arquivo deixa muito artigo sem seção de propósito — o nome
+ * A importação por arquivo deixa muito artigo sem seção de propósito: o nome
  * que vem no arquivo raramente bate com o cadastro, e encaixar no mais parecido
  * seria classificação inventada. Isso resolve a origem e cria o problema
  * seguinte: alguém teria de classificar centenas à mão.
@@ -123,7 +123,7 @@ export function SuggestSectionDialog({
    *
    * **Lote que falha não derruba o que já veio.** Depois de vinte pedidos bem
    * sucedidos, perder tudo porque o vigésimo primeiro esbarrou na cota seria
-   * jogar fora trabalho que já está pronto para revisão — a tela guarda o que
+   * jogar fora trabalho que já está pronto para revisão: a tela guarda o que
    * tem e diz onde parou.
    */
   async function pedir() {
@@ -142,7 +142,7 @@ export function SuggestSectionDialog({
         acumuladas.push(...(await pedirLote(bloco)));
       } catch (failure) {
         setError(
-          `${failure instanceof Error ? failure.message : "Falha ao consultar"} — parou no lote ${
+          `${failure instanceof Error ? failure.message : "Falha ao consultar"}, parou no lote ${
             i + 1
           } de ${lotes}. As ${acumuladas.length} sugestões já recebidas continuam abaixo.`
         );
@@ -163,7 +163,7 @@ export function SuggestSectionDialog({
 
   /*
     Uma escrita, um evento, um aviso. Aplicar uma a uma custaria um aviso e uma
-    ida ao servidor por artigo — com seiscentos, seiscentos de cada.
+    ida ao servidor por artigo, com seiscentos, seiscentos de cada.
   */
   function aplicar() {
     if (!sugestoes) return;
@@ -229,7 +229,7 @@ export function SuggestSectionDialog({
           </p>
         ) : sugestoes.length === 0 ? (
           <p className="text-sm text-muted-foreground">
-            Nenhuma sugestão. O modelo não encontrou seção clara para estes artigos — o que é uma
+            Nenhuma sugestão. O modelo não encontrou seção clara para estes artigos: o que é uma
             resposta legítima, e melhor que um palpite.
           </p>
         ) : (

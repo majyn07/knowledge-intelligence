@@ -41,7 +41,7 @@ const NAO_IMPORTAR = "__nenhuma__";
  * Atendimentos por arquivo.
  *
  * O atendimento é a entrada do ciclo e era digitado um a um. Se a HubSpot
- * exporta, não há razão para redigitar — e sem volume o Levantamento não tem o
+ * exporta, não há razão para redigitar, e sem volume o Levantamento não tem o
  * que apontar: o achado mais grave dele é "atendimento resolvido e nenhum
  * artigo nasceu dele".
  *
@@ -133,12 +133,12 @@ export function TicketImportDialog({
           <DialogTitle>Importar atendimentos de um arquivo</DialogTitle>
 
           <DialogDescription>
-            A exportação da HubSpot, em CSV. O arquivo é lido no seu navegador — nada é enviado
+            A exportação da HubSpot, em CSV. O arquivo é lido no seu navegador, nada é enviado
             para lugar nenhum.
             {/*
               O caminho do documento único é dito aqui porque é aqui que a
               pessoa chega com ele na mão. Sem isso, quem tem um PDF de um
-              atendimento tenta convertê-lo em planilha — que é trabalho
+              atendimento tenta convertê-lo em planilha, que é trabalho
               inventado por falta de uma frase.
             */}{" "}
             Para <strong>um</strong> atendimento em PDF, imagem ou texto, use “Novo atendimento”:
@@ -178,7 +178,7 @@ export function TicketImportDialog({
               <h3 className="text-sm font-medium">De onde vem cada campo</h3>
 
               <p className="mt-1 text-xs text-muted-foreground">
-                Abaixo de cada escolha está o que aquela coluna guarda de verdade — o cabeçalho
+                Abaixo de cada escolha está o que aquela coluna guarda de verdade: o cabeçalho
                 da exportação raramente diz.
               </p>
 
@@ -211,7 +211,7 @@ export function TicketImportDialog({
                           <SelectItem key={`${header}-${index}`} value={String(index)}>
                             {header || `Coluna ${index + 1}`}
                             {columnSample(table, index, 32) &&
-                              ` — ${columnSample(table, index, 32)}`}
+                              `. ${columnSample(table, index, 32)}`}
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -240,7 +240,7 @@ export function TicketImportDialog({
                 </li>
 
                 <li>
-                  <strong className="text-foreground">{plan.update.length}</strong> atualizado(s) —
+                  <strong className="text-foreground">{plan.update.length}</strong> atualizado(s),
                   casados pelo identificador da HubSpot.
                 </li>
               </ul>
@@ -264,7 +264,7 @@ export function TicketImportDialog({
                     {plan.unreadableDate > 0 && (
                       <li>
                         {plan.unreadableDate} com data ilegível entram sem data, em vez de com uma
-                        data chutada — e ficam fora das janelas dos painéis.
+                        data chutada, e ficam fora das janelas dos painéis.
                       </li>
                     )}
 
@@ -274,7 +274,7 @@ export function TicketImportDialog({
 
                     {plan.duplicatedInFile > 0 && (
                       <li>
-                        {plan.duplicatedInFile} repetida(s) no arquivo — vale a última ocorrência.
+                        {plan.duplicatedInFile} repetida(s) no arquivo. Vale a última ocorrência.
                       </li>
                     )}
 
@@ -296,23 +296,23 @@ export function TicketImportDialog({
                 <dd className="truncate">{primeiro.title}</dd>
 
                 <dt className="text-muted-foreground">Solução</dt>
-                <dd className="truncate">{primeiro.solution || "—"}</dd>
+                <dd className="truncate">{primeiro.solution || "."}</dd>
 
                 <dt className="text-muted-foreground">Empresa</dt>
-                <dd className="truncate">{primeiro.company || "—"}</dd>
+                <dd className="truncate">{primeiro.company || "."}</dd>
 
                 <dt className="text-muted-foreground">Data</dt>
                 <dd>{primeiro.date ? formatDay(primeiro.date) : "sem data"}</dd>
 
                 <dt className="text-muted-foreground">Identificador</dt>
-                <dd className="truncate">{primeiro.source?.externalId ?? "—"}</dd>
+                <dd className="truncate">{primeiro.source?.externalId ?? "."}</dd>
               </dl>
             </div>
           )}
 
           {table && mapping && !ticketMappingIsComplete(mapping) && (
             <p className="text-sm text-muted-foreground">
-              Escolha a coluna do <strong>assunto</strong> para continuar — sem ela a linha não
+              Escolha a coluna do <strong>assunto</strong> para continuar, sem ela a linha não
               identifica atendimento nenhum.
             </p>
           )}

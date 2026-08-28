@@ -9,7 +9,7 @@ import type { LibraryFilters } from "./types/LibraryFilters";
  * O recorte da Biblioteca, traduzido de e para a URL.
  *
  * Fica separado do hook porque é aqui que mora a parte que erra: **valor vindo
- * de fora**. O endereço é colado por outra pessoa e envelhece — a categoria
+ * de fora**. O endereço é colado por outra pessoa e envelhece: a categoria
  * pode ter sido removida do cadastro, a coluna pode ter mudado de nome. Cada
  * campo é conferido contra o vocabulário de hoje, e o que não bate volta ao
  * padrão em vez de filtrar por algo que não existe.
@@ -55,7 +55,7 @@ export interface LibraryRecorte {
  * Lê o recorte, conferindo tudo contra o cadastro de hoje.
  *
  * `totalPages` entra porque página fora do intervalo precisa voltar para a
- * primeira: devolver vazio deixaria a tela em branco com registros logo ali —
+ * primeira: devolver vazio deixaria a tela em branco com registros logo ali:
  * a mesma regra que já vale quando alguém filtra estando na página 7.
  */
 export function fromParams(

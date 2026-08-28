@@ -14,7 +14,7 @@ import {
 /**
  * Janela vinda de fora.
  *
- * `null` é "desde o início" e é valor legítimo — por isso não pode cair no
+ * `null` é "desde o início" e é valor legítimo, por isso não pode cair no
  * mesmo caminho de "campo ausente". Um número que não está na lista vira 30,
  * que é o padrão, em vez de virar janela infinita sem ninguém pedir.
  */
@@ -33,7 +33,7 @@ function panelWindow(value: unknown): PanelWindow {
  *
  * Passa por `reconcileSpec` no fim: um painel gravado por uma versão que
  * oferecia uma quebra hoje inexistente não pode voltar como especificação
- * impossível — ele volta como a versão honesta de si mesmo.
+ * impossível. Ele volta como a versão honesta de si mesmo.
  */
 export function normalizePanel(raw: unknown, order = 0): PanelSpec {
   const value = record(raw);
@@ -45,7 +45,7 @@ export function normalizePanel(raw: unknown, order = 0): PanelSpec {
     title: text(value.title) || "Painel sem título",
     source,
     breakdown: oneOf(value.breakdown, PANEL_BREAKDOWNS, "none"),
-    // Ausente é o normal — o cruzamento é a exceção, não o padrão.
+    // Ausente é o normal: o cruzamento é a exceção, não o padrão.
     ...(text(value.breakdown2)
       ? { breakdown2: oneOf(value.breakdown2, PANEL_BREAKDOWNS, "none") }
       : {}),

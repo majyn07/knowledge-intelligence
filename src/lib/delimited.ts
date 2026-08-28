@@ -21,7 +21,7 @@ export interface DelimitedTable {
  *
  * Exportação brasileira sai com ponto e vírgula, porque o Excel em pt-BR usa a
  * vírgula como decimal. Adivinhar errado transforma o arquivo inteiro numa
- * coluna só — e a tela mostraria uma tabela de uma coluna sem dizer por quê.
+ * coluna só, e a tela mostraria uma tabela de uma coluna sem dizer por quê.
  *
  * A contagem é feita **fora das aspas**: um campo de conteúdo cheio de
  * vírgulas venceria a votação sozinho.
@@ -78,7 +78,7 @@ function readFirstRow(text: string): (delimiter: string) => number {
  */
 export function parseDelimited(text: string, delimiter?: string): DelimitedTable {
   // O Excel grava BOM no começo, e sem tirar ele o primeiro cabeçalho vem com
-  // um caractere invisível — que faz o mapeamento não reconhecer a coluna.
+  // um caractere invisível, que faz o mapeamento não reconhecer a coluna.
   const limpo = text.replace(/^﻿/, "");
   const sep = delimiter ?? detectDelimiter(limpo);
 
@@ -158,8 +158,8 @@ export function parseDelimited(text: string, delimiter?: string): DelimitedTable
 /**
  * Um valor de exemplo da coluna, para quem não conhece o formato do arquivo.
  *
- * O nome do cabeçalho nem sempre diz o que a coluna guarda — exportação sai
- * com `hs_body`, `col_12` e coisas piores —, e sem ver o conteúdo o mapeamento
+ * O nome do cabeçalho nem sempre diz o que a coluna guarda. Exportação sai
+ * com `hs_body`, `col_12` e coisas piores., e sem ver o conteúdo o mapeamento
  * vira adivinhação de outro tipo. Pega o primeiro valor **não vazio**: a
  * primeira linha costuma ter campo em branco, e mostrar vazio não informa nada.
  */

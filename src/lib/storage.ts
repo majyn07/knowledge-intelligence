@@ -3,7 +3,7 @@ export type StorageWriteResult = "ok" | "quota" | "unavailable" | "error";
 /**
  * Fronteira segura do `localStorage`.
  *
- * Escrever pode falhar — cota estourada, modo privado, armazenamento
+ * Escrever pode falhar. Cota estourada, modo privado, armazenamento
  * desabilitado. Sem tratamento, o erro sobe de dentro de um efeito e derruba a
  * aplicação inteira. Aqui a falha vira um resultado que quem chamou decide
  * como comunicar; nunca uma exceção.
@@ -112,7 +112,7 @@ export const APP_STORAGE_KEYS = Object.values(STORAGE_KEYS);
 /**
  * Usado apenas na tela de erro: devolve o navegador ao estado de semente.
  *
- * Varre também as chaves **derivadas** de uma nossa — a recuperação de texto é
+ * Varre também as chaves **derivadas** de uma nossa: a recuperação de texto é
  * uma por registro, com o prefixo mais o identificador. Apagar só os nomes
  * exatos deixaria conteúdo para trás justamente na tela que promete voltar à
  * semente, e é conteúdo guardado em formato antigo que costuma ter causado o

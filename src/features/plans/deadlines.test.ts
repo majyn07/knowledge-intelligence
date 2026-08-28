@@ -89,7 +89,7 @@ describe("isStalled", () => {
     expect(isStalled(dia(-1), agora)).toBe(false);
   });
 
-  it("registro concluído não está parado — ele terminou", () => {
+  it("registro concluído não está parado. Ele terminou", () => {
     expect(isStalled(dia(-30), agora, { finished: true })).toBe(false);
   });
 

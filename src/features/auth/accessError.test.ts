@@ -7,7 +7,7 @@ describe("accessFailureMessage", () => {
     /*
       O defeito que fez o acesso parecer falha de entrega: a pessoa clicava,
       voltava para a tela em silêncio, e pedia outro link. A mensagem precisa
-      dizer onde clicar — mandar pedir de novo sem explicar repete o erro.
+      dizer onde clicar. Mandar pedir de novo sem explicar repete o erro.
     */
     const texto = accessFailureMessage("outro-navegador");
 

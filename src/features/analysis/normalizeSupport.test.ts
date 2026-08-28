@@ -30,7 +30,7 @@ describe("normalizeTicket", () => {
   it("o que não é data vira vazio, e não uma data inventada", () => {
     /*
       O campo livre aceitava "ontem". Mantê-lo faria o atendimento cair fora
-      de toda janela dos indicadores sem que ninguém entendesse por quê — e
+      de toda janela dos indicadores sem que ninguém entendesse por quê, e
       chutar um dia seria inventar quando ele aconteceu.
     */
     expect(normalizeTicket({ id: "1", date: "ontem" }).date).toBe("");

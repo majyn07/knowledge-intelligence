@@ -24,7 +24,7 @@ import { Textarea } from "@/components/ui/textarea";
  * Editor do artigo em HTML.
  *
  * Edita **no próprio HTML renderizado**, e devolve o que está no documento.
- * Isso é o oposto de um editor de esquema — TipTap, ProseMirror — que
+ * Isso é o oposto de um editor de esquema (TipTap, ProseMirror) que
  * reserializa tudo para o formato que entende: o artigo do portal tem estilo em
  * atributo, classe da HubSpot e `srcset` nas imagens, e nada disso sobreviveria
  * à ida e volta. Aqui o que ninguém tocar continua idêntico.
@@ -92,7 +92,7 @@ export function ArticleHtmlEditor({ value, onChange, resetKey }: ArticleHtmlEdit
 
   /*
     O conteúdo entra uma vez, não a cada render. Reescrever `innerHTML` enquanto
-    alguém digita joga o cursor para o começo a cada tecla — é o mesmo motivo de
+    alguém digita joga o cursor para o começo a cada tecla. É o mesmo motivo de
     o formulário nascer do prop e não sincronizar depois.
   */
   useEffect(() => {

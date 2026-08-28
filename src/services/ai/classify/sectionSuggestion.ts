@@ -6,7 +6,7 @@ import { z } from "zod";
  * A importação por arquivo deixa muito artigo sem seção de propósito: o nome
  * que vem no arquivo raramente bate com o cadastro, e encaixar no mais parecido
  * seria a classificação inventada que o produto recusa. Isso resolve o problema
- * de origem e cria outro — alguém teria de classificar centenas à mão.
+ * de origem e cria outro, alguém teria de classificar centenas à mão.
  *
  * Aqui a IA **propõe**, e a revisão humana aprova. É a mesma regra da equipe
  * sugerida pelo cadastro e da análise do atendimento: nada rotulado como saída
@@ -60,8 +60,8 @@ export interface SectionSuggestion {
  * Lê o que o modelo devolveu, e **descarta o que ele inventou**.
  *
  * Duas defesas, e as duas já foram necessárias em outro lugar deste produto:
- * o identificador precisa existir no vocabulário que mandamos — modelo devolve
- * id plausível que nunca existiu —, e o artigo precisa ser um dos que
+ * o identificador precisa existir no vocabulário que mandamos. Modelo devolve
+ * id plausível que nunca existiu., e o artigo precisa ser um dos que
  * perguntamos, senão uma resposta desalinhada classificaria o registro errado.
  *
  * Sugestão descartada é sugestão que não aparece. Ela não vira "sem seção" com

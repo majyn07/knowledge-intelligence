@@ -53,7 +53,7 @@ export function BulkActions({ selected, onChangeStatus, onAssign, onDelete, onCl
           ))
         ) : (
           /*
-            Seleção com estágios incompatíveis — um rascunho e um publicado não
+            Seleção com estágios incompatíveis: um rascunho e um publicado não
             têm destino em comum. Dizer isso é melhor que uma barra sem botão
             nenhum, que pareceria defeito.
           */

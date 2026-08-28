@@ -87,8 +87,8 @@ describe("parseDelimited", () => {
 describe("columnSample", () => {
   it("mostra o primeiro valor não vazio da coluna", () => {
     /*
-      O nome do cabeçalho nem sempre diz o que a coluna guarda — exportação sai
-      com `hs_body` e `col_12` —, e sem ver o conteúdo o mapeamento vira
+      O nome do cabeçalho nem sempre diz o que a coluna guarda. Exportação sai
+      com `hs_body` e `col_12`., e sem ver o conteúdo o mapeamento vira
       adivinhação de outro tipo. A primeira linha costuma ter campo em branco.
     */
     const tabela = parseDelimited("a,b\n,primeiro\nsegundo,x");

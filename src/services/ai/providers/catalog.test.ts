@@ -22,7 +22,7 @@ describe("resolveActiveProvider", () => {
   it("chave vazia não conta como configurada", () => {
     /*
       A integração da Vercel cria a variável antes de haver valor, e uma string
-      vazia passaria por `Boolean(process.env.X)` só depois de virar `""` —
+      vazia passaria por `Boolean(process.env.X)` só depois de virar `""`,
       mas `"   "` passaria. Nenhuma das duas é chave.
     */
     expect(resolveActiveProvider({ GEMINI_API_KEY: "" }).id).toBeNull();
@@ -94,7 +94,7 @@ describe("activeProviderReadsFiles", () => {
   it("ambiente sem provedor não lê arquivo, e não é erro", () => {
     /*
       O produto roda sem IA, e sempre rodou. Quem pergunta é a tela, para
-      decidir se mostra o botão de anexar — tratar ausência como falha faria a
+      decidir se mostra o botão de anexar. Tratar ausência como falha faria a
       tela de preenchimento quebrar num ambiente que é legítimo.
     */
     expect(activeProviderReadsFiles({})).toBe(false);

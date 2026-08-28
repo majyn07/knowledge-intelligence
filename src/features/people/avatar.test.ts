@@ -26,7 +26,7 @@ describe("avatarHue", () => {
   it("a mesma pessoa tem sempre a mesma cor", () => {
     /*
       Determinística de propósito: sorteada, a cor mudaria a cada
-      carregamento — e cor que muda não distingue ninguém.
+      carregamento, e cor que muda não distingue ninguém.
     */
     expect(avatarHue("Raoni")).toBe(avatarHue("Raoni"));
   });

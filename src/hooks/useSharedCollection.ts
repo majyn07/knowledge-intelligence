@@ -31,8 +31,8 @@ let writeWarned = false;
 /**
  * Coleção que vive no servidor quando há servidor, e no navegador quando não há.
  *
- * A assinatura devolvida é a mesma de `usePersistedState` — `[itens, definir,
- * hidratado]` — para que os providers não precisem saber de onde o dado vem.
+ * A assinatura devolvida é a mesma de `usePersistedState`. `[itens, definir,
+ * hidratado]`, para que os providers não precisem saber de onde o dado vem.
  * Era a promessa da arquitetura desde o começo: a última camada é trocável, e
  * a interface não se refaz.
  *
@@ -49,9 +49,25 @@ let writeWarned = false;
  *
  * Vinte e cinco, e o número veio de uma falha: com cem, cada pedido levava
  * cerca de 1,3 MB de corpo de artigo, e a gravação dos 1.782 do portal morreu
- * no quinto lote — sem erro na tela e sem nada no console.
+ * no quinto lote, sem erro na tela e sem nada no console.
  */
 const POR_LOTE = 25;
+
+/**
+ * Teto de bytes por pedido, que é o que de fato importa.
+ *
+ * Contar linhas não descreve o pedido quando as linhas têm tamanhos muito
+ * diferentes. No acervo real o artigo médio tem 12,7 KB de corpo e o maior tem
+ * 311 KB: um lote de 25 medianos dá 300 KB, e um lote que calhe de reunir os
+ * 25 maiores dá 2,5 MB, quase dez vezes mais pelo mesmo número de linhas.
+ *
+ * Foi assim que 91 classificações se perderam. O lote grande falhou, e como é
+ * no primeiro lote que isso acontece, nenhuma das 91 chegou ao banco.
+ *
+ * Meio megabyte deixa o pedido previsível: o lote grande se divide sozinho, e
+ * o lote pequeno continua indo inteiro.
+ */
+const BYTES_POR_LOTE = 512 * 1024;
 
 /**
  * Quantas linhas por leitura.
@@ -61,6 +77,9 @@ const POR_LOTE = 25;
  */
 const POR_PAGINA = 200;
 
+/** Quantas páginas correm juntas. Medido: acima disso as consultas se atropelam. */
+const PAGINAS_SIMULTANEAS = 3;
+
 /** Divide em pedaços, preservando a ordem. */
 export function emLotes<T>(lista: T[], tamanho: number): T[][] {
   const lotes: T[][] = [];
@@ -68,6 +87,42 @@ export function emLotes<T>(lista: T[], tamanho: number): T[][] {
   for (let inicio = 0; inicio < lista.length; inicio += tamanho) {
     lotes.push(lista.slice(inicio, inicio + tamanho));
   }
+
+  return lotes;
+}
+
+/**
+ * Divide pelo tamanho do que vai no pedido, e não só pela contagem.
+ *
+ * O teto de linhas continua valendo, porque muitas linhas pequenas também
+ * custam. Item que sozinho já passa do teto de bytes vai sozinho: recusá-lo
+ * seria perder o registro em silêncio, e o pedido de um item só é o menor que
+ * dá para fazer.
+ */
+export function emLotesPorTamanho<T>(
+  lista: T[],
+  linhas: number,
+  bytes: number,
+  medir: (item: T) => number
+): T[][] {
+  const lotes: T[][] = [];
+  let atual: T[] = [];
+  let soma = 0;
+
+  for (const item of lista) {
+    const tamanho = medir(item);
+
+    if (atual.length > 0 && (atual.length >= linhas || soma + tamanho > bytes)) {
+      lotes.push(atual);
+      atual = [];
+      soma = 0;
+    }
+
+    atual.push(item);
+    soma += tamanho;
+  }
+
+  if (atual.length > 0) lotes.push(atual);
 
   return lotes;
 }
@@ -95,7 +150,7 @@ export function useSharedCollection<T>({
   /*
     As conversões chegam como funções novas a cada render do provider. Guardá-
     las numa ref evita reassinar o tempo real e recarregar a coleção a cada
-    render — mas a atualização acontece em efeito, porque escrever numa ref
+    render, mas a atualização acontece em efeito, porque escrever numa ref
     durante o render quebra a renderização concorrente.
 
     O efeito é declarado antes dos que consomem a ref, então roda antes deles.
@@ -116,7 +171,7 @@ export function useSharedCollection<T>({
    * Era um `select("*")` só, com o comentário de que as coleções são pequenas.
    * Deixaram de ser: com o portal importado são mil e oitocentos artigos e
    * vinte e quatro megabytes, e a consulta única falhava de duas formas ao
-   * mesmo tempo — estourava o tempo do servidor, e quando não estourava vinha
+   * mesmo tempo. Estourava o tempo do servidor, e quando não estourava vinha
    * **cortada em mil linhas**, que é o teto do PostgREST.
    *
    * O corte era o pior dos dois: chegava sem erro, e o tempo real substituía o
@@ -125,27 +180,61 @@ export function useSharedCollection<T>({
   const fetchAll = useCallback(async () => {
     if (!supabase) return null;
 
-    const linhas: unknown[] = [];
+    /*
+      A contagem primeiro, sem trazer linha nenhuma. Ela custa um pedido e paga
+      por si: sem saber o total, as páginas só podem ser pedidas uma depois da
+      outra, e eram dez em fila, nove segundos até a Biblioteca abrir.
+    */
+    const { count, error: erroDaContagem } = await supabase
+      .from(table)
+      .select("*", { count: "exact", head: true });
 
-    for (let inicio = 0; ; inicio += POR_PAGINA) {
-      const { data, error } = await supabase
+    if (erroDaContagem) {
+      toast.error(`Não foi possível ler ${table}: ${erroDaContagem.message}`);
+      return null;
+    }
+
+    const total = count ?? 0;
+    if (total === 0) return options.current.fromRows([]);
+
+    const paginas = Array.from(
+      { length: Math.ceil(total / POR_PAGINA) },
+      (_, indice) => indice * POR_PAGINA
+    );
+
+    /*
+      Em paralelo, mas com freio, e o freio veio da medição.
+
+      Dez páginas em fila levavam nove segundos. Dez de uma vez baixaram a
+      parede para quinze, mas cada consulta passou de seiscentos milissegundos
+      para nove segundos: vinte e quatro megabytes pedidos ao mesmo tempo se
+      atropelam do lado do servidor.
+
+      Três de cada vez aproveita a ida e volta sem transformar o banco em fila
+      de si mesmo.
+    */
+    const respostas: Awaited<ReturnType<typeof paginaDe>>[] = [];
+
+    async function paginaDe(inicio: number) {
+      return supabase!
         .from(table)
         .select("*")
         .range(inicio, inicio + POR_PAGINA - 1);
-
-      if (error) {
-        toast.error(`Não foi possível ler ${table}: ${error.message}`);
-        return null;
-      }
-
-      const pagina = data ?? [];
-      linhas.push(...pagina);
-
-      // Página incompleta é a última: não há motivo para pedir mais uma vazia.
-      if (pagina.length < POR_PAGINA) break;
     }
 
-    return options.current.fromRows(linhas);
+    for (let i = 0; i < paginas.length; i += PAGINAS_SIMULTANEAS) {
+      const bloco = paginas.slice(i, i + PAGINAS_SIMULTANEAS);
+      respostas.push(...(await Promise.all(bloco.map(paginaDe))));
+    }
+
+    const comErro = respostas.find((resposta) => resposta.error);
+
+    if (comErro?.error) {
+      toast.error(`Não foi possível ler ${table}: ${comErro.error.message}`);
+      return null;
+    }
+
+    return options.current.fromRows(respostas.flatMap((resposta) => resposta.data ?? []));
   }, [supabase, table]);
 
   // Carga inicial.
@@ -256,7 +345,7 @@ export function useSharedCollection<T>({
 
       /*
         `table` é uma união de nomes, então o tipo da linha esperada vira a
-        interseção de todas — `never`. O gancho é genérico de propósito: quem
+        interseção de todas, `never`. O gancho é genérico de propósito: quem
         o usa fornece `toRow`, e é lá que a forma correta é garantida.
       */
       const tabela = supabase.from(table) as unknown as {
@@ -267,20 +356,39 @@ export function useSharedCollection<T>({
       /*
         Em lotes, e não tudo de uma vez.
 
-        A importação do portal grava 1.822 artigos numa tacada só — cerca de
-        vinte e quatro megabytes de corpo HTML. Um `upsert` único com isso
-        estoura o limite de tamanho do pedido, e a falha chegaria como um erro
-        genérico depois de a pessoa ter esperado a varredura inteira.
+        A importação do portal grava 1.822 artigos. São 22,7 MB de corpo HTML,
+        e um `upsert` único com isso estoura o limite de tamanho do pedido: a
+        falha chegaria como erro genérico depois de a pessoa ter esperado a
+        varredura inteira.
 
-        Cem por lote dá pedidos de poucos megabytes, e o `delete` vai junto
-        porque uma lista de mil e oitocentos identificadores também tem teto,
-        agora na URL.
+        O lote fecha por bytes antes de fechar por contagem, porque o corpo do
+        artigo varia de um par de KB a 311 KB e vinte e cinco linhas podem ser
+        300 KB ou 2,5 MB. O `delete` continua contando linhas: ali só vão
+        identificadores, e o teto é o tamanho da URL.
       */
-      for (const lote of emLotes(mudados, POR_LOTE)) {
-        const { error } = await tabela.upsert(lote.map(row));
+      const linhas = mudados.map(row);
+
+      for (const lote of emLotesPorTamanho(
+        linhas,
+        POR_LOTE,
+        BYTES_POR_LOTE,
+        (linha) => JSON.stringify(linha).length
+      )) {
+        const { error } = await tabela.upsert(lote);
 
         if (error) {
-          toast.error(`Não foi possível gravar: ${error.message}`);
+          /*
+            A consequência vai junto porque a tela já disse que deu certo.
+
+            A mudança fica só nesta aba: a operação avisa "aplicado" assim que
+            o estado local muda, e a gravação acontece depois, aqui. Quem ler
+            só "não foi possível gravar" fecha a aba achando que perdeu pouco,
+            e perde o trabalho inteiro. Foi assim que 91 classificações de
+            artigo sumiram entre a tela e o banco.
+          */
+          toast.error(
+            `Não foi possível gravar: ${error.message}. A mudança está só nesta aba, e recarregar a página perde ela.`
+          );
           return;
         }
       }
@@ -289,7 +397,9 @@ export function useSharedCollection<T>({
         const { error } = await tabela.delete().in("id", lote);
 
         if (error) {
-          toast.error(`Não foi possível remover: ${error.message}`);
+          toast.error(
+            `Não foi possível remover: ${error.message}. A mudança está só nesta aba, e recarregar a página perde ela.`
+          );
           return;
         }
       }
@@ -298,7 +408,7 @@ export function useSharedCollection<T>({
     /*
       O `catch` existe porque `void sync()` engolia a exceção: quando um pedido
       falhava por rede ou por tamanho, o laço morria calado e metade do acervo
-      simplesmente não chegava. Falha silenciosa é pior que falha — ninguém vai
+      simplesmente não chegava. Falha silenciosa é pior que falha. Ninguém vai
       atrás do que não sabe que quebrou.
     */
     void sync()

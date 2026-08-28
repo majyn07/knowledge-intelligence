@@ -20,7 +20,7 @@ import { planStatusLabel } from "../types/PlanWorkspace";
  *
  * "3 análises aguardando" diz que existe trabalho; não diz qual olhar
  * primeiro. Aqui cada linha é um registro, na ordem em que merece atenção, com
- * o motivo escrito ao lado — atrasado, vence hoje, ou parado há tanto tempo.
+ * o motivo escrito ao lado. Atrasado, vence hoje, ou parado há tanto tempo.
  *
  * A lista vazia é boa notícia e diz isso, em vez de sumir da tela: seção que
  * desaparece deixa a dúvida de se foi verificada.
