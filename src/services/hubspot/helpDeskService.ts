@@ -4,39 +4,35 @@ import { record, text } from "@/lib/shape";
 import type { SupportConversationMessage } from "@/models/SupportConversation";
 
 import { nextCursor, toConversationMessages, type HubSpotActor } from "./conversationMapping";
-import { hubspot } from "./hubspotClient";
 import type { FioListado } from "./helpDeskSchedule";
+import { hubspot } from "./hubspotClient";
+import { toOwnerTeams, type OwnerTeams } from "./ownerTeams";
 import { threadsDaPagina, toThreadTicket, type ThreadTicket } from "./threadTicketMapping";
 
 /**
- * A caixa do suporte, varrida.
+ * A caixa do suporte, lida em pedaços.
  *
  * É a porta que não depende do escopo bloqueado: o objeto de ticket está
  * fechado, mas a conversa que o gerou não. E a conversa é o que o arquivo
  * exportado nunca traz.
  *
- * Duas medições decidiram este desenho, e as duas estão em
- * `docs/hubspot-pendencias.md`:
- *
- * A lista sai sempre do mais antigo. `?sort=-createdAt` devolve 400 e o filtro
- * por data é ignorado, então alcançar os últimos meses exige percorrer a
- * paginação desde abril de 2024. Listar é barato: cem fios por requisição.
- *
- * O assunto está na mensagem, e não no fio. Cada fio que se queira ler custa
- * uma requisição própria, e são dezenas de milhares no total. Por isso a
- * varredura tem janela: lista tudo, lê só o que está dentro dela.
+ * Cada função aqui faz **um** pedaço: uma página da listagem, um lote de
+ * leitura. Quem conduz o laço é a tela, como na varredura do portal, e por
+ * duas razões. A listagem inteira são umas 550 páginas, que estouraria o prazo
+ * de uma requisição só; e quem começou uma varredura de minutos precisa poder
+ * ver onde está e parar no meio.
  */
 
 /**
  * As caixas de onde o atendimento vem.
  *
- * São duas, e isso foi medido: `Help Desk` recebe e-mail e chat, `Setup`
- * recebe WhatsApp e chat. As outras oito da conta são marketing, vendas,
- * social e teste, e o que cai nelas não é atendimento.
+ * São duas, e isso foi medido: `Help Desk` recebe e-mail e chat, `Setup` recebe
+ * WhatsApp e chat. As outras oito da conta são marketing, vendas, social e
+ * teste, e o que cai nelas não é atendimento.
  *
  * Declarado em `HUBSPOT_INBOXES` em vez de fixo aqui, pela mesma razão do
  * provedor de IA: caixa é coisa que a empresa cria e renomeia, e ninguém vai
- * abrir o código para acompanhar. Sem a variável valem as duas conhecidas.
+ * abrir o código para acompanhar.
  */
 export const CAIXAS_PADRAO = [
   { id: "474522581", nome: "Help Desk" },
@@ -56,7 +52,16 @@ export function caixasConfiguradas(env: Record<string, string | undefined>): str
 const POR_PAGINA = 100;
 
 /**
- * Pausa entre requisições.
+ * Quantos fios um lote de leitura visita.
+ *
+ * Cada fio custa duas ou três requisições à HubSpot, então vinte por lote dá
+ * uma requisição nossa de poucos segundos: curta o bastante para caber no
+ * prazo, longa o bastante para o progresso não virar mil idas ao servidor.
+ */
+export const POR_LOTE = 20;
+
+/**
+ * Pausa entre requisições dentro do lote.
  *
  * É o CRM de produção da empresa do outro lado. Varrer a toda velocidade
  * encontra o limite de taxa e devolve erro no meio de uma leitura que já
@@ -64,80 +69,31 @@ const POR_PAGINA = 100;
  */
 const PAUSA_MS = 120;
 
-/** Trava de laço, muito acima do volume real, para o caso de cursor repetido. */
-const MAXIMO_DE_PAGINAS = 2_000;
-
 const espera = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
-export interface ProgressoDaLista {
-  paginas: number;
-  fios: number;
-  maisAntigo: string;
-  maisRecente: string;
+export interface PaginaDeFios {
+  fios: FioListado[];
+  /** O cursor da próxima página, ou `null` quando a caixa acabou. */
+  proxima: string | null;
 }
 
-/**
- * Todos os fios da caixa, só a listagem.
- *
- * Sem ler mensagem nenhuma: é a passada barata que descobre o que existe, para
- * a passada cara só visitar o que interessa.
- */
-export async function listarFios(
-  inboxIds: string[],
-  sinal?: AbortSignal,
-  aoProgredir?: (progresso: ProgressoDaLista) => void
-): Promise<FioListado[]> {
-  const fios: FioListado[] = [];
-  let paginas = 0;
+/** Uma página da listagem de uma caixa. Barata: cem fios por requisição. */
+export async function umaPaginaDeFios(inboxId: string, cursor?: string): Promise<PaginaDeFios> {
+  const query = new URLSearchParams({ limit: String(POR_PAGINA), inboxId });
+  if (cursor) query.set("after", cursor);
 
-  for (const inboxId of inboxIds) {
-    if (sinal?.aborted) break;
-    paginas += await listarCaixa(inboxId, fios, paginas, sinal, aoProgredir);
-  }
+  const pagina: unknown = await hubspot.get(`/conversations/v3/conversations/threads?${query}`);
 
-  return fios;
-}
-
-/** Uma caixa, página a página. Devolve quantas páginas leu. */
-async function listarCaixa(
-  inboxId: string,
-  fios: FioListado[],
-  jaLidas: number,
-  sinal?: AbortSignal,
-  aoProgredir?: (progresso: ProgressoDaLista) => void
-): Promise<number> {
-  let cursor: string | null = null;
-  let paginas = 0;
-
-  do {
-    const query = new URLSearchParams({ limit: String(POR_PAGINA), inboxId });
-    if (cursor) query.set("after", cursor);
-
-    const pagina: unknown = await hubspot.get(
-      `/conversations/v3/conversations/threads?${query}`
-    );
-
-    fios.push(...threadsDaPagina(pagina));
-    paginas += 1;
-
-    aoProgredir?.({
-      paginas: jaLidas + paginas,
-      fios: fios.length,
-      maisAntigo: fios[0]?.criadoEm ?? "",
-      maisRecente: fios.at(-1)?.criadoEm ?? "",
-    });
-
-    cursor = nextCursor(pagina);
-
-    if (cursor) await espera(PAUSA_MS);
-  } while (cursor && paginas < MAXIMO_DE_PAGINAS && !sinal?.aborted);
-
-  return paginas;
+  return { fios: threadsDaPagina(pagina), proxima: nextCursor(pagina) };
 }
 
 export interface AtendimentoDoFio {
   ticket: ThreadTicket;
   messages: SupportConversationMessage[];
+  /** O identificador do chamado na HubSpot, quando a associação devolve um. */
+  ticketId?: string;
+  /** O registro cru, como a origem devolveu. */
+  raw: Record<string, unknown>;
 }
 
 async function mensagensDoFio(threadId: string): Promise<unknown[]> {
@@ -152,14 +108,36 @@ async function mensagensDoFio(threadId: string): Promise<unknown[]> {
   return Array.isArray(bruto) ? bruto : [];
 }
 
+/**
+ * O chamado ligado ao fio.
+ *
+ * A leitura do objeto de ticket é 403, mas a **associação** não: ela devolve o
+ * identificador, e é o que permite o registro daqui carregar o número real do
+ * chamado. Falha em silêncio de propósito: sem o número o atendimento continua
+ * válido, e derrubar a varredura por causa disso sairia caro demais.
+ */
+async function chamadoDoFio(threadId: string): Promise<string | undefined> {
+  try {
+    const resposta: unknown = await hubspot.get(
+      `/crm/v4/objects/conversation/${threadId}/associations/ticket`
+    );
+
+    const lista = record(resposta).results;
+    const primeiro = Array.isArray(lista) ? lista[0] : undefined;
+    const id = text(record(primeiro).toObjectId).trim();
+
+    return id === "" ? undefined : id;
+  } catch {
+    return undefined;
+  }
+}
+
 async function resolverAtores(brutas: unknown[]): Promise<Map<string, HubSpotActor>> {
   const ids = new Set<string>();
 
   for (const bruta of brutas) {
-    for (const remetente of Array.isArray(record(bruta).senders) ? (record(bruta).senders as unknown[]) : []) {
-      const id = text(record(remetente).actorId).trim();
-      if (id !== "") ids.add(id);
-    }
+    const id = text(record(bruta).createdBy).trim();
+    if (id !== "") ids.add(id);
   }
 
   if (ids.size === 0) return new Map();
@@ -169,60 +147,111 @@ async function resolverAtores(brutas: unknown[]): Promise<Map<string, HubSpotAct
   });
 
   const atores = new Map<string, HubSpotActor>();
+  const lista = record(resposta).results;
 
-  for (const bruto of Array.isArray(record(resposta).results) ? (record(resposta).results as unknown[]) : []) {
+  for (const bruto of Array.isArray(lista) ? lista : []) {
     const id = text(record(bruto).id).trim();
-    if (id !== "") atores.set(id, record(bruto) as unknown as HubSpotActor);
+
+    if (id !== "") {
+      atores.set(id, {
+        id,
+        name: text(record(bruto).name),
+        type: text(record(bruto).type),
+      } as HubSpotActor);
+    }
   }
 
   return atores;
 }
 
-export interface ProgressoDaLeitura {
-  lidos: number;
-  total: number;
-  aproveitados: number;
-}
-
 /**
- * Lê os fios escolhidos, um por vez.
+ * Lê um lote de fios, um por vez.
  *
- * Em série, e não em paralelo: são dezenas de milhares de fios do outro lado, e
- * o limite de taxa chegaria no primeiro lote paralelo. O que falha não derruba
- * o que já veio: quem começou uma varredura de mil não pode perder tudo por
- * causa do fio setecentos.
+ * Em série dentro do lote: são dezenas de milhares de fios do outro lado, e o
+ * limite de taxa chegaria no primeiro lote paralelo.
+ *
+ * O que falha não derruba o que já veio. Quem começou uma varredura de mil não
+ * pode perder tudo por causa do fio setecentos, e a contagem de falhas volta
+ * para a tela dizer quantos ficaram para trás.
  */
-export async function lerFios(
-  fios: FioListado[],
-  sinal?: AbortSignal,
-  aoProgredir?: (progresso: ProgressoDaLeitura) => void
+export async function lerLote(
+  fios: FioListado[]
 ): Promise<{ atendimentos: AtendimentoDoFio[]; falhas: number }> {
   const atendimentos: AtendimentoDoFio[] = [];
   let falhas = 0;
 
-  for (const [indice, fio] of fios.entries()) {
-    if (sinal?.aborted) break;
-
+  for (const fio of fios) {
     try {
       const brutas = await mensagensDoFio(fio.id);
-      const ticket = toThreadTicket({ id: fio.id, createdAt: fio.criadoEm }, brutas);
+
+      /*
+        Os atores vêm antes do mapeamento, e não depois: é por eles que se
+        distingue o agente do robô de triagem, e a solução sai da última fala
+        de gente do suporte.
+      */
+      const [atores, ticketId] = await Promise.all([
+        resolverAtores(brutas),
+        chamadoDoFio(fio.id),
+      ]);
+
+      const ticket = toThreadTicket({ id: fio.id, createdAt: fio.criadoEm }, brutas, atores);
 
       if (ticket) {
-        const atores = await resolverAtores(brutas);
-        atendimentos.push({ ticket, messages: toConversationMessages(brutas, atores) });
+
+        atendimentos.push({
+          ticket,
+          messages: toConversationMessages(brutas, atores),
+          ...(ticketId ? { ticketId } : {}),
+          /*
+            O registro cru guarda o que o nosso modelo não tem onde pôr, e é o
+            que a análise lê inteiro. Não é normalizado: conferir a forma seria
+            decidir de antemão o que a origem pode ter.
+          */
+          raw: {
+            threadId: fio.id,
+            criadoEm: fio.criadoEm,
+            ...(fio.ultimaMensagemEm ? { ultimaMensagemEm: fio.ultimaMensagemEm } : {}),
+            ...(ticketId ? { hubspotTicketId: ticketId } : {}),
+            origemDoTitulo: ticket.titleOrigin,
+            mensagens: ticket.messageCount,
+          },
+        });
       }
     } catch {
       falhas += 1;
     }
 
-    aoProgredir?.({
-      lidos: indice + 1,
-      total: fios.length,
-      aproveitados: atendimentos.length,
-    });
-
     await espera(PAUSA_MS);
   }
 
   return { atendimentos, falhas };
+}
+
+/**
+ * Os donos e suas equipes, numa passada por varredura.
+ *
+ * Resolve o vínculo e-mail → equipe uma vez, e não uma vez por fio. Vale
+ * lembrar o que a medição mostrou: as seis equipes de Suporte da conta têm as
+ * mesmas dezoito pessoas, então isso distingue Setup de Suporte e não diz de
+ * qual produto o atendimento é.
+ */
+export async function donosComEquipe(): Promise<OwnerTeams[]> {
+  const donos: OwnerTeams[] = [];
+  let cursor: string | null = null;
+  let voltas = 0;
+
+  do {
+    const query = new URLSearchParams({ limit: String(POR_PAGINA) });
+    if (cursor) query.set("after", cursor);
+
+    const pagina: unknown = await hubspot.get(`/crm/v3/owners?${query}`);
+
+    donos.push(...toOwnerTeams(pagina));
+    cursor = nextCursor(pagina);
+    voltas += 1;
+
+    if (cursor) await espera(PAUSA_MS);
+  } while (cursor && voltas < 20);
+
+  return donos;
 }

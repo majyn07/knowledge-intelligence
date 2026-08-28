@@ -18,13 +18,30 @@ const msg = (extra: Record<string, unknown> = {}) => ({
   ...extra,
 });
 
+/** Uma fala do suporte, com o ator declarado como agente. */
+const doSuporte = (extra: Record<string, unknown> = {}) =>
+  msg({ direction: "OUTGOING", createdBy: "A-1", ...extra });
+
+/** E uma do robô de triagem, que responde antes de todo mundo. */
+const doRobo = (extra: Record<string, unknown> = {}) =>
+  msg({ direction: "OUTGOING", createdBy: "B-1", ...extra });
+
+const ATORES = new Map([
+  ["A-1", { id: "A-1", name: "Matheus", type: "AGENT" }],
+  ["B-1", { id: "B-1", name: "Bot", type: "BOT" }],
+]) as never;
+
 describe("toThreadTicket", () => {
   /* No e-mail o assunto é o que a pessoa escreveu para dizer do que se trata. */
   it("usa o assunto do e-mail quando ele existe", () => {
-    const t = toThreadTicket(fio(), [
-      msg({ subject: "Erro D15 ao processar o pavimento", text: "Segue o print." }),
-      msg({ direction: "OUTGOING", createdAt: "2026-08-11T10:00:00Z", text: "Atualize o release." }),
-    ]);
+    const t = toThreadTicket(
+      fio(),
+      [
+        msg({ subject: "Erro D15 ao processar o pavimento", text: "Segue o print." }),
+        doSuporte({ createdAt: "2026-08-11T10:00:00Z", text: "Atualize o release." }),
+      ],
+      ATORES
+    );
 
     expect(t?.title).toBe("Erro D15 ao processar o pavimento");
     expect(t?.titleOrigin).toBe("assunto");
@@ -33,10 +50,14 @@ describe("toThreadTicket", () => {
 
   /* No chat não há assunto, e o recorte precisa ser dito como recorte. */
   it("no chat, recorta a primeira coisa que o cliente escreveu", () => {
-    const t = toThreadTicket(fio(), [
-      msg({ text: "Bom dia, a licença não ativa depois que formatei" }),
-      msg({ direction: "OUTGOING", createdAt: "2026-08-11T10:00:00Z", text: "Vou verificar." }),
-    ]);
+    const t = toThreadTicket(
+      fio(),
+      [
+        msg({ text: "Bom dia, a licença não ativa depois que formatei" }),
+        doSuporte({ createdAt: "2026-08-11T10:00:00Z", text: "Vou verificar." }),
+      ],
+      ATORES
+    );
 
     expect(t?.title).toBe("Bom dia, a licença não ativa depois que formatei");
     expect(t?.titleOrigin).toBe("primeira-mensagem");
@@ -52,11 +73,15 @@ describe("toThreadTicket", () => {
   });
 
   it("a solução é a última resposta do suporte", () => {
-    const t = toThreadTicket(fio(), [
-      msg({ subject: "Dúvida", text: "Pergunta." }),
-      msg({ direction: "OUTGOING", createdAt: "2026-08-11T09:00:00Z", text: "Primeira resposta." }),
-      msg({ direction: "OUTGOING", createdAt: "2026-08-11T15:00:00Z", text: "Resolvido assim." }),
-    ]);
+    const t = toThreadTicket(
+      fio(),
+      [
+        msg({ subject: "Dúvida", text: "Pergunta." }),
+        doSuporte({ createdAt: "2026-08-11T09:00:00Z", text: "Primeira resposta." }),
+        doSuporte({ createdAt: "2026-08-11T15:00:00Z", text: "Resolvido assim." }),
+      ],
+      ATORES
+    );
 
     expect(t?.solution).toBe("Resolvido assim.");
   });
@@ -65,6 +90,47 @@ describe("toThreadTicket", () => {
     const t = toThreadTicket(fio(), [msg({ subject: "Dúvida", text: "Pergunta." })]);
 
     expect(t?.solution).toBe("");
+  });
+
+  /*
+    Medido contra os fios reais: o robô de triagem responde antes de todo mundo,
+    e a última fala dele é uma pergunta. "Qual é o melhor e-mail para contato"
+    virou solução de um atendimento até esta regra existir.
+  */
+  it("o robô de triagem não vira solução", () => {
+    const t = toThreadTicket(
+      fio(),
+      [
+        msg({ text: "Minha licença parou de funcionar depois da formatação." }),
+        doRobo({ createdAt: "2026-08-10T09:05:00Z", text: "Qual o melhor e-mail para contato?" }),
+      ],
+      ATORES
+    );
+
+    expect(t?.solution).toBe("");
+  });
+
+  /*
+    O chat começa com o cliente escrevendo só o próprio nome. Um fio real virou
+    o título "Alisson", que não identifica nada na lista depois.
+  */
+  it("pula a saudação curta ao montar o título do chat", () => {
+    const t = toThreadTicket(
+      fio(),
+      [
+        msg({ text: "Alisson" }),
+        msg({ createdAt: "2026-08-10T09:01:00Z", text: "O Eberick fecha sozinho ao abrir o projeto" }),
+      ],
+      ATORES
+    );
+
+    expect(t?.title).toBe("O Eberick fecha sozinho ao abrir o projeto");
+  });
+
+  it("usa a curta mesmo assim quando não há outra", () => {
+    const t = toThreadTicket(fio(), [msg({ text: "Alisson" })], ATORES);
+
+    expect(t?.title).toBe("Alisson");
   });
 
   it("prefere o fechamento, e cai na criação enquanto está aberto", () => {
@@ -111,11 +177,15 @@ describe("toThreadTicket", () => {
 
   /* A API não garante ordem, e a última resposta depende dela. */
   it("ordena por data antes de decidir qual é a última", () => {
-    const t = toThreadTicket(fio(), [
-      msg({ direction: "OUTGOING", createdAt: "2026-08-11T15:00:00Z", text: "Depois." }),
-      msg({ direction: "OUTGOING", createdAt: "2026-08-11T09:00:00Z", text: "Antes." }),
-      msg({ subject: "Dúvida", text: "Pergunta." }),
-    ]);
+    const t = toThreadTicket(
+      fio(),
+      [
+        doSuporte({ createdAt: "2026-08-11T15:00:00Z", text: "Depois." }),
+        doSuporte({ createdAt: "2026-08-11T09:00:00Z", text: "Antes." }),
+        msg({ subject: "Dúvida", text: "Pergunta." }),
+      ],
+      ATORES
+    );
 
     expect(t?.solution).toBe("Depois.");
   });

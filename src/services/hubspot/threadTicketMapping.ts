@@ -1,6 +1,6 @@
 import { items, record, text } from "@/lib/shape";
 
-import { stripHtml } from "./conversationMapping";
+import { stripHtml, type HubSpotActor } from "./conversationMapping";
 import type { FioListado } from "./helpDeskSchedule";
 
 /**
@@ -56,10 +56,12 @@ interface Mensagem {
   texto: string;
   assunto: string;
   entrando: boolean;
+  /** Gente do suporte, e não o robô de triagem. */
+  deAgente: boolean;
   em: string;
 }
 
-function mensagensDe(brutas: unknown[]): Mensagem[] {
+function mensagensDe(brutas: unknown[], atores: Map<string, HubSpotActor>): Mensagem[] {
   return brutas
     .map((bruta) => record(bruta))
     .filter((m) => text(m.type) === "MESSAGE")
@@ -67,11 +69,21 @@ function mensagensDe(brutas: unknown[]): Mensagem[] {
       texto: stripHtml(m.text ?? m.richText),
       assunto: text(m.subject).trim(),
       entrando: text(m.direction) === "INCOMING",
+      deAgente: atores.get(text(m.createdBy))?.type === "AGENT",
       em: text(m.createdAt),
     }))
     .filter((m) => m.texto !== "")
     .sort((a, b) => a.em.localeCompare(b.em));
 }
+
+/**
+ * Abaixo disso a mensagem não descreve um problema.
+ *
+ * Medido contra os fios reais: o chat começa com o cliente escrevendo só o
+ * próprio nome, ou "oi". Um deles virou o título "Alisson", que não diz nada a
+ * quem lê a lista depois.
+ */
+const CURTA_DEMAIS = 15;
 
 /**
  * Um fio virando atendimento, ou `null` quando não há o que registrar.
@@ -80,34 +92,49 @@ function mensagensDe(brutas: unknown[]): Mensagem[] {
  * de estado) e não atendimento. Gravá-lo criaria uma linha sem assunto e sem
  * conversa, e a análise trataria isso como evidência.
  */
-export function toThreadTicket(fio: unknown, mensagensBrutas: unknown[]): ThreadTicket | null {
+export function toThreadTicket(
+  fio: unknown,
+  mensagensBrutas: unknown[],
+  atores: Map<string, HubSpotActor> = new Map()
+): ThreadTicket | null {
   const raiz = record(fio);
   const externalId = text(raiz.id).trim();
 
   if (externalId === "") return null;
 
-  const mensagens = mensagensDe(mensagensBrutas);
+  const mensagens = mensagensDe(mensagensBrutas, atores);
 
   if (mensagens.length === 0) return null;
 
   const doCliente = mensagens.filter((m) => m.entrando);
-  const doSuporte = mensagens.filter((m) => !m.entrando);
+  const doSuporte = mensagens.filter((m) => m.deAgente);
 
   /*
     O assunto do e-mail vence, quando existe. É o que a pessoa escreveu para
     dizer do que se tratava, e nenhum recorte nosso é melhor que isso.
   */
   const assunto = mensagens.find((m) => m.assunto !== "")?.assunto ?? "";
-  const primeiraDoCliente = doCliente[0] ?? mensagens[0];
+
+  /*
+    Sem assunto, procura a primeira coisa que o cliente escreveu **e que
+    descreve algo**. O chat começa com saudação e nome, e usar essa primeira
+    linha produz título como "Alisson", que não identifica o registro depois.
+  */
+  const primeiraDoCliente =
+    doCliente.find((m) => m.texto.length >= CURTA_DEMAIS) ?? doCliente[0] ?? mensagens[0];
 
   const title = assunto === "" ? primeiraLinha(primeiraDoCliente.texto) : primeiraLinha(assunto);
 
   if (title === "") return null;
 
   /*
-    A última resposta do suporte é a solução mais provável, e "mais provável"
-    é o que dá para afirmar: o campo de solução não existe na conversa. Quem
-    revisa lê o fio inteiro ao lado, que veio junto.
+    A última resposta de **gente do suporte** é a solução mais provável, e
+    "mais provável" é o que dá para afirmar: o campo de solução não existe na
+    conversa. Quem revisa lê o fio inteiro ao lado, que veio junto.
+
+    Agente e não "qualquer saída": o robô de triagem responde antes de todo
+    mundo, e a última fala dele é uma pergunta. Fio sem nenhum agente fica sem
+    solução, o que é verdade: ninguém do suporte falou nele.
   */
   const solution = doSuporte.at(-1)?.texto ?? "";
 

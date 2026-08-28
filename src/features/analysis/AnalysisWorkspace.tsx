@@ -211,7 +211,7 @@ export function AnalysisWorkspace() {
       <div className="w-full space-y-7">
         <PageHeader
           overline={`Projeto ativo${activeProject ? ` · ${activeProject.name}` : ""}`}
-          title="Conduza a evolução do conhecimento"
+          title="Atendimentos"
           description="O atendimento entra como veio do suporte e não se edita aqui. Esta tela é onde ele vira análise, e a decisão sobre cada oportunidade é de gente."
           icon={<Sparkles className="h-6 w-6" />}
           actions={
@@ -238,7 +238,7 @@ export function AnalysisWorkspace() {
         overline={`Projeto ativo${
           activeProject ? ` · ${activeProject.name}` : ""
         }`}
-        title="Conduza a evolução do conhecimento"
+        title="Atendimentos"
         description="O atendimento entra como veio do suporte e não se edita aqui. Esta tela é onde ele vira análise, e a decisão sobre cada oportunidade é de gente."
         icon={<Sparkles className="h-6 w-6" />}
         actions={
