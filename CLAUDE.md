@@ -512,6 +512,31 @@ falhou, deixando o acervo em quatrocentos e quarenta com cara de acervo
 inteiro. Vinte e cinco por pedido, com o erro chegando à tela: `void` numa
 promessa engole a exceção, e o laço morre calado.
 
+**A releitura relê só o que mudou.** Ela continua buscando o estado atual em
+vez de aplicar o evento, pelo motivo de sempre, mas em dois passos: a lista de
+identificadores com o carimbo de gravação, e depois só as linhas cujo carimbo
+mudou. Um colega classificando **um** artigo custava onze pedidos e 22,7 MB em
+cada aba aberta da equipe; agora custa três pedidos e 221 ms, medido.
+
+O carimbo é `synced_at`, do gatilho, e **não** `updated_at`. Os dois têm donos
+diferentes: `updated_at` é do produto e guarda o `lastmod` do portal, que é como
+a varredura sabe o que já está em dia; salvar rascunho não o toca e restaurar da
+lixeira também não. Um gatilho sobre ele consertaria a releitura e faria a
+varredura rebaixar 1.822 páginas a cada execução.
+
+Ela recua para a releitura inteira sempre que não puder responder com certeza:
+banco sem a coluna, memória sem carimbo, quase tudo mudado, falha ao buscar. O
+contrário, tela com dado velho, é o defeito que ninguém percebe.
+
+É **opção por coleção**, e não padrão, porque exige `fromRows` que converta
+linha a linha: quem decide algo olhando o conjunto não pode receber um pedaço
+dele. Hoje só o acervo a liga, que é a coleção que a justifica.
+
+**E a leitura paginada ordena por `id`.** Não era ordenada, e paginar com
+`range` sobre consulta sem ordem é indefinido no Postgres: entre duas páginas o
+planejador pode repetir uma linha e pular outra, e a coleção chegaria com um
+artigo duplicado e outro ausente, sem erro nenhum.
+
 **E o tempo real não pode reler durante a nossa própria escrita.** Cada lote
 gravado dispara um evento, a releitura devolve uma visão **parcial** do banco,
 e ela substitui o estado local no meio do caminho: a escrita competindo
@@ -1238,7 +1263,7 @@ das falhas dele, a leitura da sugestão de seção, a leitura do preenchimento d
 formulário com a seleção do que aplicar e a classificação do arquivo
 anexado, o recorte na URL, a central de avisos, o levantamento, índice do artigo, critérios de publicação,
 fronteira de armazenamento com a divisão em lotes da
-gravação compartilhada, a leitura de arquivo delimitado com o mapeamento de
+gravação compartilhada e o plano da releitura incremental, a leitura de arquivo delimitado com o mapeamento de
 colunas e os planos de importação de artigo e de atendimento, a recuperação de texto não salvo, o cadastro
 de taxonomia com a migração da
 classificação antiga, os normalizadores de artigo, plano e atendimento, o motor

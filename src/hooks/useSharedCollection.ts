@@ -8,6 +8,13 @@ import { getSupabase } from "@/lib/supabase/client";
 import type { RealtimeTable } from "@/lib/supabase/types";
 import { readRaw, writeJSON } from "@/lib/storage";
 
+import {
+  aplicarReleitura,
+  planejarReleitura,
+  POR_PEDIDO_DE_IDS,
+  valeIncremental,
+  type Carimbo,
+} from "./collectionSync";
 import { criarCoalescer } from "./coalescer";
 
 interface UseSharedCollectionOptions<T> {
@@ -25,6 +32,37 @@ interface UseSharedCollectionOptions<T> {
   toRow: (item: T) => Record<string, unknown>;
   /** Identidade do registro, para saber o que mudou entre dois estados. */
   identify: (item: T) => string;
+  /**
+   * Reler só o que mudou quando outra pessoa mexe na tabela.
+   *
+   * Vale a pena onde a coleção é grande: no acervo, um colega classificando um
+   * artigo fazia cada aba da equipe baixar os 22,7 MB inteiros.
+   *
+   * É opção e não padrão porque depende de `fromRows` converter **linha a
+   * linha**. Quem tiver `fromRows` que decide algo olhando o conjunto (ordenar,
+   * cortar, deduplicar) não pode receber um pedaço dele.
+   */
+  releituraIncremental?: boolean;
+}
+
+/** O que a releitura incremental precisa de cada linha, e mais nada. */
+interface LinhaComCarimbo {
+  id?: unknown;
+  synced_at?: unknown;
+}
+
+function carimbosDe(rows: unknown[]): Carimbo[] {
+  const lista: Carimbo[] = [];
+
+  for (const row of rows) {
+    const linha = row as LinhaComCarimbo;
+
+    if (typeof linha?.id !== "string" || typeof linha?.synced_at !== "string") continue;
+
+    lista.push({ id: linha.id, syncedAt: linha.synced_at });
+  }
+
+  return lista;
 }
 
 /** Um aviso por sessão: repetir a cada tecla seria pior que o problema. */
@@ -78,6 +116,15 @@ const BYTES_POR_LOTE = 512 * 1024;
  * estourar o tempo do servidor com corpos de artigo de doze mil caracteres.
  */
 const POR_PAGINA = 200;
+
+/**
+ * E quantos carimbos por leitura.
+ *
+ * Muito maior que a página de linhas inteiras, porque aqui cada registro são
+ * duas colunas curtas: os 1.822 artigos cabem em duas idas em vez de dez. Mil é
+ * o teto do PostgREST, então este é o maior valor que existe.
+ */
+const CARIMBOS_POR_PAGINA = 1_000;
 
 /** Quantas páginas correm juntas. Medido: acima disso as consultas se atropelam. */
 const PAGINAS_SIMULTANEAS = 3;
@@ -152,6 +199,7 @@ export function useSharedCollection<T>({
   fromRows,
   toRow,
   identify,
+  releituraIncremental = false,
 }: UseSharedCollectionOptions<T>) {
   const [items, setItems] = useState<T[]>(fallback);
   const [isHydrated, setIsHydrated] = useState(false);
@@ -164,6 +212,9 @@ export function useSharedCollection<T>({
   const gravando = useRef(false);
 
   const persisted = useRef<T[]>(fallback);
+
+  /** O carimbo de gravação de cada linha, como estava na última leitura. */
+  const carimbos = useRef<Map<string, string>>(new Map());
   /*
     As conversões chegam como funções novas a cada render do provider. Guardá-
     las numa ref evita reassinar o tempo real e recarregar a coleção a cada
@@ -212,7 +263,7 @@ export function useSharedCollection<T>({
     }
 
     const total = count ?? 0;
-    if (total === 0) return options.current.fromRows([]);
+    if (total === 0) return { items: options.current.fromRows([]), carimbos: [] };
 
     const paginas = Array.from(
       { length: Math.ceil(total / POR_PAGINA) },
@@ -232,10 +283,21 @@ export function useSharedCollection<T>({
     */
     const respostas: Awaited<ReturnType<typeof paginaDe>>[] = [];
 
+    /*
+      Ordenado por `id`, e isso não é preferência.
+
+      Paginar com `range` sobre uma consulta sem ordem é comportamento
+      indefinido no Postgres: entre duas páginas o planejador pode devolver a
+      mesma linha duas vezes e pular outra, e a coleção chegaria com um artigo
+      repetido e outro ausente sem erro nenhum. A ordem também é o que permite a
+      releitura incremental: ela compara com a lista de carimbos, que é lida na
+      mesma ordem.
+    */
     async function paginaDe(inicio: number) {
       return supabase!
         .from(table)
         .select("*")
+        .order("id")
         .range(inicio, inicio + POR_PAGINA - 1);
     }
 
@@ -251,8 +313,70 @@ export function useSharedCollection<T>({
       return null;
     }
 
-    return options.current.fromRows(respostas.flatMap((resposta) => resposta.data ?? []));
+    const linhas = respostas.flatMap((resposta) => resposta.data ?? []);
+
+    return { items: options.current.fromRows(linhas), carimbos: carimbosDe(linhas) };
   }, [supabase, table]);
+
+  /**
+   * Só quem é cada linha e quando ela foi gravada.
+   *
+   * É o primeiro dos dois passos da releitura incremental, e o que a torna
+   * barata: 1.822 artigos em identificador e carimbo são cento e dez
+   * kilobytes, contra os 22,7 MB do acervo com os corpos.
+   *
+   * Devolve `null` quando não dá para responder, e aí quem chamou faz a
+   * releitura inteira. É o caso de um banco sem a coluna, que existe: a
+   * aplicação em produção pode estar à frente da migração.
+   */
+  const fetchCarimbos = useCallback(async (): Promise<Carimbo[] | null> => {
+    if (!supabase) return null;
+
+    const carimbos: Carimbo[] = [];
+
+    for (let inicio = 0; ; inicio += CARIMBOS_POR_PAGINA) {
+      const { data, error } = await supabase
+        .from(table)
+        .select("id,synced_at")
+        .order("id")
+        .range(inicio, inicio + CARIMBOS_POR_PAGINA - 1);
+
+      if (error) return null;
+
+      const pagina = data ?? [];
+      carimbos.push(...carimbosDe(pagina));
+
+      if (pagina.length < CARIMBOS_POR_PAGINA) break;
+    }
+
+    return carimbos;
+  }, [supabase, table]);
+
+  /** As linhas inteiras de um punhado de identificadores. */
+  const fetchPorIds = useCallback(
+    async (ids: string[]): Promise<unknown[] | null> => {
+      if (!supabase) return null;
+
+      const linhas: unknown[] = [];
+
+      for (let i = 0; i < ids.length; i += POR_PEDIDO_DE_IDS) {
+        const { data, error } = await supabase
+          .from(table)
+          .select("*")
+          .in("id", ids.slice(i, i + POR_PEDIDO_DE_IDS));
+
+        if (error) {
+          toast.error(`Não foi possível ler ${table}: ${error.message}`);
+          return null;
+        }
+
+        linhas.push(...(data ?? []));
+      }
+
+      return linhas;
+    },
+    [supabase, table]
+  );
 
   // Carga inicial.
   useEffect(() => {
@@ -260,10 +384,11 @@ export function useSharedCollection<T>({
 
     async function load() {
       if (remote) {
-        const rows = await fetchAll();
-        if (alive && rows) {
-          setItems(rows);
-          persisted.current = rows;
+        const lido = await fetchAll();
+        if (alive && lido) {
+          setItems(lido.items);
+          persisted.current = lido.items;
+          carimbos.current = new Map(lido.carimbos.map((linha) => [linha.id, linha.syncedAt]));
         }
       } else {
         const raw = readRaw(key);
@@ -303,14 +428,61 @@ export function useSharedCollection<T>({
   useEffect(() => {
     if (!supabase || !isHydrated) return;
 
+    /** A releitura inteira, que é o caminho de sempre e o de recuo. */
+    async function relerTudo() {
+      const lido = await fetchAll();
+      if (!lido) return;
+
+      setItems(lido.items);
+      persisted.current = lido.items;
+      carimbos.current = new Map(lido.carimbos.map((linha) => [linha.id, linha.syncedAt]));
+    }
+
+    /*
+      A releitura em dois passos: os carimbos, e depois só as linhas que
+      mudaram. Ela recua para a inteira sempre que não puder responder com
+      certeza, e são quatro casos: banco sem a coluna do carimbo, memória sem
+      carimbo nenhum, quase tudo mudado (aí dois passos custam mais que um) e
+      falha ao buscar as linhas.
+
+      Recuar é o lado seguro do erro. O contrário, ficar com a tela mostrando
+      dado velho, é o defeito que ninguém percebe.
+    */
+    async function relerOQueMudou() {
+      const remotos = await fetchCarimbos();
+      if (!remotos) return relerTudo();
+
+      const plano = planejarReleitura(carimbos.current, remotos);
+
+      if (plano.buscar.length === 0 && plano.remover.length === 0) return;
+      if (!valeIncremental(plano, remotos.length)) return relerTudo();
+
+      const linhas = await fetchPorIds(plano.buscar);
+      if (!linhas) return;
+
+      const buscados = options.current.fromRows(linhas);
+
+      const proximos = aplicarReleitura({
+        local: persisted.current,
+        ordem: remotos.map((linha) => linha.id),
+        buscados,
+        identify: options.current.identify,
+      });
+
+      setItems(proximos);
+      persisted.current = proximos;
+      carimbos.current = new Map(remotos.map((linha) => [linha.id, linha.syncedAt]));
+    }
+
     const coalescer = criarCoalescer(
       () => {
         void (async () => {
-          const rows = await fetchAll();
-          if (rows) {
-            setItems(rows);
-            persisted.current = rows;
+          if (releituraIncremental && carimbos.current.size > 0) {
+            await relerOQueMudou();
+            return;
           }
+
+          await relerTudo();
         })();
       },
       ESPERA_DO_ECO,
@@ -337,7 +509,15 @@ export function useSharedCollection<T>({
       coalescer.cancelar();
       supabase.removeChannel(channel);
     };
-  }, [fetchAll, isHydrated, supabase, table]);
+  }, [
+    fetchAll,
+    fetchCarimbos,
+    fetchPorIds,
+    isHydrated,
+    releituraIncremental,
+    supabase,
+    table,
+  ]);
 
   // Gravação.
   useEffect(() => {
