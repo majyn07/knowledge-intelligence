@@ -79,8 +79,22 @@ export async function GET(request: Request) {
       );
     }
 
+    /*
+      A janela é obrigatória, e não tem padrão. Sem ela a lista sai do mais
+      antigo e não para: são mais de setenta mil fios na caixa do suporte, e
+      alcançar o mês corrente custaria mais de mil requisições.
+    */
+    const desde = (url.searchParams.get("desde") ?? "").trim();
+
+    if (desde === "") {
+      return NextResponse.json(
+        { message: "Informe a partir de quando buscar." },
+        { status: 400 }
+      );
+    }
+
     const cursor = (url.searchParams.get("apos") ?? "").trim();
-    const pagina = await umaPaginaDeFios(inbox, cursor || undefined);
+    const pagina = await umaPaginaDeFios(inbox, desde, cursor || undefined);
 
     return NextResponse.json({ configured: true, ...pagina });
   } catch (error) {

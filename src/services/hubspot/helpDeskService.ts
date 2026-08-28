@@ -77,9 +77,33 @@ export interface PaginaDeFios {
   proxima: string | null;
 }
 
-/** Uma página da listagem de uma caixa. Barata: cem fios por requisição. */
-export async function umaPaginaDeFios(inboxId: string, cursor?: string): Promise<PaginaDeFios> {
-  const query = new URLSearchParams({ limit: String(POR_PAGINA), inboxId });
+/**
+ * Uma página da listagem de uma caixa, dentro da janela.
+ *
+ * A janela vai para o servidor, e essa é a diferença entre viável e inviável.
+ * Sem ela a lista sai do mais antigo e não para: a caixa do suporte tem mais de
+ * setenta mil fios, e depois de setecentas páginas a varredura ainda estava em
+ * 2025. Alcançar o mês corrente custaria mais de mil requisições, toda vez.
+ *
+ * **Os dois parâmetros só funcionam juntos**, e isso não está óbvio em lugar
+ * nenhum: `latestMessageTimestampAfter` sozinho é ignorado em silêncio, e
+ * `sort=latestMessageTimestamp` sozinho devolve 400 dizendo que o outro
+ * precisa estar presente. Foi a mensagem de erro que entregou a combinação.
+ *
+ * Medido: três meses da caixa do suporte são 10.978 fios em 110 páginas.
+ */
+export async function umaPaginaDeFios(
+  inboxId: string,
+  desde: string,
+  cursor?: string
+): Promise<PaginaDeFios> {
+  const query = new URLSearchParams({
+    limit: String(POR_PAGINA),
+    inboxId,
+    sort: "latestMessageTimestamp",
+    latestMessageTimestampAfter: desde,
+  });
+
   if (cursor) query.set("after", cursor);
 
   const pagina: unknown = await hubspot.get(`/conversations/v3/conversations/threads?${query}`);

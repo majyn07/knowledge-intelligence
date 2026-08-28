@@ -5,6 +5,7 @@ import { Sparkles } from "lucide-react";
 import { toast } from "sonner";
 
 import { PageHeader } from "@/components/common/page/PageHeader";
+import { HelpDeskButton, HelpDeskDialog } from "./components/HelpDeskDialog";
 import { TicketImportButton, TicketImportDialog } from "./components/TicketImportDialog";
 import { usePersistedState } from "@/hooks/usePersistedState";
 import { useQueryParam } from "@/hooks/useQueryParam";
@@ -183,10 +184,13 @@ export function AnalysisWorkspace() {
   }
 
   const [importOpen, setImportOpen] = useState(false);
+  const [helpDeskOpen, setHelpDeskOpen] = useState(false);
 
   const dialogs = (
     <>
       <TicketImportDialog open={importOpen} onOpenChange={setImportOpen} />
+
+      <HelpDeskDialog open={helpDeskOpen} onOpenChange={setHelpDeskOpen} />
 
 
 
@@ -216,8 +220,8 @@ export function AnalysisWorkspace() {
           icon={<Sparkles className="h-6 w-6" />}
           actions={
             <div className="flex flex-wrap gap-2">
+              <HelpDeskButton onClick={() => setHelpDeskOpen(true)} />
               <TicketImportButton onClick={() => setImportOpen(true)} />
-
             </div>
           }
         />
@@ -243,8 +247,8 @@ export function AnalysisWorkspace() {
         icon={<Sparkles className="h-6 w-6" />}
         actions={
           <div className="flex flex-wrap gap-2">
+            <HelpDeskButton onClick={() => setHelpDeskOpen(true)} />
             <TicketImportButton onClick={() => setImportOpen(true)} />
-
           </div>
         }
       />
