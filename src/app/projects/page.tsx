@@ -79,7 +79,7 @@ export default function ProjectsPage() {
     <AppShell>
       <div className="w-full space-y-9">
         <PageHeader
-          overline="Workspace"
+          overline="Iniciativas de melhoria"
           title="Projetos"
           description="Cada projeto é uma unidade de contexto: atendimentos, análises, planos e conhecimento pertencem a ele."
           actions={

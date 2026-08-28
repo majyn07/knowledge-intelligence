@@ -860,6 +860,61 @@ numa tabela, quem fechasse o navegador sem avisar ficaria "editando" para
 sempre. O aviso de presença cobre o antes; `useStaleRecordWarning` cobre o
 depois, quando alguém gravou enquanto você digitava.
 
+## Atendimentos
+
+**A tela é um help desk, e a conversa fica no meio.** Três colunas: a lista à
+esquerda, a conversa no centro, o contexto à direita, e a análise embaixo em
+largura cheia. Empilhado, um diálogo de noventa e quatro mensagens empurrava os
+atributos e a análise para fora da tela; a conversa rola dentro da própria
+caixa e não arrasta a página.
+
+A identidade fica **acima da conversa**, não na lateral. Número da HubSpot,
+cliente e assunto dizem o que se está lendo, e na coluna estreita um assunto
+como "Ticket AltoQi nº47954714157 - Falha Abrir Software - Builder" quebrava em
+seis linhas. O número da HubSpot vem primeiro e o nosso identificador nem
+aparece: `hs-6952014856` é o id da conversa e não acha nada na busca do CRM.
+
+O contexto perdeu a grade de três colunas pelo mesmo motivo. O ponto de quebra
+do Tailwind mede a **janela**, não a coluna: numa tela larga a lateral
+continuaria tentando três células de dois centímetros.
+
+**Duas perguntas, duas vistas.** Atender é "este atendimento aqui"; a fila de
+triagem é "por qual começar". Com mil na fila a segunda deixa de ser opcional, e
+ela existia só dentro do Levantamento, que é outra tela: mandar quem trabalha os
+atendimentos para outro lugar para descobrir por onde começar é o que faz
+ninguém descobrir.
+
+**A fila espera o acervo chegar.** A ordem sai de `score = quantos * (1 -
+cobertura)`, e sem a Biblioteca a cobertura de todo grupo é zero, que é a
+leitura mais alarmante possível: "o acervo não responde nada disto". Foi o que a
+tela mostrou por alguns segundos rodando contra o banco, com os 1.822 artigos a
+caminho. Enquanto não chegou, esqueleto.
+
+### O e-mail do suporte não é vocabulário
+
+O que a HubSpot devolve como solução é o **e-mail inteiro**, com saudação,
+assinatura, links e horário de atendimento. Tokenizado cru, ele agrupava
+atendimentos pela correspondência e não pelo assunto, e isso apareceu na
+primeira vez que a fila rodou contra dado real:
+
+- multa de cancelamento e pagamento de dívida no mesmo grupo, unidos por
+  "atenciosamente, atendentes, acesse, agradecemos": o grupo era a **assinatura**
+  de quem respondeu;
+- importação de IFC e falha ao abrir o programa no mesmo grupo, unidos por
+  "12h, 13h30, 17h30, 9h": o grupo era o **expediente**;
+- `2e82`, `4abd` e `360002887154` listados como as palavras que descrevem um
+  grupo, sendo pedaços de identificador dentro de uma URL.
+
+São três cortes, e cada um responde a um desses. Endereço e e-mail saem antes
+de virar palavra; a cortesia da correspondência tem lista própria, que fica em
+`triage` e não em `lib/vocabulary` porque artigo publicado não abre com
+"prezado"; e hora de relógio sai da regra que existe para deixar `D15` e `V10`
+entrarem. Número solto sai um andar abaixo, em `isMeaningfulTerm`, porque
+`47968252511` é chamado e `2024` é ano em qualquer texto deste produto.
+
+A cobertura que a fila mostrava antes disso estava **inflada pelo mesmo ruído**:
+o que o acervo "cobria" eram as palavras de cortesia.
+
 ## Operar em volume
 
 Cartão e tabela **convivem**. A grade responde "o que tem aqui" e é boa para
@@ -1173,7 +1228,8 @@ Testes cobrem lógica pura, nunca componentes: a leitura do sitemap e da página
 do portal com o plano de importação e a decisão do que revisitar, o preparo do
 HTML do artigo (âncora, cor removida, link resolvido, destaque da busca) com
 a limpeza do que executa, o trecho da busca, a sobreposição entre artigos com o vocabulário que os
-compara e a duplicata de título, a comparação de dois, a leitura da conversa da HubSpot com a paginação que não
+compara e a duplicata de título, a triagem do atendimento com o corte do que a
+correspondência traz junto, a comparação de dois, a leitura da conversa da HubSpot com a paginação que não
 para na página vazia, o mapeamento de mensagens do provedor, a consulta da IA
 sobre o artigo, o rótulo da iniciativa, motor de busca e busca
 transversal, transições de artigo e de plano, métricas por projeto e por

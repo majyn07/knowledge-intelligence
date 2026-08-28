@@ -23,10 +23,12 @@ export function AppShell({
       <AppSidebar />
 
       <SidebarInset className="overflow-hidden">
-        <AppHeader
-          title="Workspace"
-          description="Knowledge Intelligence"
-        />
+        {/*
+          "Workspace" não dizia nada: era a palavra que sobrou de quando esta
+          tela era uma só. Logo abaixo já vem a trilha, que diz onde a pessoa
+          está, então aqui vale o nome do produto e não um rótulo genérico.
+        */}
+        <AppHeader title="Visus" description="Knowledge Intelligence" />
 
         <main className="technical-frame flex flex-1 flex-col overflow-hidden">
           <section className="border-b border-border/60 bg-card/55 backdrop-blur-xl">

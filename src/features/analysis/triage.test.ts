@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import type { KnowledgeArticle } from "@/models/KnowledgeArticle";
 import type { Ticket } from "@/models/Ticket";
 
-import { MAXIMO_DE_ATENDIMENTOS, triageTickets } from "./triage";
+import { MAXIMO_DE_ATENDIMENTOS, ticketTerms, triageTickets } from "./triage";
 
 let sequencia = 0;
 
@@ -203,5 +203,91 @@ describe("triageTickets", () => {
 
     expect(groups).toHaveLength(0);
     expect(excedeuTeto).toBe(false);
+  });
+});
+
+/*
+  O que a HubSpot devolve como solução é o e-mail inteiro do suporte. Sem
+  limpar, o grupo passava a ser a assinatura de quem respondeu.
+*/
+const ASSINATURA =
+  "Atenciosamente, equipe de suporte AltoQi. Acesse https://suporte.altoqi.com.br/hc/pt-br/articles/360002887154-2e82-4abd ou fale com nossos atendentes pelo contato suporte@altoqi.com.br. Protocolo 537686325.";
+
+describe("ticketTerms", () => {
+  it("descarta a cortesia do e-mail do suporte", () => {
+    const termos = ticketTerms(atendimento({ title: "Erro", solution: ASSINATURA }));
+
+    for (const ruido of ["atenciosamente", "atendentes", "acesse", "contato", "suporte"]) {
+      expect(termos).not.toContain(ruido);
+    }
+  });
+
+  /* `2e82` e `4abd` são pedaços de identificador dentro de uma URL. */
+  it("descarta endereço e e-mail antes de virar palavra", () => {
+    const termos = ticketTerms(atendimento({ title: "Erro", solution: ASSINATURA }));
+
+    for (const pedaco of ["2e82", "4abd", "360002887154", "https", "altoqi"]) {
+      expect(termos).not.toContain(pedaco);
+    }
+  });
+
+  /* Número solto é chamado ou ano, e não descreve dúvida nenhuma. */
+  it("descarta número solto", () => {
+    const termos = ticketTerms(
+      atendimento({ title: "Ticket 47968252511", solution: "Corrigido na versão 2024." })
+    );
+
+    expect(termos).not.toContain("47968252511");
+    expect(termos).not.toContain("2024");
+  });
+
+  /* Código de erro tem letra, e é a letra que o separa de uma contagem. */
+  it("preserva código com letra e dígito", () => {
+    const termos = ticketTerms(
+      atendimento({ title: "Aviso D15 na viga", solution: "Corrigido." })
+    );
+
+    expect(termos).toContain("d15");
+  });
+
+  /* O rodapé de horário juntou importação de IFC com falha ao abrir o programa. */
+  it("descarta hora de relógio, e mantém código de erro", () => {
+    const termos = ticketTerms(
+      atendimento({
+        title: "Aviso D15 na viga",
+        solution: "Atendemos das 9h as 12h e das 13h30 as 17h30.",
+      })
+    );
+
+    for (const hora of ["9h", "12h", "13h30", "17h30"]) expect(termos).not.toContain(hora);
+    expect(termos).toContain("d15");
+  });
+
+  it("preserva o termo técnico que descreve a dúvida", () => {
+    const termos = ticketTerms(
+      atendimento({ title: "Fissuração na viga contínua", solution: ASSINATURA })
+    );
+
+    expect(termos).toContain("fissuracao");
+  });
+});
+
+/*
+  O caso que a fila de triagem mostrou na tela: multa de cancelamento e
+  pagamento de dívida no mesmo grupo, unidos por "atenciosamente, atendentes,
+  acesse, agradecemos". Assuntos diferentes, mesma assinatura.
+*/
+describe("assinatura não forma grupo", () => {
+  it("mantém separados dois assuntos que só dividem o rodapé do e-mail", () => {
+    const { groups } = triageTickets(
+      [
+        atendimento({ title: "Multa de cancelamento do contrato", solution: ASSINATURA }),
+        atendimento({ title: "Pagamento de dívida em aberto", solution: ASSINATURA }),
+      ],
+      [],
+      new Set()
+    );
+
+    for (const grupo of groups) expect(grupo.tickets).toHaveLength(1);
   });
 });

@@ -2,6 +2,8 @@
 
 import { useMemo, useEffect, useState } from "react";
 import { Sparkles } from "lucide-react";
+
+import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 
 import { PageHeader } from "@/components/common/page/PageHeader";
@@ -14,8 +16,12 @@ import { useProject } from "@/providers/ProjectProvider";
 
 import { AnalysisPanel } from "./components/AnalysisPanel";
 import { AnalysisProgress } from "./components/AnalysisProgress";
+import { TicketConversation } from "./components/TicketConversation";
+import { TicketHeader } from "./components/TicketHeader";
 import { TicketDetails } from "./components/TicketDetails";
 import { TicketList } from "./components/TicketList";
+import { TriageQueue } from "./components/TriageQueue";
+import { triageTickets } from "./triage";
 import { useTicketRecorte } from "./hooks/useTicketRecorte";
 import type { TicketCycle } from "./ticketTableView";
 import { TicketDeleteDialog } from "./components/TicketDialogs";
@@ -47,7 +53,7 @@ export function AnalysisWorkspace() {
     analyses,
   } = useKnowledgeLifecycle();
   const { createPlanFromApprovedOpportunity, plans } = usePlans();
-  const { items: articles } = useLibrary();
+  const { items: articles, isHydrated: acervoPronto } = useLibrary();
   const requestedTicketId = useQueryParam("ticket");
 
   const [selectedTicketId, setSelectedTicketId] = useState("");
@@ -57,7 +63,6 @@ export function AnalysisWorkspace() {
     key: SIDEBAR_STORAGE_KEY,
     fallback: false,
   });
-
 
   const projectTickets = ticketsOf(activeProjectId);
 
@@ -84,6 +89,18 @@ export function AnalysisWorkspace() {
 
   const recorte = useTicketRecorte(projectTickets, ciclo);
 
+  /*
+    Duas perguntas, duas vistas. Atender é "este atendimento aqui"; a triagem é
+    "por qual começar". Com mil na fila a segunda deixa de ser opcional, e ela
+    estava só dentro do Levantamento, que é outra tela.
+  */
+  const [vista, setVista] = useState<"atender" | "triagem">("atender");
+
+  const triagem = useMemo(
+    () => triageTickets(projectTickets, articles, ciclo.analisados),
+    [projectTickets, articles, ciclo.analisados]
+  );
+
   useEffect(() => {
     setSelectedTicketId((current) => {
       // Um atendimento pedido pela busca tem precedência sobre a seleção atual.
@@ -92,7 +109,7 @@ export function AnalysisWorkspace() {
       }
       return projectTickets.some((ticket) => ticket.id === current)
         ? current
-        : projectTickets[0]?.id ?? "";
+        : (projectTickets[0]?.id ?? "");
     });
   }, [projectTickets, requestedTicketId]);
 
@@ -101,13 +118,10 @@ export function AnalysisWorkspace() {
   const selectedConversation = selectedTicket ? conversationOf(selectedTicket.id) : undefined;
   const context = useAnalysisContext(articles, selectedTicket, selectedConversation);
   const analysis =
-    selectedTicket && activeProjectId
-      ? getAnalysis(activeProjectId, selectedTicket.id)
-      : undefined;
+    selectedTicket && activeProjectId ? getAnalysis(activeProjectId, selectedTicket.id) : undefined;
 
   const deletingTicket = projectTickets.find((ticket) => ticket.id === deletingTicketId);
   const { taxonomy } = useTaxonomy();
-
 
   async function handleAnalyze() {
     if (!selectedTicket || !activeProjectId) return;
@@ -126,9 +140,7 @@ export function AnalysisWorkspace() {
         const name = aiOpportunityName[key as AIOpportunityKey];
         if (!name) return "";
 
-        return (
-          taxonomy.opportunityTypes.find((entry) => entry.name === name)?.id ?? ""
-        );
+        return taxonomy.opportunityTypes.find((entry) => entry.name === name)?.id ?? "";
       };
 
       saveAnalysis({
@@ -192,9 +204,6 @@ export function AnalysisWorkspace() {
 
       <HelpDeskDialog open={helpDeskOpen} onOpenChange={setHelpDeskOpen} />
 
-
-
-
       <TicketDeleteDialog
         open={Boolean(deletingTicket)}
         ticketTitle={deletingTicket?.title ?? ""}
@@ -239,9 +248,7 @@ export function AnalysisWorkspace() {
   return (
     <div className="space-y-7">
       <PageHeader
-        overline={`Projeto ativo${
-          activeProject ? ` · ${activeProject.name}` : ""
-        }`}
+        overline={`Projeto ativo${activeProject ? ` · ${activeProject.name}` : ""}`}
         title="Atendimentos"
         description="O atendimento entra como veio do suporte e não se edita aqui. Esta tela é onde ele vira análise, e a decisão sobre cada oportunidade é de gente."
         icon={<Sparkles className="h-6 w-6" />}
@@ -253,56 +260,137 @@ export function AnalysisWorkspace() {
         }
       />
 
-      <AnalysisProgress analysis={analysis} />
+      <ViewSwitch vista={vista} onChange={setVista} naFila={triagem.groups.length} />
 
-      <div
-        className={`grid gap-6 transition-all duration-300 ${
-          isSidebarCollapsed
-            ? "grid-cols-[auto_minmax(0,1fr)]"
-            : "xl:grid-cols-[minmax(17rem,0.34fr)_minmax(0,1fr)]"
-        }`}
+      {vista === "triagem" ? (
+        <>
+          <TriageQueue
+            triagem={triagem}
+            acervoPronto={acervoPronto}
+            onSelectTicket={(ticketId) => {
+              setSelectedTicketId(ticketId);
+              setVista("atender");
+            }}
+          />
+
+          {dialogs}
+        </>
+      ) : (
+        <>
+          <AnalysisProgress analysis={analysis} />
+
+          {/*
+        Três colunas: a lista, a conversa e o contexto.
+
+        É a forma do help desk, e ela vem do que se faz aqui: escolher na lista,
+        **ler a conversa**, e olhar de lado quem é o cliente e o que já se sabe.
+        A conversa fica no meio porque é o que ocupa o tempo de quem lê.
+
+        Empilhado, como estava, o diálogo de noventa e quatro mensagens empurrava
+        os atributos e a análise para fora da tela.
+
+        A análise fica embaixo, em largura cheia: ela é um espaço de trabalho com
+        oportunidades e conversa própria, e não cabe numa coluna estreita.
+      */}
+          <div
+            className={`grid gap-5 transition-all duration-300 ${
+              isSidebarCollapsed
+                ? "grid-cols-[auto_minmax(0,1fr)]"
+                : "xl:grid-cols-[minmax(16rem,0.26fr)_minmax(0,1fr)_minmax(17rem,0.28fr)]"
+            }`}
+          >
+            <aside className="min-w-0 xl:sticky xl:top-6 xl:self-start">
+              <TicketList
+                recorte={recorte}
+                ciclo={ciclo}
+                selectedTicketId={selectedTicketId}
+                onSelectTicket={setSelectedTicketId}
+                isCollapsed={isSidebarCollapsed}
+                onToggleCollapse={() => setIsSidebarCollapsed((collapsed) => !collapsed)}
+              />
+            </aside>
+
+            <main className="flex min-w-0 flex-col xl:h-[calc(100vh-13rem)]">
+              <TicketHeader
+                ticket={selectedTicket}
+                isAnalyzing={isAnalyzing}
+                onAnalyze={handleAnalyze}
+                onDelete={() => setDeletingTicketId(selectedTicket.id)}
+                analysisStatus={analysis?.status}
+              />
+
+              <TicketConversation conversation={selectedConversation} />
+            </main>
+
+            <aside className="min-w-0 xl:sticky xl:top-6 xl:self-start">
+              <TicketDetails
+                ticket={selectedTicket}
+                conversation={selectedConversation}
+                analysisStatus={analysis?.status}
+              />
+            </aside>
+          </div>
+
+          <div className="space-y-8">
+            <AnalysisPanel
+              analysisRecord={analysis}
+              context={context}
+              onMessagesChange={(messages) => analysis && updateMessages(analysis.id, messages)}
+              onOpportunityStatusChange={(opportunityId, status) =>
+                analysis && updateOpportunityStatus(analysis.id, opportunityId, status)
+              }
+              onOpportunityUpdate={(opportunityId, changes) =>
+                analysis && updateOpportunity(analysis.id, opportunityId, changes)
+              }
+              onFinalize={handleFinalize}
+            />
+          </div>
+
+          {dialogs}
+        </>
+      )}
+    </div>
+  );
+}
+
+/**
+ * A troca entre atender e triar.
+ *
+ * Fica acima do conteúdo e não no menu: são duas formas de olhar a mesma
+ * coleção, e não dois lugares. O número na aba é o que faz alguém clicar; sem
+ * ele a triagem é uma aba que ninguém sabe se tem algo dentro.
+ */
+function ViewSwitch({
+  vista,
+  onChange,
+  naFila,
+}: {
+  vista: "atender" | "triagem";
+  onChange: (proxima: "atender" | "triagem") => void;
+  naFila: number;
+}) {
+  return (
+    <div className="flex w-fit gap-1 rounded-xl border border-border/70 bg-muted/30 p-1">
+      <Button
+        size="sm"
+        variant={vista === "atender" ? "secondary" : "ghost"}
+        onClick={() => onChange("atender")}
       >
-        <aside className="min-w-0 xl:sticky xl:top-6 xl:self-start">
-          <TicketList
-            recorte={recorte}
-            ciclo={ciclo}
-            selectedTicketId={selectedTicketId}
-            onSelectTicket={setSelectedTicketId}
-            isCollapsed={isSidebarCollapsed}
-            onToggleCollapse={() =>
-              setIsSidebarCollapsed((collapsed) => !collapsed)
-            }
-          />
-        </aside>
+        Atender
+      </Button>
 
-        <main className="min-w-0 space-y-8">
-          <TicketDetails
-            ticket={selectedTicket}
-            conversation={selectedConversation}
-            isAnalyzing={isAnalyzing}
-            onAnalyze={handleAnalyze}
-            onDelete={() => setDeletingTicketId(selectedTicket.id)}
-            analysisStatus={analysis?.status}
-          />
-
-          <AnalysisPanel
-            analysisRecord={analysis}
-            context={context}
-            onMessagesChange={(messages) =>
-              analysis && updateMessages(analysis.id, messages)
-            }
-            onOpportunityStatusChange={(opportunityId, status) =>
-              analysis && updateOpportunityStatus(analysis.id, opportunityId, status)
-            }
-            onOpportunityUpdate={(opportunityId, changes) =>
-              analysis && updateOpportunity(analysis.id, opportunityId, changes)
-            }
-            onFinalize={handleFinalize}
-          />
-        </main>
-      </div>
-
-      {dialogs}
+      <Button
+        size="sm"
+        variant={vista === "triagem" ? "secondary" : "ghost"}
+        onClick={() => onChange("triagem")}
+      >
+        Fila de triagem
+        {naFila > 0 && (
+          <span className="ml-2 rounded-full bg-primary/15 px-2 py-0.5 text-[11px] font-semibold text-primary">
+            {naFila}
+          </span>
+        )}
+      </Button>
     </div>
   );
 }

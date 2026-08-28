@@ -83,9 +83,70 @@ interface TicketComTermos {
   termos: Set<string>;
 }
 
+/**
+ * Palavras que todo e-mail do suporte tem, e por isso não distinguem nenhum.
+ *
+ * É a mesma razão de `COMUNS`, um andar abaixo: lá são as palavras do produto,
+ * aqui são as da correspondência. A diferença é que esta lista só vale para o
+ * atendimento, e por isso mora aqui e não em `lib/vocabulary`: artigo publicado
+ * não abre com "prezado" nem fecha com "atenciosamente".
+ *
+ * Elas não eram teoria. Dois atendimentos, um sobre multa de cancelamento e
+ * outro sobre pagamento de dívida, entraram no mesmo grupo dividindo
+ * "atenciosamente, atendentes, acesse, agradecemos": o grupo era a assinatura
+ * de quem respondeu, e a fila mandava alguém ler dois assuntos diferentes
+ * juntos.
+ */
+const RUIDO_DE_ATENDIMENTO = new Set([
+  "prezado", "prezada", "prezados", "atenciosamente", "cordialmente", "abracos",
+  "abraco", "obrigado", "obrigada", "agradecemos", "agradeco", "aguardamos",
+  "disposicao", "disposicoes", "atendentes", "atendente", "atendimento",
+  "atendimentos", "suporte", "equipe", "contato", "contatos", "mensagem",
+  "mensagens", "email", "emails", "resposta", "responder", "respondido",
+  "chamado", "ticket", "protocolo", "solicitacao", "solicitado", "solicitamos",
+  "duvida", "duvidas", "acesse", "acessar", "acesso", "segue", "conforme",
+  "informacoes", "informacao", "gentileza", "favor", "bom", "dia", "tarde",
+  "noite", "ola", "boa", "cliente", "senhor", "senhora", "assunto",
+  "horario", "horarios", "atendemos", "expediente", "segunda", "terca",
+  "quarta", "quinta", "sexta", "sabado", "domingo", "feriado", "feriados",
+  "util", "uteis",
+]);
+
+/**
+ * Hora do relógio não é código de erro.
+ *
+ * `12h`, `13h30` e `9h` misturam letra e dígito, então passavam pela regra que
+ * existe para deixar `D15` e `V10` entrarem. Com o rodapé de horário de
+ * atendimento em todo e-mail do suporte, isso bastou para juntar num grupo só
+ * um problema de importação de IFC e uma falha ao abrir o programa: o que os
+ * dois dividiam era o expediente de quem respondeu.
+ */
+const RELOGIO = /^\d{1,2}h(\d{2})?$/;
+
+/**
+ * Endereço não é vocabulário.
+ *
+ * O que a HubSpot devolve como solução é o e-mail inteiro do suporte, com links
+ * de artigo e de rastreio. Tokenizados, eles viravam termos: `2e82`, `4abd` e
+ * `360002887154` apareceram como as palavras que descreviam um grupo, porque
+ * são pedaços de identificador dentro de uma URL. Fora antes de tokenizar.
+ */
+function semEnderecos(texto: string): string {
+  return texto
+    .replace(/https?:\/\/\S+/gi, " ")
+    .replace(/\S+@\S+\.\S+/g, " ");
+}
+
 /** O que um atendimento diz, para efeito de comparação. */
 function corpusDo(ticket: Ticket): string {
-  return `${ticket.title} ${ticket.solution}`;
+  return semEnderecos(`${ticket.title} ${ticket.solution}`);
+}
+
+/** O vocabulário de um atendimento, já sem o que a correspondência traz junto. */
+export function ticketTerms(ticket: Ticket): string[] {
+  return termsOf(corpusDo(ticket)).filter(
+    (palavra) => !RUIDO_DE_ATENDIMENTO.has(palavra) && !RELOGIO.test(palavra)
+  );
 }
 
 /**
@@ -166,7 +227,7 @@ export function triageTickets(
       continue;
     }
 
-    const termos = new Set(termsOf(corpusDo(ticket)));
+    const termos = new Set(ticketTerms(ticket));
 
     if (termos.size < TERMOS_MINIMOS) {
       ignorados.semTextoSuficiente += 1;

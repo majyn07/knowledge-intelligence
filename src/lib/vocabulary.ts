@@ -47,8 +47,23 @@ const TAMANHO_MINIMO = 5;
  */
 const CODIGO = /^(?=.*[a-z])(?=.*\d)[a-z0-9]+$/;
 
+/**
+ * Número solto não é assunto.
+ *
+ * O corte por tamanho deixava passar qualquer sequência de cinco dígitos, e com
+ * os atendimentos da HubSpot dentro isso virou vocabulário de verdade:
+ * `47968252511` é o número do chamado, `537686325` sai de um endereço, `2024` é
+ * ano. Nenhum deles descreve dúvida nenhuma, e dois textos que dividem só um
+ * número não dividem assunto.
+ *
+ * `D15` e `V10` continuam entrando: eles têm letra, e é a letra que os torna
+ * código de erro em vez de contagem.
+ */
+const SO_DIGITOS = /^\d+$/;
+
 export function isMeaningfulTerm(palavra: string): boolean {
   if (COMUNS.has(palavra)) return false;
+  if (SO_DIGITOS.test(palavra)) return false;
   if (CODIGO.test(palavra)) return true;
 
   return palavra.length >= TAMANHO_MINIMO;
