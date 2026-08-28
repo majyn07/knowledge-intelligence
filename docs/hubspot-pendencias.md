@@ -158,6 +158,92 @@ quando o número não muda, e apagando a procedência quando o número é apagad
 
 ## 5. Inventário: o que cada escopo entrega de fato
 
+> **Honestidade sobre o método, antes da tabela.** São **41** escopos no token.
+> Testei **33 endpoints**, todos com `GET` e `limit=1`, em série. O que **não**
+> foi testado está dito na íntegra ao fim desta seção — inclusive, e
+> principalmente, **nenhuma chamada de escrita**: a regra do projeto é não
+> alterar nada na HubSpot, e testar escrita arriscaria criar ou modificar
+> registro de vocês.
+
+### Tabela por escopo
+
+Cada linha traz o endereço exato usado e o que voltou. Reproduzível com
+`npm run hubspot:conferir`.
+
+| Escopo | Endpoint testado | Resultado |
+| --- | --- | --- |
+| `oauth` | `POST /oauth/v2/private-apps/get/access-token-info` | 200 — hub, app e a lista de escopos |
+| `conversations.read` | `GET /conversations/v3/conversations/threads` | 200 — fios, mensagens, `associatedTicketId` |
+| `crm.objects.owners.read` | `GET /crm/v3/owners` | 200 — 197 responsáveis, com nome, e-mail e equipes |
+| `crm.objects.contacts.read` | `GET /crm/v3/objects/contacts` | 200 |
+| `crm.objects.companies.read` | `GET /crm/v3/objects/companies` | 200 |
+| `crm.objects.deals.read` | `GET /crm/v3/objects/deals` | 200 |
+| `crm.objects.quotes.read` | `GET /crm/v3/objects/quotes` | 200 |
+| `crm.objects.courses.read` | `GET /crm/v3/objects/courses` | 200 |
+| `crm.objects.services.read` | `GET /crm/v3/objects/services` | 200 |
+| `crm.objects.users.read` | `GET /crm/v3/objects/users` | 200 |
+| `crm.objects.goals.read` | `GET /crm/v3/objects/goal_targets` | 200 |
+| `crm.objects.custom.read` | `GET /crm/v3/objects/2-25175098` | 200 |
+| `crm.lists.read` | `GET /crm/v3/lists` | 200 |
+| `crm.objects.carts.read` | `GET /crm/v3/objects/carts` | 200, **vazio na conta** |
+| `crm.objects.commercepayments.read` | `GET /crm/v3/objects/commerce_payments` | 200, vazio |
+| `crm.objects.appointments.read` | `GET /crm/v3/objects/appointments` | 200, vazio |
+| `crm.objects.contracts.read` | `GET /crm/v3/objects/contracts` | 200, vazio |
+| `crm.dealsplits.read_write` | `GET /crm/v3/objects/deal_split` | 200, vazio |
+| `crm.extensions_calling_transcripts.read` | `GET /crm/v3/objects/calls` | 200 — **489.059** chamadas |
+| `crm.schemas.custom.read` | `GET /crm/v3/schemas` | 200 — 6 objetos customizados, todos comerciais |
+| `crm.schemas.contacts.read` | `GET /crm/v3/schemas/contacts` | 200 |
+| `crm.schemas.companies.read` | `GET /crm/v3/schemas/companies` | 200 |
+| `crm.schemas.deals.read` | `GET /crm/v3/schemas/deals` | 200 |
+| `crm.schemas.line_items.read` | `GET /crm/v3/schemas/line_items` | 200 |
+| `crm.schemas.appointments.read` | `GET /crm/v3/schemas/appointments` | 200 |
+| `crm.schemas.services.read` | `GET /crm/v3/schemas/services` | 200 |
+| `crm.schemas.listings.read` | `GET /crm/v3/schemas/listings` | 200 |
+| `communication_preferences.read` | `GET /communication-preferences/v4/definitions` | 200 — 15 definições |
+| `conversations.custom_channels.read` | `GET /conversations/v3/custom-channels` | **401** — exige OAuth 2.0; token de app privado não serve |
+| `cms.knowledge_base.articles.read` | `GET /cms/v3/knowledge-base/articles` | **404** |
+| `cms.knowledge_base.settings.read` | `GET /cms/v3/knowledge-base/settings` | **404** |
+| **ausente:** `tickets` | 7 endereços (ver seção 1.1) | **403** em todos |
+| **ausente:** `site-search-read` | `GET /cms/v3/site-search/search` | **403**, com o escopo nomeado |
+
+### O que NÃO foi testado, e por quê
+
+**As oito variantes `*.sensitive.read.v2` e `*.highly_sensitive.read.v2`**
+(contacts, companies, deals, custom). Elas **não são endpoints próprios**:
+liberam colunas adicionais nos mesmos endereços já testados. Para saber o que
+acrescentam seria preciso pedir campo por campo, e nenhum deles serve ao ciclo
+de conhecimento.
+
+**Nenhuma chamada de escrita — `POST`, `PATCH`, `PUT`, `DELETE`.** Esta é a
+lacuna que mais importa para a conversa com o dev, e é deliberada: a regra do
+projeto é não alterar nada na HubSpot, e sondar escrita arriscaria criar ou
+modificar registro real.
+
+**Consequência honesta:** quando este documento diz que *não existe API de Base
+de Conhecimento*, isso está apoiado em (a) seis endereços de **leitura**
+devolvendo 404 — inexistente, não proibido — e (b) a documentação pública da
+HubSpot, que afirma não haver API para o Knowledge Base e registra o pedido
+como "not currently planned". **Não está apoiado em teste de escrita.**
+
+Se o objetivo for publicar artigo de volta no portal, esta é a pergunta exata
+para o dev:
+
+> Existe algum endpoint — público, beta ou privado — que crie ou altere artigo
+> de Knowledge Base? O escopo `cms.knowledge_base.articles.read` aparece
+> concedido no app `50542060` e não responde em nenhum caminho que testamos.
+
+### Volumes medidos, para dimensionar
+
+| Objeto | Total na conta |
+| --- | --- |
+| `notes` | 3.369.334 |
+| `tasks` | 583.505 |
+| `calls` | 489.059 |
+| `meetings` | 30.534 |
+| `emails` | — **403**, escopo ausente |
+
+
+
 Varredura de 27/08, um endpoint por escopo, em série, `limit=1`. Testado, não
 deduzido.
 
