@@ -115,6 +115,44 @@ propriedades de um ticket. O esquema diz o que existe; o dado não vem.
 
 ---
 
+### 1.5 A equipe do atendimento é alcançável, e ela dá o recorte por produto
+
+O recorte que a equipe usa no dia a dia é por produto: Suporte Builder,
+Estruturas, Visus, Setup. Na HubSpot isso **não é caixa de entrada** e não é
+canal: as visualizações do help desk são 403 e a propriedade `ia_produto` mora
+no ticket, que também é 403.
+
+Mas dá para chegar lá por outro caminho: **o fio traz `assignedTo`, e o dono
+traz as equipes dele.** `GET /crm/v3/owners` responde 200 e cada dono vem com
+`teams`.
+
+São 197 donos em 58 equipes. As que interessam:
+
+| Id | Equipe | Pessoas |
+| --- | --- | --- |
+| 43759588 | Setup | 8 |
+| 65055100 | Suporte Builder | 18 |
+| 43825818 | Suporte Builder Elétrica | 18 |
+| 43825811 | Suporte Builder Hidráulica | 18 |
+| 43825790 | Suporte Estruturas | 18 |
+| 43825821 | Suporte Visus | 18 |
+| 43759498 | Suporte Técnico | 18 |
+
+Então o caminho é fio → `assignedTo` → dono → equipe, e a equipe dá o produto.
+É uma requisição só para todos os donos, e ela se resolve uma vez por varredura
+em vez de uma vez por fio.
+
+**O que isso não dá:** o produto declarado no ticket. A equipe que atendeu é
+uma boa aproximação e não é a mesma coisa, e a tela precisa dizer qual das
+duas está mostrando. Fio sem `assignedTo` fica sem equipe, e isso é estado
+legítimo: o atendimento ainda não foi para ninguém.
+
+**As caixas são duas**, e isso também foi medido: `Help Desk` (`474522581`,
+e-mail e chat) e `Caixa de Entrada | Setup` (`1566897190`, WhatsApp e chat). As
+outras oito da conta são marketing, vendas, social e teste.
+
+---
+
 ### 1.2 Falta o escopo `site-search-read`. Bloqueia ler o portal
 
 `GET /cms/v3/site-search/search?type=KNOWLEDGE_ARTICLE` → **403**, com o escopo

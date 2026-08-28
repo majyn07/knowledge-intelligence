@@ -5,6 +5,7 @@ import type { SupportConversationMessage } from "@/models/SupportConversation";
 
 import { nextCursor, toConversationMessages, type HubSpotActor } from "./conversationMapping";
 import { hubspot } from "./hubspotClient";
+import type { FioListado } from "./helpDeskSchedule";
 import { threadsDaPagina, toThreadTicket, type ThreadTicket } from "./threadTicketMapping";
 
 /**
@@ -26,8 +27,30 @@ import { threadsDaPagina, toThreadTicket, type ThreadTicket } from "./threadTick
  * varredura tem janela: lista tudo, lê só o que está dentro dela.
  */
 
-/** A caixa do suporte. Cadastro e não constante, mas o padrão é o que existe hoje. */
-export const HELP_DESK_INBOX = "474522581";
+/**
+ * As caixas de onde o atendimento vem.
+ *
+ * São duas, e isso foi medido: `Help Desk` recebe e-mail e chat, `Setup`
+ * recebe WhatsApp e chat. As outras oito da conta são marketing, vendas,
+ * social e teste, e o que cai nelas não é atendimento.
+ *
+ * Declarado em `HUBSPOT_INBOXES` em vez de fixo aqui, pela mesma razão do
+ * provedor de IA: caixa é coisa que a empresa cria e renomeia, e ninguém vai
+ * abrir o código para acompanhar. Sem a variável valem as duas conhecidas.
+ */
+export const CAIXAS_PADRAO = [
+  { id: "474522581", nome: "Help Desk" },
+  { id: "1566897190", nome: "Caixa de Entrada | Setup" },
+];
+
+export function caixasConfiguradas(env: Record<string, string | undefined>): string[] {
+  const declarado = (env.HUBSPOT_INBOXES ?? "")
+    .split(",")
+    .map((id) => id.trim())
+    .filter((id) => id !== "");
+
+  return declarado.length > 0 ? declarado : CAIXAS_PADRAO.map((caixa) => caixa.id);
+}
 
 /** O teto da API. Pedir menos só aumentaria o número de idas. */
 const POR_PAGINA = 100;
@@ -46,11 +69,6 @@ const MAXIMO_DE_PAGINAS = 2_000;
 
 const espera = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
-export interface FioListado {
-  id: string;
-  criadoEm: string;
-}
-
 export interface ProgressoDaLista {
   paginas: number;
   fios: number;
@@ -65,17 +83,33 @@ export interface ProgressoDaLista {
  * a passada cara só visitar o que interessa.
  */
 export async function listarFios(
-  inboxId: string,
+  inboxIds: string[],
   sinal?: AbortSignal,
   aoProgredir?: (progresso: ProgressoDaLista) => void
 ): Promise<FioListado[]> {
   const fios: FioListado[] = [];
+  let paginas = 0;
+
+  for (const inboxId of inboxIds) {
+    if (sinal?.aborted) break;
+    paginas += await listarCaixa(inboxId, fios, paginas, sinal, aoProgredir);
+  }
+
+  return fios;
+}
+
+/** Uma caixa, página a página. Devolve quantas páginas leu. */
+async function listarCaixa(
+  inboxId: string,
+  fios: FioListado[],
+  jaLidas: number,
+  sinal?: AbortSignal,
+  aoProgredir?: (progresso: ProgressoDaLista) => void
+): Promise<number> {
   let cursor: string | null = null;
   let paginas = 0;
 
   do {
-    if (sinal?.aborted) break;
-
     const query = new URLSearchParams({ limit: String(POR_PAGINA), inboxId });
     if (cursor) query.set("after", cursor);
 
@@ -87,7 +121,7 @@ export async function listarFios(
     paginas += 1;
 
     aoProgredir?.({
-      paginas,
+      paginas: jaLidas + paginas,
       fios: fios.length,
       maisAntigo: fios[0]?.criadoEm ?? "",
       maisRecente: fios.at(-1)?.criadoEm ?? "",
@@ -96,9 +130,9 @@ export async function listarFios(
     cursor = nextCursor(pagina);
 
     if (cursor) await espera(PAUSA_MS);
-  } while (cursor && paginas < MAXIMO_DE_PAGINAS);
+  } while (cursor && paginas < MAXIMO_DE_PAGINAS && !sinal?.aborted);
 
-  return fios;
+  return paginas;
 }
 
 export interface AtendimentoDoFio {

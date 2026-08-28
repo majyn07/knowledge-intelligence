@@ -1,6 +1,7 @@
 import { items, record, text } from "@/lib/shape";
 
 import { stripHtml } from "./conversationMapping";
+import type { FioListado } from "./helpDeskSchedule";
 
 /**
  * O atendimento nascendo da conversa.
@@ -123,10 +124,21 @@ export function toThreadTicket(fio: unknown, mensagensBrutas: unknown[]): Thread
   };
 }
 
-/** Os fios de uma página da listagem, já reduzidos ao que interessa. */
-export function threadsDaPagina(bruto: unknown): { id: string; criadoEm: string }[] {
+/**
+ * Os fios de uma página da listagem, já reduzidos ao que interessa.
+ *
+ * O carimbo da última mensagem vem junto porque é por ele que a próxima
+ * varredura sabe se o fio andou. Sem ele, reexecutar releria tudo.
+ */
+export function threadsDaPagina(bruto: unknown): FioListado[] {
   return items(record(bruto).results)
     .map((fio) => record(fio))
-    .map((fio) => ({ id: text(fio.id).trim(), criadoEm: text(fio.createdAt) }))
+    .map((fio) => ({
+      id: text(fio.id).trim(),
+      criadoEm: text(fio.createdAt),
+      ...(text(fio.latestMessageTimestamp)
+        ? { ultimaMensagemEm: text(fio.latestMessageTimestamp) }
+        : {}),
+    }))
     .filter((fio) => fio.id !== "");
 }
