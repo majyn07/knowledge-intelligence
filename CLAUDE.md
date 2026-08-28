@@ -978,6 +978,27 @@ neste, atendimento, identificamos, solicitação". Relacionado que não se suste
 é pior que nenhum, porque a análise apresenta os cinco como o que o acervo tem
 sobre o caso, e quem confia abre os cinco uma vez só.
 
+**E a lista escrita à mão não dava conta.** A consulta que a análise faz é a
+conversa inteira do atendimento, oitenta mensagens, e ali aparece todo o
+português: a tela apresentava sessenta termos como o motivo de um artigo ser
+relacionado, "você" e "etc" entre eles. Enumerar palavra comum de português é
+lista sem fim.
+
+Quem as descarta é o **próprio acervo**: termo que está em um quarto dele não
+distingue artigo nenhum. Medido nos 1.822 publicados, são 15.105 termos
+distintos e **119** passam do limiar, exatamente o ruído: "para" em 99%, "que"
+em 98%, "projeto" em 76%, "selecione" em 50%. Custa alguns termos de engenharia
+na fronteira, e é o lado certo do erro: o que está em quinhentos artigos não
+estreita busca nenhuma.
+
+A medição é uma passada por acervo, **158 ms medidos**, guardada num `WeakMap`
+na própria lista: a segunda abertura não paga nada, e quando o acervo muda a
+chave muda junto. Quando o portal mudar, ela muda sozinha, sem ninguém abrir o
+código.
+
+O cartão mostra **oito** e conta o resto. Uma parede de palavras não explica por
+que o artigo é relacionado, ela esconde.
+
 **Havia três listas de palavras comuns, e elas divergiam.** A comparação entre
 artigos descartava "projeto" e "janela"; a busca por relacionados tinha as suas
 trinta e cinco, sem tirar acento, e as deixava passar. Agora a **lista** é uma
@@ -1337,7 +1358,7 @@ do portal com o plano de importação e a decisão do que revisitar, o preparo d
 HTML do artigo (âncora, cor removida, link resolvido, destaque da busca) com
 a limpeza do que executa, o trecho da busca, a sobreposição entre artigos com o vocabulário que os
 compara e a duplicata de título, a triagem do atendimento e a consulta da análise com o corte
-do que a correspondência traz junto, a recusa que diz qual campo, a comparação de dois, a leitura da conversa da HubSpot com a paginação que não
+do que a correspondência traz junto e a medição do que o acervo repete, a recusa que diz qual campo, a comparação de dois, a leitura da conversa da HubSpot com a paginação que não
 para na página vazia, o mapeamento de mensagens do provedor, a consulta da IA
 sobre o artigo, o rótulo da iniciativa, motor de busca e busca
 transversal, transições de artigo e de plano, métricas por projeto e por

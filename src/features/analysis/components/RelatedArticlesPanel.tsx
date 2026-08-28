@@ -4,6 +4,9 @@ import { StatusBadge } from "@/components/common/status/StatusBadge";
 
 import type { KnowledgeSearchResult } from "@/models/KnowledgeSearchResult";
 
+/** Quantos termos o cartão mostra. O resto vira contagem. */
+const NA_ETIQUETA = 8;
+
 interface RelatedArticlesPanelProps {
   articles: KnowledgeSearchResult[];
 }
@@ -62,7 +65,7 @@ export function RelatedArticlesPanel({
 
                   <p className="mt-3 text-xs leading-5 text-muted-foreground">
                     {matchedTerms.length > 0
-                      ? `Relacionado porque aborda: ${matchedTerms.join(", ")}. Revise se o conteúdo atual resolve o mesmo fluxo ou precisa ser atualizado.`
+                      ? "Revise se o conteúdo atual resolve o mesmo fluxo ou precisa ser atualizado."
                       : "Relacionado pela proximidade com o fluxo analisado. Valide se este conteúdo cobre a necessidade identificada."}
                   </p>
                 </div>
@@ -73,14 +76,33 @@ export function RelatedArticlesPanel({
                 </StatusBadge>
               </div>
 
+              {/*
+                Os termos aparecem uma vez, e não a lista inteira.
+
+                Eles vinham duas vezes, dentro da frase e como etiquetas, e sem
+                teto: um atendimento longo produzia sessenta etiquetas de
+                "você", "mas" e "etc" cobrindo o cartão. Uma parede de palavras
+                não explica por que o artigo é relacionado, ela esconde.
+
+                O que sobra são os primeiros, que é a ordem em que a busca os
+                encontrou: título antes de conteúdo. E o resto vira contagem,
+                porque some sem dizer é a tela escondendo o tamanho do casamento.
+              */}
               {matchedTerms.length > 0 && (
                 <div className="mt-4 flex flex-wrap items-center gap-2">
-                  <Tag className="h-3.5 w-3.5 text-muted-foreground" />
-                  {matchedTerms.map((term) => (
+                  <Tag className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+
+                  {matchedTerms.slice(0, NA_ETIQUETA).map((term) => (
                     <StatusBadge key={term} variant="default">
                       {term}
                     </StatusBadge>
                   ))}
+
+                  {matchedTerms.length > NA_ETIQUETA && (
+                    <span className="text-xs text-muted-foreground">
+                      e mais {matchedTerms.length - NA_ETIQUETA}
+                    </span>
+                  )}
                 </div>
               )}
             </article>

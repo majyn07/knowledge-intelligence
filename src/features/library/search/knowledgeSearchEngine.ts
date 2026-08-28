@@ -5,6 +5,7 @@ import type { KnowledgeSearchResult } from "@/models/KnowledgeSearchResult";
 import { deacentuar, isCommonWord } from "@/lib/vocabulary";
 
 import { articleText } from "../content/articleText";
+import { termosOnipresentes } from "./ubiquitousTerms";
 
 const TITLE_WEIGHT = 10;
 const KEYWORD_WEIGHT = 8;
@@ -21,28 +22,38 @@ export function searchKnowledge(
   query: KnowledgeQuery
 ): KnowledgeSearchResult[] {
   /*
-    A decisão de o que é palavra útil vem de `lib/vocabulary`, e não de uma
-    lista aqui.
+    O que sobra depois de tirar o que o acervo inteiro já diz.
 
-    Havia uma, com trinta e cinco palavras e sem tirar acento, e ela era a
-    terceira do produto sobre o mesmo assunto. Três listas do mesmo vocabulário
-    divergem, e divergiam: a comparação entre artigos descartava "projeto" e
-    "janela", e esta aqui os deixava passar.
+    A lista de palavras comuns vem de `lib/vocabulary`, compartilhada. Ela é
+    curta de propósito e não dá conta sozinha: a consulta aqui é a conversa
+    inteira do atendimento, oitenta mensagens, e ali aparece todo o português.
+    "selecione", "conferir", "importante" e "processo" passam por qualquer lista
+    escrita à mão, e cada uma casa com algum artigo.
 
-    O tamanho mínimo continua aqui, e continua três. Ele é decisão desta busca
-    e não do vocabulário: "laje", "viga", "SPDA" e "IFC" são o que separa um
-    artigo do outro neste acervo, e a barra alta da comparação entre dois
-    artigos jogaria os quatro fora.
+    Quem as descarta é o próprio acervo: termo que está em um quarto dele não
+    distingue artigo nenhum. Medido uma vez por acervo, não por busca.
+
+    O tamanho mínimo continua três e continua sendo decisão desta busca: "laje",
+    "viga", "SPDA" e "IFC" são o que separa um artigo do outro neste acervo, e a
+    barra alta da comparação entre dois artigos jogaria os quatro fora.
 
     O termo guardado é o **acentuado**, e a decisão usa a forma sem acento. O
     casamento adiante é `includes` contra o corpo do artigo, que tem acento:
     procurar "fissuracao" ali não acharia "fissuração".
   */
+  const onipresentes = termosOnipresentes(articles);
+
   const terms = query.text
     .toLowerCase()
     .split(/\s+/)
     .map((term) => term.replace(/^[^\p{L}\p{N}]+|[^\p{L}\p{N}]+$/gu, ""))
-    .filter((term) => term.length > 2 && !isCommonWord(deacentuar(term)));
+    .filter((term) => {
+      if (term.length <= 2) return false;
+
+      const nu = deacentuar(term);
+
+      return !isCommonWord(nu) && !onipresentes.has(nu);
+    });
 
   const maxScore =
     terms.length *
