@@ -69,7 +69,7 @@ describe("migrateAssignment", () => {
   });
 
   it("preserva o texto quando não encontra correspondência", () => {
-    // Não encaixar é melhor que encaixar errado — a mesma regra da seção.
+    // Não encaixar é melhor que encaixar errado: a mesma regra da seção.
     expect(migrateAssignment("Mariana Costa", people, teams)).toBe("Mariana Costa");
   });
 

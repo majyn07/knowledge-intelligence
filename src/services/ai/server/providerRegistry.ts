@@ -9,7 +9,7 @@ import { geminiService } from "./geminiService";
  * Onde os provedores se registram.
  *
  * Somar um é escrever o arquivo e citá-lo aqui. Nada acima desta camada
- * conhece SDK, nome de modelo ou formato de mensagem — a rota pede análise, e
+ * conhece SDK, nome de modelo ou formato de mensagem: a rota pede análise, e
  * quem responde é quem estiver valendo.
  *
  * A Claude ainda não está aqui **de propósito**: ela entra escrita contra a
@@ -35,7 +35,7 @@ export function activeProvider(): AIProvider {
   const provider = REGISTRY[resolved.id];
 
   /*
-    Chave configurada para um provedor que o produto ainda não implementa —
+    Chave configurada para um provedor que o produto ainda não implementa,
     hoje, a Claude. Não caímos no outro: quem pôs a chave quis aquele, e
     responder com outro modelo em silêncio seria trocar o autor da análise sem
     ninguém saber.

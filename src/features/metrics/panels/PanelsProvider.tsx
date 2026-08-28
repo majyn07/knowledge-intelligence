@@ -28,7 +28,7 @@ const PanelsContext = createContext<PanelsContextValue | null>(null);
  *
  * Compartilhados, como o resto do produto: não há papéis, e inventar "meu
  * painel" criaria uma noção de dono que nada mais aqui tem. Quem monta um
- * painel na reunião monta para todo mundo — e com a aba aberta, aparece sem
+ * painel na reunião monta para todo mundo, e com a aba aberta, aparece sem
  * recarregar.
  */
 export function PanelsProvider({ children }: { children: ReactNode }) {

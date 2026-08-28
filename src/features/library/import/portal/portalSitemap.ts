@@ -1,7 +1,7 @@
 /**
  * O sitemap do portal, que é a lista de artigos.
  *
- * Existe porque a HubSpot não tem API de Base de Conhecimento — o escopo que
+ * Existe porque a HubSpot não tem API de Base de Conhecimento: o escopo que
  * parecia ser isso não tem endpoint atrás dele, e o site search exige uma
  * permissão que a credencial não tem e ainda assim não devolveria o corpo.
  * O portal é público, e entrega mais do que a API entregaria.
@@ -19,7 +19,7 @@ export interface PortalUrl {
  * O portal publica um punhado de artigos em espanhol, sob um prefixo de
  * idioma antes de `/hc/`. Eles ficam de fora e são **contados**: a taxonomia
  * do cadastro é a do portal em português, e um artigo cuja trilha diz
- * "Instalación y Activación" não encontraria seção nenhuma — entraria como
+ * "Instalación y Activación" não encontraria seção nenhuma. Entraria como
  * "sem seção" sem que ninguém entendesse por quê.
  */
 export function isForeignLocale(url: string): boolean {
@@ -30,7 +30,7 @@ export function isForeignLocale(url: string): boolean {
  * O identificador do artigo no portal.
  *
  * A maioria das URLs traz um número; cerca de 140 usam apenas o slug, e para
- * essas o canonical confirma o slug — não há número em lugar nenhum. As duas
+ * essas o canonical confirma o slug, não há número em lugar nenhum. As duas
  * formas são identidade estável do portal, então as duas servem. Sem isto,
  * reimportar criaria duplicata em vez de atualizar.
  */

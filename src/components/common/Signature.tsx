@@ -10,7 +10,7 @@ import { useEffect } from "react";
  * assinatura no meio de uma explicação de decisão vira ruído que a próxima
  * pessoa não sabe se pode apagar. A segunda é honestidade: um easter egg no
  * console é discreto e reconhecível, enquanto marca camuflada no código passa
- * a impressão de que alguém tentou esconder algo — e não há nada a esconder.
+ * a impressão de que alguém tentou esconder algo, e não há nada a esconder.
  *
  * Não renderiza nada e não muda comportamento nenhum. Some da tela, aparece
  * para quem abre o inspetor, que é exatamente o público dela.
@@ -30,7 +30,7 @@ export function Signature() {
     /*
       Num efeito, e não no render: `console` é do navegador, e escrever
       durante o render do servidor sujaria o log de cada requisição com isto.
-      Uma vez por carga da aplicação, e não por navegação — o array vazio é o
+      Uma vez por carga da aplicação, e não por navegação: o array vazio é o
       que garante.
     */
     console.log(
@@ -39,7 +39,7 @@ export function Signature() {
     );
 
     console.log(
-      "%cVisus Knowledge Intelligence%c — construído por majyn · github.com/majyn07",
+      "%cVisus Knowledge Intelligence%c, construído por majyn · github.com/majyn07",
       "color:#00CC78;font-weight:600",
       "color:inherit"
     );

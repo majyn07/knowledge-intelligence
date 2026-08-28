@@ -13,7 +13,7 @@ interface ErrorRecoveryProps {
 
 /**
  * Tela de falha. Os dados vivem no navegador, então a causa mais provável de um
- * erro de render é conteúdo guardado em formato inesperado — por isso o segundo
+ * erro de render é conteúdo guardado em formato inesperado. Por isso o segundo
  * caminho existe, e por isso ele diz exatamente o que apaga.
  */
 export function ErrorRecovery({ error, reset }: ErrorRecoveryProps) {
@@ -60,8 +60,8 @@ export function ErrorRecovery({ error, reset }: ErrorRecoveryProps) {
             <p className="text-sm font-medium">Recomeçar do zero</p>
 
             <p className="mt-1 text-xs leading-5 text-muted-foreground">
-              Apaga tudo que este navegador guardou — projetos, atendimentos,
-              análises, planos, artigos, pessoas e histórico — e volta aos dados
+              Apaga tudo que este navegador guardou. Projetos, atendimentos,
+              análises, planos, artigos, pessoas e histórico, e volta aos dados
               de exemplo. Não há como desfazer.
             </p>
 

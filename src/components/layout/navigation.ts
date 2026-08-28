@@ -23,7 +23,7 @@ export interface NavItem {
  *
  * O menu lateral e a trilha de navegação leem daqui. Cada um tinha a própria
  * ideia de como a página se chama, e duas listas do mesmo vocabulário divergem
- * — o menu diria "Métricas" e a trilha "Indicadores" sobre a mesma tela.
+ *: o menu diria "Métricas" e a trilha "Indicadores" sobre a mesma tela.
  */
 export const workspaceItems: NavItem[] = [
   { title: "Início", icon: Home, href: "/" },
@@ -61,7 +61,7 @@ export interface Crumb {
  *
  * Deriva do caminho porque a hierarquia do produto é a das rotas: o artigo
  * mora dentro da Biblioteca, e a Biblioteca dentro do Início. Um segmento que
- * não está no cadastro é um identificador — o registro aberto —, e quem sabe o
+ * não está no cadastro é um identificador (o registro aberto), e quem sabe o
  * nome dele é a tela, que passa `leaf`.
  *
  * Sem `leaf`, o identificador não vira degrau: mostrar um `uuid` na trilha

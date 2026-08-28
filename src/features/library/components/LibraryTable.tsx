@@ -142,7 +142,7 @@ export function LibraryTable({
                       encontrar.
                     */
                     <span className="text-muted-foreground">
-                      {cellValue(article, column, context) || "—"}
+                      {cellValue(article, column, context) || "."}
                     </span>
                   )}
                 </td>

@@ -27,7 +27,7 @@ function normalizeMessages(data: TicketFormData): SupportConversationMessage[] {
 /**
  * A procedência, quando há número de origem.
  *
- * `importedAt` é o momento em que o vínculo foi registrado — na importação é
+ * `importedAt` é o momento em que o vínculo foi registrado. Na importação é
  * quando o lote entrou, aqui é quando alguém digitou o número. O relógio vem
  * de fora porque serviço que lê a hora sozinho não tem como ser testado.
  */
@@ -76,7 +76,7 @@ export const ticketService = {
     /*
       Número inalterado preserva o `importedAt` original: ele registra quando
       aquele vínculo nasceu, e reescrevê-lo a cada gravação incidental apagaria
-      o fato. Só número novo — ou trocado — carimba data nova.
+      o fato. Só número novo (ou trocado) carimba data nova.
     */
     const informado = data.externalId.trim();
     const procedencia =

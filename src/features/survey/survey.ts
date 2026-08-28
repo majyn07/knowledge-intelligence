@@ -5,7 +5,7 @@ import { findSection, sectionPath, type Taxonomy } from "@/models/Taxonomy";
 import { findDuplicates, findOverlaps } from "./overlap";
 
 /**
- * O levantamento — o trabalho que este produto existe para deixar de ser manual.
+ * O levantamento: o trabalho que este produto existe para deixar de ser manual.
  *
  * Antes dele, alguém percorria o acervo à mão para descobrir o que criar,
  * atualizar ou revisar. Aqui a pergunta é a mesma, e a resposta é derivada:
@@ -13,7 +13,7 @@ import { findDuplicates, findOverlaps } from "./overlap";
  *
  * Puro, e é o ponto: o que dá para calcular sobre os dados reais é calculado, e
  * **não é rotulado como saída de IA**. Só o que exige ler texto e comparar
- * sentido é que pede modelo — e esse vem marcado como proposta, para a revisão
+ * sentido é que pede modelo, e esse vem marcado como proposta, para a revisão
  * saber o que conferir com mais atenção.
  *
  * Achado que não pode ser verificado não é gerado. Um levantamento que inventa
@@ -48,7 +48,7 @@ export interface Finding {
   action: string;
   /** Sobre o quê. */
   subject: string;
-  /** Por que isto apareceu — a evidência, não a opinião. */
+  /** Por que isto apareceu: a evidência, não a opinião. */
   why: string;
   href: string;
 }
@@ -67,7 +67,7 @@ const MESES_PARA_ENVELHECER = 12;
  * Até quantos achados do mesmo tipo valem uma linha cada.
  *
  * Acima disso a lista deixa de dizer por onde começar e vira o inventário do
- * acervo — e o caminho de resolução também muda: deixa de ser abrir um
+ * acervo, e o caminho de resolução também muda: deixa de ser abrir um
  * registro e passa a ser o mutirão de uma tela.
  */
 const INDIVIDUAL_ATE = 5;
@@ -89,7 +89,7 @@ export function buildSurvey(input: SurveyInput): Finding[] {
     Seção do portal sem nenhum artigo publicado.
 
     Só conta o publicado, pela mesma regra do resto: rascunho não cobre nada
-    para quem chega no portal. E só seções de categoria de produto — as de
+    para quem chega no portal. E só seções de categoria de produto: as de
     apoio, como "Quero falar com o Suporte", não descrevem assunto técnico e
     apareceriam como lacuna eterna.
   */
@@ -103,12 +103,12 @@ export function buildSurvey(input: SurveyInput): Finding[] {
     Agrupado por categoria, e não uma linha por seção.
 
     O portal tem 146 seções. Uma linha para cada uma descoberta produziu 117
-    achados na primeira execução — o que não é levantamento, é a lista do portal
+    achados na primeira execução: o que não é levantamento, é a lista do portal
     inteiro, e afoga os três achados que alguém de fato resolveria hoje. Um
     produto que avisa demais é um produto cujos avisos ninguém lê, e aqui a
     consequência é pior: a lista existe justamente para dizer por onde começar.
 
-    Por categoria a mesma informação vira mapa — "30 das 30 do Builder" diz
+    Por categoria a mesma informação vira mapa. "30 das 30 do Builder" diz
     onde o acervo está ausente sem mandar ninguém escrever trinta artigos.
   */
   for (const category of taxonomy.categories) {
@@ -133,7 +133,7 @@ export function buildSurvey(input: SurveyInput): Finding[] {
       severity: proporcao >= 0.5 ? "media" : "baixa",
       action:
         vazias.length === secoes.length
-          ? "Cobrir esta categoria — nenhuma seção tem artigo"
+          ? "Cobrir esta categoria, nenhuma seção tem artigo"
           : `Cobrir ${vazias.length} seção(ões) desta categoria`,
       subject: category.name,
       why: `${vazias.length} de ${secoes.length} seções sem artigo publicado: ${vazias
@@ -146,13 +146,13 @@ export function buildSurvey(input: SurveyInput): Finding[] {
 
   /*
     Sem seção o artigo não é encontrado no portal e não conta como cobertura em
-    lugar nenhum — é o achado mais barato de resolver e o mais caro de deixar,
+    lugar nenhum. É o achado mais barato de resolver e o mais caro de deixar,
     porque o artigo existe e ninguém acha.
 
     Um por artigo enquanto forem poucos, e **um só** acima disso. Depois de uma
     importação, "sem seção" é a condição de centenas de registros de uma vez: a
     primeira execução com o acervo real produziu 600 linhas iguais, que é a
-    mesma falha das seções vazias — a lista deixa de dizer por onde começar.
+    mesma falha das seções vazias: a lista deixa de dizer por onde começar.
     Acima do punhado, o caminho não é abrir um artigo, é o mutirão da Biblioteca
     com a sugestão de seção.
   */
@@ -243,7 +243,7 @@ export function buildSurvey(input: SurveyInput): Finding[] {
           subject: article.title,
           /*
             Idade não é defeito, e a frase diz isso. Um artigo de dois anos pode
-            estar perfeito — o achado é um convite a olhar, não uma acusação.
+            estar perfeito: o achado é um convite a olhar, não uma acusação.
           */
           why: `Publicado e sem revisão há ${meses} meses.`,
           href: `/library/${article.id}`,
@@ -255,11 +255,11 @@ export function buildSurvey(input: SurveyInput): Finding[] {
   /*
     Atendimento sem cobertura documental: o sinal que originou o produto.
 
-    Aqui ele é a versão **calculada** e conservadora — atendimento cuja seção
+    Aqui ele é a versão **calculada** e conservadora. Atendimento cuja seção
     correspondente não tem artigo publicado ainda não existe como dado, porque
     o atendimento não guarda seção. O que dá para afirmar hoje é mais simples:
     atendimento resolvido cuja solução não virou artigo nenhum. A leitura
-    semântica — "cinco atendimentos perguntam a mesma coisa" — exige modelo, e
+    semântica ("cinco atendimentos perguntam a mesma coisa") exige modelo, e
     entra marcada como proposta.
   */
   const comArtigoDeOrigem = new Set(
@@ -285,14 +285,14 @@ export function buildSurvey(input: SurveyInput): Finding[] {
   /*
     Artigos que se sobrepõem dentro da mesma seção.
 
-    É o único achado que exige o acervo inteiro na mão — antes da importação do
+    É o único achado que exige o acervo inteiro na mão, antes da importação do
     portal não havia o que comparar. E é o problema clássico de uma base que
     cresceu por anos: dois artigos ensinando a mesma coisa, cada um respondendo
     metade, e quem procura encontra um dos dois sem saber do outro.
 
     **O que está calculado é vocabulário em comum, e o achado diz isso.**
     Concluir que são duplicata exige ler e comparar sentido; aqui sai o número
-    e a evidência, e quem decide é a revisão — com a IA do artigo à disposição
+    e a evidência, e quem decide é a revisão. Com a IA do artigo à disposição
     para propor, marcada como proposta.
   */
   /*
@@ -314,7 +314,7 @@ export function buildSurvey(input: SurveyInput): Finding[] {
       subject: grupo.title,
       /*
         O `why` é texto puro: a tela o mostra como veio. Marcação de Markdown
-        aqui sairia com os asteriscos à mostra — e o grupo sem seção precisa de
+        aqui sairia com os asteriscos à mostra, e o grupo sem seção precisa de
         frase própria, senão vira "com o mesmo título em ,".
       */
       why: (() => {
@@ -329,7 +329,7 @@ export function buildSurvey(input: SurveyInput): Finding[] {
       })(),
       /*
         Dois vão para a comparação; três ou mais não cabem nela, e a busca pelo
-        título é o caminho honesto — a tela mostra os três lado a lado na lista.
+        título é o caminho honesto: a tela mostra os três lado a lado na lista.
       */
       href:
         quantos === 2
@@ -349,7 +349,7 @@ export function buildSurvey(input: SurveyInput): Finding[] {
       action: `Revisar ${pairs.length} pares de artigos que se sobrepõem`,
       subject: "Acervo com conteúdo repetido",
       why:
-        `Cada par está na mesma seção e compartilha boa parte do vocabulário — ` +
+        `Cada par está na mesma seção e compartilha boa parte do vocabulário, ` +
         `o mais próximo, ${Math.round(pairs[0].score * 100)}%. Dois artigos sobre o mesmo ` +
         `assunto dividem a resposta entre si, e quem procura acha só um deles.`,
       href: "/library",
@@ -380,7 +380,7 @@ export function buildSurvey(input: SurveyInput): Finding[] {
   /*
     Seção grande demais para comparar aos pares é **anunciada**, não pulada em
     silêncio: número parcial apresentado como completo é pior que número com
-    ressalva — a mesma regra do funil de estágios.
+    ressalva: a mesma regra do funil de estágios.
   */
   if (skippedSections.length > 0) {
     achados.push({
@@ -403,7 +403,7 @@ export function buildSurvey(input: SurveyInput): Finding[] {
   return achados.sort((a, b) => severityOrder[a.severity] - severityOrder[b.severity]);
 }
 
-/** Quantos de cada tipo — o cabeçalho da tela, e nada além do que foi achado. */
+/** Quantos de cada tipo: o cabeçalho da tela, e nada além do que foi achado. */
 export function surveySummary(findings: Finding[]) {
   return {
     total: findings.length,

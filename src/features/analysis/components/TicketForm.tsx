@@ -32,7 +32,7 @@ interface TicketFormProps {
   /**
    * Preenche a data com hoje quando ela está vazia.
    *
-   * Só quem abre o formulário sabe se é criação — editar um registro antigo
+   * Só quem abre o formulário sabe se é criação. Editar um registro antigo
    * que chegou sem data **não** pode ganhar a data de hoje, porque seria
    * carimbar como ocorrido agora algo que aconteceu quando ninguém sabe.
    */
@@ -108,7 +108,7 @@ export function TicketForm({
    * O que a IA pode propor a partir do documento do atendimento.
    *
    * **Projeto fica de fora**: é a iniciativa que o atendimento alimenta, e
-   * decidir isso é escolher onde o trabalho entra — não é informação que o
+   * decidir isso é escolher onde o trabalho entra, não é informação que o
    * documento do cliente carregue. **A conversa também**, e por razão mais
    * forte: ela é a evidência que a análise lê, e uma conversa proposta por
    * modelo faria a análise citar mensagem que ninguém trocou.
@@ -137,8 +137,8 @@ export function TicketForm({
         O identificador de origem entra, e isso não contraria a regra de que
         identificador fica fora do preenchimento por IA.
 
-        Aquela regra é sobre identificador **nosso** — responsável, seção,
-        gênero —, onde o modelo devolveria um nome e nós precisaríamos casar
+        Aquela regra é sobre identificador **nosso**. Responsável, seção,
+        gênero., onde o modelo devolveria um nome e nós precisaríamos casar
         com um id do catálogo. Este é de fora: chega escrito no documento,
         é guardado como texto e não há catálogo a consultar. Deixá-lo de fora
         era o que fazia o número do chamado ir parar no título.
@@ -154,7 +154,7 @@ export function TicketForm({
 
         Ela ficou de fora na primeira versão com o argumento de que uma
         conversa proposta por modelo faria a análise citar mensagem que
-        ninguém trocou. O argumento vale para conversa **inventada** — não
+        ninguém trocou. O argumento vale para conversa **inventada**, não
         para a que está escrita no PDF que alguém anexou, onde extrair é
         transcrever. E a conversa é o grosso de um chamado: sem ela, importar
         por documento entregava a moldura e perdia o conteúdo que a análise
@@ -181,7 +181,7 @@ export function TicketForm({
   /**
    * Converte a conversa proposta em mensagens do formulário.
    *
-   * O identificador é nosso — o modelo não tem como saber o que já existe, e
+   * O identificador é nosso: o modelo não tem como saber o que já existe, e
    * um id vindo dele colidiria com mensagem gravada.
    *
    * A hora é o ponto delicado. `createdAt` é instante, e o documento quase
@@ -243,8 +243,8 @@ export function TicketForm({
   }
 
   /*
-    A integração é opcional, então a tela pergunta antes de oferecer o botão —
-    mesma regra do botão de entrar com a conta Google: botão que às vezes leva
+    A integração é opcional, então a tela pergunta antes de oferecer o botão.
+    Mesma regra do botão de entrar com a conta Google: botão que às vezes leva
     a lugar nenhum é pior que botão que ainda não existe.
 
     A resposta entra depois da montagem: no primeiro render o servidor não sabe
@@ -355,7 +355,7 @@ export function TicketForm({
             /*
               A conversa proposta **soma** à que já existe, e não substitui:
               quem já digitou uma mensagem à mão antes de anexar o documento
-              não deveria perdê-la — e a tela avisou que haveria substituição
+              não deveria perdê-la, e a tela avisou que haveria substituição
               antes do clique, então quem não quis somar desmarcou.
             */
             const conversa = Array.isArray(messages)
@@ -408,8 +408,8 @@ export function TicketForm({
             <Label htmlFor="ticket-date">Data</Label>
 
             {/*
-              Campo de data, e não texto livre. Antes aceitava qualquer coisa —
-              "ontem", "15 jul" —, e o que não dava para situar no tempo caía
+              Campo de data, e não texto livre. Antes aceitava qualquer coisa.
+              "ontem", "15 jul"., e o que não dava para situar no tempo caía
               fora de toda janela dos indicadores. O valor nativo já é
               `aaaa-mm-dd`, que é o formato guardado.
             */}
@@ -444,7 +444,7 @@ export function TicketForm({
             {/*
               É por este número que a conversa vinda da HubSpot encontra o
               atendimento. Sem ele o fio existe do lado de lá e não tem onde
-              se ligar aqui — e era o que acontecia com todo atendimento
+              se ligar aqui, e era o que acontecia com todo atendimento
               cadastrado à mão.
             */}
             <p className="text-xs text-muted-foreground">
@@ -546,7 +546,7 @@ export function TicketForm({
           {/*
             É a única coisa que a API da HubSpot entrega e o arquivo não: a
             exportação traz o ticket, não o fio de mensagens. Só aparece com
-            credencial configurada e com o número preenchido — sem o número não
+            credencial configurada e com o número preenchido, sem o número não
             há por onde procurar.
           */}
           {hubspotAtiva && (

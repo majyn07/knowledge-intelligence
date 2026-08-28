@@ -14,7 +14,7 @@ import { useRelease } from "../providers/ReleaseProvider";
  * termina o atendimento. Recarregar sozinho seria o produto decidindo por
  * alguém que estava digitando.
  *
- * Com edição aberta o aviso muda de tom — diz o que se perde e pede
+ * Com edição aberta o aviso muda de tom. Diz o que se perde e pede
  * confirmação, em vez de oferecer um botão que descarta trabalho calado. É a
  * mesma regra do diálogo de edição, aplicada à aba inteira.
  */
@@ -45,7 +45,7 @@ export function ReleaseBanner() {
                 {unsaved === 1
                   ? "Você tem uma edição aberta com alteração não salva."
                   : `Você tem ${unsaved} edições abertas com alteração não salva.`}{" "}
-                Salve antes de atualizar — recarregar descarta o que não foi gravado.
+                Salve antes de atualizar, recarregar descarta o que não foi gravado.
               </>
             ) : (
               "Atualize quando puder para usar a versão nova. Nada do que já foi salvo se perde."

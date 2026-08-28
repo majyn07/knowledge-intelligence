@@ -10,7 +10,7 @@ import { usePeople } from "../providers/PeopleProvider";
  * Quem está operando o produto.
  *
  * Com conta, isto deixou de ser escolha: quem opera é quem entrou, e o campo
- * vira informação. Era a ressalva registrada desde o começo — permissão sobre
+ * vira informação. Era a ressalva registrada desde o começo. Permissão sobre
  * um seletor livre seria ficção enquanto qualquer um pudesse escolher qualquer
  * pessoa. Agora não é mais seletor.
  *

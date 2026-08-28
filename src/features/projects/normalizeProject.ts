@@ -8,7 +8,7 @@ const STATUSES: readonly ProjectStatus[] = ["active", "inactive", "archived"];
  *
  * Faltava: o projeto era lido do armazenamento sem passar por normalizador
  * nenhum, ao contrário de artigo, plano e atendimento. A regra vale para
- * todos, e agora vale mesmo — com o dado vindo da rede, a chance de ler um
+ * todos, e agora vale mesmo. Com o dado vindo da rede, a chance de ler um
  * registro de formato diferente só aumenta.
  */
 export function normalizeProject(raw: unknown): Project {

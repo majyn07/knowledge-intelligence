@@ -25,7 +25,7 @@ interface LibraryDeleteDialogProps {
  * Confirmação da exclusão, para um registro ou para muitos.
  *
  * O texto muda de número porque um diálogo que diz "3 artigo(s) vai para a
- * lixeira e pode ser restaurado" foi escrito para um caso e usado noutro — e
+ * lixeira e pode ser restaurado" foi escrito para um caso e usado noutro, e
  * quem lê rápido uma frase que não concorda desconfia da tela inteira, não só
  * da frase.
  *

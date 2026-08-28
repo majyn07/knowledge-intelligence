@@ -6,7 +6,7 @@ import { sectionPath, type Taxonomy } from "@/models/Taxonomy";
  *
  * A grade de cartões responde "o que tem aqui" e funciona com trinta artigos.
  * O acervo espelhado terá cerca de 1.800, e aí a pergunta muda para "onde está
- * este, e o que falta nele" — que é uma pergunta de tabela: muitas linhas,
+ * este, e o que falta nele", que é uma pergunta de tabela: muitas linhas,
  * poucas colunas, ordenável por qualquer uma.
  *
  * As duas convivem. Trocar a grade pela tabela responderia a segunda pergunta
@@ -65,7 +65,7 @@ export interface ColumnContext {
 /**
  * O valor de uma coluna, como texto.
  *
- * Serve para exibir, ordenar e exportar com o mesmo resultado — três lugares
+ * Serve para exibir, ordenar e exportar com o mesmo resultado. Três lugares
  * que, escritos em separado, divergem. Foi o que aconteceu com o rótulo do
  * estágio da análise, que existia em duas cópias.
  */
@@ -93,7 +93,7 @@ export function cellValue(
 /**
  * Ordena por uma coluna.
  *
- * Data compara como instante e o resto como texto em pt-BR — comparar data
+ * Data compara como instante e o resto como texto em pt-BR. Comparar data
  * como texto funcionaria só enquanto o formato fosse ISO, e quebraria em
  * silêncio no dia em que deixasse de ser.
  *
@@ -136,7 +136,7 @@ export interface Page<T> {
  *
  * Página e não rolagem infinita: com 1.800 linhas a rolagem esconde onde a
  * pessoa está e impede voltar ao mesmo ponto. E página não exige biblioteca
- * nova no projeto — virtualizar exigiria.
+ * nova no projeto, virtualizar exigiria.
  *
  * Página fora do intervalo é corrigida em vez de devolver vazio: filtrar
  * enquanto se está na página 7 deixaria a tela em branco com registros logo

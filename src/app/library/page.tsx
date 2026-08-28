@@ -68,7 +68,7 @@ export default function LibraryPage() {
 
   /*
     O acervo é do hub, e não da iniciativa ativa. Ele espelha um portal só, e o
-    lugar do artigo é a seção — filtrar por projeto esconderia o acervo da
+    lugar do artigo é a seção. Filtrar por projeto esconderia o acervo da
     AltoQi inteiro de quem trocasse de contexto. O mapa de cobertura já media
     todos: eram duas telas discordando sobre o que é o acervo.
   */
@@ -95,7 +95,7 @@ export default function LibraryPage() {
   const { taxonomy } = useTaxonomy();
 
   /*
-    Sem seção é estado legítimo — o importado entra assim de propósito quando o
+    Sem seção é estado legítimo: o importado entra assim de propósito quando o
     nome não bate com o cadastro. O botão de sugerir só existe quando existe o
     problema que ele resolve.
   */
@@ -107,7 +107,7 @@ export default function LibraryPage() {
 
   /*
     Dois efeitos, e a ordem entre eles importa. O primeiro lê o endereço uma vez
-    — quando alguém abre um link colado — e o segundo escreve o que a pessoa
+    (quando alguém abre um link colado) e o segundo escreve o que a pessoa
     escolhe daí em diante. Eles não se realimentam porque o segundo só escreve
     quando o recorte de fato mudou; escrever o que já está lá reiniciaria o
     primeiro num laço.
@@ -137,7 +137,7 @@ export default function LibraryPage() {
   const guard = useUnsavedGuard(closeDialog);
 
   /*
-    Exporta o recorte que está na tela — filtros, ordenação e colunas —, e não
+    Exporta o recorte que está na tela (filtros, ordenação e colunas), e não
     o acervo inteiro. Quem exporta acabou de montar o recorte; entregar outra
     coisa obrigaria a refazer o trabalho na planilha.
   */
@@ -183,7 +183,7 @@ export default function LibraryPage() {
         <PageHeader
           overline="Base de Conhecimento"
           title="Biblioteca"
-          description="O acervo do hub — o espelho do portal publicado, um só para toda a equipe. Os artigos publicados são o que a análise consulta ao avaliar a cobertura documental."
+          description="O acervo do hub: o espelho do portal publicado, um só para toda a equipe. Os artigos publicados são o que a análise consulta ao avaliar a cobertura documental."
           actions={
             <div className="flex flex-wrap gap-2">
               {semSecao.length > 0 && (
@@ -274,7 +274,7 @@ export default function LibraryPage() {
               /*
                 A grade pagina como a tabela. Ela recebia o recorte inteiro, e
                 com o acervo real isso significava 1.800 cartões e 81 mil nós no
-                DOM — dez segundos até a Biblioteca aparecer. O dado não era o
+                DOM, dez segundos até a Biblioteca aparecer. O dado não era o
                 problema: ler os 11 MB leva 11ms e varrer o conteúdo de todos
                 numa busca leva 9ms. Era só render.
               */
@@ -300,7 +300,7 @@ export default function LibraryPage() {
               />
             )}
 
-            {/* A paginação vale para os dois modos — a grade também pagina. */}
+            {/* A paginação vale para os dois modos: a grade também pagina. */}
             {table.page.pages > 1 && (
               <div className="flex items-center justify-between gap-3 text-sm">
                 <span className="text-muted-foreground">
@@ -371,7 +371,7 @@ export default function LibraryPage() {
         />
 
         {/*
-          A confirmação diz o número antes do clique, como a de um registro só —
+          A confirmação diz o número antes do clique, como a de um registro só,
           e diz também que há volta, porque é a existência do desfazer em lote
           que permitiu esta ação existir.
         */}

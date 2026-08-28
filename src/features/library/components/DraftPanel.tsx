@@ -14,7 +14,7 @@ import { draftChanges, draftFieldLabel } from "../draft";
  *
  * Existe para responder a pergunta que a pessoa faz ao abrir um artigo com
  * rascunho: o que mudou, e vale republicar? Por isso mostra **o que foi
- * tocado** — comparação campo a campo, e não linha a linha. Diferença palavra
+ * tocado**. Comparação campo a campo, e não linha a linha. Diferença palavra
  * a palavra é outra ferramenta, e entra quando alguém precisar dela.
  */
 export function DraftPanel({

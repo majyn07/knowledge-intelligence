@@ -2,14 +2,14 @@
  * Limpeza do HTML que veio de fora, antes de ser injetado na página.
  *
  * O conteúdo do portal é HTML e o modelo guarda `contentFormat` justamente
- * para não convertê-lo — mas exibir HTML de terceiro sem tratar é abrir a
+ * para não convertê-lo, mas exibir HTML de terceiro sem tratar é abrir a
  * página para o que estiver escrito lá dentro. Mesmo sendo o nosso portal:
  * quem publica um artigo não devia conseguir executar código na ferramenta
  * interna sem querer.
  *
  * **É remoção do perigoso conhecido, não lista de permitidos.** Um sanitizador
  * de verdade parte do que é permitido e descarta o resto, e isso exige um
- * analisador de HTML — biblioteca nova no projeto. Para conteúdo do próprio
+ * analisador de HTML, biblioteca nova no projeto. Para conteúdo do próprio
  * portal, exibido internamente, esta troca está declarada e é consciente: se
  * um dia entrar HTML de origem não confiável, esta função não basta.
  */

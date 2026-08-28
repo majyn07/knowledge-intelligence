@@ -48,7 +48,7 @@ describe("withHeadingIds", () => {
 describe("withoutFixedColors", () => {
   /*
     O portal escreve `color: #000000` no atributo. Dentro do produto isso vira
-    texto preto sobre fundo escuro — ilegível no tema escuro.
+    texto preto sobre fundo escuro, ilegível no tema escuro.
   */
   it("remove a cor cravada e mantém o que é estrutura", () => {
     expect(

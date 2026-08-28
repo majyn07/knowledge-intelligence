@@ -48,7 +48,7 @@ export function useLibraryTable(articles: KnowledgeArticle[]) {
   /*
     O resolvedor de nomes é recriado a cada render do provider de pessoas.
     Guardá-lo aqui num `useMemo` sobre `taxonomy` bastaria para a ordenação,
-    mas não para a exportação — e as duas precisam do mesmo contexto para não
+    mas não para a exportação, e as duas precisam do mesmo contexto para não
     divergirem.
   */
   const context = useMemo(() => ({ taxonomy, nameOf }), [nameOf, taxonomy]);
@@ -64,7 +64,7 @@ export function useLibraryTable(articles: KnowledgeArticle[]) {
    * Clicar na coluna ordenada inverte; em outra, começa por ela.
    *
    * A ordenação nova começa ascendente porque é o que a pessoa espera ao pedir
-   * "por título" — e a página volta para a primeira, senão a lista muda debaixo
+   * "por título", e a página volta para a primeira, senão a lista muda debaixo
    * de quem está na página 4 e ela vê outro pedaço sem ter pedido.
    */
   const toggleSort = useCallback((column: ArticleColumn) => {
@@ -93,7 +93,7 @@ export function useLibraryTable(articles: KnowledgeArticle[]) {
    *
    * A página, e não o recorte inteiro: selecionar 1.800 artigos com um clique
    * e depois mudar o estágio de todos é o tipo de ação que ninguém pretende.
-   * Quem quiser mais paginar e marcar de novo — o atrito aqui é proposital.
+   * Quem quiser mais paginar e marcar de novo: o atrito aqui é proposital.
    */
   const toggleAll = useCallback(() => {
     const idsDaPagina = current.items.map((article) => article.id);

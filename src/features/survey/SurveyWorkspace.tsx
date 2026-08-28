@@ -38,12 +38,12 @@ const severityLabel: Record<FindingSeverity, string> = {
  *
  * É a tela que substitui o trabalho manual que originou este produto: alguém
  * percorrendo o acervo para descobrir o que criar, atualizar ou revisar. Cada
- * linha diz **o que fazer**, **por que**, e leva para onde se faz — sem isso
+ * linha diz **o que fazer**, **por que**, e leva para onde se faz. Sem isso
  * seria mais um painel, e painel não tira trabalho de ninguém.
  *
  * A procedência aparece em cada achado. O que o produto calculou sobre os dados
  * reais não é apresentado como saída de modelo, e o que um modelo propôs vem
- * marcado — para a revisão saber onde olhar com mais atenção.
+ * marcado, para a revisão saber onde olhar com mais atenção.
  */
 export function SurveyWorkspace() {
   const { items: articles, isHydrated } = useLibrary();
@@ -54,7 +54,7 @@ export function SurveyWorkspace() {
   const [kind, setKind] = useState<FindingKind | "todos">("todos");
 
   /*
-    O relógio entra depois da montagem — servidor e cliente têm horas
+    O relógio entra depois da montagem. Servidor e cliente têm horas
     diferentes, e "parado há 45 dias" divergiria na hidratação. Sem ele o
     levantamento ainda não pode ser calculado, e a tela espera.
   */
@@ -80,14 +80,14 @@ export function SurveyWorkspace() {
       <PageHeader
         overline="Hub"
         title="Levantamento"
-        description="O que o acervo está pedindo — apurado sobre os dados de agora, e não sobre uma foto guardada. Cada linha diz o que fazer, por que, e leva para onde se faz."
+        description="O que o acervo está pedindo. Apurado sobre os dados de agora, e não sobre uma foto guardada. Cada linha diz o que fazer, por que, e leva para onde se faz."
       />
 
       {!isHydrated || !now ? (
         <ListSkeleton />
       ) : findings.length === 0 ? (
         /*
-          Nada a fazer é uma resposta legítima, e precisa parecer resposta — não
+          Nada a fazer é uma resposta legítima, e precisa parecer resposta, não
           tela quebrada. Inventar tarefa para preencher a lista destruiria a
           confiança que a lista existe para ter.
         */
@@ -123,7 +123,7 @@ export function SurveyWorkspace() {
             */}
             <p className="ml-auto max-w-sm text-xs text-muted-foreground">
               {summary.propostos === 0
-                ? "Todos apurados dos dados do hub — nenhum veio de modelo de IA."
+                ? "Todos apurados dos dados do hub, nenhum veio de modelo de IA."
                 : `${summary.calculados} apurados dos dados, ${summary.propostos} propostos por IA.`}
             </p>
           </div>
@@ -191,7 +191,7 @@ function FindingRow({ finding }: { finding: Finding }) {
           {/*
             O "por que" é a diferença entre uma lista de tarefas e um
             levantamento: sem a evidência, quem lê não tem como discordar do
-            achado — e discordar é parte da revisão humana.
+            achado, e discordar é parte da revisão humana.
           */}
           <p className="mt-1.5 text-xs text-muted-foreground">
             {finding.why}{" "}

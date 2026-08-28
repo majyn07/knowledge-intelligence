@@ -20,7 +20,7 @@ interface AvatarUploadProps {
  *
  * A imagem é reduzida **no navegador** antes de sair daqui: nada de mandar 4 MB
  * para o servidor cortar depois. O que sobe já é o que fica gravado, e o teto é
- * conferido sobre o resultado, não sobre o arquivo escolhido — o tamanho do
+ * conferido sobre o resultado, não sobre o arquivo escolhido: o tamanho do
  * original não diz nada sobre o tamanho do retrato.
  */
 export function AvatarUpload({ person, onChange }: AvatarUploadProps) {
@@ -82,7 +82,7 @@ export function AvatarUpload({ person, onChange }: AvatarUploadProps) {
 
         <p className="text-xs text-muted-foreground">
           Recortado no centro e reduzido a 128 pixels. Sem retrato, aparecem as
-          suas iniciais — o que já distingue.
+          suas iniciais: o que já distingue.
         </p>
       </div>
 

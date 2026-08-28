@@ -16,7 +16,7 @@ export function AnalysisEvidence({ analysis }: AnalysisEvidenceProps) {
   ];
 
   return (
-    <PageSection title="Evidências para a revisão" description="Use os sinais extraídos do atendimento para validar — ou questionar — as recomendações da IA.">
+    <PageSection title="Evidências para a revisão" description="Use os sinais extraídos do atendimento para validar (ou questionar) as recomendações da IA.">
       <div className="grid gap-4 lg:grid-cols-3">
         {evidence.map(({ label, value, icon: Icon }) => (
           <article key={label} className="rounded-xl border border-border/70 bg-muted/20 p-4">

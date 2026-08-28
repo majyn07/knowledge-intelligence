@@ -31,7 +31,7 @@ describe("shouldOffer", () => {
   it("não oferece quando é igual ao que já está gravado", () => {
     /*
       Igual significa que a gravação aconteceu e o resto é sobra. Pedir uma
-      decisão sobre nada ensina a ignorar o aviso — que é como um aviso deixa
+      decisão sobre nada ensina a ignorar o aviso, que é como um aviso deixa
       de funcionar quando importa.
     */
     expect(

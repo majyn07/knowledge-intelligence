@@ -4,7 +4,7 @@ import type { Ticket } from "@/models/Ticket";
 
 /**
  * Monta a consulta a partir de tudo que o atendimento oferece, incluindo o
- * registro da conversa quando existe — é onde estão os termos que descrevem
+ * registro da conversa quando existe. É onde estão os termos que descrevem
  * o problema real.
  */
 export function buildKnowledgeQuery(

@@ -2,8 +2,8 @@
 --
 -- Os indicadores até aqui eram os que o código decidiu contar. Toda pergunta
 -- nova exigia deploy, e por isso as perguntas simplesmente não eram feitas.
--- Esta tabela guarda o **enunciado** do painel — o que contar, como quebrar,
--- em que janela — e não o resultado: o número é recalculado a cada leitura,
+-- Esta tabela guarda o **enunciado** do painel: o que contar, como quebrar,
+-- em que janela, e não o resultado: o número é recalculado a cada leitura,
 -- sobre os dados que existem agora.
 --
 -- Guardar o resultado seria guardar um número que envelhece em silêncio.

@@ -3,7 +3,7 @@ import type { ActivityEvent } from "@/models/ActivityEvent";
 /**
  * O que uma iniciativa recorta do histórico.
  *
- * O Projeto recorta **trabalho** — atendimento, análise, oportunidade, plano.
+ * O Projeto recorta **trabalho**, atendimento, análise, oportunidade, plano.
  * O acervo é do hub e não tem iniciativa: os 1.822 artigos importados do portal
  * têm `projectId` vazio, e o evento que eles geram nasce vazio junto.
  *

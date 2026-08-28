@@ -3,7 +3,7 @@
  *
  * O registro sai da vista e continua existindo. Com dado compartilhado isso
  * deixou de ser conforto e virou necessidade: quem apaga apaga para catorze
- * pessoas, e o diálogo de confirmação é a única barreira — que quem clica
+ * pessoas, e o diálogo de confirmação é a única barreira, que quem clica
  * rápido não lê.
  *
  * Sem prazo de expurgo automático, de propósito. Apagar trabalho sozinho, num
@@ -36,7 +36,7 @@ export function trashed<T extends Trashable>(items: T[]): T[] {
 /**
  * O que ficaria apontando para o vazio se este registro sumisse.
  *
- * Não impede a exclusão — a equipe é treinada e decide, como em publicar. Mas
+ * Não impede a exclusão: a equipe é treinada e decide, como em publicar. Mas
  * o número aparece antes do clique: "excluir este atendimento" e "excluir este
  * atendimento, a análise dele e o plano que ele originou" são decisões
  * diferentes, e hoje a tela apresentava as duas do mesmo jeito.

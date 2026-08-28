@@ -104,7 +104,7 @@ export function AnalysisWorkspace() {
       /*
         O modelo devolve as chaves que ele conhece; o produto trabalha com o
         cadastro da equipe. A tradução é por nome, e chave sem correspondência
-        vira tipo vazio — a revisão humana decide, que é a regra do ciclo.
+        vira tipo vazio: a revisão humana decide, que é a regra do ciclo.
 
         Enquanto isso, id e status continuam atribuídos aqui e nunca pelo modelo.
       */

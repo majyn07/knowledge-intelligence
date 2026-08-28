@@ -31,8 +31,8 @@ let writeWarned = false;
 /**
  * Coleção que vive no servidor quando há servidor, e no navegador quando não há.
  *
- * A assinatura devolvida é a mesma de `usePersistedState` — `[itens, definir,
- * hidratado]` — para que os providers não precisem saber de onde o dado vem.
+ * A assinatura devolvida é a mesma de `usePersistedState`. `[itens, definir,
+ * hidratado]`, para que os providers não precisem saber de onde o dado vem.
  * Era a promessa da arquitetura desde o começo: a última camada é trocável, e
  * a interface não se refaz.
  *
@@ -49,7 +49,7 @@ let writeWarned = false;
  *
  * Vinte e cinco, e o número veio de uma falha: com cem, cada pedido levava
  * cerca de 1,3 MB de corpo de artigo, e a gravação dos 1.782 do portal morreu
- * no quinto lote — sem erro na tela e sem nada no console.
+ * no quinto lote, sem erro na tela e sem nada no console.
  */
 const POR_LOTE = 25;
 
@@ -98,7 +98,7 @@ export function useSharedCollection<T>({
   /*
     As conversões chegam como funções novas a cada render do provider. Guardá-
     las numa ref evita reassinar o tempo real e recarregar a coleção a cada
-    render — mas a atualização acontece em efeito, porque escrever numa ref
+    render, mas a atualização acontece em efeito, porque escrever numa ref
     durante o render quebra a renderização concorrente.
 
     O efeito é declarado antes dos que consomem a ref, então roda antes deles.
@@ -119,7 +119,7 @@ export function useSharedCollection<T>({
    * Era um `select("*")` só, com o comentário de que as coleções são pequenas.
    * Deixaram de ser: com o portal importado são mil e oitocentos artigos e
    * vinte e quatro megabytes, e a consulta única falhava de duas formas ao
-   * mesmo tempo — estourava o tempo do servidor, e quando não estourava vinha
+   * mesmo tempo. Estourava o tempo do servidor, e quando não estourava vinha
    * **cortada em mil linhas**, que é o teto do PostgREST.
    *
    * O corte era o pior dos dois: chegava sem erro, e o tempo real substituía o
@@ -131,7 +131,7 @@ export function useSharedCollection<T>({
     /*
       A contagem primeiro, sem trazer linha nenhuma. Ela custa um pedido e paga
       por si: sem saber o total, as páginas só podem ser pedidas uma depois da
-      outra — e eram dez em fila, nove segundos até a Biblioteca abrir.
+      outra, e eram dez em fila, nove segundos até a Biblioteca abrir.
     */
     const { count, error: erroDaContagem } = await supabase
       .from(table)
@@ -151,7 +151,7 @@ export function useSharedCollection<T>({
     );
 
     /*
-      Em paralelo, mas com freio — e o freio veio da medição.
+      Em paralelo, mas com freio, e o freio veio da medição.
 
       Dez páginas em fila levavam nove segundos. Dez de uma vez baixaram a
       parede para quinze, mas cada consulta passou de seiscentos milissegundos
@@ -293,7 +293,7 @@ export function useSharedCollection<T>({
 
       /*
         `table` é uma união de nomes, então o tipo da linha esperada vira a
-        interseção de todas — `never`. O gancho é genérico de propósito: quem
+        interseção de todas, `never`. O gancho é genérico de propósito: quem
         o usa fornece `toRow`, e é lá que a forma correta é garantida.
       */
       const tabela = supabase.from(table) as unknown as {
@@ -304,7 +304,7 @@ export function useSharedCollection<T>({
       /*
         Em lotes, e não tudo de uma vez.
 
-        A importação do portal grava 1.822 artigos numa tacada só — cerca de
+        A importação do portal grava 1.822 artigos numa tacada só. Cerca de
         vinte e quatro megabytes de corpo HTML. Um `upsert` único com isso
         estoura o limite de tamanho do pedido, e a falha chegaria como um erro
         genérico depois de a pessoa ter esperado a varredura inteira.
@@ -335,7 +335,7 @@ export function useSharedCollection<T>({
     /*
       O `catch` existe porque `void sync()` engolia a exceção: quando um pedido
       falhava por rede ou por tamanho, o laço morria calado e metade do acervo
-      simplesmente não chegava. Falha silenciosa é pior que falha — ninguém vai
+      simplesmente não chegava. Falha silenciosa é pior que falha. Ninguém vai
       atrás do que não sabe que quebrou.
     */
     void sync()

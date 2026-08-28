@@ -6,7 +6,7 @@ import { useEffect, useRef, useState } from "react";
  * Avisa quando o registro em edição mudou no servidor.
  *
  * Com o trabalho compartilhado, duas pessoas podem abrir o mesmo artigo. A
- * decisão de produto foi **avisar e deixar decidir** — nem sobrescrever em
+ * decisão de produto foi **avisar e deixar decidir**, nem sobrescrever em
  * silêncio, que faz o trabalho de quem salvou primeiro desaparecer sem
  * ninguém notar, nem travar o registro, que emperra de vez quando alguém
  * esquece a aba aberta.

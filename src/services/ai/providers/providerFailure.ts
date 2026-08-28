@@ -3,7 +3,7 @@
  *
  * Existe porque todas viravam a mesma frase: "O serviço de IA está
  * indisponível. Tente novamente." Chave errada, cota estourada, modelo
- * sobrecarregado e pedido que travou davam a mesma resposta — e as quatro
+ * sobrecarregado e pedido que travou davam a mesma resposta, e as quatro
  * pedem coisas diferentes de quem lê. "Tente novamente" com a chave errada é
  * um convite a tentar para sempre.
  *
@@ -106,7 +106,7 @@ export function classifyProviderFailure(error: unknown): AIFailure {
 
   /*
     `AbortError` é o nome que o navegador e o Node dão ao pedido cancelado pelo
-    nosso próprio prazo. Ele chega sem código e às vezes sem mensagem — só o
+    nosso próprio prazo. Ele chega sem código e às vezes sem mensagem, só o
     nome identifica.
   */
   if (error instanceof Error && error.name === "AbortError") {

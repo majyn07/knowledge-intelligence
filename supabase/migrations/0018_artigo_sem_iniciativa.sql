@@ -2,7 +2,7 @@
 --
 -- O esquema nasceu quando todo artigo vinha de um projeto: `project_id` era
 -- obrigatório e apagar o projeto levava o artigo junto. O produto decidiu o
--- contrário desde então — o acervo é do hub, espelho de um portal, e o lugar do
+-- contrário desde então: o acervo é do hub, espelho de um portal, e o lugar do
 -- artigo é a seção. Carimbá-lo com a iniciativa ativa esconderia o portal de
 -- quem trocasse de projeto.
 --
@@ -13,7 +13,7 @@
 -- Duas mudanças, e a segunda é tão importante quanto a primeira:
 --
 --   1. `project_id` passa a aceitar nulo, que é o estado do artigo importado.
---   2. `on delete cascade` vira `on delete set null` — apagar uma iniciativa
+--   2. `on delete cascade` vira `on delete set null`. Apagar uma iniciativa
 --      não pode apagar artigo do acervo que nunca foi dela. É a mesma razão
 --      pela qual `section_id` já usava `set null`.
 

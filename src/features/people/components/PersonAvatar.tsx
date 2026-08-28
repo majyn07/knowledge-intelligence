@@ -15,7 +15,7 @@ interface PersonAvatarProps {
  *
  * Iniciais não são um estado degradado: elas distinguem sem exigir nada de
  * ninguém, e a maior parte das pessoas nunca vai enviar foto. Por isso a cor é
- * derivada do nome — determinística, igual em qualquer máquina — em vez de
+ * derivada do nome (determinística, igual em qualquer máquina) em vez de
  * sorteada.
  *
  * O retrato é um data URI vindo do próprio perfil, então `img` cru e não

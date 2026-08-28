@@ -3,7 +3,7 @@
  *
  * Buscar no corpo sem mostrar o trecho é meio recurso: a lista diz que oito
  * artigos casam e não diz por quê, e a pessoa abre os oito. Com o trecho, ela
- * abre o certo — que é a diferença entre a busca ajudar e a busca dar trabalho.
+ * abre o certo. Que é a diferença entre a busca ajudar e a busca dar trabalho.
  */
 
 /** Tira o acento preservando o tamanho, para o índice do texto continuar valendo. */

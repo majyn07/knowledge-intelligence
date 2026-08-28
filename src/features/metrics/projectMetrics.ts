@@ -32,7 +32,7 @@ export function selectProjectMetrics({ projectId, analyses, plans, articles, tic
     O acervo não se recorta por iniciativa, e por isso entra inteiro.
 
     O artigo é do hub: os 1.822 importados do portal têm `projectId` vazio, e
-    filtrar por igualdade zerava todo contador de artigo — inclusive o cartão
+    filtrar por igualdade zerava todo contador de artigo. Inclusive o cartão
     que diz "Disponíveis na Biblioteca", que mostrava zero com a Biblioteca
     cheia. O recorte legítimo do artigo é por equipe, e quem o faz é a tela de
     indicadores, antes de chamar aqui.

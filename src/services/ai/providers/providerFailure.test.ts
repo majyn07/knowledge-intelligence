@@ -26,7 +26,7 @@ describe("classifyProviderFailure", () => {
 
   it("o cancelamento pelo nosso prazo é reconhecido pelo nome", () => {
     /*
-      `AbortError` chega sem código e às vezes sem mensagem — só o nome
+      `AbortError` chega sem código e às vezes sem mensagem, só o nome
       identifica quem foi.
     */
     const abort = new Error("");
@@ -69,7 +69,7 @@ describe("classifyProviderFailure", () => {
 
   it("código fora da faixa de HTTP não é confundido com status", () => {
     /*
-      Alguns SDKs usam `code` para outra coisa — `code: 42` não é um status, e
+      Alguns SDKs usam `code` para outra coisa, `code: 42` não é um status, e
       tratá-lo como um classificaria errado.
     */
     expect(classifyProviderFailure({ code: 42, message: "erro qualquer" }).kind).toBe("desconhecida");

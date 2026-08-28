@@ -6,7 +6,7 @@ type ProjetoNomeado = { id: string; name: string };
  *
  * Vazio e ausente são coisas diferentes, e a tela dizia "Projeto não
  * encontrado" para os dois. Para o artigo vindo do portal isso é uma acusação
- * falsa: ele **nasce** sem iniciativa de propósito — o acervo é do hub, e
+ * falsa: ele **nasce** sem iniciativa de propósito: o acervo é do hub, e
  * carimbá-lo com o projeto ativo esconderia o portal de quem trocasse de
  * projeto. Não há nada para encontrar.
  *

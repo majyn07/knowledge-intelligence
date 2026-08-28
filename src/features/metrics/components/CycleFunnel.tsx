@@ -46,7 +46,7 @@ function janelaLabel(days: number) {
  * passou por revisão e foi publicado passou pelos dois, e contar só onde ele
  * está agora esconderia metade do caminho.
  *
- * Cada número abre a lista que o originou — indicador que não se abre é
+ * Cada número abre a lista que o originou. Indicador que não se abre é
  * indicador em que ninguém confia.
  */
 export function CycleFunnel({ days: inicial = 30 }: { days?: number }) {
@@ -91,7 +91,7 @@ export function CycleFunnel({ days: inicial = 30 }: { days?: number }) {
   /*
     Sem o relógio não dá para dizer nada sobre janela de tempo, e sem o
     histórico lido não dá para contar. Antes disto a seção simplesmente não
-    existia no primeiro render e aparecia do nada — o esqueleto reserva o
+    existia no primeiro render e aparecia do nada: o esqueleto reserva o
     espaço e diz que algo vem ali.
   */
   if (!window || !isHydrated) {
@@ -204,7 +204,7 @@ export function CycleFunnel({ days: inicial = 30 }: { days?: number }) {
             <span>
               <strong>{coverage.legacy}</strong> de {coverage.total} mudanças de
               estágio foram registradas antes de o histórico guardar o destino, e
-              ficam de fora destas contagens. Elas continuam no histórico —
+              ficam de fora destas contagens. Elas continuam no histórico,
               apenas não dizem para onde o registro foi.
             </span>
           </p>

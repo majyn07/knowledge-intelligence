@@ -7,7 +7,7 @@ import type { Trashable } from "./Trash";
  *
  * Declarada como array e não só como união porque o normalizador e as visões
  * salvas precisam da lista em tempo de execução para recusar valor
- * desconhecido — a mesma razão de .
+ * desconhecido: a mesma razão de .
  */
 export const CONTENT_FORMATS = ["markdown", "html"] as const;
 export type ContentFormat = (typeof CONTENT_FORMATS)[number];
@@ -26,7 +26,7 @@ export interface KnowledgeContentSource {
 }
 
 /**
- * Artigo da Base de Conhecimento — a única representação de conteúdo do
+ * Artigo da Base de Conhecimento: a única representação de conteúdo do
  * produto. É o que a Biblioteca edita e o que a análise consulta.
  */
 export interface KnowledgeArticle extends Trashable {
@@ -41,7 +41,7 @@ export interface KnowledgeArticle extends Trashable {
    * A iniciativa que originou este artigo, quando ele nasceu de uma.
    *
    * **Não é recorte.** O produto é um hub com **um** acervo, espelho de **um**
-   * portal, e o lugar do artigo é a seção — não a iniciativa que por acaso
+   * portal, e o lugar do artigo é a seção, não a iniciativa que por acaso
    * estava ativa quando alguém o escreveu. Filtrar por aqui esconderia o acervo
    * da AltoQi de quem trocasse de projeto, e faria a importação do portal
    * carimbar mil e oitocentos artigos com uma iniciativa que não os originou.
@@ -56,7 +56,7 @@ export interface KnowledgeArticle extends Trashable {
   status: ArticleStatus;
 
   /**
-   * Seção do portal onde o artigo mora. A categoria vem dela — guardar as
+   * Seção do portal onde o artigo mora. A categoria vem dela, guardar as
    * duas permitiria que divergissem.
    *
    * Vazio é estado legítimo: artigo recém-criado, ou migrado de um registro
@@ -84,9 +84,9 @@ export interface KnowledgeArticle extends Trashable {
    * Em que formato o conteúdo está.
    *
    * Declarado, e não adivinhado. O que escrevemos aqui é Markdown; o que vier
-   * do portal é HTML. Converter nos dois sentidos degrada a cada ida e volta —
-   * tabela com atributo, âncora, classe e mídia embutida não sobrevivem à
-   * viagem — e guardar o formato junto é o que permite não converter nunca.
+   * do portal é HTML. Converter nos dois sentidos degrada a cada ida e volta.
+   * Tabela com atributo, âncora, classe e mídia embutida não sobrevivem à
+   * viagem, e guardar o formato junto é o que permite não converter nunca.
    */
   contentFormat: ContentFormat;
 

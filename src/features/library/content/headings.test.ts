@@ -40,7 +40,7 @@ describe("extractHeadings", () => {
 
 describe("extractHeadings em HTML", () => {
   /*
-    O artigo do portal é HTML, e procurar `#` nele não acha nada — o índice
+    O artigo do portal é HTML, e procurar `#` nele não acha nada: o índice
     ficava vazio em mil e oitocentos artigos.
   */
   it("lê os títulos da marcação", () => {
@@ -61,7 +61,7 @@ describe("extractHeadings em HTML", () => {
   });
 
   /*
-    O formato é declarado. Ler HTML como Markdown — ou o contrário — erraria com
+    O formato é declarado. Ler HTML como Markdown (ou o contrário) erraria com
     artigo que escreve `<h2>` como exemplo dentro de um bloco de código.
   */
   it("não procura marcação quando o formato é Markdown", () => {

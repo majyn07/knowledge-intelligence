@@ -26,7 +26,7 @@ export type FillValue = string | Record<string, string>[];
  */
 export type ReviewableProposal = FillProposal & {
   label: string;
-  /** O que o campo mostra hoje, em texto — para a lista, quantos itens já há. */
+  /** O que o campo mostra hoje, em texto, para a lista, quantos itens já há. */
   current: string;
   overwrites: boolean;
 };
@@ -36,7 +36,7 @@ export type ReviewableProposal = FillProposal & {
  *
  * Proposta para campo que a tela não conhece é descartada aqui também, e não
  * só no servidor: as duas pontas conferem porque a lista de campos pode mudar
- * entre o pedido e a resposta — alguém troca de aba, o formulário remonta — e
+ * entre o pedido e a resposta (alguém troca de aba, o formulário remonta) e
  * escrever num campo que não existe mais é escrever no nada.
  */
 export function toReviewable(
@@ -51,7 +51,7 @@ export function toReviewable(
       const atual = current[proposal.name];
 
       /*
-        **Lista soma, não substitui** — e por isso nunca é marcada como perda.
+        **Lista soma, não substitui**, e por isso nunca é marcada como perda.
 
         Quem já digitou uma mensagem à mão antes de anexar o documento não
         deveria perdê-la, e substituir seria a única forma de isso acontecer.
@@ -91,7 +91,7 @@ export function toReviewable(
  * O que vem marcado quando a lista aparece.
  *
  * Só o que preenche campo vazio. Substituir texto que alguém escreveu é
- * decisão, e decisão não vem tomada por padrão — quem quiser troca a marca, e
+ * decisão, e decisão não vem tomada por padrão. Quem quiser troca a marca, e
  * a tela diz o que a troca custa.
  */
 export function defaultSelection(proposals: ReviewableProposal[]): Set<string> {

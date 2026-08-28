@@ -46,7 +46,7 @@ describe("toIsoDate", () => {
 describe("formatDay", () => {
   it("mostra o dia guardado sem passar por fuso", () => {
     /*
-      `new Date("2026-08-20")` é meia-noite UTC, que no Brasil é o dia 19 — o
+      `new Date("2026-08-20")` é meia-noite UTC, que no Brasil é o dia 19: o
       atendimento apareceria um dia antes do que aconteceu.
     */
     expect(formatDay("2026-08-20")).toBe("20/08/2026");

@@ -3,7 +3,7 @@ import type { Team } from "@/models/Assignment";
 /**
  * As quatro equipes do suporte AltoQi, com os nomes que elas têm de fato.
  *
- * Equipe é estrutura, não dado pessoal — por isso ela vive no código, ao
+ * Equipe é estrutura, não dado pessoal. Por isso ela vive no código, ao
  * contrário das pessoas, que só existem depois de entrarem no produto.
  *
  * Os identificadores **não mudam** quando o nome muda. Eles são o vínculo com

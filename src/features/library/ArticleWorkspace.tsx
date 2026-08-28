@@ -113,7 +113,7 @@ export function ArticleWorkspace({ articleId }: ArticleWorkspaceProps) {
 
   /*
     Classificação resolvida contra o cadastro. Quando a seção não existe mais
-    — categoria removida, ou artigo migrado sem correspondência — o resultado
+    (categoria removida, ou artigo migrado sem correspondência) o resultado
     é vazio, e a tela diz "não definida" em vez de mostrar um id solto.
   */
   const section = findSection(taxonomy, article.sectionId);

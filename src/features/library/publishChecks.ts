@@ -1,7 +1,7 @@
 import type { PublishCheck } from "@/components/common/PublishConfirmDialog";
 import type { KnowledgeArticle } from "@/models/KnowledgeArticle";
 
-/** Mede o preparo do artigo pelos próprios campos — nada é inferido. */
+/** Mede o preparo do artigo pelos próprios campos, nada é inferido. */
 export function articlePublishChecks(article: KnowledgeArticle): PublishCheck[] {
   return [
     {

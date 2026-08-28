@@ -14,7 +14,7 @@ import type { RecoveredDraft } from "../recovery";
  * significa que a gravação aconteceu, e pedir uma decisão sobre nada é o que
  * ensina alguém a ignorar avisos.
  *
- * Restaurar não grava — devolve o texto para os campos, e a decisão de salvar
+ * Restaurar não grava. Devolve o texto para os campos, e a decisão de salvar
  * continua sendo de quem está editando. Descartar apaga só a cópia; o artigo
  * não é tocado.
  */
@@ -36,7 +36,7 @@ export function RecoveryNotice({
 
         <p className="mt-1 text-xs text-muted-foreground">
           Guardado neste navegador <RelativeDate value={draft.at} />, quando a janela fechou sem
-          gravar. Restaurar devolve o texto aos campos — salvar continua sendo escolha sua.
+          gravar. Restaurar devolve o texto aos campos, salvar continua sendo escolha sua.
         </p>
 
         <div className="mt-3 flex flex-wrap gap-2">

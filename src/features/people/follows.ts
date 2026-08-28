@@ -7,7 +7,7 @@ export type FollowKind = (typeof FOLLOW_KINDS)[number];
 
 export interface Follow {
   id: string;
-  /** Quem acompanha. Vazio quando não há conta — o navegador é a pessoa. */
+  /** Quem acompanha. Vazio quando não há conta: o navegador é a pessoa. */
   personId: string;
   kind: FollowKind;
   subjectId: string;

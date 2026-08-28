@@ -20,7 +20,7 @@ export class AIConfigurationError extends Error {
 /**
  * Falha do provedor, com o tipo preservado.
  *
- * Antes eram todas a mesma frase — "tente novamente" —, inclusive quando a
+ * Antes eram todas a mesma frase ("tente novamente"), inclusive quando a
  * chave estava errada e tentar de novo não ia mudar nada. O tipo e a mensagem
  * original sobem juntos, pelo mesmo motivo da tradução do erro de acesso: o
  * texto do provedor é a única pista de quem administra.

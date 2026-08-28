@@ -4,7 +4,7 @@
  * O produto já avisa antes de descartar e guarda na lixeira o que é excluído,
  * mas o texto que ainda não foi gravado não tinha rede nenhuma: fechar a aba no
  * meio de um artigo longo perdia tudo, e o aviso do navegador só serve para
- * quem está lá para lê-lo — queda de energia, aba fechada por engano e
+ * quem está lá para lê-lo. Queda de energia, aba fechada por engano e
  * navegador reiniciado não perguntam nada.
  *
  * Fica **no navegador**, mesmo no modo compartilhado. Um texto pela metade
@@ -49,7 +49,7 @@ export function isEmptyDraft(fields: RecoverableFields): boolean {
  *
  * Só quando o que ficou guardado **difere** do que o registro tem hoje. Igual
  * significa que a gravação aconteceu e o resto é sobra; oferecer restaurar ali
- * seria pedir uma decisão sobre nada — e ensinar a pessoa a ignorar o aviso,
+ * seria pedir uma decisão sobre nada, e ensinar a pessoa a ignorar o aviso,
  * que é como um aviso deixa de funcionar quando importa.
  *
  * Vazio também não vale: abrir o formulário, digitar e apagar não é trabalho
@@ -73,7 +73,7 @@ export function shouldOffer(
  * Lê o que estava guardado, recusando o que não tem a forma esperada.
  *
  * O registro pode ter sido gravado por uma versão anterior do produto. Como em
- * todo o resto, o que não tem forma vira ausência — e não uma tela quebrada na
+ * todo o resto, o que não tem forma vira ausência, e não uma tela quebrada na
  * abertura de um formulário.
  */
 export function parseRecovered(raw: unknown): RecoveredDraft | null {

@@ -66,7 +66,7 @@ export function LibraryToolbar({
 {/*
             As opções vêm do cadastro, não de constante no código: categoria
             criada aparece aqui sozinha, categoria removida some. Só as linhas
-            de produto entram — as áreas de apoio publicam artigo mas não são
+            de produto entram: as áreas de apoio publicam artigo mas não são
             alvo do ciclo, e ocupariam a barra sem servir ao filtro.
           */}
           <div className="flex flex-wrap gap-1.5" role="group" aria-label="Filtrar por categoria">

@@ -48,7 +48,7 @@ describe("suggestTeam", () => {
 
   it("duas equipes na mesma categoria desligam a sugestão", () => {
     /*
-      Escolher a primeira seria arbitrário — e arbitrário com cara de sugestão
+      Escolher a primeira seria arbitrário, e arbitrário com cara de sugestão
       é pior que campo vazio, porque ninguém desconfia do que já veio
       preenchido.
     */
@@ -76,7 +76,7 @@ describe("suggestTeam", () => {
   it("a seção declarada vence a categoria", () => {
     /*
       O suporte do Builder é dividido por disciplina, e disciplina no portal é
-      seção. As duas equipes têm de responder pela mesma categoria — declarar
+      seção. As duas equipes têm de responder pela mesma categoria. Declarar
       só ela desligaria a sugestão de ambas.
     */
     const teams = [
@@ -92,7 +92,7 @@ describe("suggestTeam", () => {
     /*
       A categoria continua valendo para quem responde pelo produto inteiro.
       Mas se a seção não foi declarada por ninguém e a categoria tem duas
-      equipes, voltamos ao empate — e empate não sugere.
+      equipes, voltamos ao empate, e empate não sugere.
     */
     const comSecao = [
       team("eq-eletrica", ["cat-builder"], ["sec-eletrica"]),

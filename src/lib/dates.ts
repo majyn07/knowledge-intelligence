@@ -1,5 +1,5 @@
 /**
- * Data de calendário — o dia, sem hora e sem fuso.
+ * Data de calendário: o dia, sem hora e sem fuso.
  *
  * O produto guarda instante em ISO completo quando o que importa é o momento
  * (histórico, criação, atualização). Aqui é outra coisa: a data do atendimento
@@ -11,16 +11,16 @@
  * `Date`: `new Date("2026-08-20")` é meia-noite UTC, que no Brasil é o dia 19.
  */
 
-/** `aaaa-mm-dd` — o formato guardado. */
+/** `aaaa-mm-dd`: o formato guardado. */
 const ISO_DAY = /^(\d{4})-(\d{2})-(\d{2})$/;
 
-/** `dd/mm/aaaa` — o formato que os registros anteriores guardavam. */
+/** `dd/mm/aaaa`: o formato que os registros anteriores guardavam. */
 const BR_DAY = /^(\d{2})\/(\d{2})\/(\d{4})$/;
 
 /**
  * O dia existe no calendário.
  *
- * `31/02` não existe, e `new Date` o converteria em 3 de março sem avisar —
+ * `31/02` não existe, e `new Date` o converteria em 3 de março sem avisar:
  * o atendimento apareceria num mês em que nada aconteceu.
  */
 function isRealDay(year: number, month: number, day: number): boolean {
@@ -39,7 +39,7 @@ function isRealDay(year: number, month: number, day: number): boolean {
  * Converte para `aaaa-mm-dd`, ou devolve vazio.
  *
  * Reconhece o formato brasileiro porque é o que está gravado nos atendimentos
- * desde a primeira versão — converter não é adivinhar, é ler o que existe. O
+ * desde a primeira versão. Converter não é adivinhar, é ler o que existe. O
  * que não é nenhum dos dois vira vazio: um campo de texto livre aceitava
  * "ontem", e "ontem" não é uma data.
  */

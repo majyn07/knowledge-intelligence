@@ -34,7 +34,7 @@ describe("withHighlight", () => {
   });
 
   /*
-    Trocar dentro de uma tag quebraria o endereço de uma imagem ou de um link —
+    Trocar dentro de uma tag quebraria o endereço de uma imagem ou de um link,
     procurar "img" não pode tocar em `<img src=...>`.
   */
   it("não marca dentro da marcação", () => {

@@ -58,7 +58,7 @@ describe("findOverlaps", () => {
 
   /*
     Dois artigos parecidos em seções diferentes costumam ser o mesmo assunto
-    visto de ângulos diferentes — o desenho do portal, não defeito. Duplicata
+    visto de ângulos diferentes: o desenho do portal, não defeito. Duplicata
     de verdade mora ao lado.
   */
   it("não compara entre seções diferentes", () => {

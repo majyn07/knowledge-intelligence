@@ -38,7 +38,7 @@ interface Anexo {
  *
  * A peça é a mesma em qualquer formulário do produto: quem usa diz o que o
  * formulário é e quais campos existem, e recebe proposta revisável. Nada aqui
- * grava — a IA propõe, a revisão aprova, e salvar continua sendo ato de quem
+ * grava: a IA propõe, a revisão aprova, e salvar continua sendo ato de quem
  * edita.
  *
  * O que a IA **não** conseguiu preencher aparece como pergunta, e isso é
@@ -77,12 +77,12 @@ export function FillPanel({
    * O provedor ativo lê arquivo?
    *
    * Perguntado ao servidor porque qual provedor está valendo é informação
-   * dele, e a resposta traz só a capacidade — a tela não precisa saber o nome
+   * dele, e a resposta traz só a capacidade: a tela não precisa saber o nome
    * do modelo, e a fronteira existe para que não saiba.
    *
    * Começa em `false` e liga quando a resposta chega: oferecer o anexo antes
    * de saber faria o botão aparecer e sumir na abertura da tela. Ambiente sem
-   * IA nenhuma simplesmente não mostra o anexo, sem erro nenhum — o produto
+   * IA nenhuma simplesmente não mostra o anexo, sem erro nenhum: o produto
    * roda sem provedor, e sempre rodou.
    */
   const [readsFiles, setReadsFiles] = useState(false);
@@ -209,7 +209,7 @@ export function FillPanel({
     setSource("");
     /*
       O anexo sai junto. Ele já cumpriu o papel, e mantê-lo faria o próximo
-      pedido reenviar um documento que a pessoa acha que ficou para trás — e
+      pedido reenviar um documento que a pessoa acha que ficou para trás, e
       pagar os tokens dele de novo.
     */
     setAnexo(null);
@@ -289,7 +289,7 @@ export function FillPanel({
           {/*
             O arquivo entra pelo mesmo painel, e não por um diálogo à parte: o
             texto digitado e o documento anexado são a mesma coisa para quem
-            preenche — contexto —, e separá-los faria escolher entre descrever
+            preenche (contexto), e separá-los faria escolher entre descrever
             e anexar quando os dois juntos descrevem melhor.
           */}
           {readsFiles && (
@@ -404,7 +404,7 @@ export function FillPanel({
                   )}
 
                   {/*
-                    Lista soma, então isto informa e não alerta — cor neutra,
+                    Lista soma, então isto informa e não alerta, cor neutra,
                     e não a de perda. A distinção importa: âmbar para o que
                     custa algo, cinza para o que só situa.
                   */}
@@ -442,7 +442,7 @@ export function FillPanel({
           <ul className="mt-2 space-y-1">
             {result.questions.map((question) => (
               <li key={question} className="text-sm text-muted-foreground">
-                — {question}
+               . {question}
               </li>
             ))}
           </ul>

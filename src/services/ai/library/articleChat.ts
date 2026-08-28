@@ -5,7 +5,7 @@ import { z } from "zod";
  *
  * A pergunta que isto responde é a de quem **avalia** o acervo: este artigo
  * ainda vale? falta alguma coisa? cobre o caso que o cliente relatou? Com mil e
- * oitocentos artigos importados, essa leitura crítica é o trabalho — e fazê-la
+ * oitocentos artigos importados, essa leitura crítica é o trabalho, e fazê-la
  * sozinho significa reler cada texto inteiro.
  *
  * A evidência é o próprio artigo, e só ele. Perguntas sobre o acervo inteiro
@@ -18,7 +18,7 @@ import { z } from "zod";
  *
  * O artigo mais longo do portal tem vinte e dois mil caracteres; a média fica
  * perto de doze mil. O teto existe para o caso fora da curva não estourar o
- * prazo do provedor — e quando ele corta, **a tela diz**, porque uma resposta
+ * prazo do provedor, e quando ele corta, **a tela diz**, porque uma resposta
  * baseada em meio artigo apresentada como se fosse sobre o artigo inteiro é o
  * tipo de erro que ninguém percebe.
  */

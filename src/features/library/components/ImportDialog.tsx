@@ -42,7 +42,7 @@ const NAO_IMPORTAR = "__nenhuma__";
  * **O mapeamento é uma tela, não uma adivinhação.** As colunas da exportação
  * não usam os nossos nomes; o que dá para reconhecer vem sugerido, e o resto
  * fica em branco para alguém escolher. Encaixar por semelhança erraria em
- * silêncio — e erro de mapeamento contamina mil e oitocentos registros de uma
+ * silêncio, e erro de mapeamento contamina mil e oitocentos registros de uma
  * vez, que ninguém revisa um por um para descobrir.
  *
  * O plano é calculado antes de gravar e mostrado inteiro: quantos entram,
@@ -100,7 +100,7 @@ export function ImportDialog({
   }
 
   /*
-    Recalculado a cada troca de mapeamento — é isso que faz a contagem embaixo
+    Recalculado a cada troca de mapeamento. É isso que faz a contagem embaixo
     responder enquanto a pessoa escolhe, em vez de só depois de confirmar.
   */
   const plan: ImportPlan | null = useMemo(() => {
@@ -146,7 +146,7 @@ export function ImportDialog({
         onOpenChange(next);
       }}
       title="Importar artigos de um arquivo"
-      description="A exportação do portal, em CSV ou texto separado. Nada sai daqui e nada é enviado a lugar nenhum: o arquivo é lido no seu navegador. Para um artigo só, a partir de PDF, imagem ou texto, use “Novo artigo” — lá a IA lê o documento e propõe os campos."
+      description="A exportação do portal, em CSV ou texto separado. Nada sai daqui e nada é enviado a lugar nenhum: o arquivo é lido no seu navegador. Para um artigo só, a partir de PDF, imagem ou texto, use “Novo artigo”, lá a IA lê o documento e propõe os campos."
     >
       <div className="flex flex-col gap-5">
         <div>
@@ -183,7 +183,7 @@ export function ImportDialog({
 
               <p className="mt-1 text-xs text-muted-foreground">
                 O que foi reconhecido já veio preenchido. O que não foi ficou em branco de
-                propósito — encaixar no mais parecido erraria em {table.rows.length} registros de
+                propósito, encaixar no mais parecido erraria em {table.rows.length} registros de
                 uma vez. Abaixo de cada escolha está <strong>o que aquela coluna guarda de
                 verdade</strong>, para não ser preciso conhecer o formato do arquivo.
               </p>
@@ -217,7 +217,7 @@ export function ImportDialog({
                           <SelectItem key={`${header}-${index}`} value={String(index)}>
                             {header || `Coluna ${index + 1}`}
                             {columnSample(table, index, 32) &&
-                              ` — ${columnSample(table, index, 32)}`}
+                              `. ${columnSample(table, index, 32)}`}
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -250,8 +250,8 @@ export function ImportDialog({
                   </SelectTrigger>
 
                   <SelectContent>
-                    <SelectItem value="html">HTML — vem do portal</SelectItem>
-                    <SelectItem value="markdown">Markdown — escrito aqui</SelectItem>
+                    <SelectItem value="html">HTML. Vem do portal</SelectItem>
+                    <SelectItem value="markdown">Markdown. Escrito aqui</SelectItem>
                   </SelectContent>
                 </Select>
 
@@ -301,7 +301,7 @@ export function ImportDialog({
               </li>
 
               <li>
-                <strong className="text-foreground">{plan.update.length}</strong> atualizado(s) —
+                <strong className="text-foreground">{plan.update.length}</strong> atualizado(s),
                 casados pelo identificador do portal.
               </li>
             </ul>
@@ -329,7 +329,7 @@ export function ImportDialog({
 
                   {plan.duplicatedInFile > 0 && (
                     <li>
-                      {plan.duplicatedInFile} repetida(s) dentro do arquivo — vale a última
+                      {plan.duplicatedInFile} repetida(s) dentro do arquivo. Vale a última
                       ocorrência.
                     </li>
                   )}
@@ -355,7 +355,7 @@ export function ImportDialog({
         {/*
           A conferência que dispensa conhecer o formato: um registro montado,
           com os nomes dos nossos campos. Contagem certa com mapeamento trocado
-          é possível — mil e oitocentos resumos no lugar do título somam mil e
+          é possível. Mil e oitocentos resumos no lugar do título somam mil e
           oitocentos do mesmo jeito. Ver um pronto é o que denuncia.
         */}
         {primeiro && (
@@ -367,7 +367,7 @@ export function ImportDialog({
               <dd className="truncate">{primeiro.title}</dd>
 
               <dt className="text-muted-foreground">Resumo</dt>
-              <dd className="truncate">{primeiro.summary || "—"}</dd>
+              <dd className="truncate">{primeiro.summary || "."}</dd>
 
               <dt className="text-muted-foreground">Conteúdo</dt>
               <dd className="truncate">
@@ -375,28 +375,28 @@ export function ImportDialog({
                   ? `${primeiro.content.replace(/\s+/g, " ").slice(0, 80)}${
                       primeiro.content.length > 80 ? "…" : ""
                     }`
-                  : "—"}
+                  : "."}
               </dd>
 
               <dt className="text-muted-foreground">Seção</dt>
               <dd className="truncate">
                 {primeiro.sectionId
                   ? sectionPath(taxonomy, primeiro.sectionId)
-                  : "Sem seção — para classificar depois"}
+                  : "Sem seção. Para classificar depois"}
               </dd>
 
               <dt className="text-muted-foreground">Estágio</dt>
               <dd>{articleStatusLabel[primeiro.status]}</dd>
 
               <dt className="text-muted-foreground">Identificador no portal</dt>
-              <dd className="truncate">{primeiro.portalArticleId || "—"}</dd>
+              <dd className="truncate">{primeiro.portalArticleId || "."}</dd>
             </dl>
           </div>
         )}
 
         {table && mapping && !mappingIsComplete(mapping) && (
           <p className="text-sm text-muted-foreground">
-            Escolha a coluna do <strong>título</strong> para continuar — sem ela a linha não
+            Escolha a coluna do <strong>título</strong> para continuar, sem ela a linha não
             identifica registro nenhum.
           </p>
         )}

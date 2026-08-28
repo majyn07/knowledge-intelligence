@@ -23,7 +23,7 @@ const OPPORTUNITY_STATUSES: readonly OpportunityStatus[] = [
  *
  * O motivo de não normalizar o resultado inteiro: ele é a resposta estruturada
  * do modelo, já validada por schema estrito na fronteira da IA, e é uma árvore
- * grande. **Isso é um limite conhecido** — um registro gravado por uma versão
+ * grande. **Isso é um limite conhecido**: um registro gravado por uma versão
  * anterior pode ter um campo do resultado ausente que só a tela descobre.
  * Quando o resultado mudar de forma, é aqui que o tratamento entra.
  */

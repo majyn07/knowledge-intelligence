@@ -14,13 +14,13 @@ import { teamsOfCategory, teamsOfSection } from "../suggestTeam";
  * Serve para o produto **sugerir** o responsável quando alguém classifica um
  * artigo, e nada além disso: a atribuição continua sendo escolha de quem
  * preenche. Derivar automaticamente criaria um responsável que ninguém
- * escolheu — e em QiOnboarding ou Novidades de Release, que não têm equipe
+ * escolheu, e em QiOnboarding ou Novidades de Release, que não têm equipe
  * óbvia, o palpite apareceria com cara de decisão.
  *
  * A seção existe aqui porque a categoria sozinha não descreve o suporte do
  * Builder: ali as disciplinas são seções, e Elétrica e Hidráulica são equipes
- * diferentes dentro da mesma categoria. Quem responde pelo produto inteiro —
- * Visus, Eberick — declara só a categoria e não precisa abrir esta parte.
+ * diferentes dentro da mesma categoria. Quem responde pelo produto inteiro.
+ * Visus, Eberick. Declara só a categoria e não precisa abrir esta parte.
  *
  * É cadastro, e não um mapa no código: as categorias do portal mudam e as
  * equipes do suporte mudam, e ninguém vai abrir o código para acompanhar.
@@ -55,7 +55,7 @@ export function TeamScope({ team }: { team: Team }) {
   };
 
   /*
-    Duas equipes no mesmo lugar é permitido — pode ser a realidade do suporte —
+    Duas equipes no mesmo lugar é permitido (pode ser a realidade do suporte)
     mas desliga a sugestão, porque escolher uma delas seria arbitrário. Avisar
     aqui é melhor que a pessoa notar que o campo parou de vir preenchido e não
     entender por quê.
@@ -83,7 +83,7 @@ export function TeamScope({ team }: { team: Team }) {
   return (
     <div className="mt-3 border-t border-border/60 pt-3">
       <p className="text-xs text-muted-foreground">
-        Responde por — usado para sugerir esta equipe ao classificar um artigo.
+        Responde por. Usado para sugerir esta equipe ao classificar um artigo.
       </p>
 
       <div className="mt-2 flex flex-wrap gap-1.5">
@@ -116,7 +116,7 @@ export function TeamScope({ team }: { team: Team }) {
           </summary>
 
           <p className="mt-2 text-xs text-muted-foreground">
-            Só é preciso quando duas equipes dividem a mesma categoria — como as
+            Só é preciso quando duas equipes dividem a mesma categoria, como as
             disciplinas do Builder. A seção declarada vence a categoria; o que ninguém declarou
             continua respondendo pela categoria.
           </p>
@@ -154,7 +154,7 @@ export function TeamScope({ team }: { team: Team }) {
               <>
                 {disputadas.length === 1 ? "Uma categoria" : `${disputadas.length} categorias`}{" "}
                 {disputadas.length === 1 ? "é declarada" : "são declaradas"} por outra equipe sem
-                divisão por seção. A sugestão fica desligada nelas — refine por seção ou deixe a
+                divisão por seção. A sugestão fica desligada nelas. Refine por seção ou deixe a
                 atribuição manual.
               </>
             )}

@@ -1,12 +1,12 @@
 -- Visões salvas da Biblioteca.
 --
--- Um recorte útil — "Elétrica sem responsável", "em revisão há mais de uma
--- semana" — hoje é remontado à mão toda vez que alguém precisa dele. A visão
+-- Um recorte útil. "Elétrica sem responsável", "em revisão há mais de uma
+-- semana", hoje é remontado à mão toda vez que alguém precisa dele. A visão
 -- guarda a combinação de filtros e como a tabela estava, e reabre igual.
 --
 -- Compartilhada, como painel: "Elétrica pendentes" é útil para quem trabalha
 -- em Elétrica, não só para quem montou. Não há papéis no produto, e inventar
--- "minha visão" criaria uma noção de dono que só o acompanhamento tem — e ele
+-- "minha visão" criaria uma noção de dono que só o acompanhamento tem, e ele
 -- é sobre interesse, não sobre trabalho.
 
 create table public.saved_views (

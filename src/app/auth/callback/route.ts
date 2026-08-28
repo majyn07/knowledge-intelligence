@@ -8,7 +8,7 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
  *
  * O PKCE guarda um verificador de um lado e manda o código pelo outro. Se o
  * e-mail abre num navegador diferente daquele que pediu, o verificador não
- * existe e a troca falha — com a mesma mensagem de link expirado, que é
+ * existe e a troca falha. Com a mesma mensagem de link expirado, que é
  * exatamente o que ele **não** é. Distinguir os dois casos aqui é o que
  * permite dizer à pessoa onde clicar em vez de mandá-la pedir outro e-mail e
  * repetir o erro.
@@ -19,8 +19,8 @@ const VERIFIER_COOKIE_SUFFIX = "-code-verifier";
  * Destino do link enviado por e-mail: abre a sessão e devolve a pessoa ao
  * produto.
  *
- * Falha vira redirecionamento com motivo na URL, nunca página de erro crua —
- * quem clicou num link que não abriu precisa entender o que aconteceu e ter
+ * Falha vira redirecionamento com motivo na URL, nunca página de erro crua.
+ * Quem clicou num link que não abriu precisa entender o que aconteceu e ter
  * para onde ir. Quem mostra o motivo é `accessError.ts`, na tela de acesso.
  *
  * Dois formatos entram aqui, e a ordem importa:
@@ -45,7 +45,7 @@ export async function GET(request: NextRequest) {
   if (tokenHash) {
     /*
       `type` vem do próprio template de e-mail. Sem ele o padrão é `email`,
-      que é o do link de acesso — o caminho que a equipe usa todo dia não pode
+      que é o do link de acesso: o caminho que a equipe usa todo dia não pode
       depender de um parâmetro chegar.
     */
     const type = (searchParams.get("type") ?? "email") as EmailOtpType;

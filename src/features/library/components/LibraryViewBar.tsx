@@ -178,7 +178,7 @@ export function LibraryViewBar({
           </Button>
 
           <p className="w-full text-xs text-muted-foreground">
-            Guarda os filtros, a ordenação e as colunas — não os artigos. A lista é refeita a cada
+            Guarda os filtros, a ordenação e as colunas, não os artigos. A lista é refeita a cada
             abertura, e a visão fica disponível para a equipe.
           </p>
         </div>

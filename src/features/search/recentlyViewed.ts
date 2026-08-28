@@ -21,7 +21,7 @@ export interface RecentEntry {
  * Quantos guardar.
  *
  * Pequeno de propósito. Uma lista longa deixa de ser "onde eu estava" e vira
- * um segundo histórico — e histórico o produto já tem, completo e auditável.
+ * um segundo histórico, e histórico o produto já tem, completo e auditável.
  */
 export const MAX_RECENT = 8;
 
@@ -53,7 +53,7 @@ export function parseRecent(raw: string): RecentEntry[] {
 /**
  * Registra uma visita.
  *
- * Reabrir o mesmo registro o move para o topo em vez de duplicar — a lista
+ * Reabrir o mesmo registro o move para o topo em vez de duplicar: a lista
  * responde "onde eu estava", e o mesmo item duas vezes não responde nada.
  *
  * Comandos não entram: a paleta já os mostra todos, e eles empurrariam para

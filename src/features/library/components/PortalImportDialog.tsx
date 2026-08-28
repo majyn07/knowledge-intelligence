@@ -19,12 +19,12 @@ import { LibraryDialog } from "./LibraryDialog";
  *
  * A importação por arquivo já existe e continua valendo. Esta existe porque a
  * HubSpot **não** entrega o artigo por API: o escopo que parecia ser isso não
- * tem endpoint, e o site search exige permissão que a credencial não tem — e
+ * tem endpoint, e o site search exige permissão que a credencial não tem, e
  * ainda assim devolveria o índice sem o corpo. O portal é público e entrega os
  * dois, mais a trilha que diz categoria e seção.
  *
  * A varredura é em lotes, em série, com o progresso na tela e com botão de
- * parar — mesma forma da classificação por IA, e pelos mesmos motivos: são
+ * parar. Mesma forma da classificação por IA, e pelos mesmos motivos: são
  * ~1.800 páginas do servidor da própria AltoQi, quem começou pode mudar de
  * ideia, e lote que falha não derruba o que já veio.
  */
@@ -72,7 +72,7 @@ export function PortalImportDialog({
 
   /*
     Ref, e não estado: o laço lê isto a cada lote, e estado só chegaria nele na
-    próxima renderização — o que faria o botão de parar demorar a obedecer.
+    próxima renderização: o que faria o botão de parar demorar a obedecer.
   */
   const pararRef = useRef(false);
 
@@ -185,7 +185,7 @@ export function PortalImportDialog({
   const aplicar = useCallback(() => {
     if (!plan) return;
 
-    // Uma escrita, um evento, um aviso — mil e oitocentos de cada seria ruído.
+    // Uma escrita, um evento, um aviso, mil e oitocentos de cada seria ruído.
     importArticles(plan.create, plan.update);
 
     toast.success(
@@ -218,7 +218,7 @@ export function PortalImportDialog({
           <div className="space-y-3">
             <p className="text-sm text-muted-foreground">
               O portal é público, então esta importação não usa credencial nenhuma. Ela lê a
-              lista de artigos e visita cada página, em série e com pausa — é o servidor de
+              lista de artigos e visita cada página, em série e com pausa. É o servidor de
               suporte da AltoQi do outro lado.
             </p>
 
@@ -252,14 +252,14 @@ export function PortalImportDialog({
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
               <Numero valor={visitas.missing} rotulo="ainda não temos" />
               <Numero valor={visitas.outdated} rotulo="mudaram no portal" />
-              <Numero valor={visitas.upToDate} rotulo="em dia — serão pulados" />
+              <Numero valor={visitas.upToDate} rotulo="em dia, serão pulados" />
               <Numero valor={visitas.undated} rotulo="sem data no sitemap" />
             </div>
 
             {visitas.undated > 0 && (
               <p className="text-xs text-muted-foreground">
                 O sitemap não datou {visitas.undated} página(s). Sem data não dá para afirmar que
-                estão em dia, então elas são visitadas — pular no escuro deixaria uma alteração de
+                estão em dia, então elas são visitadas. Pular no escuro deixaria uma alteração de
                 fora para sempre.
               </p>
             )}
@@ -271,7 +271,7 @@ export function PortalImportDialog({
             ) : (
               <p className="text-sm">
                 Visitar {previstos} página(s) leva cerca de <strong>{minutos} minuto(s)</strong>,
-                em série e com pausa. Dá para parar no meio — o que já veio fica, e a próxima
+                em série e com pausa. Dá para parar no meio: o que já veio fica, e a próxima
                 passada não busca de novo o que ficou em dia.
               </p>
             )}
@@ -279,7 +279,7 @@ export function PortalImportDialog({
             {/*
               Edição feita aqui deixa o registro à frente do portal, e por isso ele
               é pulado. Quem quiser a versão do portal de volta precisa de um jeito
-              de pedir — senão a única saída seria apagar o artigo.
+              de pedir, senão a única saída seria apagar o artigo.
             */}
             <label className="flex items-center gap-2 text-xs text-muted-foreground">
               <input
@@ -315,7 +315,7 @@ export function PortalImportDialog({
               O laço só consulta o pedido de parada na virada do lote, então a
               obediência pode demorar os poucos segundos que faltam para as
               páginas em andamento responderem. Sem dizer isso, o botão parece
-              não ter funcionado — e quem acha que não funcionou clica de novo.
+              não ter funcionado, e quem acha que não funcionou clica de novo.
             */}
             <Button
               variant="outline"

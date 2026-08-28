@@ -169,7 +169,7 @@ describe("janela", () => {
     /*
       `new Date("2026-08-01")` é meia-noite em Greenwich, que no Brasil ainda é
       31 de julho. Sem ler o dia como local, o atendimento do primeiro dia do
-      mês apareceria no mês anterior — e o erro só aparece na virada, que é
+      mês apareceria no mês anterior, e o erro só aparece na virada, que é
       justamente onde ninguém olharia para conferir.
     */
     const data = base();
@@ -212,7 +212,7 @@ describe("janela", () => {
   });
 
   it("desde o início não carrega ressalva de data", () => {
-    // Sem janela, ninguém ficou de fora — não há o que ressalvar.
+    // Sem janela, ninguém ficou de fora, não há o que ressalvar.
     const data = base();
     data.plans = [plano({ id: "antigo", createdAt: "Ontem, 16:20" })];
 
@@ -222,7 +222,7 @@ describe("janela", () => {
   it("data ilegível fica de fora da janela e dentro do desde o início", () => {
     /*
       Plano migrado guarda "Ontem, 16:20". Chutar um instante para ele seria
-      inventar quando o trabalho aconteceu — mas ele existe, e o total geral
+      inventar quando o trabalho aconteceu, mas ele existe, e o total geral
       precisa incluí-lo.
     */
     const data = base();

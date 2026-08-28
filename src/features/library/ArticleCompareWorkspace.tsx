@@ -24,7 +24,7 @@ import { useLibrary } from "./providers/LibraryProvider";
  * que este produto existe para acabar.
  *
  * A tela **não funde nada**. Ela mostra o que difere e o que se repete; unir,
- * arquivar ou deixar como está é decisão de quem revisa — e a edição acontece
+ * arquivar ou deixar como está é decisão de quem revisa, e a edição acontece
  * no artigo, onde ela sempre aconteceu.
  */
 
@@ -77,7 +77,7 @@ function Coluna({
 
         {/*
           O que só este artigo traz. É a resposta calculada para a pergunta que
-          importa — e o que precisa ser preservado se os dois virarem um só.
+          importa, e o que precisa ser preservado se os dois virarem um só.
         */}
         <div className="mt-4 border-t border-border/60 pt-4">
           <p className="text-xs font-medium text-muted-foreground">Só aparece aqui</p>
@@ -205,7 +205,7 @@ export function ArticleCompareWorkspace() {
           <p className="mt-3 flex items-start gap-2 text-xs text-muted-foreground">
             <Sparkles className="mt-0.5 h-3.5 w-3.5 shrink-0 text-primary" />
             Isto é contagem de palavras, não veredito. Para saber se dizem a mesma coisa, abra um
-            deles e pergunte à IA — ela lê o texto e responde a partir dele.
+            deles e pergunte à IA. Ela lê o texto e responde a partir dele.
           </p>
         </div>
       )}

@@ -2,7 +2,7 @@
  * Qual coluna do arquivo alimenta qual campo do artigo.
  *
  * A exportação da HubSpot não vai usar os nossos nomes, e o mapeamento é uma
- * tela — não uma adivinhação. O que esta camada faz é **sugerir**, com a mesma
+ * tela, não uma adivinhação. O que esta camada faz é **sugerir**, com a mesma
  * regra do resto do produto: reconhece o que dá para reconhecer e deixa vazio
  * o que não dá, em vez de encaixar no mais parecido.
  *
@@ -68,7 +68,7 @@ const KNOWN: Record<ImportField, string[]> = {
   updatedAt: ["atualizado em", "updated at", "last updated", "data de atualizacao", "modificado em"],
 };
 
-/** Minúsculas, sem acento e sem espaço sobrando — só para comparar. */
+/** Minúsculas, sem acento e sem espaço sobrando, só para comparar. */
 export function normalizeHeader(header: string): string {
   return header
     .normalize("NFD")

@@ -87,7 +87,7 @@ describe("portalIdOf", () => {
 
   /*
     Cerca de 140 artigos do portal usam só o slug, e o canonical confirma o
-    slug — não há número em lugar nenhum. Sem identidade, reimportar duplicaria.
+    slug, não há número em lugar nenhum. Sem identidade, reimportar duplicaria.
   */
   it("cai no slug quando não há número", () => {
     expect(portalIdOf("https://p/hc/pt-br/comandos-de-manipulacao")).toBe(

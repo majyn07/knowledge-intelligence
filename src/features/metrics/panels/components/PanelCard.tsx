@@ -143,7 +143,7 @@ function Table({ rows, total }: { rows: PanelResult["rows"]; total: number }) {
               <td className="py-1.5 pr-3">{row.label}</td>
               <td className="py-1.5 text-right font-semibold tabular-nums">{row.value}</td>
               <td className="w-14 py-1.5 text-right text-xs text-muted-foreground tabular-nums">
-                {total > 0 ? `${Math.round((row.value / total) * 100)}%` : "—"}
+                {total > 0 ? `${Math.round((row.value / total) * 100)}%` : "."}
               </td>
             </tr>
           ))}

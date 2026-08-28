@@ -58,7 +58,7 @@ describe("planVisits", () => {
 
   /*
     Edição feita aqui deixa `updatedAt` na frente do `lastmod`. O portal não
-    mudou, então não há o que buscar — e sobrescrever apagaria a edição.
+    mudou, então não há o que buscar, e sobrescrever apagaria a edição.
   */
   it("não revisita por causa de edição feita aqui dentro", () => {
     const plan = planVisits(
@@ -70,7 +70,7 @@ describe("planVisits", () => {
     expect(plan.upToDate).toBe(1);
   });
 
-  /* Na dúvida, visita — e diz quantas foram por não ter data. */
+  /* Na dúvida, visita, e diz quantas foram por não ter data. */
   it("visita o que o sitemap não datou", () => {
     const plan = planVisits(
       [{ url: url("1"), lastmod: "" }],

@@ -2,7 +2,7 @@
  * Busca dentro de um artigo já renderizado.
  *
  * Um artigo do portal chega a vinte mil caracteres. Sem isto, achar a frase que
- * interessa é rolar a página inteira — e quem opera um acervo de mil e
+ * interessa é rolar a página inteira, e quem opera um acervo de mil e
  * oitocentos faz isso o dia todo.
  *
  * A marcação é aplicada **só no texto**, nunca dentro de uma tag: trocar dentro

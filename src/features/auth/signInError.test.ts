@@ -39,7 +39,7 @@ describe("signInErrorMessage", () => {
 
   it("provedor desligado manda para o caminho que funciona", () => {
     /*
-      A Supabase responde `Unsupported provider: provider is not enabled` — em
+      A Supabase responde `Unsupported provider: provider is not enabled`. Em
       inglês e nomeando o provedor, que não é o que quem lê precisa saber.
     */
     const texto = signInErrorMessage("Unsupported provider: provider is not enabled");

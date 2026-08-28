@@ -20,12 +20,12 @@ import { articleText } from "../content/articleText";
 /**
  * Consultar a IA sobre o artigo aberto.
  *
- * Com mil e oitocentos artigos importados, avaliar o acervo é o trabalho — e
+ * Com mil e oitocentos artigos importados, avaliar o acervo é o trabalho, e
  * fazê-lo sozinho significa reler cada texto inteiro. A IA lê junto: resume,
  * aponta o que falta, diz o que parece desatualizado.
  *
  * **Ela avalia; quem decide é quem lê.** Nada aqui altera o artigo, e a
- * resposta é texto, não estrutura aplicável — pela mesma razão que a análise do
+ * resposta é texto, não estrutura aplicável. Pela mesma razão que a análise do
  * atendimento propõe oportunidade e a revisão humana aprova.
  */
 
@@ -45,7 +45,7 @@ export function ArticleAssistant({ article }: { article: KnowledgeArticle }) {
   const fimRef = useRef<HTMLDivElement>(null);
 
   /*
-    A tela pergunta se há provedor antes de se oferecer — mesma regra do botão
+    A tela pergunta se há provedor antes de se oferecer. Mesma regra do botão
     de entrar com a conta Google. A resposta entra depois da montagem: no
     primeiro render o servidor não sabe, e supor divergiria na hidratação.
   */
@@ -138,14 +138,14 @@ export function ArticleAssistant({ article }: { article: KnowledgeArticle }) {
           <div className="space-y-3">
             <p className="text-sm text-muted-foreground">
               Ela responde <strong>a partir deste artigo</strong> e diz quando ele não trata do
-              assunto — em vez de completar com conhecimento geral. Avalia e sugere; alterar
+              assunto, em vez de completar com conhecimento geral. Avalia e sugere; alterar
               continua sendo ato de quem lê.
               {contexto.truncated && " O artigo é longo e foi enviado em parte, e ela avisa quando isso pesar na resposta."}
             </p>
 
             {/*
               Empilhadas e de largura cheia. Lado a lado elas mantinham a largura
-              natural da frase — o botão traz `shrink-0` — e furavam a coluna em
+              natural da frase (o botão traz `shrink-0`) e furavam a coluna em
               até cento e oitenta pixels, empurrando a página.
             */}
             <div className="flex flex-col gap-1.5">

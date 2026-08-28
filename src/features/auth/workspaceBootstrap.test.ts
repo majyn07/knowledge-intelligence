@@ -11,7 +11,7 @@ import {
 } from "./workspaceBootstrap";
 
 /*
-  Sem `window`, `readRaw` devolve `null` para toda chave — que é exatamente o
+  Sem `window`, `readRaw` devolve `null` para toda chave. Que é exatamente o
   caso de uma coleção que nunca foi gravada. O teste mede o que a migração
   enxerga nessa situação.
 */

@@ -15,7 +15,7 @@ export interface Editor {
  *
  * Aviso, e não bloqueio. Travar o registro enquanto alguém edita transforma
  * uma aba esquecida aberta na sexta-feira num artigo inacessível até segunda,
- * e não há ninguém para destravar — não há papéis no produto. Saber que outra
+ * e não há ninguém para destravar, não há papéis no produto. Saber que outra
  * pessoa está ali resolve o caso real, que é duas pessoas escrevendo sem
  * perceber.
  *

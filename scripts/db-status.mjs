@@ -2,7 +2,7 @@
  * Quantos registros existem em cada tabela do workspace compartilhado.
  *
  * Existe porque decidir se algo precisa ser apagado sem antes olhar é como
- * apagar no escuro — e apagar dado compartilhado apaga para a equipe inteira.
+ * apagar no escuro, e apagar dado compartilhado apaga para a equipe inteira.
  * Só conta: nada aqui escreve.
  *
  * Uso: `npm run db:status`
@@ -79,7 +79,7 @@ const client = new pg.Client(conexao);
 await client.connect();
 
 /*
-  A ordem é a de dependência — projeto antes de atendimento, atendimento antes
+  A ordem é a de dependência. Projeto antes de atendimento, atendimento antes
   de conversa. Ela é a mesma da migração e a mesma que uma limpeza teria de
   seguir de trás para frente.
 */

@@ -29,7 +29,7 @@ export function normalizeTicket(raw: unknown): Ticket {
     /*
       O campo era de texto livre, e os registros anteriores guardam
       `dd/mm/aaaa`. A conversão acontece na leitura e se firma na próxima
-      gravação — sem migração de dados, como na atribuição.
+      gravação, sem migração de dados, como na atribuição.
 
       O que não é data reconhecível vira vazio de propósito: "ontem" não
       situa nada no tempo, e mantê-lo faria o registro cair fora de toda

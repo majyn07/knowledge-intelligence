@@ -26,11 +26,11 @@ function isFinished(plan: PlanWorkspaceItem) {
  * Último instante em que algo aconteceu com o registro.
  *
  * Vem do histórico e não de `updatedAt`: o histórico registra o que aconteceu,
- * enquanto `updatedAt` muda também por gravação incidental — e uma delas faria
+ * enquanto `updatedAt` muda também por gravação incidental, e uma delas faria
  * um plano parado há um mês parecer recém-tocado.
  *
  * O tipo do assunto é parâmetro e não constante. Ele estava fixo em "plan", e
- * o mesmo id de um artigo devolvia "sem histórico" — parada nunca detectada,
+ * o mesmo id de um artigo devolvia "sem histórico", parada nunca detectada,
  * silenciosamente.
  */
 export function lastActivityOf(
@@ -51,8 +51,8 @@ export function lastActivityOf(
 /**
  * A fila de atenção.
  *
- * Antes disto "precisa de atenção" mostrava contadores — "3 análises
- * aguardando" — sem dizer quais nem qual olhar primeiro. Contador informa que
+ * Antes disto "precisa de atenção" mostrava contadores. "3 análises
+ * aguardando", sem dizer quais nem qual olhar primeiro. Contador informa que
  * existe trabalho; fila diz por onde começar.
  *
  * Entra só o que tem motivo. Um plano no prazo e em movimento não precisa de
@@ -93,7 +93,7 @@ export function buildAttentionQueue(
   }
 
   /*
-    Empate resolvido pelo prazo mais próximo, e depois pelo título — a ordem
+    Empate resolvido pelo prazo mais próximo, e depois pelo título: a ordem
     precisa ser estável, senão a lista embaralha a cada render e quem estava
     lendo perde o lugar.
   */

@@ -60,7 +60,7 @@ describe("parseSectionSuggestions", () => {
 
   it("uma sugestão por artigo, e fica com a primeira", () => {
     // Duas seriam duas respostas para a mesma pergunta, e a tela teria de
-    // escolher sozinha — que é exatamente o que a revisão humana existe para
+    // escolher sozinha. Que é exatamente o que a revisão humana existe para
     // não precisar fazer.
     const duas = [
       { articleId: "a1", sectionId: "sec-eletrica", confidence: "alta", reason: "" },

@@ -3,7 +3,7 @@
  *
  * Declarados como array e não como união escrita à mão porque o normalizador
  * precisa da lista em tempo de execução para recusar valor desconhecido.
- * Manter as duas formas separadas convida a desalinho — e foi exatamente o que
+ * Manter as duas formas separadas convida a desalinho, e foi exatamente o que
  * aconteceu na primeira tentativa de escrever o normalizador.
  */
 export const ACTIVITY_TYPES = [
@@ -55,7 +55,7 @@ export interface ActivitySubject {
 /**
  * Para onde o registro foi, em chave e não em texto.
  *
- * O evento guardava só `detail` — "Rascunho → Publicado" —, e indicador que
+ * O evento guardava só `detail` ("Rascunho → Publicado"), e indicador que
  * precisa saber o destino teria de reconhecer texto. Inferir estágio de uma
  * frase é adivinhação: basta alguém traduzir um rótulo para o número parar de
  * bater, sem nada indicando.
@@ -82,7 +82,7 @@ export interface ActivityEvent {
   /**
    * Presente só nos eventos de mudança de estágio.
    *
-   * Ausente nos registros gravados antes disto existir — e eles ficam de fora
+   * Ausente nos registros gravados antes disto existir, e eles ficam de fora
    * das contagens por destino, com a tela dizendo isso. Preencher agora
    * exigiria interpretar o texto do `detail`, que é o problema que este campo
    * resolve.

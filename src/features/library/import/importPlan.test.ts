@@ -131,7 +131,7 @@ describe("buildImportPlan", () => {
 
   it("atualizar preserva o que o arquivo não traz", () => {
     /*
-      O gênero é nosso, não do portal, e a reimportação não pode apagá-lo — a
+      O gênero é nosso, não do portal, e a reimportação não pode apagá-lo: a
       pessoa classificou o artigo aqui dentro.
     */
     const existente = {
@@ -171,7 +171,7 @@ describe("buildImportPlan", () => {
   it("conta quantos entram sem seção, para alguém reclassificar", () => {
     /*
       É o número que decide se vale importar agora ou arrumar a planilha
-      antes — e sem ele a pessoa descobre depois, com o acervo dentro.
+      antes, e sem ele a pessoa descobre depois, com o acervo dentro.
     */
     const plan = planFrom("titulo,secao\nA,Elétrica\nB,Seção inexistente\nC,");
 

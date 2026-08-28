@@ -3,7 +3,7 @@
  *
  * Isto não é BI genérico sobre qualquer tabela: é um construtor restrito a
  * seis tipos de registro que o produto já modela. A restrição é o que torna o
- * construtor viável — e o que impede alguém montar um painel que não responde
+ * construtor viável, e o que impede alguém montar um painel que não responde
  * pergunta nenhuma.
  */
 
@@ -123,7 +123,7 @@ export interface PanelSpec {
    * Segunda quebra, que cruza com a primeira e produz uma tabela.
    *
    * Para em duas de propósito. Três dimensões não cabem numa tabela que se lê
-   * de relance, e a leitura passa a exigir girar o cubo — que é outro tipo de
+   * de relance, e a leitura passa a exigir girar o cubo. Que é outro tipo de
    * ferramenta, não uma versão mais completa desta.
    */
   breakdown2?: PanelBreakdown;
@@ -139,7 +139,7 @@ export interface PanelSpec {
 /**
  * Corrige uma especificação para uma combinação que existe.
  *
- * Trocar a origem pode invalidar a quebra escolhida antes — e um painel
+ * Trocar a origem pode invalidar a quebra escolhida antes, e um painel
  * pedindo "atendimentos por gênero" não deve ser gravado nem exibido vazio: ele
  * volta para "sem quebra", que é a resposta honesta.
  */
@@ -150,7 +150,7 @@ export function reconcileSpec(spec: PanelSpec): PanelSpec {
 
   /*
     A segunda quebra só existe cruzando com a primeira. Sem a primeira ela
-    seria a primeira, e cruzar algo consigo mesmo produziria uma diagonal —
+    seria a primeira, e cruzar algo consigo mesmo produziria uma diagonal,
     tabela de uma coluna útil e o resto zerado.
   */
   const breakdown2 =
@@ -163,7 +163,7 @@ export function reconcileSpec(spec: PanelSpec): PanelSpec {
       : undefined;
 
   // Número único não comporta quebra: seria um número por linha sem linha.
-  // Cruzamento só cabe em tabela — barra empilhada esconderia metade dos números.
+  // Cruzamento só cabe em tabela. Barra empilhada esconderia metade dos números.
   const visual = breakdown2
     ? "table"
     : spec.visual === "number" && breakdown !== "none"

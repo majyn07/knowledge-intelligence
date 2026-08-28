@@ -47,7 +47,7 @@ describe("readParams", () => {
   it("ignora parâmetro que não foi declarado", () => {
     /*
       Aceitar qualquer parâmetro faria a tela obedecer a algo que ninguém
-      escreveu — e o endereço vem de fora, colado por outra pessoa.
+      escreveu, e o endereço vem de fora, colado por outra pessoa.
     */
     const resultado = readParams("?busca=viga&intruso=1", defaults);
 

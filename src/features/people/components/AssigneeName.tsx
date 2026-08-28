@@ -11,7 +11,7 @@ import { usePeople } from "../providers/PeopleProvider";
  * É o que faz renomear uma pessoa atualizar tudo que está atribuído a ela, em
  * vez de orfanar.
  *
- * Referência que não resolve é mostrada como veio, com a ressalva — ela é um
+ * Referência que não resolve é mostrada como veio, com a ressalva. Ela é um
  * nome guardado por versão anterior, e some se for tratada como vazio.
  */
 export function AssigneeName({

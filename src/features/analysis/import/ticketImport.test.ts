@@ -69,7 +69,7 @@ describe("buildTicketImportPlan", () => {
 
   it("a data vira dia de calendário, e o que não dá para situar é contado", () => {
     /*
-      Chutar produziria atendimento contado no mês errado — o painel já teve
+      Chutar produziria atendimento contado no mês errado: o painel já teve
       esse defeito uma vez, e a correção foi recusar o que não é data.
     */
     const resultado = plan("Assunto,Data\nA,10/03/2026\nB,ontem\nC,2026-04-01");
@@ -89,7 +89,7 @@ describe("buildTicketImportPlan", () => {
 
   it("conta quantos chegam sem solução", () => {
     /*
-      Atendimento sem solução não é candidato a virar conhecimento — é o que o
+      Atendimento sem solução não é candidato a virar conhecimento. É o que o
       Levantamento usa para não cobrar trabalho impossível.
     */
     const resultado = plan("Assunto,Solução\nA,Resolvido\nB,");

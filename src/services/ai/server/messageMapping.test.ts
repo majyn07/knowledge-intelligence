@@ -16,7 +16,7 @@ describe("systemInstructionOf", () => {
   /*
     O defeito que este teste existe para impedir: era `find`, que pegava a
     primeira instrução e descartava as demais em silêncio. O artigo ia no
-    segundo bloco, e o modelo respondia "como o artigo não foi fornecido" — sem
+    segundo bloco, e o modelo respondia "como o artigo não foi fornecido". Sem
     erro em lugar nenhum, com o pedido parecendo certo dos dois lados.
   */
   it("junta todas as instruções de sistema, não só a primeira", () => {

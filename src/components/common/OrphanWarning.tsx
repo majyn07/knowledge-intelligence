@@ -7,7 +7,7 @@ import type { Orphans } from "@/models/Trash";
 /**
  * O que fica apontando para o vazio.
  *
- * Não bloqueia — a equipe é treinada e decide, como em publicar. Mas o número
+ * Não bloqueia: a equipe é treinada e decide, como em publicar. Mas o número
  * aparece antes do clique: "excluir este atendimento" e "excluir este
  * atendimento, a análise dele e o plano que ele originou" são decisões
  * diferentes, e a tela apresentava as duas do mesmo jeito.
@@ -27,7 +27,7 @@ export function OrphanWarning({ orphans }: { orphans: Orphans }) {
 
       <span>
         <strong>{partes.join(", ")}</strong> {orphans.total === 1 ? "derivou" : "derivaram"} deste
-        registro e {orphans.total === 1 ? "continua" : "continuam"} existindo — {orphans.total === 1
+        registro e {orphans.total === 1 ? "continua" : "continuam"} existindo, {orphans.total === 1
           ? "passa"
           : "passam"}{" "}
         a apontar para o vazio. Restaurar pela lixeira refaz o vínculo.

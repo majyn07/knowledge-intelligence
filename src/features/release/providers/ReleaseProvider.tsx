@@ -38,8 +38,8 @@ export const useRelease = () => useContext(ReleaseContext);
  * atualizar é ato de alguém.
  *
  * O registro de trabalho pendente existe pelo mesmo motivo. Um formulário sujo
- * informa aqui que existe, e o aviso passa a dizer que há o que salvar antes —
- * em vez de oferecer um botão que descarta o trabalho sem falar nisso. É a
+ * informa aqui que existe, e o aviso passa a dizer que há o que salvar antes.
+ * Em vez de oferecer um botão que descarta o trabalho sem falar nisso. É a
  * mesma regra do `useUnsavedGuard`, um nível acima: quem fecha a aba inteira
  * merece a mesma pergunta de quem fecha o diálogo.
  *
@@ -98,7 +98,7 @@ export function ReleaseProvider({ children }: { children: ReactNode }) {
   /*
     Fechar ou recarregar a aba com edição aberta passa pela pergunta do próprio
     navegador. É a única barreira que existe para o caminho que não passa pela
-    nossa interface — atalho de teclado, botão de recarregar, fechar a janela.
+    nossa interface. Atalho de teclado, botão de recarregar, fechar a janela.
   */
   useEffect(() => {
     if (unsaved === 0) return;

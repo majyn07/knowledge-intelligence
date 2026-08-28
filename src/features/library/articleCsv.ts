@@ -5,7 +5,7 @@ import { cellValue, columnLabel, type ArticleColumn, type ColumnContext } from "
 /**
  * O recorte atual como planilha.
  *
- * Exporta **o que está na tela** — filtros, ordenação e colunas aplicados —, e
+ * Exporta **o que está na tela** (filtros, ordenação e colunas aplicados), e
  * não o acervo inteiro. Quem exporta acabou de montar um recorte; entregar
  * outra coisa obrigaria a refazer o trabalho no Excel.
  *
@@ -32,7 +32,7 @@ export function articlesToCsv(
 
   /*
     Ponto e vírgula e BOM pela mesma razão do painel: o Excel em pt-BR usa
-    vírgula como separador decimal, e sem o BOM lê o arquivo como ANSI —
+    vírgula como separador decimal, e sem o BOM lê o arquivo como ANSI,
     "Elétrica" chega quebrado.
   */
   return `﻿${linhas.join("\r\n")}\r\n`;

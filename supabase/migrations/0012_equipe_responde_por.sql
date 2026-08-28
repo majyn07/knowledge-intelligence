@@ -10,7 +10,7 @@
 --
 -- `jsonb` e não coluna por categoria: a lista é lida inteira, nunca filtrada
 -- por um item só. E sem chave estrangeira para `taxonomy_categories` de
--- propósito — remover uma categoria não pode falhar porque uma equipe a
+-- propósito. Remover uma categoria não pode falhar porque uma equipe a
 -- citava; a referência órfã simplesmente deixa de sugerir.
 alter table public.teams
   add column category_ids jsonb not null default '[]'::jsonb;
