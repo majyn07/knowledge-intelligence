@@ -120,6 +120,36 @@ describe("planejarVarredura", () => {
     expect(plano.visitar).toHaveLength(2);
   });
 
+  /*
+    O intervalo livre existe para o que os atalhos não alcançam: "só agosto de
+    2025" não é uma janela contada para trás a partir de hoje.
+  */
+  it("deixa fora da janela o que é mais novo que o fim dela", () => {
+    const plano = planejarVarredura(
+      [
+        conversa("dentro", { ultimaMensagemEm: "2026-06-15T00:00:00.000Z" }),
+        conversa("depois", { ultimaMensagemEm: "2026-08-20T00:00:00.000Z" }),
+      ],
+      [],
+      DESDE,
+      "2026-06-30T23:59:59.999Z"
+    );
+
+    expect(plano.visitar.map((f) => f.id)).toEqual(["dentro"]);
+    expect(plano.foraDaJanela).toBe(1);
+  });
+
+  /* Sem fim declarado a janela vai até agora, que é o caso de todo atalho. */
+  it("sem fim, nada é novo demais", () => {
+    const plano = planejarVarredura(
+      [conversa("recente", { ultimaMensagemEm: "2026-08-27T00:00:00.000Z" })],
+      [],
+      DESDE
+    );
+
+    expect(plano.visitar).toHaveLength(1);
+  });
+
   it("plano vazio para caixa vazia", () => {
     expect(planejarVarredura([], [], DESDE).visitar).toHaveLength(0);
   });

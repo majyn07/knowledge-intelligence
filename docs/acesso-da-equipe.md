@@ -1,31 +1,38 @@
 # Liberar o acesso da equipe
 
-O produto está no ar e funcionando. O que trava a entrada de mais gente não é
-código: é o serviço de e-mail do projeto.
+**O SMTP próprio foi configurado no painel em 21/08/2026, e a entrada por link
+funciona.** Qualquer `@altoqi.com.br` recebe o link e entra; o perfil é criado
+na hora. O que segue existe para quem precisar refazer a configuração, e para o
+segundo caminho de entrada, que continua adiado.
 
-## O que acontece hoje
+## O risco que fica
 
-O acesso é sem senha, por link enviado ao e-mail corporativo. Quem envia esse
-link é o serviço embutido da Supabase, que existe para desenvolvimento e tem
+A senha de envio não entra no repositório, então o SMTP **não está declarado**
+em `supabase/config.toml`. E `supabase config push` aplica o arquivo inteiro,
+devolvendo ao padrão da CLI o que não está escrito nele.
+
+Ou seja: um push desliga o SMTP e devolve o projeto ao serviço embutido, que
+entrega dois e-mails por hora e só para quem está na equipe do projeto na
+Supabase. A equipe para de entrar, e nada no push avisa que foi isso. Antes e
+depois de qualquer push, conferir
+<https://supabase.com/dashboard/project/teebrsxpnypztwhtiupe/auth/smtp>.
+
+## Como era antes, e por que o SMTP resolveu
+
+O acesso é sem senha, por link enviado ao e-mail corporativo. Quem enviava esse
+link era o serviço embutido da Supabase, que existe para desenvolvimento e tem
 dois limites de fábrica:
 
 - entrega **poucos e-mails por hora**, daí o `email rate limit exceeded`;
 - **só entrega para endereços da equipe do projeto** na Supabase. Um
-  `nome@altoqi.com.br` que não esteja lá não recebe nada, e o erro é o mesmo.
+  `nome@altoqi.com.br` que não estivesse lá não recebia nada, e o erro era o
+  mesmo.
 
-Nenhum dos dois se resolve mexendo no produto, e nenhum se resolve esperando: o
-teto por hora da Supabase **fica travado enquanto não houver servidor de e-mail
-próprio configurado**. É por isso que só uma pessoa conseguiu entrar até agora.
+Nenhum dos dois se resolvia mexendo no produto, e o teto por hora **fica
+travado enquanto não houver servidor de e-mail próprio**. Era por isso que só
+uma pessoa tinha conseguido entrar.
 
-## O caminho escolhido: servidor de e-mail próprio
-
-A entrada pela conta Google resolveria o mesmo problema sem e-mail nenhum, mas
-depende de criar credencial no Google Cloud Console da empresa, e isso está
-adiado junto com o resto do que precisa da TI. O código dela já está pronto e
-escondido atrás de uma variável; quando o dia chegar, é ligar.
-
-Até lá, o caminho é configurar SMTP na Supabase. Feito isso, o link passa a
-chegar em qualquer `@altoqi.com.br`, sem teto de fábrica.
+## Se for preciso configurar o SMTP de novo
 
 ### Onde configurar
 

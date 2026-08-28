@@ -12,20 +12,23 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { useProject } from "@/providers/ProjectProvider";
-import type { SupportConversation } from "@/models/SupportConversation";
-import type { Ticket } from "@/models/Ticket";
+import { planejarVarredura, type PlanoDeVarredura } from "@/services/hubspot/helpDeskSchedule";
 import {
-  janelaDeMeses,
-  MESES_PADRAO,
-  planejarVarredura,
-  type ConversaListada,
-  type PlanoDeVarredura,
-} from "@/services/hubspot/helpDeskSchedule";
+  ATALHOS,
+  ATALHO_PADRAO,
+  janelaInvalida,
+  resolverJanela,
+  rotuloDaJanela,
+  type Janela,
+} from "@/services/hubspot/searchWindow";
 
 import { useActivity } from "@/features/activities/providers/ActivityProvider";
 import { RelativeDate } from "@/components/common/RelativeDate";
 
 import { useTickets } from "../providers/TicketsProvider";
+import { usePeople } from "@/features/people/providers/PeopleProvider";
+import { renovarTranca, soltarTranca, tomarTranca } from "../autoSyncRepository";
+import { caixasDoSuporte, lerConversas, listarConversas } from "../helpDeskScan";
 
 /**
  * Buscar os atendimentos na caixa do suporte.
@@ -51,8 +54,6 @@ interface Progresso {
 
 const VAZIO: Progresso = { conversas: 0, lidos: 0, trazidos: 0, falhas: 0 };
 
-/** Quantos conversas por lote de leitura. O servidor recusa acima disso. */
-const POR_LOTE = 20;
 
 /**
  * Quantos atendimentos uma busca traz.
@@ -85,6 +86,7 @@ export function HelpDeskDialog({
   onOpenChange: (open: boolean) => void;
 }) {
   const { tickets, importFromHelpDesk } = useTickets();
+  const { currentPerson } = usePeople();
   const { activeProjectId } = useProject();
   const { events } = useActivity();
 
@@ -112,7 +114,15 @@ export function HelpDeskDialog({
   const [erro, setErro] = useState<string | null>(null);
   const [plano, setPlano] = useState<PlanoDeVarredura | null>(null);
   const [progresso, setProgresso] = useState<Progresso>(VAZIO);
-  const [meses, setMeses] = useState(MESES_PADRAO);
+  /*
+    A janela era uma lista de meses, de 1 a 12, e o mês é grande demais para a
+    pergunta mais comum: quem acabou de atender quer o dia, e quem volta de
+    segunda quer a semana. Puxar um mês para achar o que caiu ontem custa cento
+    e dez páginas de listagem contra o servidor do suporte.
+  */
+  const [janela, setJanela] = useState<Janela>({ tipo: "atalho", id: ATALHO_PADRAO });
+  const [de, setDe] = useState("");
+  const [ate, setAte] = useState("");
 
   /*
     Um teto de quantos ler, e não só de qual período.
@@ -147,25 +157,6 @@ export function HelpDeskDialog({
     [onOpenChange]
   );
 
-  async function pedir(caminho: string, corpo?: unknown) {
-    const resposta = await fetch(caminho, {
-      method: corpo ? "POST" : "GET",
-      ...(corpo ? { headers: { "content-type": "application/json" }, body: JSON.stringify(corpo) } : {}),
-    });
-
-    const dados: unknown = await resposta.json();
-
-    if (!resposta.ok) {
-      const mensagem =
-        typeof dados === "object" && dados !== null && "message" in dados
-          ? String((dados as { message: unknown }).message)
-          : "Não foi possível falar com a HubSpot.";
-
-      throw new Error(mensagem);
-    }
-
-    return dados as Record<string, unknown>;
-  }
 
   /** Primeira passada: lista o que existe nas caixas e monta o plano. */
   async function listar() {
@@ -175,8 +166,7 @@ export function HelpDeskDialog({
     setProgresso(VAZIO);
 
     try {
-      const inicio = await pedir("/api/hubspot/help-desk");
-      const caixas = (inicio.caixas as string[]) ?? [];
+      const caixas = await caixasDoSuporte();
 
       /*
         A janela vai para o servidor, e é o que torna isto viável. A caixa do
@@ -184,26 +174,25 @@ export function HelpDeskDialog({
         alcançar o mês corrente sem filtrar custaria mais de mil requisições.
         Com a janela, três meses são 110 páginas.
       */
-      const desde = janelaDeMeses(new Date(), meses);
-      const conversas: ConversaListada[] = [];
+      const periodo = resolverJanela(
+        janela.tipo === "intervalo" ? { tipo: "intervalo", de, ate } : janela,
+        new Date()
+      );
 
-      for (const caixa of caixas) {
-        let cursor: string | undefined;
-
-        do {
-          if (parar.current) break;
-
-          const query = new URLSearchParams({ caixa, desde });
-          if (cursor) query.set("apos", cursor);
-
-          const pagina = await pedir(`/api/hubspot/help-desk?${query}`);
-
-          conversas.push(...((pagina.conversas as ConversaListada[]) ?? []));
-          cursor = (pagina.proxima as string | null) ?? undefined;
-
-          setProgresso((atual) => ({ ...atual, conversas: conversas.length }));
-        } while (cursor);
+      if (janelaInvalida(periodo)) {
+        setErro(periodo.erro);
+        setEtapa("inicio");
+        return;
       }
+
+      const { desde, ate: fim } = periodo;
+
+      const conversas = await listarConversas({
+        caixas,
+        desde,
+        aoProgredir: (quantas) => setProgresso((atual) => ({ ...atual, conversas: quantas })),
+        parou: () => parar.current,
+      });
 
       /*
         O que já está aqui, com o carimbo da última varredura. É por ele que a
@@ -217,7 +206,7 @@ export function HelpDeskDialog({
           ultimaMensagemEm: String(ticket.raw?.ultimaMensagemEm ?? ""),
         }));
 
-      setPlano(planejarVarredura(conversas, conhecidos, desde));
+      setPlano(planejarVarredura(conversas, conhecidos, desde, fim));
       setEtapa("planejado");
     } catch (falha) {
       setErro(falha instanceof Error ? falha.message : "Não foi possível listar.");
@@ -229,84 +218,67 @@ export function HelpDeskDialog({
   async function ler() {
     if (!plano) return;
 
+    /*
+      Uma varredura por vez, e a tranca é do banco e não desta aba.
+
+      Sem ela, dois administradores com a tela aberta disparam duas varreduras
+      contra a mesma caixa, e o servidor do suporte sente as duas somadas. É o
+      caso que a pergunta "como impeço que alguém sobrecarregue" quer evitar.
+    */
+    const tranca = await tomarTranca(currentPerson);
+
+    if (!tranca.tomada) {
+      setErro(
+        tranca.por === ""
+          ? "Já há uma varredura em curso. Espere ela terminar."
+          : `${tranca.por} já está com uma varredura em curso. Espere ela terminar.`
+      );
+      return;
+    }
+
     parar.current = false;
     setErro(null);
     setEtapa("lendo");
 
-    const trazidos: { ticket: Ticket; conversation: SupportConversation }[] = [];
-    let lidos = 0;
-    let falhas = 0;
-
     try {
       const aLer = teto === null ? plano.visitar : plano.visitar.slice(0, teto);
 
-      for (let inicio = 0; inicio < aLer.length; inicio += POR_LOTE) {
-        if (parar.current) break;
-
-        const lote = aLer.slice(inicio, inicio + POR_LOTE);
-        const resposta = await pedir("/api/hubspot/help-desk", { conversas: lote });
-
-        const atendimentos = (resposta.atendimentos as Record<string, never>[]) ?? [];
-        falhas += Number(resposta.falhas ?? 0);
-        lidos += lote.length;
-
-        for (const bruto of atendimentos) {
-          const dados = bruto as unknown as {
-            ticket: { externalId: string; title: string; solution: string; date: string };
-            messages: SupportConversation["messages"];
-            contato?: { nome: string; empresa: string };
-            raw: Record<string, unknown>;
-          };
-
-          const id = `hs-${dados.ticket.externalId}`;
-
-          trazidos.push({
-            ticket: {
-              id,
-              projectId: activeProjectId ?? "",
-              title: dados.ticket.title,
-              solution: dados.ticket.solution,
-              /*
-                A empresa vem do contato associado. É dado pessoal, e entrou por
-                pedido explícito de quem conduz o projeto: sem ela não dá para
-                reencontrar o atendimento na HubSpot, que é o que a equipe faz.
-              */
-              company: dados.contato?.empresa ?? "",
-              date: dados.ticket.date,
-              source: {
-                provider: "hubspot",
-                externalId: dados.ticket.externalId,
-                importedAt: new Date().toISOString(),
-              },
-              raw: dados.raw,
-            },
-            conversation: {
-              id: `conv-${dados.ticket.externalId}`,
-              ticketId: id,
-              messages: dados.messages,
-              source: {
-                provider: "hubspot",
-                externalId: dados.ticket.externalId,
-                importedAt: new Date().toISOString(),
-              },
-            },
-          });
-        }
-
-        setProgresso({ conversas: aLer.length, lidos, trazidos: trazidos.length, falhas });
-      }
+      const { trazidos } = await lerConversas({
+        visitar: aLer,
+        projectId: activeProjectId ?? "",
+        /*
+          Sinal de vida a cada lote. A tranca sem renovação é dada como
+          abandonada, que é o que a devolve quando alguém fecha a aba no meio de
+          uma varredura de duas horas.
+        */
+        aoLote: () => void renovarTranca(currentPerson),
+        aoProgredir: (parcial) =>
+          setProgresso({
+            conversas: aLer.length,
+            lidos: parcial.lidos,
+            trazidos: parcial.trazidos.length,
+            falhas: parcial.falhas,
+          }),
+        parou: () => parar.current,
+      });
 
       /*
         Uma escrita só, no fim. Gravar lote a lote deixaria o acervo pela metade
         se um falhasse, e encheria o histórico de linhas iguais.
       */
-      importFromHelpDesk(trazidos);
+      importFromHelpDesk(trazidos, rotuloDaJanela(janela));
+      await soltarTranca(true);
       setEtapa("fim");
     } catch (falha) {
       setErro(falha instanceof Error ? falha.message : "A leitura foi interrompida.");
 
-      /* O que já veio não se perde: quem esperou minutos não recomeça do zero. */
-      if (trazidos.length > 0) importFromHelpDesk(trazidos);
+      /*
+        Solta a tranca de qualquer jeito, senão uma falha de rede deixaria a
+        equipe trancada até o carimbo envelhecer. O que já entrou não se perde:
+        `lerConversas` devolve o parcial junto com o erro só quando ela mesma
+        para, e quando estoura antes disso não há o que gravar.
+      */
+      await soltarTranca(false);
       setEtapa("fim");
     }
   }
@@ -332,20 +304,60 @@ export function HelpDeskDialog({
 
         {etapa === "inicio" && (
           <div className="space-y-4">
-            <label className="flex items-center justify-between gap-3 text-sm">
-              <span>Trazer os últimos</span>
-              <select
-                className="h-8 rounded-lg border border-border/70 bg-muted/40 px-2 text-sm"
-                value={meses}
-                onChange={(evento) => setMeses(Number(evento.target.value))}
-              >
-                {[1, 3, 6, 12].map((n) => (
-                  <option key={n} value={n}>
-                    {n} {n === 1 ? "mês" : "meses"}
-                  </option>
+            <div className="space-y-2">
+              <p className="text-sm">Trazer os últimos</p>
+
+              <div className="flex flex-wrap gap-1.5">
+                {ATALHOS.map((atalho) => (
+                  <Button
+                    key={atalho.id}
+                    size="sm"
+                    variant={
+                      janela.tipo === "atalho" && janela.id === atalho.id ? "default" : "outline"
+                    }
+                    onClick={() => setJanela({ tipo: "atalho", id: atalho.id })}
+                  >
+                    {atalho.label}
+                  </Button>
                 ))}
-              </select>
-            </label>
+
+                {/*
+                  O intervalo livre existe para o que os atalhos não alcançam:
+                  "só agosto de 2025" não é uma janela contada para trás a
+                  partir de hoje, e forçá-la num atalho traria dez meses para
+                  achar um.
+                */}
+                <Button
+                  size="sm"
+                  variant={janela.tipo === "intervalo" ? "default" : "outline"}
+                  onClick={() => setJanela({ tipo: "intervalo", de, ate })}
+                >
+                  Escolher datas
+                </Button>
+              </div>
+
+              {janela.tipo === "intervalo" && (
+                <div className="flex flex-wrap items-center gap-2 pt-1">
+                  <input
+                    type="date"
+                    aria-label="Data inicial"
+                    className="h-8 rounded-lg border border-border/70 bg-muted/40 px-2 text-sm"
+                    value={de}
+                    onChange={(evento) => setDe(evento.target.value)}
+                  />
+
+                  <span className="text-sm text-muted-foreground">até</span>
+
+                  <input
+                    type="date"
+                    aria-label="Data final"
+                    className="h-8 rounded-lg border border-border/70 bg-muted/40 px-2 text-sm"
+                    value={ate}
+                    onChange={(evento) => setAte(evento.target.value)}
+                  />
+                </div>
+              )}
+            </div>
 
             <p className="text-xs leading-5 text-muted-foreground">
               A listagem sai sempre do mais antigo, então descobrir o que existe leva alguns
@@ -487,7 +499,22 @@ export function HelpDeskDialog({
   );
 }
 
+/**
+ * O botão, que só aparece para quem administra.
+ *
+ * A porta de verdade é a rota, que confere no servidor: esconder um botão não
+ * controla nada, quem sabe o endereço chama direto. Aqui é sobre não oferecer o
+ * que vai ser recusado — botão que às vezes leva a um erro é pior que botão que
+ * não está lá, e é a mesma regra do entrar com a conta Google.
+ *
+ * Some em vez de ficar desabilitado porque não há nada a fazer para habilitá-lo:
+ * quem não administra não vira administrador clicando.
+ */
 export function HelpDeskButton({ onClick }: { onClick: () => void }) {
+  const { souAdministrador } = usePeople();
+
+  if (!souAdministrador) return null;
+
   return (
     <Button variant="outline" onClick={onClick}>
       <Download className="mr-1.5 h-4 w-4" />

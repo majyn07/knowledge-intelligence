@@ -295,6 +295,32 @@ export interface Database {
   };
 }
 
+/**
+ * Configuração que vale para a equipe, e não para uma máquina.
+ *
+ * Tema e forma da lista ficam no navegador porque são preferência de quem está
+ * ali. Isto é o contrário: decide se o produto fala com o servidor do suporte, e
+ * essa decisão é uma só para catorze pessoas.
+ *
+ * **Fica fora do mapa `Tables` de propósito.** Declará-la ali é a décima sexta
+ * tabela, e o genérico da Supabase estoura o limite de inferência do
+ * TypeScript: todas as outras colapsam para `never`, e o erro aparece longe
+ * daqui, em `profiles`, como se `is_admin` não existisse. Quem lê e escreve
+ * esta tabela converte na mão, que é o mesmo caminho que `useSharedCollection`
+ * já usa pelo mesmo motivo.
+ */
+export interface AppSettingRow {
+  key: string;
+  /*
+    O conteúdo, em `jsonb`. `unknown` e não um tipo por chave: cada
+    configuração tem a sua forma, e quem lê é que a normaliza, como todo dado
+    que vem do armazenamento.
+  */
+  value: unknown;
+  updated_at: string;
+  updated_by: string;
+}
+
 /** Nomes de tabela que o tempo real acompanha. */
 export const REALTIME_TABLES = [
   "taxonomy_categories",

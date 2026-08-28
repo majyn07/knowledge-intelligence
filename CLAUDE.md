@@ -903,6 +903,62 @@ O contexto perdeu a grade de três colunas pelo mesmo motivo. O ponto de quebra
 do Tailwind mede a **janela**, não a coluna: numa tela larga a lateral
 continuaria tentando três células de dois centímetros.
 
+### O freio das chamadas à HubSpot
+
+São **três** controles, e eles respondem perguntas diferentes.
+
+**A busca é de quem administra.** Não é sobre conteúdo: publicar, excluir e
+classificar seguem de qualquer um, porque a equipe é treinada e o histórico
+responde por quem fez o quê. É sobre gastar requisições contra o servidor de
+suporte da AltoQi, que é máquina que atende cliente.
+
+**A porta é a rota, não o botão.** Até a sprint em que isto entrou,
+`/api/hubspot/help-desk` não pedia nada: qualquer requisição disparava leitura
+na HubSpot, sem sessão nenhuma. Esconder o botão é sobre não oferecer o que vai
+ser recusado, e é a mesma regra do entrar com a conta Google.
+
+**O freio de mão para tudo, inclusive o que já está rodando.** Desligar a
+automática ainda deixa qualquer administrador varrer três meses à mão, e a
+pergunta que originou o campo é outra: como impedir que alguém sobrecarregue.
+Por isso ele é conferido **por requisição**, e não no começo da varredura: é o
+que faz o interruptor parar uma varredura em curso, que é justamente quando
+alguém quer parar. Responde `423`, e não `403`: o 403 diz "você não pode", e
+aqui a pessoa poderia — o que impede é um estado que alguém ligou.
+
+**Uma varredura por vez, e a tranca é do banco.** Sem ela, dois administradores
+com a tela aberta disparam duas varreduras contra a mesma caixa e o servidor
+sente as duas somadas. Ela dá sinal de vida a cada lote em vez de ser gravada
+uma vez no começo: aba fechada no meio deixaria a tranca fechada para sempre.
+
+**A varredura é uma peça só**, usada pelo diálogo e pela busca automática. Ela
+vivia dentro do diálogo, entrelaçada com `setState`, e enquanto havia um
+chamador isso bastava. Duas cópias divergem, e a que roda sozinha seria
+justamente a que ninguém está olhando quando divergir.
+
+### A sincronização automática não é um cron
+
+Um cron roda no servidor **sem sessão de ninguém**, e as políticas de acesso
+exigem sessão para escrever. Fazê-lo funcionar exigiria devolver ao ambiente
+uma chave que ignora todas elas, removida de propósito. Então quem sincroniza é
+o navegador de quem já está aqui, com a sessão que ele já tem.
+
+**O preço está na tela, não escondido:** de madrugada e no fim de semana
+ninguém tem a aba aberta, e nada entra. É por isso que a retomada cobre o
+**intervalo perdido** e não a última hora: se a última busca foi na sexta, quem
+abre na segunda precisa que ela alcance a sexta. Com folga além disso, porque
+dois relógios não batem no milissegundo e a conversa que chega na virada cairia
+no vão entre duas execuções, sem erro nenhum.
+
+Dois limites, os dois deliberados. **A primeira busca é de gente:** sem registro
+anterior não dá para saber o que ficou para trás, e escolher a janela sozinho é
+disparar um tamanho que ninguém pediu. E **depois de duas semanas parada ela não
+retoma:** isso é férias ou produto parado, e a retomada viraria a varredura do
+histórico inteiro disparada sozinha.
+
+O interruptor vive no banco, e não no navegador. Tema e forma da lista são
+preferência de máquina; este decide se o produto fala com o servidor de suporte,
+e vale para as catorze ao mesmo tempo. Nasce desligado.
+
 **Duas perguntas, duas vistas.** Atender é "este atendimento aqui"; a fila de
 triagem é "por qual começar". Com mil na fila a segunda deixa de ser opcional, e
 ela existia só dentro do Levantamento, que é outra tela: mandar quem trabalha os
@@ -977,6 +1033,27 @@ Eberick trouxe um artigo sobre o Visus Cost Management, ligado por "situação,
 neste, atendimento, identificamos, solicitação". Relacionado que não se sustenta
 é pior que nenhum, porque a análise apresenta os cinco como o que o acervo tem
 sobre o caso, e quem confia abre os cinco uma vez só.
+
+**E a lista escrita à mão não dava conta.** A consulta que a análise faz é a
+conversa inteira do atendimento, oitenta mensagens, e ali aparece todo o
+português: a tela apresentava sessenta termos como o motivo de um artigo ser
+relacionado, "você" e "etc" entre eles. Enumerar palavra comum de português é
+lista sem fim.
+
+Quem as descarta é o **próprio acervo**: termo que está em um quarto dele não
+distingue artigo nenhum. Medido nos 1.822 publicados, são 15.105 termos
+distintos e **119** passam do limiar, exatamente o ruído: "para" em 99%, "que"
+em 98%, "projeto" em 76%, "selecione" em 50%. Custa alguns termos de engenharia
+na fronteira, e é o lado certo do erro: o que está em quinhentos artigos não
+estreita busca nenhuma.
+
+A medição é uma passada por acervo, **158 ms medidos**, guardada num `WeakMap`
+na própria lista: a segunda abertura não paga nada, e quando o acervo muda a
+chave muda junto. Quando o portal mudar, ela muda sozinha, sem ninguém abrir o
+código.
+
+O cartão mostra **oito** e conta o resto. Uma parede de palavras não explica por
+que o artigo é relacionado, ela esconde.
 
 **Havia três listas de palavras comuns, e elas divergiam.** A comparação entre
 artigos descartava "projeto" e "janela"; a busca por relacionados tinha as suas
@@ -1336,8 +1413,9 @@ Testes cobrem lógica pura, nunca componentes: a leitura do sitemap e da página
 do portal com o plano de importação e a decisão do que revisitar, o preparo do
 HTML do artigo (âncora, cor removida, link resolvido, destaque da busca) com
 a limpeza do que executa, o trecho da busca, a sobreposição entre artigos com o vocabulário que os
-compara e a duplicata de título, a triagem do atendimento e a consulta da análise com o corte
-do que a correspondência traz junto, a recusa que diz qual campo, a comparação de dois, a leitura da conversa da HubSpot com a paginação que não
+compara e a duplicata de título, a porta da HubSpot com o freio dela e a decisão da busca
+automática, a janela da busca, a triagem do atendimento e a consulta da análise com o corte
+do que a correspondência traz junto e a medição do que o acervo repete, a recusa que diz qual campo, a comparação de dois, a leitura da conversa da HubSpot com a paginação que não
 para na página vazia, o mapeamento de mensagens do provedor, a consulta da IA
 sobre o artigo, o rótulo da iniciativa, motor de busca e busca
 transversal, transições de artigo e de plano, métricas por projeto e por

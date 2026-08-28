@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 
+import { requireAdmin } from "@/features/auth/requireAdmin";
+
 import {
   caixasConfiguradas,
   donosComEquipe,
@@ -58,6 +60,20 @@ export async function GET(request: Request) {
     return NextResponse.json({ configured: false, caixas: [] });
   }
 
+  /*
+    A porta é aqui, e não no botão.
+
+    Esconder o botão da tela não controla nada: quem sabe o endereço chama a
+    rota direto, e até agora ela não pedia nada. Uma varredura de três meses são
+    cinquenta e cinco mil idas ao servidor de suporte da AltoQi, que é máquina
+    que atende cliente.
+  */
+  const autorizado = await requireAdmin();
+
+  if (!autorizado.ok) {
+    return NextResponse.json({ message: autorizado.message }, { status: autorizado.status });
+  }
+
   const url = new URL(request.url);
   const caixas = caixasConfiguradas(process.env);
   const inbox = (url.searchParams.get("caixa") ?? "").trim();
@@ -104,6 +120,12 @@ export async function GET(request: Request) {
 
 /** Lê um lote de conversas. Caro: uma ida à HubSpot por conversa, mais a associação. */
 export async function POST(request: Request) {
+  const autorizado = await requireAdmin();
+
+  if (!autorizado.ok) {
+    return NextResponse.json({ message: autorizado.message }, { status: autorizado.status });
+  }
+
   if (!hubspotConfigured()) {
     return NextResponse.json(
       { message: "Não há credencial da HubSpot neste ambiente." },

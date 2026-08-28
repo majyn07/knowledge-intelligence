@@ -4,6 +4,7 @@ import { createBrowserClient } from "@supabase/ssr";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 import type { Database } from "./types";
+import { isSharedWorkspace } from "./mode";
 
 /**
  * Cliente do navegador.
@@ -32,8 +33,7 @@ const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "";
  * provisionar. Definir `NEXT_PUBLIC_SHARED_WORKSPACE=on` liga o modo
  * compartilhado; sem ela, o produto roda sobre o `localStorage` como sempre.
  */
-const sharedEnabled =
-  (process.env.NEXT_PUBLIC_SHARED_WORKSPACE ?? "").trim().toLowerCase() === "on";
+const sharedEnabled = isSharedWorkspace();
 
 export function isBackendConfigured(): boolean {
   return sharedEnabled && url !== "" && anonKey !== "";
