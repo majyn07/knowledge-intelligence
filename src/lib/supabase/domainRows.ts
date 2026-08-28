@@ -70,6 +70,7 @@ export function toTicket(raw: unknown): Ticket {
     company: row.company,
     date: row.occurred_on,
     source: row.source,
+    raw: row.raw,
     deletedAt: row.deleted_at,
   });
 }
@@ -83,6 +84,7 @@ export function fromTicket(ticket: Ticket): Record<string, unknown> {
     company: ticket.company,
     occurred_on: ticket.date,
     source: ticket.source ?? null,
+    raw: ticket.raw ?? null,
     deleted_at: ticket.deletedAt || null,
   };
 }

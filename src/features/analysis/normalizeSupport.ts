@@ -39,7 +39,20 @@ export function normalizeTicket(raw: unknown): Ticket {
     // Ausente é "em uso": registro gravado antes da lixeira existir.
     ...(text(value.deletedAt) ? { deletedAt: text(value.deletedAt) } : {}),
     ...externalSource(value.source),
+    /*
+      O registro cru entra como veio, sem normalizar campo por campo: ele é
+      justamente o que **não** cabe no nosso modelo, e conferir a forma dele
+      significaria decidir de antemão o que a origem pode ter. Só se confere
+      que é objeto; vazio some em vez de virar `{}`, que pareceria origem
+      presente e vazia.
+    */
+    ...(temConteudo(value.raw) ? { raw: record(value.raw) } : {}),
   };
+}
+
+/** Objeto com pelo menos uma chave. `{}` não é origem, é ausência de origem. */
+function temConteudo(valor: unknown): boolean {
+  return typeof valor === "object" && valor !== null && Object.keys(valor).length > 0;
 }
 
 /** Os papeis conhecidos, para conferir o que veio do armazenamento. */

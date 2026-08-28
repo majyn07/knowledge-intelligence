@@ -1,15 +1,12 @@
 "use client";
 
 import { useMemo, useEffect, useState } from "react";
-import { Plus, Sparkles } from "lucide-react";
+import { Sparkles } from "lucide-react";
 import { toast } from "sonner";
 
 import { PageHeader } from "@/components/common/page/PageHeader";
 import { TicketImportButton, TicketImportDialog } from "./components/TicketImportDialog";
-import { Button } from "@/components/ui/button";
-import { DiscardChangesDialog } from "@/components/common/DiscardChangesDialog";
 import { usePersistedState } from "@/hooks/usePersistedState";
-import { useUnsavedGuard } from "@/hooks/useUnsavedGuard";
 import { useQueryParam } from "@/hooks/useQueryParam";
 import { countOrphans } from "@/models/Trash";
 import { useProject } from "@/providers/ProjectProvider";
@@ -20,8 +17,7 @@ import { TicketDetails } from "./components/TicketDetails";
 import { TicketList } from "./components/TicketList";
 import { useTicketRecorte } from "./hooks/useTicketRecorte";
 import type { TicketCycle } from "./ticketTableView";
-import { TicketForm } from "./components/TicketForm";
-import { TicketDeleteDialog, TicketDialog } from "./components/TicketDialogs";
+import { TicketDeleteDialog } from "./components/TicketDialogs";
 import { useAnalysisContext } from "./hooks/useAnalysisContext";
 import { useKnowledgeLifecycle } from "./providers/KnowledgeLifecycleProvider";
 import {
@@ -30,17 +26,15 @@ import {
 } from "@/features/analysis/types/KnowledgeOpportunity";
 import { useTaxonomy } from "@/features/taxonomy/providers/TaxonomyProvider";
 import { analysisService } from "./services/analysisService";
-import { ticketService } from "./services/ticketService";
 import { useTickets } from "./providers/TicketsProvider";
-import type { TicketFormData } from "./types/TicketFormData";
 import { usePlans } from "../plans/providers/PlansProvider";
 import { useLibrary } from "../library/providers/LibraryProvider";
 
 const SIDEBAR_STORAGE_KEY = "visus-workspace-sidebar-collapsed";
 
 export function AnalysisWorkspace() {
-  const { activeProject, activeProjectId, projects } = useProject();
-  const { ticketsOf, conversationOf, createTicket, updateTicket, deleteTicket } = useTickets();
+  const { activeProject, activeProjectId } = useProject();
+  const { ticketsOf, conversationOf, deleteTicket } = useTickets();
   const {
     getAnalysis,
     saveAnalysis,
@@ -57,16 +51,12 @@ export function AnalysisWorkspace() {
 
   const [selectedTicketId, setSelectedTicketId] = useState("");
   const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [editingTicketId, setEditingTicketId] = useState<string | null>(null);
-  const [isCreating, setIsCreating] = useState(false);
   const [deletingTicketId, setDeletingTicketId] = useState<string | null>(null);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = usePersistedState<boolean>({
     key: SIDEBAR_STORAGE_KEY,
     fallback: false,
   });
 
-  const createGuard = useUnsavedGuard(() => setIsCreating(false));
-  const editGuard = useUnsavedGuard(() => setEditingTicketId(null));
 
   const projectTickets = ticketsOf(activeProjectId);
 
@@ -114,11 +104,9 @@ export function AnalysisWorkspace() {
       ? getAnalysis(activeProjectId, selectedTicket.id)
       : undefined;
 
-  const editingTicket = projectTickets.find((ticket) => ticket.id === editingTicketId);
   const deletingTicket = projectTickets.find((ticket) => ticket.id === deletingTicketId);
   const { taxonomy } = useTaxonomy();
 
-  const projectOptions = projects.map((project) => ({ id: project.id, name: project.name }));
 
   async function handleAnalyze() {
     if (!selectedTicket || !activeProjectId) return;
@@ -188,18 +176,6 @@ export function AnalysisWorkspace() {
     );
   }
 
-  function handleCreate(data: TicketFormData) {
-    const ticket = createTicket(data);
-    setSelectedTicketId(ticket.id);
-    setIsCreating(false);
-  }
-
-  function handleUpdate(data: TicketFormData) {
-    if (!editingTicketId) return;
-    updateTicket(editingTicketId, data);
-    setEditingTicketId(null);
-  }
-
   function handleDelete() {
     if (!deletingTicketId) return;
     deleteTicket(deletingTicketId);
@@ -212,62 +188,8 @@ export function AnalysisWorkspace() {
     <>
       <TicketImportDialog open={importOpen} onOpenChange={setImportOpen} />
 
-      <TicketDialog
-        open={isCreating}
-        onOpenChange={(open) => { if (!open) createGuard.requestClose(); }}
-        title="Novo atendimento"
-        description="Registre o caso e a conversa que o sustenta. É essa troca que a análise vai ler."
-      >
-        <TicketForm
-          key={isCreating ? "novo" : "fechado"}
-          isNew
-          projects={projectOptions}
-          initialData={
-            activeProjectId
-              ? {
-                  title: "",
-                  company: "",
-                  solution: "",
-                  externalId: "",
-                  // Vazia: quem preenche com hoje é o próprio formulário,
-                  // depois da montagem. Ler o relógio aqui seria no render.
-                  date: "",
-                  projectId: activeProjectId,
-                  messages: [],
-                }
-              : undefined
-          }
-          submitLabel="Criar atendimento"
-          onSubmit={(data) => { createGuard.reset(); handleCreate(data); }}
-          onCancel={createGuard.requestClose}
-          onDirty={createGuard.markDirty}
-        />
-      </TicketDialog>
 
-      <TicketDialog
-        open={Boolean(editingTicket)}
-        onOpenChange={(open) => { if (!open) editGuard.requestClose(); }}
-        title="Editar atendimento"
-        description="Atualize os dados do caso ou o registro da conversa."
-      >
-        {editingTicket && (
-          <TicketForm
-            key={editingTicket.id}
-            projects={projectOptions}
-            initialData={ticketService.toFormData(editingTicket, conversationOf(editingTicket.id))}
-            submitLabel="Atualizar"
-            onSubmit={(data) => { editGuard.reset(); handleUpdate(data); }}
-            onCancel={editGuard.requestClose}
-            onDirty={editGuard.markDirty}
-          />
-        )}
-      </TicketDialog>
 
-      <DiscardChangesDialog
-        open={createGuard.isConfirming || editGuard.isConfirming}
-        onKeepEditing={createGuard.isConfirming ? createGuard.keepEditing : editGuard.keepEditing}
-        onDiscard={createGuard.isConfirming ? createGuard.confirmDiscard : editGuard.confirmDiscard}
-      />
 
       <TicketDeleteDialog
         open={Boolean(deletingTicket)}
@@ -290,16 +212,12 @@ export function AnalysisWorkspace() {
         <PageHeader
           overline={`Projeto ativo${activeProject ? ` · ${activeProject.name}` : ""}`}
           title="Conduza a evolução do conhecimento"
-          description="Do atendimento à decisão humana: valide as evidências da IA e encaminhe apenas as oportunidades que fazem sentido para este projeto."
+          description="O atendimento entra como veio do suporte e não se edita aqui. Esta tela é onde ele vira análise, e a decisão sobre cada oportunidade é de gente."
           icon={<Sparkles className="h-6 w-6" />}
           actions={
             <div className="flex flex-wrap gap-2">
               <TicketImportButton onClick={() => setImportOpen(true)} />
 
-              <Button onClick={() => setIsCreating(true)} disabled={!activeProjectId}>
-                <Plus className="mr-1.5 h-4 w-4" />
-                Novo atendimento
-              </Button>
             </div>
           }
         />
@@ -321,16 +239,12 @@ export function AnalysisWorkspace() {
           activeProject ? ` · ${activeProject.name}` : ""
         }`}
         title="Conduza a evolução do conhecimento"
-        description="Do atendimento à decisão humana: valide as evidências da IA e encaminhe apenas as oportunidades que fazem sentido para este projeto."
+        description="O atendimento entra como veio do suporte e não se edita aqui. Esta tela é onde ele vira análise, e a decisão sobre cada oportunidade é de gente."
         icon={<Sparkles className="h-6 w-6" />}
         actions={
           <div className="flex flex-wrap gap-2">
             <TicketImportButton onClick={() => setImportOpen(true)} />
 
-            <Button onClick={() => setIsCreating(true)}>
-              <Plus className="mr-1.5 h-4 w-4" />
-              Novo atendimento
-            </Button>
           </div>
         }
       />
@@ -363,7 +277,6 @@ export function AnalysisWorkspace() {
             conversation={selectedConversation}
             isAnalyzing={isAnalyzing}
             onAnalyze={handleAnalyze}
-            onEdit={() => setEditingTicketId(selectedTicket.id)}
             onDelete={() => setDeletingTicketId(selectedTicket.id)}
             analysisStatus={analysis?.status}
           />
