@@ -363,6 +363,34 @@ diária como rede para o que ele perder na reconexão. A rota que recebe o
 webhook é quase a mesma coisa que já existe, ela recebe o identificador da
 conversa e chama a leitura com um item só.
 
+#### O botão de ligar e desligar
+
+Decidido em 28/08 que a sincronização automática tem um interruptor, e que
+**só quem administra mexe nele**. Sem isso, uma pessoa desliga a sincronização
+de catorze sem querer.
+
+É um sinalizador compartilhado no banco, lido pelos dois caminhos: desligado, o
+cron entra e sai sem fazer nada, e o webhook recebe a chamada da HubSpot e a
+ignora. Do lado deles nada muda; a assinatura continua ativa e quem decide se
+escuta somos nós.
+
+Três coisas valem mais que o botão em si:
+
+**Desligado precisa aparecer onde se trabalha.** É o risco de verdade: alguém
+desliga, esquece, e três semanas depois ninguém percebeu que parou de chegar
+atendimento, porque a tela fica com a mesma cara de quando está tudo em dia. O
+aviso não pode morar só em Configurações: fica na tela de Atendimentos, dizendo
+desde quando e por quem, como o "última busca há 8 horas" que já existe.
+
+**Religar precisa trazer o intervalo perdido.** Enquanto esteve desligado, o
+atendimento caiu na HubSpot e não veio. Ou o religar busca desde quando foi
+desligado, ou aquilo vira um buraco que ninguém sabe que existe. A janela já
+sabe fazer isso; o que muda é de onde vem a data.
+
+**Sem o intervalo perdido, é melhor não ter botão.** Um interruptor que cria
+buraco silencioso é pior que nenhum: quem quiser parar pode revogar a
+credencial, que é ruidoso e ninguém esquece.
+
 ---
 
 ## 3. Falha do nosso lado. Corrigida em 27/08
