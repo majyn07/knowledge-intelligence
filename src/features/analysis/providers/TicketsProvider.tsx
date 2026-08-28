@@ -40,7 +40,9 @@ interface TicketsContextValue {
   importTickets: (create: Ticket[], update: Ticket[]) => void;
   /** O que veio da caixa do suporte: atendimento e conversa juntos. */
   importFromHelpDesk: (
-    novos: { ticket: Ticket; conversation: SupportConversation }[]
+    novos: { ticket: Ticket; conversation: SupportConversation }[],
+    /** Que janela de tempo essa busca cobriu, para o histórico dizer. */
+    janela?: string
   ) => void;
   updateTicket: (id: string, data: TicketFormData) => void;
   deleteTicket: (id: string) => void;
@@ -119,7 +121,7 @@ export function TicketsProvider({ children }: { children: ReactNode }) {
    * enterrando o histórico.
    */
   const importFromHelpDesk = useCallback(
-    (novos: { ticket: Ticket; conversation: SupportConversation }[]) => {
+    (novos: { ticket: Ticket; conversation: SupportConversation }[], janela = "") => {
       if (novos.length === 0) return;
 
       const porId = new Map(novos.map((item) => [item.ticket.id, item.ticket]));
@@ -158,7 +160,12 @@ export function TicketsProvider({ children }: { children: ReactNode }) {
           id: "help-desk",
           label: "Busca de " + novos.length + " atendimentos na HubSpot",
         },
-        detail: partes.join(", "),
+        /*
+          A janela vai junto. "12 novos" não diz se alguém varreu o dia ou o
+          ano, e é a diferença entre a caixa estar calma e a busca ter sido
+          curta. Quem reexecuta amanhã lê esta linha para decidir o período.
+        */
+        detail: janela === "" ? partes.join(", ") : `${partes.join(", ")} · ${janela}`,
       });
 
       /*

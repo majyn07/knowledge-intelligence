@@ -15,17 +15,24 @@ import { useProject } from "@/providers/ProjectProvider";
 import type { SupportConversation } from "@/models/SupportConversation";
 import type { Ticket } from "@/models/Ticket";
 import {
-  janelaDeMeses,
-  MESES_PADRAO,
   planejarVarredura,
   type ConversaListada,
   type PlanoDeVarredura,
 } from "@/services/hubspot/helpDeskSchedule";
+import {
+  ATALHOS,
+  ATALHO_PADRAO,
+  janelaInvalida,
+  resolverJanela,
+  rotuloDaJanela,
+  type Janela,
+} from "@/services/hubspot/searchWindow";
 
 import { useActivity } from "@/features/activities/providers/ActivityProvider";
 import { RelativeDate } from "@/components/common/RelativeDate";
 
 import { useTickets } from "../providers/TicketsProvider";
+import { usePeople } from "@/features/people/providers/PeopleProvider";
 
 /**
  * Buscar os atendimentos na caixa do suporte.
@@ -112,7 +119,15 @@ export function HelpDeskDialog({
   const [erro, setErro] = useState<string | null>(null);
   const [plano, setPlano] = useState<PlanoDeVarredura | null>(null);
   const [progresso, setProgresso] = useState<Progresso>(VAZIO);
-  const [meses, setMeses] = useState(MESES_PADRAO);
+  /*
+    A janela era uma lista de meses, de 1 a 12, e o mês é grande demais para a
+    pergunta mais comum: quem acabou de atender quer o dia, e quem volta de
+    segunda quer a semana. Puxar um mês para achar o que caiu ontem custa cento
+    e dez páginas de listagem contra o servidor do suporte.
+  */
+  const [janela, setJanela] = useState<Janela>({ tipo: "atalho", id: ATALHO_PADRAO });
+  const [de, setDe] = useState("");
+  const [ate, setAte] = useState("");
 
   /*
     Um teto de quantos ler, e não só de qual período.
@@ -184,7 +199,18 @@ export function HelpDeskDialog({
         alcançar o mês corrente sem filtrar custaria mais de mil requisições.
         Com a janela, três meses são 110 páginas.
       */
-      const desde = janelaDeMeses(new Date(), meses);
+      const periodo = resolverJanela(
+        janela.tipo === "intervalo" ? { tipo: "intervalo", de, ate } : janela,
+        new Date()
+      );
+
+      if (janelaInvalida(periodo)) {
+        setErro(periodo.erro);
+        setEtapa("inicio");
+        return;
+      }
+
+      const { desde, ate: fim } = periodo;
       const conversas: ConversaListada[] = [];
 
       for (const caixa of caixas) {
@@ -217,7 +243,7 @@ export function HelpDeskDialog({
           ultimaMensagemEm: String(ticket.raw?.ultimaMensagemEm ?? ""),
         }));
 
-      setPlano(planejarVarredura(conversas, conhecidos, desde));
+      setPlano(planejarVarredura(conversas, conhecidos, desde, fim));
       setEtapa("planejado");
     } catch (falha) {
       setErro(falha instanceof Error ? falha.message : "Não foi possível listar.");
@@ -300,13 +326,13 @@ export function HelpDeskDialog({
         Uma escrita só, no fim. Gravar lote a lote deixaria o acervo pela metade
         se um falhasse, e encheria o histórico de linhas iguais.
       */
-      importFromHelpDesk(trazidos);
+      importFromHelpDesk(trazidos, rotuloDaJanela(janela));
       setEtapa("fim");
     } catch (falha) {
       setErro(falha instanceof Error ? falha.message : "A leitura foi interrompida.");
 
       /* O que já veio não se perde: quem esperou minutos não recomeça do zero. */
-      if (trazidos.length > 0) importFromHelpDesk(trazidos);
+      if (trazidos.length > 0) importFromHelpDesk(trazidos, rotuloDaJanela(janela));
       setEtapa("fim");
     }
   }
@@ -332,20 +358,60 @@ export function HelpDeskDialog({
 
         {etapa === "inicio" && (
           <div className="space-y-4">
-            <label className="flex items-center justify-between gap-3 text-sm">
-              <span>Trazer os últimos</span>
-              <select
-                className="h-8 rounded-lg border border-border/70 bg-muted/40 px-2 text-sm"
-                value={meses}
-                onChange={(evento) => setMeses(Number(evento.target.value))}
-              >
-                {[1, 3, 6, 12].map((n) => (
-                  <option key={n} value={n}>
-                    {n} {n === 1 ? "mês" : "meses"}
-                  </option>
+            <div className="space-y-2">
+              <p className="text-sm">Trazer os últimos</p>
+
+              <div className="flex flex-wrap gap-1.5">
+                {ATALHOS.map((atalho) => (
+                  <Button
+                    key={atalho.id}
+                    size="sm"
+                    variant={
+                      janela.tipo === "atalho" && janela.id === atalho.id ? "default" : "outline"
+                    }
+                    onClick={() => setJanela({ tipo: "atalho", id: atalho.id })}
+                  >
+                    {atalho.label}
+                  </Button>
                 ))}
-              </select>
-            </label>
+
+                {/*
+                  O intervalo livre existe para o que os atalhos não alcançam:
+                  "só agosto de 2025" não é uma janela contada para trás a
+                  partir de hoje, e forçá-la num atalho traria dez meses para
+                  achar um.
+                */}
+                <Button
+                  size="sm"
+                  variant={janela.tipo === "intervalo" ? "default" : "outline"}
+                  onClick={() => setJanela({ tipo: "intervalo", de, ate })}
+                >
+                  Escolher datas
+                </Button>
+              </div>
+
+              {janela.tipo === "intervalo" && (
+                <div className="flex flex-wrap items-center gap-2 pt-1">
+                  <input
+                    type="date"
+                    aria-label="Data inicial"
+                    className="h-8 rounded-lg border border-border/70 bg-muted/40 px-2 text-sm"
+                    value={de}
+                    onChange={(evento) => setDe(evento.target.value)}
+                  />
+
+                  <span className="text-sm text-muted-foreground">até</span>
+
+                  <input
+                    type="date"
+                    aria-label="Data final"
+                    className="h-8 rounded-lg border border-border/70 bg-muted/40 px-2 text-sm"
+                    value={ate}
+                    onChange={(evento) => setAte(evento.target.value)}
+                  />
+                </div>
+              )}
+            </div>
 
             <p className="text-xs leading-5 text-muted-foreground">
               A listagem sai sempre do mais antigo, então descobrir o que existe leva alguns
@@ -487,7 +553,22 @@ export function HelpDeskDialog({
   );
 }
 
+/**
+ * O botão, que só aparece para quem administra.
+ *
+ * A porta de verdade é a rota, que confere no servidor: esconder um botão não
+ * controla nada, quem sabe o endereço chama direto. Aqui é sobre não oferecer o
+ * que vai ser recusado — botão que às vezes leva a um erro é pior que botão que
+ * não está lá, e é a mesma regra do entrar com a conta Google.
+ *
+ * Some em vez de ficar desabilitado porque não há nada a fazer para habilitá-lo:
+ * quem não administra não vira administrador clicando.
+ */
 export function HelpDeskButton({ onClick }: { onClick: () => void }) {
+  const { souAdministrador } = usePeople();
+
+  if (!souAdministrador) return null;
+
   return (
     <Button variant="outline" onClick={onClick}>
       <Download className="mr-1.5 h-4 w-4" />

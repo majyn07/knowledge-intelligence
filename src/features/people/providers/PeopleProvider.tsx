@@ -15,6 +15,7 @@ import { toast } from "sonner";
 import { useSession } from "@/features/auth/providers/SessionProvider";
 import { usePersistedState } from "@/hooks/usePersistedState";
 import { getSupabase } from "@/lib/supabase/client";
+import { isSharedWorkspace } from "@/lib/supabase/mode";
 import { STORAGE_KEYS } from "@/lib/storage";
 import type { Person, Team } from "@/models/Assignment";
 
@@ -244,7 +245,15 @@ export function PeopleProvider({ children }: { children: ReactNode }) {
       updateMe,
       updatePerson,
       deactivate,
-      souAdministrador: me?.isAdmin ?? false,
+      /*
+        Sem fundação compartilhada não há conta, e sem conta não há
+        administrador: no modo navegador ninguém entra, porque não existe
+        entrar. Devolver `false` ali trancaria `npm run dev:local` numa porta
+        sem chave. É a mesma regra que `requireAdmin` aplica no servidor, e as
+        duas precisam concordar, senão a tela esconde um botão que a rota
+        aceitaria.
+      */
+      souAdministrador: isSharedWorkspace() ? (me?.isAdmin ?? false) : true,
       setTeamScope,
       peopleOfTeam,
     }),

@@ -51,14 +51,22 @@ export function instanteDo(conversa: ConversaListada): string {
 /**
  * Monta o plano.
  *
- * `desde` é o começo da janela, em ISO. Conversa sem carimbo nenhum fica de fora:
+ * `desde` é o começo da janela e `ate` o fim, em ISO. Conversa sem carimbo nenhum fica de fora:
  * não dá para saber se ele é de ontem ou de 2024, e visitar por via das
  * dúvidas custaria uma requisição por chute.
  */
 export function planejarVarredura(
   conversas: ConversaListada[],
   conhecidos: AtendimentoConhecido[],
-  desde: string
+  desde: string,
+  /*
+    O fim da janela, quando há um. Vazio significa "até agora", que é o caso de
+    todo atalho: eles são contados para trás a partir do instante da busca. Só o
+    intervalo livre tem fim, e ele existe porque "só agosto de 2025" não é uma
+    janela contada para trás — forçá-la num atalho traria dez meses para achar
+    um.
+  */
+  ate = ""
 ): PlanoDeVarredura {
   const registrado = new Map(conhecidos.map((item) => [item.externalId, item.ultimaMensagemEm]));
 
@@ -71,7 +79,7 @@ export function planejarVarredura(
   for (const conversa of conversas) {
     const instante = instanteDo(conversa);
 
-    if (instante === "" || instante < desde) {
+    if (instante === "" || instante < desde || (ate !== "" && instante > ate)) {
       foraDaJanela += 1;
       continue;
     }
