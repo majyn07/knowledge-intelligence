@@ -115,7 +115,7 @@ propriedades de um ticket. O esquema diz o que existe; o dado não vem.
 
 ---
 
-### 1.5 A equipe do atendimento é alcançável, e ela dá o recorte por produto
+### 1.5 A equipe do atendimento é alcançável, mas não dá o recorte por produto
 
 O recorte que a equipe usa no dia a dia é por produto: Suporte Builder,
 Estruturas, Visus, Setup. Na HubSpot isso **não é caixa de entrada** e não é
@@ -138,14 +138,34 @@ São 197 donos em 58 equipes. As que interessam:
 | 43825821 | Suporte Visus | 18 |
 | 43759498 | Suporte Técnico | 18 |
 
-Então o caminho é fio → `assignedTo` → dono → equipe, e a equipe dá o produto.
-É uma requisição só para todos os donos, e ela se resolve uma vez por varredura
-em vez de uma vez por fio.
+**E a equipe NÃO dá o produto.** Eu escrevi que dava, e a conferência seguinte
+desmentiu: as seis equipes de Suporte têm **exatamente as mesmas 18 pessoas**.
 
-**O que isso não dá:** o produto declarado no ticket. A equipe que atendeu é
-uma boa aproximação e não é a mesma coisa, e a tela precisa dizer qual das
-duas está mostrando. Fio sem `assignedTo` fica sem equipe, e isso é estado
-legítimo: o atendimento ainda não foi para ninguém.
+| | Setup | Suporte (as seis) |
+| --- | --- | --- |
+| Setup | 8 | 6 |
+| Suporte Builder | 6 | 18 |
+| Suporte Builder Elétrica | 6 | 18 |
+| Suporte Builder Hidráulica | 6 | 18 |
+| Suporte Estruturas | 6 | 18 |
+| Suporte Técnico | 6 | 18 |
+| Suporte Visus | 6 | 18 |
+
+Sobreposição total. Quem atende Builder atende Eberick e Visus, e está nas seis
+equipes. Só duas pessoas estão em apenas uma equipe, e essa equipe é Setup.
+
+Então `assignedTo` → dono → equipe responde **em qual frente** o atendimento
+caiu, Setup ou Suporte, e não em qual produto. Recortar por produto continua
+dependendo de `ia_produto`, que está no ticket, que é 403.
+
+O que o caminho serve: distinguir Setup de Suporte, e saber quem atendeu. Fio
+sem `assignedTo` fica sem equipe, e isso é estado legítimo: o atendimento ainda
+não foi para ninguém.
+
+**São 20 pessoas hoje**, todas com e-mail `@altoqi.com.br`: 18 no Suporte e 8 no
+Setup, com 6 em ambos. Isso importa para a sugestão de equipe do produto: o
+e-mail de quem entra aqui casa com o e-mail do dono na HubSpot, e dá para
+propor a equipe em vez de pedir que a pessoa escolha.
 
 **As caixas são duas**, e isso também foi medido: `Help Desk` (`474522581`,
 e-mail e chat) e `Caixa de Entrada | Setup` (`1566897190`, WhatsApp e chat). As
