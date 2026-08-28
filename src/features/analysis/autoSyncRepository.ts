@@ -1,8 +1,5 @@
 "use client";
 
-import { getSupabase } from "@/lib/supabase/client";
-import type { AppSettingRow } from "@/lib/supabase/types";
-
 import { varreduraEmCurso, type EstadoDaSincronizacao } from "./autoSync";
 
 /**
@@ -14,13 +11,21 @@ import { varreduraEmCurso, type EstadoDaSincronizacao } from "./autoSync";
  * tempo. Guardá-la por máquina faria cada um ter a sua, e a máquina do outro
  * lado sentiria a soma de todas.
  *
- * A conversão é na mão porque `app_settings` fica fora do mapa de tabelas
- * tipadas: declará-la ali é a décima sexta, e o genérico da Supabase estoura o
- * limite de inferência do TypeScript, derrubando as outras quinze para `never`.
- * Está anotado em `lib/supabase/types`.
+ * **A leitura passa por uma rota nossa, e isso custou uma tarde para descobrir
+ * por quê.** Duas coisas conspiram contra falar com o banco daqui:
+ *
+ * `app_settings` não cabe no mapa de tabelas tipadas. Ela seria a décima sexta,
+ * e o genérico da Supabase estoura o limite de inferência do TypeScript ali,
+ * derrubando as outras quinze para `never`. Fora do mapa, `from()` compila com
+ * um disfarce e **não dispara requisição nenhuma**.
+ *
+ * E `auth.getSession()` no navegador ficava **pendurado**: sem erro, sem rede,
+ * sem aviso. A tela esperava para sempre por um estado que não vinha, e não
+ * havia nada para achar porque não havia nada acontecendo.
+ *
+ * No servidor a sessão vem do cookie, por um caminho que a porta da HubSpot já
+ * usa e que já está sob teste. É o mesmo banco e as mesmas políticas.
  */
-
-export const CHAVE = "hubspot_auto_sync";
 
 const VAZIO: EstadoDaSincronizacao = {
   ligado: false,
@@ -42,7 +47,8 @@ export function normalizarEstado(valor: unknown): EstadoDaSincronizacao {
 
   const bruto = valor as Record<string, unknown>;
 
-  const texto = (chave: string) => (typeof bruto[chave] === "string" ? (bruto[chave] as string) : "");
+  const texto = (chave: string) =>
+    typeof bruto[chave] === "string" ? (bruto[chave] as string) : "";
 
   return {
     ligado: bruto.ligado === true,
@@ -58,35 +64,21 @@ export function normalizarEstado(valor: unknown): EstadoDaSincronizacao {
   };
 }
 
-/** A tabela, com a forma declarada aqui em vez de vir do mapa tipado. */
-function tabela() {
-  const supabase = getSupabase();
-
-  if (!supabase) return null;
-
-  return supabase.from("app_settings" as never) as unknown as {
-    select: (colunas: string) => {
-      eq: (
-        coluna: string,
-        valor: string
-      ) => {
-        maybeSingle: () => Promise<{ data: AppSettingRow | null; error: unknown }>;
-      };
-    };
-    upsert: (linha: Record<string, unknown>) => Promise<{ error: { message: string } | null }>;
-  };
-}
+const ROTA = "/api/settings/auto-sync";
 
 export async function lerEstado(): Promise<EstadoDaSincronizacao | null> {
-  const alvo = tabela();
+  try {
+    const resposta = await fetch(ROTA);
 
-  if (!alvo) return null;
+    if (!resposta.ok) return null;
 
-  const { data, error } = await alvo.select("key,value,updated_at,updated_by").eq("key", CHAVE).maybeSingle();
+    const corpo = (await resposta.json()) as { estado?: unknown };
 
-  if (error) return null;
-
-  return normalizarEstado(data?.value);
+    return normalizarEstado(corpo.estado);
+  } catch {
+    /* Rede fora do ar é estado previsto: quem chama decide o que fazer. */
+    return null;
+  }
 }
 
 /**
@@ -99,17 +91,25 @@ export async function lerEstado(): Promise<EstadoDaSincronizacao | null> {
 export async function gravarEstado(
   estado: EstadoDaSincronizacao
 ): Promise<{ erro: string } | null> {
-  const alvo = tabela();
+  try {
+    const resposta = await fetch(ROTA, {
+      method: "PUT",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify(estado),
+    });
 
-  if (!alvo) return { erro: "Sem espaço compartilhado configurado." };
+    if (resposta.ok) return null;
 
-  const { error } = await alvo.upsert({
-    key: CHAVE,
-    value: estado,
-    updated_at: new Date().toISOString(),
-  });
+    const corpo = (await resposta.json().catch(() => null)) as { message?: string } | null;
 
-  return error ? { erro: error.message } : null;
+    /*
+      A mensagem do servidor vai junto, como na tradução do erro de acesso: ela
+      é a única pista de quem administra quando a recusa não é a esperada.
+    */
+    return { erro: corpo?.message ?? `HTTP ${resposta.status}` };
+  } catch {
+    return { erro: "Não foi possível falar com o servidor." };
+  }
 }
 
 /**

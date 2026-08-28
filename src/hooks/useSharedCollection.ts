@@ -6,6 +6,7 @@ import { toast } from "sonner";
 
 import { getSupabase } from "@/lib/supabase/client";
 import type { RealtimeTable } from "@/lib/supabase/types";
+import { gravarCache, lerCache } from "@/lib/collectionCache";
 import { readRaw, writeJSON } from "@/lib/storage";
 
 import {
@@ -43,6 +44,14 @@ interface UseSharedCollectionOptions<T> {
    * cortar, deduplicar) não pode receber um pedaço dele.
    */
   releituraIncremental?: boolean;
+  /**
+   * Guardar a coleção no navegador, para a abertura não baixar tudo de novo.
+   *
+   * Exige `releituraIncremental`: sem ela não há como saber o que mudou desde o
+   * cache, e mostrar o guardado sem conferir seria a tela com dado velho, que é
+   * o defeito que ninguém percebe.
+   */
+  usaCache?: boolean;
 }
 
 /** O que a releitura incremental precisa de cada linha, e mais nada. */
@@ -200,6 +209,7 @@ export function useSharedCollection<T>({
   toRow,
   identify,
   releituraIncremental = false,
+  usaCache = false,
 }: UseSharedCollectionOptions<T>) {
   const [items, setItems] = useState<T[]>(fallback);
   const [isHydrated, setIsHydrated] = useState(false);
@@ -263,7 +273,7 @@ export function useSharedCollection<T>({
     }
 
     const total = count ?? 0;
-    if (total === 0) return { items: options.current.fromRows([]), carimbos: [] };
+    if (total === 0) return { items: options.current.fromRows([]), carimbos: [], rows: [] };
 
     const paginas = Array.from(
       { length: Math.ceil(total / POR_PAGINA) },
@@ -315,7 +325,7 @@ export function useSharedCollection<T>({
 
     const linhas = respostas.flatMap((resposta) => resposta.data ?? []);
 
-    return { items: options.current.fromRows(linhas), carimbos: carimbosDe(linhas) };
+    return { items: options.current.fromRows(linhas), carimbos: carimbosDe(linhas), rows: linhas };
   }, [supabase, table]);
 
   /**
@@ -378,17 +388,161 @@ export function useSharedCollection<T>({
     [supabase, table]
   );
 
+  /** Guarda o que está em memória, para a próxima abertura não baixar tudo. */
+  const guardarNoCache = useCallback(
+    (rows: unknown[]) => {
+      if (!usaCache) return;
+
+      void gravarCache(table, {
+        rows,
+        carimbos: [...carimbos.current],
+        at: new Date().toISOString(),
+      });
+    },
+    [table, usaCache]
+  );
+
+  /** A releitura inteira, que é o caminho de sempre e o de recuo. */
+  const relerTudo = useCallback(async () => {
+    const lido = await fetchAll();
+    if (!lido) return;
+
+    setItems(lido.items);
+    persisted.current = lido.items;
+    carimbos.current = new Map(lido.carimbos.map((linha) => [linha.id, linha.syncedAt]));
+    guardarNoCache(lido.rows);
+  }, [fetchAll, guardarNoCache]);
+
+  /*
+    A releitura em dois passos: os carimbos, e depois só as linhas que mudaram.
+    Ela recua para a inteira sempre que não puder responder com certeza, e são
+    quatro casos: banco sem a coluna do carimbo, memória sem carimbo nenhum,
+    quase tudo mudado (aí dois passos custam mais que um) e falha ao buscar.
+
+    Recuar é o lado seguro do erro. O contrário, ficar com a tela mostrando dado
+    velho, é o defeito que ninguém percebe.
+  */
+  const sincronizarComCache = useCallback(async () => {
+    const remotos = await fetchCarimbos();
+    if (!remotos) return relerTudo();
+
+    const plano = planejarReleitura(carimbos.current, remotos);
+
+    if (plano.buscar.length === 0 && plano.remover.length === 0) return;
+    if (!valeIncremental(plano, remotos.length)) return relerTudo();
+
+    const linhas = await fetchPorIds(plano.buscar);
+    if (!linhas) return;
+
+    const buscados = options.current.fromRows(linhas);
+
+    const proximos = aplicarReleitura({
+      local: persisted.current,
+      ordem: remotos.map((linha) => linha.id),
+      buscados,
+      identify: options.current.identify,
+    });
+
+    setItems(proximos);
+    persisted.current = proximos;
+    carimbos.current = new Map(remotos.map((linha) => [linha.id, linha.syncedAt]));
+
+    /*
+      O cache guarda linhas, e aqui só temos as que mudaram. Reconverter os
+      registros de volta para linha seria inventar um segundo caminho de
+      conversão, e dois caminhos divergem: o cache é atualizado pela releitura
+      inteira, e a incremental deixa o dele um pouco velho de propósito. Velho
+      não é errado: a próxima abertura lê o cache e pergunta o que mudou desde
+      o carimbo dele, que é exatamente o que esta função acabou de fazer.
+    */
+  }, [fetchCarimbos, fetchPorIds, relerTudo]);
+
+  /*
+    A carga inicial acontece **uma vez**, e a guarda é uma ref e não a lista de
+    dependências.
+
+    O efeito roda mais de uma vez por montagem: o React monta duas vezes em
+    desenvolvimento, e qualquer dependência que mude o traz de volta. Cada
+    execução era uma carga completa da coleção, e com o cache ficou pior: as
+    leituras do IndexedDB se atropelavam, uma devolvia vazio, e aquela execução
+    entendia "sem cache" e baixava os 22,7 MB. Medido: doze pedidos numa
+    abertura que deveria custar dois.
+
+    Quem cuida de manter isto atualizado depois é o tempo real, que é o desenho
+    desde o começo. A carga inicial só precisa acontecer, e só precisa acontecer
+    uma vez.
+
+    Com a guarda, o antigo `alive` da limpeza saiu, e ele **precisava** sair: o
+    React desmonta e remonta em desenvolvimento, a limpeza da primeira execução
+    marcava `alive = false` enquanto a leitura ainda estava no ar, e a segunda
+    execução saía pela guarda. O resultado chegava e era descartado, a coleção
+    nunca era populada, e a tela ficava em esqueleto sem erro nenhum.
+  */
+  const carregou = useRef(false);
+
   // Carga inicial.
   useEffect(() => {
-    let alive = true;
+    if (carregou.current) return;
+
+    carregou.current = true;
 
     async function load() {
       if (remote) {
+        /*
+          O que já está aqui aparece primeiro, e o que mudou vem depois.
+
+          A abertura custava o acervo inteiro, 22,7 MB, toda vez que alguém
+          abria o produto. Com o cache do navegador a tela mostra o acervo em
+          milissegundos e a rede fica com o trabalho pequeno de dizer o que
+          mudou desde a última vez.
+
+          Guardamos as **linhas**, e não os registros convertidos: a conversão é
+          onde mora o normalizador, e pular o normalizador é como um campo novo
+          derrubaria a tela na primeira leitura.
+        */
+        const guardado = usaCache ? await lerCache(table) : null;
+
+        if (guardado && guardado.rows.length > 0) {
+          /*
+            Uma conversão só, e é o ponto em que isto quebrou feio.
+
+            Duas chamadas a `fromRows` produzem dois arrays com objetos
+            diferentes, e a gravação compara identidade para saber o que mudou:
+            com duas conversões, **todos** os 1.822 artigos pareciam alterados
+            na abertura, e o produto os regravava no banco. Uma abertura
+            escrevia o acervo inteiro de volta, e o carimbo de todos eles
+            mudava, o que fazia a releitura seguinte recuar para a leitura
+            completa. O cache piorava as duas coisas que ele veio consertar.
+          */
+          const doCache = options.current.fromRows(guardado.rows);
+
+          setItems(doCache);
+          persisted.current = doCache;
+          carimbos.current = new Map(guardado.carimbos);
+          setIsHydrated(true);
+
+          /*
+            A partir daqui a releitura incremental conserta a diferença. Se ela
+            não puder responder com certeza, recua para a leitura inteira
+            sozinha, que é o comportamento de sempre.
+          */
+          await sincronizarComCache();
+          return;
+        }
+
         const lido = await fetchAll();
-        if (alive && lido) {
+        if (lido) {
           setItems(lido.items);
           persisted.current = lido.items;
           carimbos.current = new Map(lido.carimbos.map((linha) => [linha.id, linha.syncedAt]));
+
+          if (usaCache) {
+            void gravarCache(table, {
+              rows: lido.rows,
+              carimbos: [...carimbos.current],
+              at: new Date().toISOString(),
+            });
+          }
         }
       } else {
         const raw = readRaw(key);
@@ -404,15 +558,11 @@ export function useSharedCollection<T>({
         }
       }
 
-      if (alive) setIsHydrated(true);
+      setIsHydrated(true);
     }
 
-    load();
-
-    return () => {
-      alive = false;
-    };
-  }, [fetchAll, key, remote]);
+    void load();
+  }, [fetchAll, key, remote, sincronizarComCache, table, usaCache]);
 
   /*
     Tempo real. Qualquer mudança na tabela relê a coleção inteira em vez de
@@ -428,57 +578,11 @@ export function useSharedCollection<T>({
   useEffect(() => {
     if (!supabase || !isHydrated) return;
 
-    /** A releitura inteira, que é o caminho de sempre e o de recuo. */
-    async function relerTudo() {
-      const lido = await fetchAll();
-      if (!lido) return;
-
-      setItems(lido.items);
-      persisted.current = lido.items;
-      carimbos.current = new Map(lido.carimbos.map((linha) => [linha.id, linha.syncedAt]));
-    }
-
-    /*
-      A releitura em dois passos: os carimbos, e depois só as linhas que
-      mudaram. Ela recua para a inteira sempre que não puder responder com
-      certeza, e são quatro casos: banco sem a coluna do carimbo, memória sem
-      carimbo nenhum, quase tudo mudado (aí dois passos custam mais que um) e
-      falha ao buscar as linhas.
-
-      Recuar é o lado seguro do erro. O contrário, ficar com a tela mostrando
-      dado velho, é o defeito que ninguém percebe.
-    */
-    async function relerOQueMudou() {
-      const remotos = await fetchCarimbos();
-      if (!remotos) return relerTudo();
-
-      const plano = planejarReleitura(carimbos.current, remotos);
-
-      if (plano.buscar.length === 0 && plano.remover.length === 0) return;
-      if (!valeIncremental(plano, remotos.length)) return relerTudo();
-
-      const linhas = await fetchPorIds(plano.buscar);
-      if (!linhas) return;
-
-      const buscados = options.current.fromRows(linhas);
-
-      const proximos = aplicarReleitura({
-        local: persisted.current,
-        ordem: remotos.map((linha) => linha.id),
-        buscados,
-        identify: options.current.identify,
-      });
-
-      setItems(proximos);
-      persisted.current = proximos;
-      carimbos.current = new Map(remotos.map((linha) => [linha.id, linha.syncedAt]));
-    }
-
     const coalescer = criarCoalescer(
       () => {
         void (async () => {
           if (releituraIncremental && carimbos.current.size > 0) {
-            await relerOQueMudou();
+            await sincronizarComCache();
             return;
           }
 
@@ -509,15 +613,7 @@ export function useSharedCollection<T>({
       coalescer.cancelar();
       supabase.removeChannel(channel);
     };
-  }, [
-    fetchAll,
-    fetchCarimbos,
-    fetchPorIds,
-    isHydrated,
-    releituraIncremental,
-    supabase,
-    table,
-  ]);
+  }, [isHydrated, releituraIncremental, relerTudo, sincronizarComCache, supabase, table]);
 
   // Gravação.
   useEffect(() => {
