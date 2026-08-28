@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import { Download, Loader2, Square } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -21,6 +21,9 @@ import {
   type FioListado,
   type PlanoDeVarredura,
 } from "@/services/hubspot/helpDeskSchedule";
+
+import { useActivity } from "@/features/activities/providers/ActivityProvider";
+import { RelativeDate } from "@/components/common/RelativeDate";
 
 import { useTickets } from "../providers/TicketsProvider";
 
@@ -83,6 +86,27 @@ export function HelpDeskDialog({
 }) {
   const { tickets, importFromHelpDesk } = useTickets();
   const { activeProjectId } = useProject();
+  const { events } = useActivity();
+
+  /**
+   * A última busca, de quem quer que tenha feito.
+   *
+   * A leitura é compartilhada: ela grava no banco de todos, e quem rodar depois
+   * vê "já estão aqui e em dia" e não relê nada. Mas a **listagem** repete: são
+   * ~110 páginas para varrer três meses, toda vez que alguém clica, mesmo que
+   * não haja nada novo. Com catorze pessoas curiosas isso vira mil e quinhentas
+   * requisições ao CRM para descobrir que não há o que fazer.
+   *
+   * Então a tela diz quando foi a última e quem fez, antes de qualquer clique.
+   * Não bloqueia: quem quiser conferir de novo confere.
+   */
+  const ultimaBusca = useMemo(
+    () =>
+      events.find(
+        (evento) => evento.subject.kind === "ticket" && evento.subject.id === "help-desk"
+      ),
+    [events]
+  );
 
   const [etapa, setEtapa] = useState<Etapa>("inicio");
   const [erro, setErro] = useState<string | null>(null);
@@ -328,6 +352,16 @@ export function HelpDeskDialog({
               minutos mesmo para uma janela curta. Depois disso, só os fios da janela são lidos,
               e reexecutar pula o que não mudou.
             </p>
+
+            {ultimaBusca && (
+              <p className="rounded-lg border border-border/70 bg-muted/25 px-3 py-2 text-xs leading-5 text-muted-foreground">
+                Última busca <RelativeDate value={ultimaBusca.at} />
+                {ultimaBusca.actor ? `, por ${ultimaBusca.actor}` : ""}: {ultimaBusca.detail}.
+                <br />
+                O que ela trouxe já está aqui para todo mundo. Buscar de novo só vale se algo
+                mudou desde então.
+              </p>
+            )}
 
             <Button onClick={listar} className="w-full">
               Ver o que há nas caixas
