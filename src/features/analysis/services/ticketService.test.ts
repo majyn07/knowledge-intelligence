@@ -79,7 +79,8 @@ describe("ticketService.create", () => {
 
     expect(conversation.ticketId).toBe(created.id);
     expect(conversation.messages).toEqual([
-      { id: "m1", author: "Cliente", body: "Não consigo entrar", createdAt: "09:12" },
+      /* Conversa digitada não declara papel, e deduzi-lo do nome seria adivinhar. */
+      { id: "m1", author: "Cliente", role: "sistema", body: "Não consigo entrar", createdAt: "09:12" },
     ]);
   });
 
@@ -225,7 +226,9 @@ describe("ticketService.toFormData", () => {
     const data = ticketService.toFormData(ticket({ title: "Caso" }), {
       id: "c1",
       ticketId: "45812",
-      messages: [{ id: "m1", author: "Cliente", body: "Oi", createdAt: "09:00" }],
+      messages: [
+        { id: "m1", author: "Cliente", role: "cliente" as const, body: "Oi", createdAt: "09:00" },
+      ],
     });
 
     expect(data.title).toBe("Caso");
