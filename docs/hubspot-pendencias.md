@@ -36,6 +36,7 @@ questão de rota, de nomenclatura ou de versão da API:
 | `GET /crm/v3/objects/0-5` (pelo objectTypeId) | 403 |
 | `GET /crm/v4/objects/0-5` | 403 |
 | `GET /crm/v3/objects/0-5/47673917220` (um registro) | 403 |
+| `GET /crm/v3/properties/tickets` (só o vocabulário) | 403 |
 
 Todos com a mesma mensagem: *"The scope needed for this API call isn't
 available for public use."*
@@ -57,6 +58,23 @@ contratado na conta. Quem administra o app consegue distinguir; de fora não dá
 
 **O que isso impede:** trazer assunto, empresa, data e solução do atendimento.
 Hoje o número do chamado é alcançável (ver 1.3), mas o registro dele não.
+
+**E impede até preparar o trabalho.** A última linha da tabela foi testada em
+28/08 para descobrir se dava para adiantar o mapeamento enquanto o escopo não
+vem: ler só os **nomes** das propriedades do ticket, sem nenhum registro. Também
+é 403, e aqui a mensagem nomeia o escopo: *"requires one of [tickets-read,
+tickets-access]"*.
+
+Por isso o pedido tem duas partes, e a segunda não depende da primeira:
+
+1. **O escopo `tickets` no app privado.**
+2. **A lista de propriedades do ticket**, que quem administra tira em um clique
+   pela interface (Configurações → Objetos → Tickets → Propriedades → Exportar).
+
+A lista sozinha já vale. Com ela dá para escrever e testar o mapeamento antes
+de o escopo chegar, e no dia da liberação a integração entra pronta em vez de
+começar. Sem ela, o trabalho só começa depois, porque não dá para adivinhar em
+qual propriedade mora a solução do atendimento.
 
 ### 1.2 Falta o escopo `site-search-read`. Bloqueia ler o portal
 
