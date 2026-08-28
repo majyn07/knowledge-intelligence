@@ -408,10 +408,10 @@ export function TicketForm({
             <Label htmlFor="ticket-date">Data</Label>
 
             {/*
-              Campo de data, e não texto livre. Antes aceitava qualquer coisa.
-              "ontem", "15 jul"., e o que não dava para situar no tempo caía
-              fora de toda janela dos indicadores. O valor nativo já é
-              `aaaa-mm-dd`, que é o formato guardado.
+              Campo de data, e não texto livre. Antes aceitava qualquer coisa:
+              "ontem", "15 jul", e o que não dava para situar no tempo caía fora
+              de toda janela dos indicadores. O valor nativo já é `aaaa-mm-dd`,
+              que é o formato guardado.
             */}
             <Input
               id="ticket-date"

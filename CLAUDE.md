@@ -1192,6 +1192,40 @@ Média de nada é `null`, nunca zero, zero diria "chega instantaneamente".
 Relógio nunca é lido durante o render. Use `useNow`: ler no render é impuro e
 diverge na hidratação, porque servidor e cliente têm horas diferentes.
 
+## Indicadores
+
+**O tempo do ciclo atravessa registros, e é o único que atravessa.** Do dia em
+que o cliente perguntou até o evento que publicou o artigo nascido dali. O resto
+do painel mede um artigo indo de rascunho a publicado, que é o tempo da
+**redação**: o do ciclo inclui tudo que fica parado antes de alguém começar a
+escrever, que é justamente onde ele trava.
+
+`averageDaysTo` não responde isso e não deveria: ela conta da primeira aparição
+**do registro** no histórico.
+
+A mediana vai ao lado da média porque a média mente aqui. Um artigo antigo
+publicado hoje, a partir de um atendimento de dois anos atrás, sozinho leva a
+média a centenas de dias, e quem lê conclui que o ciclo é lento quando o normal
+são duas semanas.
+
+Conta a **primeira** publicação, não a última: um artigo recolhido e republicado
+fechou o ciclo na primeira vez, e contar a segunda faria uma correção de vírgula
+parecer atraso de meses. O que não fecha o ciclo fica fora, com ressalva por
+motivo: sem atendimento de origem, sem data que dê para situar no tempo, ou
+publicado antes da data do atendimento.
+
+**Os assuntos que mais chegam são a fila de triagem lida por outra pessoa.** A
+mesma conta: lá ela diz "leia este primeiro", aqui diz "é isto que está
+chegando, e o acervo cobre tanto por cento", que é a frase que se leva a uma
+reunião. A ordem muda junto com a pergunta: a fila ordena por sinal
+(`quantos × (1 - cobertura)`), esta lista ordena por **volume**, senão o número
+na tela discordaria da lista embaixo dele.
+
+**A página exporta inteira.** Os painéis já saíam um a um, e um a um é o que não
+serve para quem monta um slide: eram doze arquivos. A planilha leva o recorte
+que gerou os números escrito em cima e a ressalva ao lado de cada um que tem
+uma, porque fora da tela ninguém sabe o que ficou de fora.
+
 ## Painéis
 
 O painel guarda a **pergunta**, não a resposta: origem, quebra, janela e forma
@@ -1307,7 +1341,7 @@ do que a correspondência traz junto, a recusa que diz qual campo, a comparaçã
 para na página vazia, o mapeamento de mensagens do provedor, a consulta da IA
 sobre o artigo, o rótulo da iniciativa, motor de busca e busca
 transversal, transições de artigo e de plano, métricas por projeto e por
-período, parsing da resposta da IA, a escolha do provedor com a classificação
+período, o tempo do ciclo com as ressalvas dele e a planilha da página, parsing da resposta da IA, a escolha do provedor com a classificação
 das falhas dele, a leitura da sugestão de seção, a leitura do preenchimento de
 formulário com a seleção do que aplicar e a classificação do arquivo
 anexado, o recorte na URL, a central de avisos, o levantamento, índice do artigo, critérios de publicação,
