@@ -6,7 +6,7 @@ import type { DelimitedTable } from "@/lib/delimited";
  * Atendimentos por arquivo.
  *
  * O atendimento é a entrada do ciclo e era digitado à mão, um a um. A HubSpot
- * exporta CSV, e o leitor já existe — o que faltava era o vocabulário do
+ * exporta CSV, e o leitor já existe: o que faltava era o vocabulário do
  * atendimento e a regra de o que fazer com cada linha.
  *
  * As mesmas duas regras da importação de artigos, e pelos mesmos motivos:
@@ -101,7 +101,7 @@ export interface TicketImportPlan {
   skippedNoTitle: number;
   /** Repetidas dentro do próprio arquivo, casadas pelo identificador. */
   duplicatedInFile: number;
-  /** Quantos entram sem data legível — ficam fora de toda janela de painel. */
+  /** Quantos entram sem data legível, ficam fora de toda janela de painel. */
   unreadableDate: number;
   /** Quantos ainda não têm solução registrada. */
   withoutSolution: number;
@@ -168,7 +168,7 @@ export function buildTicketImportPlan(
 
     /*
       A data é dia de calendário, e `toIsoDate` recusa o que não dá para situar
-      no tempo. Chutar produziria atendimento contado no mês errado — o painel
+      no tempo. Chutar produziria atendimento contado no mês errado: o painel
       já teve esse defeito uma vez.
     */
     const bruta = cell(row, mapping, "date");

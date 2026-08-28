@@ -16,7 +16,7 @@ import { usePeople } from "../providers/PeopleProvider";
 interface PersonSelectProps {
   id: string;
   /**
-   * Identificador de quem responde — pessoa ou equipe.
+   * Identificador de quem responde, pessoa ou equipe.
    *
    * Antes guardávamos o nome, para que remover alguém não apagasse o registro
    * de quem conduziu o trabalho. Com conta, o nome passou a ser editável pela

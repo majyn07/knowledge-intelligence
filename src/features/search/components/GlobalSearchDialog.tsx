@@ -81,7 +81,7 @@ export function GlobalSearchDialog({ open, onOpenChange }: GlobalSearchDialogPro
 
     /*
       Recentes só com o campo vazio. Assim que a pessoa digita, ela está
-      procurando outra coisa — e a lista de onde ela esteve viraria estorvo no
+      procurando outra coisa, e a lista de onde ela esteve viraria estorvo no
       caminho do resultado.
     */
     const recents =
@@ -185,7 +185,7 @@ export function GlobalSearchDialog({ open, onOpenChange }: GlobalSearchDialogPro
         <div ref={listRef} className="max-h-[60vh] overflow-y-auto p-2">
           {query.trim().length < 2 && (
             <p className="px-3 pb-2 pt-3 text-center text-xs text-muted-foreground">
-              Digite ao menos dois caracteres para buscar registros — a busca
+              Digite ao menos dois caracteres para buscar registros: a busca
               alcança todos os projetos.
             </p>
           )}

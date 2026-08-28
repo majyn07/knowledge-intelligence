@@ -19,15 +19,15 @@ const STORAGE_KEY = "visus-appearance";
 /**
  * Script aplicado antes da primeira pintura.
  *
- * Sem ele a tela abre clara e escurece — o clarão que denuncia tema escuro mal
+ * Sem ele a tela abre clara e escurece: o clarão que denuncia tema escuro mal
  * feito. Ele roda antes do React justamente por isso, e escreve num atributo
- * em vez de numa classe — mexer em `className` do `<html>` produziria
+ * em vez de numa classe. Mexer em `className` do `<html>` produziria
  * divergência de conteúdo, que é bem pior.
  *
  * A divergência de **atributo** continua existindo, e é por isso que o `<html>`
  * leva `suppressHydrationWarning`: o servidor não tem como saber a preferência
  * de quem vai abrir a página. É a única supressão do produto, e ela vale só
- * para os atributos deste elemento — nada dentro dele deixa de ser comparado.
+ * para os atributos deste elemento, nada dentro dele deixa de ser comparado.
  *
  * A preferência é lida com `try` porque modo privado e armazenamento bloqueado
  * não podem impedir a página de abrir.
@@ -46,7 +46,7 @@ export const appearanceScript = `
 
 interface AppearanceContextValue {
   appearance: Appearance;
-  /** O que está de fato aplicado agora — "system" já resolvido. */
+  /** O que está de fato aplicado agora, "system" já resolvido. */
   resolved: "light" | "dark";
   setAppearance: (next: Appearance) => void;
 }

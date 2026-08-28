@@ -59,7 +59,7 @@ const kinds = (findings: Finding[]) => findings.map((finding) => finding.kind);
 describe("seção sem artigo", () => {
   it("agrupa por categoria, e diz quais seções estão descobertas", () => {
     /*
-      Uma linha por seção produziu 117 achados na primeira execução real — a
+      Uma linha por seção produziu 117 achados na primeira execução real: a
       lista do portal inteiro, afogando os três que alguém resolveria hoje.
     */
     const achados = survey([artigo({})]);
@@ -112,7 +112,7 @@ describe("artigo sem seção", () => {
   it("muitos sem seção viram um achado só, com o caminho do mutirão", () => {
     /*
       Depois de uma importação, "sem seção" é a condição de centenas de uma vez.
-      A primeira execução com acervo real produziu 600 linhas iguais — a mesma
+      A primeira execução com acervo real produziu 600 linhas iguais: a mesma
       falha das seções vazias, e a lista deixa de dizer por onde começar.
     */
     const muitos = Array.from({ length: 40 }, (_, i) =>

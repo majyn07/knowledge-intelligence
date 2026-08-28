@@ -11,7 +11,7 @@ import type { ContentFormat } from "@/models/KnowledgeArticle";
  *
  * O modelo guarda `contentFormat` desde que o artigo do portal passou a poder
  * entrar, com o argumento de que converter nos dois sentidos degrada a cada ida
- * e volta. Só que a tela renderizava tudo como Markdown — então o HTML do
+ * e volta. Só que a tela renderizava tudo como Markdown. Então o HTML do
  * portal aparecia com as tags à mostra, como texto. Guardar o formato só serve
  * se quem exibe consultar.
  */
@@ -36,7 +36,7 @@ export function ArticleContent({
         className="article-html"
         /*
           O HTML vem do nosso portal e passa pela limpeza de `buildArticleHtml`.
-          A alternativa — escapar e mostrar como texto — é o defeito que isto
+          A alternativa (escapar e mostrar como texto) é o defeito que isto
           conserta.
         */
         dangerouslySetInnerHTML={{ __html: html }}

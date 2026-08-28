@@ -34,7 +34,7 @@ const labels: [keyof LocalWorkspace, string][] = [
  * Quando o servidor está vazio e há trabalho neste navegador, a subida é
  * **oferecida**, não feita em silêncio. O produto já tem a regra de não
  * descartar trabalho sem avisar; enviar sem avisar é o mesmo problema virado
- * do avesso — quem envia precisa saber o que está enviando.
+ * do avesso. Quem envia precisa saber o que está enviando.
  *
  * Só a primeira pessoa migra. Quem chega depois encontra o servidor com
  * conteúdo e lê o que já está lá, em vez de sobrescrever com a própria cópia.

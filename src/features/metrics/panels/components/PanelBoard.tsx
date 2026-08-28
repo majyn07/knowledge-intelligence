@@ -41,7 +41,7 @@ function download(name: string, content: Blob) {
  * Os painéis que a equipe montou.
  *
  * O quadro junta os dados uma vez e roda cada especificação sobre eles. Os
- * providers já têm tudo em memória — não há consulta nova por painel, e é por
+ * providers já têm tudo em memória, não há consulta nova por painel, e é por
  * isso que somar mais um cartão não custa nada.
  */
 export function PanelBoard() {

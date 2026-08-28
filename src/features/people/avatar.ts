@@ -8,7 +8,7 @@
  * separada para manter em dia.
  *
  * O limite abaixo é o que torna essa escolha defensável. Passar dele mudaria
- * a conta — aí sim valeria um serviço de arquivos, e essa decisão seria
+ * a conta. Aí sim valeria um serviço de arquivos, e essa decisão seria
  * tomada na hora, não agora.
  */
 
@@ -62,7 +62,7 @@ export function avatarHue(name: string): number {
  * Recorta pelo centro em vez de espremer: o retrato de alguém deformado é pior
  * que o retrato de alguém aparado.
  *
- * Roda no navegador — depende de `Image` e `canvas` — e por isso é assíncrona
+ * Roda no navegador (depende de `Image` e `canvas`) e por isso é assíncrona
  * e devolve resultado em vez de lançar: a falha aqui é previsível, não
  * excepcional.
  */
@@ -98,7 +98,7 @@ export async function resizeAvatar(
     context.drawImage(image, x, y, lado, lado, 0, 0, AVATAR_SIZE, AVATAR_SIZE);
 
     /*
-      WebP primeiro pelo tamanho; JPEG quando o navegador não gerar WebP —
+      WebP primeiro pelo tamanho; JPEG quando o navegador não gerar WebP.
       `toDataURL` devolve PNG silenciosamente nesse caso, e PNG de foto passa
       folgado do teto.
     */

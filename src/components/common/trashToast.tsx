@@ -7,7 +7,7 @@ import { toast } from "sonner";
  *
  * A lixeira é a rede durável; isto é a rede imediata. São necessidades
  * diferentes: quem clicou errado percebe no mesmo segundo e não deveria
- * precisar abrir outra tela para consertar — e quem só descobre semanas depois
+ * precisar abrir outra tela para consertar, e quem só descobre semanas depois
  * precisa que o registro ainda exista.
  *
  * O texto diz onde a coisa foi parar. "Excluído" sozinho faz a pessoa supor
@@ -35,7 +35,7 @@ export function trashToast(input: {
  * tamanho, e desfazer duzentas vezes não é caminho de volta.
  *
  * O desfazer devolve exatamente o que foi levado, e não "tudo que está na
- * lixeira" — restaurar por engano o que alguém excluiu ontem seria o desfazer
+ * lixeira". Restaurar por engano o que alguém excluiu ontem seria o desfazer
  * criando o problema que veio consertar.
  */
 export function bulkTrashToast(input: {

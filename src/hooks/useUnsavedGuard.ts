@@ -11,13 +11,13 @@ import { useUnsavedWork } from "@/features/release/providers/ReleaseProvider";
  * O formulário avisa que ficou sujo; o diálogo consulta antes de fechar.
  *
  * O mesmo aviso sobe um nível: enquanto houver alteração pendente, o produto
- * inteiro sabe que há o que salvar — é o que faz o aviso de nova versão dizer
+ * inteiro sabe que há o que salvar. É o que faz o aviso de nova versão dizer
  * "salve antes" em vez de oferecer um recarregar que descarta trabalho.
  */
 export function useUnsavedGuard(close: () => void) {
   const isDirty = useRef(false);
   /*
-    A `ref` é a verdade do momento do clique — ela não perde uma marcação feita
+    A `ref` é a verdade do momento do clique. Ela não perde uma marcação feita
     entre renders. O estado existe só para o registro acima poder reagir: um
     `ref` não dispara render, e ninguém saberia que a edição ficou suja.
   */

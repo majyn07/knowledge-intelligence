@@ -5,7 +5,7 @@ import "server-only";
  *
  * Existe porque o navegador não alcança outro domínio, e porque a HubSpot não
  * entrega o artigo: o escopo que parecia ser isso não tem endpoint, e o site
- * search exige permissão que a credencial não tem — e ainda assim devolveria
+ * search exige permissão que a credencial não tem, e ainda assim devolveria
  * o índice sem o corpo. O portal é público e entrega os dois.
  *
  * Somente leitura, em série, com pausa. São ~1.800 páginas do servidor da
@@ -79,7 +79,7 @@ async function buscarUma(url: string): Promise<PortalFetch> {
 /**
  * Em série, com pausa entre uma e outra.
  *
- * Em paralelo seriam dez conexões simultâneas por lote contra o portal — e o
+ * Em paralelo seriam dez conexões simultâneas por lote contra o portal, e o
  * ganho de tempo não compensa o risco de alguém do suporte ver a página lenta
  * por causa de uma importação nossa.
  */

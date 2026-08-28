@@ -9,7 +9,7 @@ import { mentionName, mentionSegments } from "../mentions";
 /**
  * Comentário com as menções resolvidas.
  *
- * O nome exibido é o atual, lido do identificador guardado — quem se renomeou
+ * O nome exibido é o atual, lido do identificador guardado. Quem se renomeou
  * aparece com o nome de hoje em tudo que já foi escrito. Quando o
  * identificador não resolve mais, sobra o rótulo do dia em que a menção foi
  * feita: o comentário é um registro do que foi dito, e não se reescreve.

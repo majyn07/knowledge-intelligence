@@ -14,7 +14,7 @@ import {
  * classificação por IA: um pedido que segurasse 1.800 buscas estouraria o teto
  * da plataforma, e lote que falha não pode derrubar o que já veio.
  *
- * O HTML não volta para o navegador — só o que foi extraído. São ~180 KB por
+ * O HTML não volta para o navegador, só o que foi extraído. São ~180 KB por
  * página, e mandar isso de volta seria trafegar 300 MB para descartar quase
  * tudo do outro lado.
  */
@@ -67,7 +67,7 @@ export async function POST(request: Request) {
       url,
       /*
         `null` quando a página não entregou o que identifica um artigo. Quem
-        conta é o plano, e o número aparece antes do clique — nunca some.
+        conta é o plano, e o número aparece antes do clique, nunca some.
       */
       article: html === null ? null : extractArticle(html, url),
       failure,

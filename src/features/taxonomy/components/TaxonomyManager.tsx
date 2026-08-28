@@ -21,7 +21,7 @@ import type { EntryList } from "../taxonomyService";
  * leve: o vínculo com o artigo é o id, não o texto. Trocar "Elétrica" por
  * "Disciplina Elétrica" não desclassifica nada.
  *
- * O estado nasce do prop e não é sincronizado depois — quem troca o registro
+ * O estado nasce do prop e não é sincronizado depois. Quem troca o registro
  * em edição é a chave do componente. Um efeito sincronizando `name` apagaria o
  * que está sendo digitado a cada render do pai.
  */
@@ -49,7 +49,7 @@ function InlineRename({
   function confirm() {
     const trimmed = draft.trim();
     // Nome vazio apagaria o rótulo de tudo que aponta para o id, sem remover
-    // nada — e ninguém saberia dizer o que aquela seção era.
+    // nada, e ninguém saberia dizer o que aquela seção era.
     if (trimmed && trimmed !== name) onRename(trimmed);
     setEditing(false);
   }
@@ -78,7 +78,7 @@ function InlineRename({
       <Input
         autoFocus
         value={draft}
-        aria-label={`Novo nome — ${name}`}
+        aria-label={`Novo nome. ${name}`}
         className="h-8 min-w-0 flex-1"
         onChange={(event) => setDraft(event.target.value)}
         onKeyDown={(event) => {
@@ -111,7 +111,7 @@ function InlineRename({
 }
 
 /**
- * Lista simples editável — gênero e tipo de oportunidade.
+ * Lista simples editável, gênero e tipo de oportunidade.
  *
  * O contador de uso não é enfeite: remover um item que está em uso deixa
  * registros apontando para o vazio, e quem remove precisa saber disso antes.
@@ -196,7 +196,7 @@ function EntryListEditor({
   );
 }
 
-/** Uma categoria e suas seções, recolhida por padrão — são 146 no total. */
+/** Uma categoria e suas seções, recolhida por padrão. São 146 no total. */
 function CategoryRow({ categoryId }: { categoryId: string }) {
   const { taxonomy, createSection, deleteSection, deleteCategory, editCategory, editSection } =
     useTaxonomy();
@@ -399,7 +399,7 @@ export function TaxonomyManager() {
           <EntryListEditor
             list="genres"
             title="Gêneros de artigo"
-            hint="O que o texto faz para quem chega nele. O portal não tem esse campo — é nosso."
+            hint="O que o texto faz para quem chega nele. O portal não tem esse campo. É nosso."
             usage={genreUsage}
           />
 

@@ -7,13 +7,13 @@ import { applyParams, readParams, type ParamValues } from "@/lib/urlState";
 /**
  * Mantém o recorte da tela no endereço.
  *
- * Devolve `[valores, escrever, lido]` — a mesma forma de `usePersistedState` e
+ * Devolve `[valores, escrever, lido]`: a mesma forma de `usePersistedState` e
  * de `useSharedCollection`, e pelo mesmo motivo: quem consome não precisa saber
  * de onde o estado veio.
  *
  * O primeiro render devolve **o padrão**, e o que está na URL entra num efeito
  * depois da montagem. Ler no render exigiria `useSearchParams`, que tiraria
- * estas rotas da pré-renderização e pediria uma fronteira de Suspense — e a
+ * estas rotas da pré-renderização e pediria uma fronteira de Suspense, e a
  * regra do projeto continua valendo: servidor e primeiro render do cliente
  * produzem o mesmo HTML.
  *

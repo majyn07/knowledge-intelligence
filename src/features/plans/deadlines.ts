@@ -13,7 +13,7 @@ const DAY = 24 * 60 * 60 * 1000;
  *
  * Um número só, e não um por estágio. Um plano em análise e um em revisão têm
  * ritmos diferentes, mas o produto ainda não sabe qual é o ritmo normal de
- * cada um — inventar cinco limiares seria fingir uma medição que não houve.
+ * cada um. Inventar cinco limiares seria fingir uma medição que não houve.
  * Quando o histórico tiver volume, os números saem dele.
  */
 export const STALLED_AFTER_DAYS = 7;
@@ -21,14 +21,14 @@ export const STALLED_AFTER_DAYS = 7;
 /**
  * Data só é data em ISO 8601.
  *
- * `new Date("15 jul. 2026")` **funciona** em alguns motores e falha em outros —
+ * `new Date("15 jul. 2026")` **funciona** em alguns motores e falha em outros:
  * o Node aqui devolve 15 de julho, e outro navegador pode devolver `Invalid
  * Date` ou outro dia. Aceitar isso significaria que o mesmo registro mostraria
  * prazos diferentes em máquinas diferentes, sem nada indicando o problema.
  *
  * Ser estrito não custa informação: prazo é campo novo e sempre nasce ISO. O
  * que é recusado aqui são as datas de exibição dos planos antigos, que nunca
- * foram instantes — e a tela continua mostrando o texto original delas.
+ * foram instantes, e a tela continua mostrando o texto original delas.
  */
 const ISO = /^\d{4}-\d{2}-\d{2}([T ]\d{2}:\d{2}|$)/;
 
@@ -47,11 +47,11 @@ export function parseDate(value: string | Date | undefined): Date | null {
 
   /*
     `new Date("2026-02-30")` não falha: transborda para 2 de março, em
-    silêncio. Um prazo digitado errado viraria outra data sem nada indicando —
+    silêncio. Um prazo digitado errado viraria outra data sem nada indicando,
     e "atrasado" calculado sobre ela seria mentira com aparência de número.
 
     A conferência vale só para a forma `YYYY-MM-DD`, que o JavaScript lê como
-    UTC. Com hora e sem fuso — `2026-08-20T22:00` — a leitura é no horário
+    UTC. Com hora e sem fuso, `2026-08-20T22:00`: a leitura é no horário
     local, e comparar componentes UTC recusaria datas legítimas do fim do dia
     em qualquer fuso a oeste de Greenwich. É também a forma que o campo de
     data do formulário produz, que é onde o erro de digitação acontece.
@@ -138,7 +138,7 @@ export function daysSince(last: string | Date | undefined, now: Date): number | 
  * Um plano sem prazo nenhum pode estar parado; um plano com prazo distante
  * também. São perguntas separadas, e juntá-las esconderia metade do problema.
  *
- * Registro já concluído não está parado — ele terminou.
+ * Registro já concluído não está parado. Ele terminou.
  */
 export function isStalled(
   last: string | Date | undefined,

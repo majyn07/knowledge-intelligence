@@ -16,7 +16,7 @@ import { MarkdownContent } from "@/components/common/MarkdownContent";
  *
  * Ler não é a única coisa que se faz com um artigo do portal: procura-se uma
  * frase, confere-se um trecho, salta-se para a seção citada. Num texto de vinte
- * mil caracteres, cada uma dessas coisas sem ferramenta vira rolagem — e quem
+ * mil caracteres, cada uma dessas coisas sem ferramenta vira rolagem, e quem
  * opera um acervo de mil e oitocentos faz isso o dia inteiro.
  */
 
@@ -36,7 +36,7 @@ export function ArticleReader({ article, acervo }: ArticleReaderProps) {
 
   /*
     Índice por identificador do portal, montado uma vez. Sem ele, cada link do
-    corpo faria uma varredura no acervo inteiro — e um artigo com quarenta
+    corpo faria uma varredura no acervo inteiro, e um artigo com quarenta
     citações varreria mil e oitocentos registros quarenta vezes.
   */
   const porPortalId = useMemo(() => {
@@ -79,7 +79,7 @@ export function ArticleReader({ article, acervo }: ArticleReaderProps) {
 
   /*
     A ocorrência atual é destacada e trazida para a tela. O atributo é aplicado
-    depois da montagem porque quem desenha o `<mark>` é o HTML injetado — o
+    depois da montagem porque quem desenha o `<mark>` é o HTML injetado: o
     React não conhece esses nós.
   */
   useEffect(() => {

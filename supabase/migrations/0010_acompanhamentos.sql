@@ -2,7 +2,7 @@
 --
 -- Até aqui só existia atribuição: ou o plano é seu, ou ele não aparece para
 -- você em lugar nenhum. Mas boa parte do trabalho de suporte é interesse sem
--- responsabilidade — quem abriu o atendimento que originou o plano quer saber
+-- responsabilidade. Quem abriu o atendimento que originou o plano quer saber
 -- quando ele publica, e não vai assumi-lo por isso.
 --
 -- Não é atribuição disfarçada: acompanhar não move responsabilidade, não muda
@@ -13,7 +13,7 @@ create table public.follows (
 
   -- Quem acompanha. Sem chave estrangeira para `profiles` de propósito: no
   -- modo sem servidor não há conta, e o registro fica com identificador vazio
-  -- porque ali só existe uma pessoa — a que está no navegador.
+  -- porque ali só existe uma pessoa: a que está no navegador.
   person_id text not null default '',
 
   subject_kind text not null,

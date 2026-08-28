@@ -153,7 +153,7 @@ describe("parseActors", () => {
 describe("nextCursor", () => {
   /*
     A armadilha medida: página vazia com cursor presente. O fim é a ausência do
-    cursor, nunca a lista vazia — parar no vazio grava conversa vazia.
+    cursor, nunca a lista vazia, parar no vazio grava conversa vazia.
   */
   it("segue quando há cursor, mesmo com a página vazia", () => {
     expect(nextCursor({ results: [], paging: { next: { after: "abc" } } })).toBe("abc");

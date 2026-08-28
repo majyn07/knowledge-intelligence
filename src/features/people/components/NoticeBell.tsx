@@ -21,8 +21,8 @@ import { noticeReasonLabel } from "../notices";
  * A central de avisos.
  *
  * A menção existia e não chegava a lugar nenhum: quem era mencionado só
- * descobria abrindo a tela certa por acaso. Como não há e-mail — e não vai
- * haver enquanto o SMTP não existir —, o produto conta por si.
+ * descobria abrindo a tela certa por acaso. Como não há e-mail, e não vai
+ * haver enquanto o SMTP não existir,, o produto conta por si.
  *
  * O sino só ganha número quando há o que ler. Um contador que mostra zero
  * ocupa atenção para dizer que não há nada.
@@ -48,7 +48,7 @@ export function NoticeBell() {
         variant="ghost"
         size="icon"
         className="relative"
-        aria-label={unread > 0 ? `Avisos — ${unread} não lido(s)` : "Avisos"}
+        aria-label={unread > 0 ? `Avisos, ${unread} não lido(s)` : "Avisos"}
         onClick={() => abrir(true)}
       >
         <Bell className="h-4 w-4" />
@@ -76,7 +76,7 @@ export function NoticeBell() {
 
           {notices.length === 0 ? (
             <p className="py-4 text-sm text-muted-foreground">
-              Nada por aqui. Acompanhe um plano ou um artigo para saber quando ele se mover — o
+              Nada por aqui. Acompanhe um plano ou um artigo para saber quando ele se mover: o
               acompanhamento é sobre interesse, e não transfere responsabilidade para você.
             </p>
           ) : (

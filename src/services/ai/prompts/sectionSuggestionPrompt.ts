@@ -7,7 +7,7 @@ import type { SectionSuggestionRequest } from "../classify/sectionSuggestion";
  *
  * O vocabulário vai **inteiro no pedido**, e a resposta tem de escolher dentro
  * dele. Deixar o modelo nomear a seção livremente produziria "Elétrica
- * Predial", que não existe no cadastro e não classifica nada — e a conferência
+ * Predial", que não existe no cadastro e não classifica nada, e a conferência
  * do identificador na volta é o que garante isso, porque instrução não é
  * garantia.
  *

@@ -1,8 +1,6 @@
 export interface KnowledgeQuery {
   text: string;
 
-  projectId?: string;
-
   company?: string;
 
   module?: string;

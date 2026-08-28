@@ -7,12 +7,12 @@ import { articleTermFrequency } from "../content/articleTerms";
  * Comparar dois artigos que se sobrepõem.
  *
  * O Levantamento aponta o par; sozinho isso não resolve nada. A pergunta de
- * quem vai decidir é sempre a mesma — **o que este tem que aquele não tem?** —,
+ * quem vai decidir é sempre a mesma, **o que este tem que aquele não tem?**.,
  * e respondê-la relendo os dois textos inteiros é o trabalho manual que este
  * produto existe para acabar.
  *
  * O que sai daqui é calculado: vocabulário só de um, só do outro, e o comum.
- * Se os dois devem virar um só é decisão de quem revisa — a IA do artigo está
+ * Se os dois devem virar um só é decisão de quem revisa: a IA do artigo está
  * ali para propor, marcada como proposta.
  */
 
@@ -77,7 +77,7 @@ export function compareFields(
   b: KnowledgeArticle,
   sectionNameOf: (sectionId: string) => string
 ): FieldDifference[] {
-  const dia = (data: Date) => data.toISOString().slice(0, 10);
+  const dia = (data: Date) => dayOf(data);
   const tamanho = (article: KnowledgeArticle) =>
     `${articleText(article).length.toLocaleString("pt-BR")} caracteres`;
 
@@ -98,3 +98,5 @@ export function compareFields(
 
   return campos.map((campo) => ({ ...campo, same: campo.a === campo.b }));
 }
+
+import { dayOf } from "@/lib/dates";

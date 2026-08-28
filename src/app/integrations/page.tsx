@@ -65,7 +65,7 @@ function buildIntegrations(): { integrations: Integration[]; caveat: string | nu
       purpose: provider.purpose,
       detail:
         provider.id === "claude"
-          ? "Entra como segundo provedor de análise e é por onde o acesso à HubSpot será mediado — não haverá conexão REST direta com o CRM. Falta a credencial."
+          ? "Entra como segundo provedor de análise, ao lado do Gemini. Falta a credencial."
           : "Sem chave configurada neste ambiente.",
       state: "planned",
     };
@@ -77,15 +77,15 @@ function buildIntegrations(): { integrations: Integration[]; caveat: string | nu
       name: "HubSpot · Atendimentos",
       purpose: "Origem dos atendimentos",
       detail:
-        "Hoje os atendimentos são cadastrados à mão. A importação será desenhada contra o formato que a Claude devolver, não antes dele.",
-      state: "planned",
+        "A conversa do atendimento é lida por REST, só leitura. O objeto de ticket em si está fora do que a credencial alcança, então o cadastro vem por arquivo exportado.",
+      state: "connected",
     },
     {
       name: "HubSpot · Base de Conhecimento",
       purpose: "Espelho do portal publicado",
       detail:
-        "O suporte.altoqi.com.br é a base publicada. A Biblioteca passará a espelhá-lo, preservando a identidade de cada artigo para que sincronizar atualize em vez de duplicar.",
-      state: "planned",
+        "O suporte.altoqi.com.br é a base publicada, e a Biblioteca espelha os 1.822 artigos dele. Não há API: a leitura é do portal público, e cada artigo guarda a identidade de lá para que reimportar atualize em vez de duplicar.",
+      state: "connected",
     },
   ];
 
@@ -95,9 +95,9 @@ function buildIntegrations(): { integrations: Integration[]; caveat: string | nu
   */
   const caveat =
     active.reason === "preferencia"
-      ? "Há mais de um provedor com chave e nenhum declarado. Vale a ordem escrita no catálogo — declare `AI_PROVIDER` para decidir."
+      ? "Há mais de um provedor com chave e nenhum declarado. Vale a ordem escrita no catálogo, declare `AI_PROVIDER` para decidir."
       : active.reason === "declarado-sem-chave"
-        ? `O ambiente declara \`AI_PROVIDER=${active.declared}\`, que não tem chave aqui. A análise por IA não funciona até isso bater — e o produto não troca de provedor por conta própria.`
+        ? `O ambiente declara \`AI_PROVIDER=${active.declared}\`, que não tem chave aqui. A análise por IA não funciona até isso bater, e o produto não troca de provedor por conta própria.`
         : null;
 
   return { integrations, caveat };
@@ -125,7 +125,7 @@ export default function IntegrationsPage() {
             <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
               {ativas === 0
                 ? "Nenhuma integração ativa. Todo dado nesta instalação foi cadastrado por alguém."
-                : `${ativas} de ${integrations.length} conectadas. O restante ainda não existe — e nada nesta tela finge o contrário.`}
+                : `${ativas} de ${integrations.length} conectadas. O restante ainda não existe, e nada nesta tela finge o contrário.`}
             </p>
           </div>
         </header>

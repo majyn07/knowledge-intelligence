@@ -16,7 +16,7 @@ const options: { value: Appearance; label: string; Icon: typeof Sun }[] = [
  * Escolha da aparência.
  *
  * Três estados e não dois: "sistema" é o padrão porque quem já configurou o
- * computador não deveria configurar de novo aqui — e continua acompanhando se
+ * computador não deveria configurar de novo aqui, e continua acompanhando se
  * a preferência do sistema mudar durante o uso.
  */
 export function AppearanceToggle({ compact = false }: { compact?: boolean }) {

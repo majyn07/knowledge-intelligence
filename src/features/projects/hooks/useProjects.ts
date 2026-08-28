@@ -88,7 +88,7 @@ export function useProjects() {
    *
    * O registro sai da vista e continua existindo. Com dado compartilhado quem
    * apaga apaga para catorze pessoas, e o diálogo de confirmação era a única
-   * barreira — que quem clica rápido não lê.
+   * barreira, que quem clica rápido não lê.
    */
   const deleteProject = useCallback(
     (id: string): boolean => {

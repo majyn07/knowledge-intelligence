@@ -10,7 +10,7 @@ import type { FieldSpec } from "@/services/ai/fill/fieldFill";
  *
  * Sem domínio de propósito: quem chama diz o que é o formulário e quais campos
  * existem, e recebe proposta para eles. É o que permite a mesma peça servir o
- * projeto, o atendimento e o artigo — o formato "descreva e a IA propõe" é o
+ * projeto, o atendimento e o artigo: o formato "descreva e a IA propõe" é o
  * mesmo nos três, e um gancho por tela faria três divergirem.
  *
  * A importação de tipos é só de tipo: `fieldFill.ts` carrega `zod` e vive do
@@ -78,7 +78,7 @@ export function useFieldFill() {
         /*
           A mensagem do servidor vem inteira. Ela já distingue chave recusada
           de cota estourada de modelo sobrecarregado, e trocá-la por texto
-          genérico aqui apagaria a única pista de quem administra — foi o que
+          genérico aqui apagaria a única pista de quem administra. Foi o que
           o `aiErrorResponse` existe para não deixar acontecer.
         */
         throw new Error(

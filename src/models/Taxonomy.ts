@@ -1,5 +1,5 @@
 /**
- * Taxonomia do conteúdo — espelho da estrutura do portal publicado.
+ * Taxonomia do conteúdo, espelho da estrutura do portal publicado.
  *
  * O suporte.altoqi.com.br organiza tudo em categoria → seção → artigo, e não
  * tem campo de tipo. Este modelo reproduz isso: as duas primeiras entidades
@@ -9,7 +9,7 @@
  * levantado, mas o portal muda e quem usa precisa acompanhar sem pedir deploy.
  */
 
-/** Categoria do portal — linha de produto ou área de apoio. */
+/** Categoria do portal, linha de produto ou área de apoio. */
 export interface TaxonomyCategory {
   id: string;
   name: string;
@@ -31,7 +31,7 @@ export interface TaxonomySection {
 }
 
 /**
- * Lista simples de preenchimento — gênero do artigo, tipo de oportunidade.
+ * Lista simples de preenchimento, gênero do artigo, tipo de oportunidade.
  * Mesma forma para todas, porque o comportamento é o mesmo: criar, renomear,
  * remover, ordenar.
  */
@@ -56,7 +56,7 @@ export interface Taxonomy {
  *
  * Precisa ser determinístico para que a semente produza sempre os mesmos ids
  * e a migração de artigos antigos possa apontar para eles. Renomear depois não
- * muda o id — o vínculo é o id, não o texto.
+ * muda o id: o vínculo é o id, não o texto.
  */
 export function taxonomyId(prefix: string, name: string): string {
   const slug = name
@@ -87,8 +87,8 @@ export function sectionsOf(taxonomy: Taxonomy, categoryId: string) {
 
 /**
  * Rótulo completo de uma seção, para listagens e busca.
- * Devolve string vazia quando a seção não existe mais — categoria removida,
- * artigo migrado sem correspondência — em vez de inventar um nome.
+ * Devolve string vazia quando a seção não existe mais. Categoria removida,
+ * artigo migrado sem correspondência, em vez de inventar um nome.
  */
 export function sectionPath(taxonomy: Taxonomy, sectionId: string): string {
   const section = findSection(taxonomy, sectionId);

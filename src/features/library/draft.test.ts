@@ -45,7 +45,7 @@ describe("acceptsDraft", () => {
   it("só o publicado aceita rascunho ao lado", () => {
     /*
       Onde não há versão publicada a preservar, o texto em edição já é o
-      artigo — uma segunda cópia seria confusão sem ganho.
+      artigo: uma segunda cópia seria confusão sem ganho.
     */
     expect(acceptsDraft(artigo({ status: "published" }))).toBe(true);
     expect(acceptsDraft(artigo({ status: "draft" }))).toBe(false);

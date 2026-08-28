@@ -89,7 +89,7 @@ export function ProjectForm({
    * O que a IA pode propor neste formulário.
    *
    * **Responsável fica de fora, de propósito.** A atribuição guarda
-   * identificador, não nome, e o modelo só sabe devolver texto — propor ali
+   * identificador, não nome, e o modelo só sabe devolver texto. Propor ali
    * gravaria um vínculo que não resolve para pessoa nenhuma. Ele continua
    * aparecendo como pergunta na resposta, que é o comportamento honesto: a
    * lacuna fica visível e quem escolhe é quem abriu o formulário.
@@ -99,7 +99,7 @@ export function ProjectForm({
    * ativo, e deduzir isso de uma frase seria inventar intenção.
    *
    * O produto vai com o catálogo inteiro no pedido, e a conferência acontece
-   * na volta — a mesma defesa da sugestão de seção.
+   * na volta: a mesma defesa da sugestão de seção.
    */
   const fillFields: FieldSpec[] = useMemo(
     () => [
@@ -138,7 +138,7 @@ export function ProjectForm({
           description: formData.description,
           /*
             `UNSET_PRODUCT` é ausência, e mandá-lo como valor atual faria a
-            tela avisar que a proposta substitui algo — quando ela preenche um
+            tela avisar que a proposta substitui algo, quando ela preenche um
             campo vazio.
           */
           product: formData.product === UNSET_PRODUCT ? "" : formData.product,

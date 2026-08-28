@@ -250,7 +250,7 @@ export function PlanContextPanel({ plan }: PlanContextPanelProps) {
 
           {/*
             Arroba menciona pessoa ou equipe. A menção guarda o identificador,
-            então renomear-se não quebra o vínculo — mesma regra da atribuição.
+            então renomear-se não quebra o vínculo, mesma regra da atribuição.
           */}
           <MentionField
             value={message}

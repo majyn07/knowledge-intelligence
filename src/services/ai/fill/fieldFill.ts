@@ -10,7 +10,7 @@ import { ATTACHMENT_TYPES, MAX_ATTACHMENT_BYTES } from "@/models/AIAttachment";
  * atendimento tem a informação num documento que ninguém vai transcrever.
  *
  * É genérico de propósito. O formato "descreva e a IA propõe os campos" é o
- * mesmo no projeto, no atendimento e no artigo — escrever um serviço por tela
+ * mesmo no projeto, no atendimento e no artigo. Escrever um serviço por tela
  * faria três prompts divergirem e três lugares para consertar a mesma regra.
  * Quem conhece o vocabulário é quem chama: manda os campos, recebe valores
  * para eles, e nada mais.
@@ -46,7 +46,7 @@ export const MAX_LIST_ITEMS = 60;
  * decidir sozinha entre gravar errado e ignorar em silêncio.
  *
  * `lista` existe porque parte do que se extrai de um documento **não é um
- * valor, é uma sequência** — a conversa de um atendimento é a evidência que a
+ * valor, é uma sequência**: a conversa de um atendimento é a evidência que a
  * análise lê depois, e é o grosso do que um PDF de chamado carrega. Deixá-la
  * de fora fazia a importação por documento entregar a moldura e perder o
  * conteúdo.
@@ -98,7 +98,7 @@ export const fieldFillRequestSchema = z
   .strict()
   /*
     Pedido sem texto e sem arquivo não tem do que extrair. Recusar aqui evita
-    uma ida ao provedor que só pode voltar vazia — e uma resposta vazia sem
+    uma ida ao provedor que só pode voltar vazia, e uma resposta vazia sem
     causa aparente é pior que um erro que diz o que faltou.
   */
   .refine((request) => request.source.trim() !== "" || request.file !== undefined, {
@@ -109,7 +109,7 @@ export type FieldFillRequest = z.infer<typeof fieldFillRequestSchema>;
 
 /** Uma frase curta dizendo de onde saiu. É o que torna a proposta revisável. */
 interface Justificado {
-  /** O `name` do campo pedido — nunca um que não perguntamos. */
+  /** O `name` do campo pedido, nunca um que não perguntamos. */
   name: string;
   reason: string;
 }
@@ -127,8 +127,8 @@ export interface FilledList extends Justificado {
 /**
  * União, e não um campo `value` que às vezes é lista.
  *
- * Quem consome precisa decidir o que fazer com cada forma — uma vai para um
- * `input`, a outra vira várias linhas —, e um tipo que esconde a diferença
+ * Quem consome precisa decidir o que fazer com cada forma: uma vai para um
+ * `input`, a outra vira várias linhas., e um tipo que esconde a diferença
  * empurra essa decisão para um `typeof` no meio da tela.
  */
 export type FilledField = FilledValue | FilledList;
@@ -139,7 +139,7 @@ export interface FieldFillResult {
    * O que o modelo precisaria saber para preencher o resto.
    *
    * Metade do valor está aqui, e não nos campos. Um preenchimento que chuta o
-   * que não sabe obriga a pessoa a conferir tudo — e conferir tudo custa mais
+   * que não sabe obriga a pessoa a conferir tudo, e conferir tudo custa mais
    * que digitar. Perguntar deixa a lacuna visível e mantém a decisão com quem
    * abriu o formulário.
    */
@@ -154,7 +154,7 @@ export interface FieldFillResult {
  * - o campo tem de ser um dos que perguntamos, senão a resposta desalinhada
  *   escreve no lugar errado;
  * - campo de escolha só aceita valor do catálogo, com a mesma conferência que
- *   a sugestão de seção faz no identificador — instrução no prompt não é
+ *   a sugestão de seção faz no identificador, instrução no prompt não é
  *   garantia;
  * - um valor por campo, porque dois seriam duas respostas para a mesma
  *   pergunta e a tela teria de escolher sozinha.
@@ -195,7 +195,7 @@ export function parseFieldFill(raw: unknown, request: FieldFillRequest): FieldFi
 
     /*
       A comparação da escolha ignora caixa e acento porque o modelo devolve
-      "eberick" para "Eberick" — recusar por causa disso jogaria fora uma
+      "eberick" para "Eberick". Recusar por causa disso jogaria fora uma
       resposta certa. O que entra é sempre o valor do catálogo, e nunca o que
       veio na resposta, senão a grafia do modelo vaza para dentro do registro.
       */
@@ -230,7 +230,7 @@ export function parseFieldFill(raw: unknown, request: FieldFillRequest): FieldFi
  * Item sem nenhum valor é descartado: uma linha em branco no formulário é pior
  * que uma linha a menos, porque parece conteúdo que se perdeu.
  *
- * O teto existe pela mesma razão dos outros tetos deste arquivo — um documento
+ * O teto existe pela mesma razão dos outros tetos deste arquivo: um documento
  * de duzentas páginas viraria duzentas mensagens no formulário, e ninguém
  * revisa duzentas.
  */
@@ -283,7 +283,7 @@ function asList(value: unknown): unknown[] {
 function safeJson(raw: string): unknown {
   /*
     O modelo às vezes devolve o JSON cercado de crase, apesar de pedirmos que
-    não. Recusar por causa da cerca desperdiçaria uma resposta correta — é a
+    não. Recusar por causa da cerca desperdiçaria uma resposta correta. É a
     mesma tolerância que a sugestão de seção já tem.
   */
   const limpo = raw

@@ -7,12 +7,12 @@ import type { FieldFillRequest, FieldSpec } from "../fill/fieldFill";
  *
  * O vocabulário vai **inteiro no pedido**, como na sugestão de seção, e pelo
  * mesmo motivo: deixar o modelo nomear o produto livremente devolve "Eberick
- * 2024", que não existe no cadastro. A conferência na volta é o que garante —
- * isto aqui só reduz o desperdício.
+ * 2024", que não existe no cadastro. A conferência na volta é o que garante.
+ * Isto aqui só reduz o desperdício.
  *
  * Pedir para **deixar em branco e perguntar** é a instrução mais importante
  * daqui. Um modelo que sempre preenche preenche tudo, inclusive o que o texto
- * não diz, e aí quem abriu o formulário precisa conferir os sete campos — o
+ * não diz, e aí quem abriu o formulário precisa conferir os sete campos: o
  * que custa mais que digitar os sete. A lacuna admitida é o que faz a proposta
  * valer a pena.
  */
@@ -26,7 +26,7 @@ const SYSTEM = [
   "Regras:",
   "- Preencha **apenas** os campos listados, pelo nome exato que foi dado.",
   "- Campo de escolha aceita **somente** um dos valores listados para ele. Não invente,",
-  "  não aproxime e não crie variação — se nenhum servir, deixe o campo de fora.",
+  "  não aproxime e não crie variação, se nenhum servir, deixe o campo de fora.",
   "- **Deixe de fora o campo que o texto não sustenta.** Ficar em branco é resposta",
   "  legítima e melhor que palpite: quem revisa precisa saber onde olhar.",
   "- O que faltou para preencher vira pergunta, no máximo cinco, cada uma sobre",
@@ -57,7 +57,7 @@ export function buildFieldFillPrompt(request: FieldFillRequest): AIChatMessage[]
   /*
     O anexo é anunciado no texto porque ele chega numa parte separada do
     pedido, depois desta. Sem o aviso, um pedido só com arquivo parece um
-    pedido sem fonte nenhuma — e a instrução de "deixe de fora o que o texto
+    pedido sem fonte nenhuma, e a instrução de "deixe de fora o que o texto
     não sustenta" faria o modelo devolver tudo vazio olhando para o documento.
   */
   const fonte = [

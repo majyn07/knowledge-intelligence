@@ -77,7 +77,7 @@ export function LibraryProvider({ children }: { children: ReactNode }) {
   /*
     A coleção guarda vivos e excluídos juntos; as telas só querem os vivos.
     Separar aqui, e não em cada tela, é o que impede um artigo na lixeira de
-    reaparecer numa listagem — ou, pior, de contar como cobertura documental
+    reaparecer numa listagem, ou, pior, de contar como cobertura documental
     numa análise.
   */
   const items = useMemo(() => alive(allItems), [allItems]);
@@ -188,7 +188,7 @@ export function LibraryProvider({ children }: { children: ReactNode }) {
    *
    * Não é um laço sobre `changeStatus`: cada chamada dispararia um aviso, e
    * duzentos avisos empilhados escondem o que aconteceu em vez de contar. Aqui
-   * a gravação é uma só e o aviso também — mas o histórico continua ganhando
+   * a gravação é uma só e o aviso também, mas o histórico continua ganhando
    * um evento por artigo, porque cada um se moveu de fato.
    *
    * O que não pode fazer a transição fica de fora e aparece na ressalva. Parar
@@ -259,11 +259,11 @@ export function LibraryProvider({ children }: { children: ReactNode }) {
    * Classifica muitos artigos de uma vez.
    *
    * Aplicar as sugestões com `updateItem` num laço custaria um aviso e uma
-   * gravação por artigo — com seiscentos, são seiscentos avisos empilhados e
+   * gravação por artigo. Com seiscentos, são seiscentos avisos empilhados e
    * seiscentas idas ao servidor. E, pior, o histórico ficaria com seiscentas
    * linhas iguais enterrando tudo que aconteceu antes.
    *
-   * Um evento, um aviso, uma escrita — como a importação.
+   * Um evento, um aviso, uma escrita, como a importação.
    */
   const classifyMany = useCallback(
     (atribuicoes: { id: string; sectionId: string }[]) => {
@@ -428,7 +428,7 @@ export function LibraryProvider({ children }: { children: ReactNode }) {
 
       /*
         A exclusão também é fato do ciclo. Ela não era registrada, e o
-        histórico de um artigo terminava no último "atualizado" — sem dizer que
+        histórico de um artigo terminava no último "atualizado", sem dizer que
         ele saiu de vista, nem por quem.
       */
       record({

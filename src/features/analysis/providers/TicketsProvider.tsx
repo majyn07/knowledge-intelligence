@@ -100,7 +100,7 @@ export function TicketsProvider({ children }: { children: ReactNode }) {
    * aconteceu antes.
    *
    * A conversa não vem junto de propósito. A exportação da HubSpot traz o
-   * ticket, não o fio de mensagens — inventar uma conversa vazia faria a
+   * ticket, não o fio de mensagens. Inventar uma conversa vazia faria a
    * análise achar que tem evidência quando não tem.
    */
   const importTickets = useCallback(

@@ -82,7 +82,7 @@ describe("panelToSvg", () => {
   it("a ressalva vai junto na imagem", () => {
     /*
       Uma imagem circula muito mais longe da tela onde a ressalva estava
-      escrita — e é ela que impede o número de ser lido como completo.
+      escrita, e é ela que impede o número de ser lido como completo.
     */
     const svg = panelToSvg(spec, { ...barras, caveat: "3 registros ficaram de fora." });
 

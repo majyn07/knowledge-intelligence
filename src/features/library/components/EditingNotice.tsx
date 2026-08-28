@@ -9,7 +9,7 @@ import type { Editor } from "../useEditingPresence";
  *
  * Aviso e não bloqueio: travar o registro transformaria uma aba esquecida
  * aberta na sexta num artigo inacessível até segunda, sem ninguém para
- * destravar — não há papéis no produto. O caso real é duas pessoas escrevendo
+ * destravar, não há papéis no produto. O caso real é duas pessoas escrevendo
  * sem perceber, e saber já resolve.
  */
 export function EditingNotice({ editors }: { editors: Editor[] }) {
@@ -31,7 +31,7 @@ export function EditingNotice({ editors }: { editors: Editor[] }) {
 
       <span>
         <strong>{quem}</strong> {nomes.length === 1 ? "está" : "estão"} com este artigo aberto
-        agora. Nada trava — mas se as duas gravarem, a última gravação é a que fica.
+        agora. Nada trava, mas se as duas gravarem, a última gravação é a que fica.
       </span>
     </p>
   );

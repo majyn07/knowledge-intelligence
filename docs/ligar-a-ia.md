@@ -14,7 +14,7 @@ lê.
 | Registro de implementações | `services/ai/server/providerRegistry.ts` |
 | Classificação de falhas | `services/ai/providers/providerFailure.ts` |
 | Resposta das rotas | `services/ai/analysis/aiErrorResponse.ts` |
-| Tela de estado | `/integrations` — lê do mesmo catálogo |
+| Tela de estado | `/integrations`. Lê do mesmo catálogo |
 
 O Gemini já passa por tudo isso e funciona hoje. O caminho abaixo é o mesmo
 para qualquer provedor.
@@ -30,7 +30,7 @@ Só isto:
    **Configurada**.
 
 Com **um** provedor configurado ele é escolhido sozinho. Com **dois**, declare
-qual vale em `AI_PROVIDER` (`gemini` ou `claude`) — sem essa declaração o
+qual vale em `AI_PROVIDER` (`gemini` ou `claude`). Sem essa declaração o
 produto usa a ordem escrita no catálogo e **diz na tela** que foi ela que
 escolheu, o que é aviso, não conforto.
 
@@ -38,7 +38,7 @@ Declarar um provedor sem a chave dele **não cai em outro**: quem declarou quis
 aquele, e substituir por conta própria faria um erro de digitação virar uma
 análise feita por outro modelo sem ninguém saber. A tela nomeia o problema.
 
-## Se o provedor ainda não está implementado — o caso da Claude
+## Se o provedor ainda não está implementado: o caso da Claude
 
 Três passos, e o terceiro é o único que exige atenção.
 
@@ -63,10 +63,10 @@ Dentro de `complete`, quatro coisas não são opcionais:
   crua do SDK.
 - **Qualquer outra falha vira `AIProviderError("claude",
   classifyProviderFailure(error))`.** É o que separa "chave recusada" de "cota
-  estourada" de "modelo sobrecarregado" — as três davam a mesma frase antes, e
+  estourada" de "modelo sobrecarregado": as três davam a mesma frase antes, e
   "tente novamente" com a chave errada é convite a tentar para sempre.
 - **`options.files`, se você declarar que lê arquivo.** O anexo chega em base64
-  com o tipo declarado — o formato que Gemini, Claude e GPT aceitam —, e
+  com o tipo declarado (o formato que Gemini, Claude e GPT aceitam), e
   converter para o que o SDK espera é trabalho deste arquivo. **Ignorar a opção
   não é opção**: o modelo responderia sobre nada, sem erro, e quem anexou
   concluiria que o documento não tinha a informação.
@@ -79,11 +79,11 @@ const REGISTRY = { gemini: geminiService, claude: claudeService };
 ```
 
 E `readsFiles` no catálogo, em `providers/catalog.ts`. É o que faz a tela
-esconder o botão de anexar em vez de oferecer um caminho que termina em erro —
-mesma regra do botão de entrar com a conta Google. Um teste cobra a declaração
+esconder o botão de anexar em vez de oferecer um caminho que termina em erro.
+Mesma regra do botão de entrar com a conta Google. Um teste cobra a declaração
 de todo provedor do catálogo, justamente para que somar um obrigue a decidir.
 
-**Provedor novo além destes dois** — GPT, por exemplo — entra somando o `id` em
+**Provedor novo além destes dois** (GPT, por exemplo) entra somando o `id` em
 `AIProviderId`, a entrada em `AI_PROVIDERS` com a variável de ambiente da chave,
 e o arquivo do serviço. Nada acima de `services/ai/server` muda: nem rota, nem
 tela, nem prompt.
@@ -99,7 +99,7 @@ parte que não dá para adiantar. O mínimo:
 
 ## O que muda no produto quando a IA fica melhor
 
-Nada de estrutura — e isso é de propósito. A troca de modelo não toca prompt,
+Nada de estrutura, e isso é de propósito. A troca de modelo não toca prompt,
 schema, tela nem rota. O que muda é a qualidade das propostas em dois lugares:
 
 - **Sugestão de seção** (`/library` → "Sugerir seção"), que classifica o que a
@@ -114,6 +114,6 @@ schema, tela nem rota. O que muda é a qualidade das propostas em dois lugares:
 
 A decisão continua humana. A IA propõe, a revisão aprova, e nada rotulado como
 saída de modelo entra no acervo sem alguém dizer sim. Identificador devolvido
-pelo modelo é **conferido contra o cadastro** antes de virar classificação —
-instrução no prompt não é garantia, e seção inventada vira ausência, não
+pelo modelo é **conferido contra o cadastro** antes de virar classificação.
+Instrução no prompt não é garantia, e seção inventada vira ausência, não
 palpite gravado.

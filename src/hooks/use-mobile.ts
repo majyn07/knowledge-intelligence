@@ -4,7 +4,7 @@ const MOBILE_BREAKPOINT = 768;
 
 /**
  * Servidor e primeiro render do cliente assumem sempre desktop, para que o
- * HTML coincida. A largura real é medida logo após a montagem — ler
+ * HTML coincida. A largura real é medida logo após a montagem, ler
  * `window.innerWidth` no inicializador causava divergência de hidratação,
  * porque o Sidebar troca de árvore entre os dois modos.
  */

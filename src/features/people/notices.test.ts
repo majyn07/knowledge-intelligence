@@ -96,7 +96,7 @@ describe("buildNotices", () => {
 
   it("nem todo evento vira aviso", () => {
     /*
-      Um produto que avisa demais é um produto cujos avisos ninguém lê — e aí o
+      Um produto que avisa demais é um produto cujos avisos ninguém lê, e aí o
       aviso que importava se perde junto.
     */
     const resultado = buildNotices({

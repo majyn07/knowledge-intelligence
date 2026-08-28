@@ -22,7 +22,7 @@ import type { ArticleStatus } from "@/models/KnowledgeArticle";
  * O trabalho de quem está usando, atravessando projetos.
  *
  * A fila da tela de projeto responde "o que trava este projeto". Esta responde
- * "o que trava você" — e ninguém trabalha em um projeto de cada vez, que era o
+ * "o que trava você", e ninguém trabalha em um projeto de cada vez, que era o
  * limite da anterior.
  */
 export function MyWork() {

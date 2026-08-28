@@ -30,19 +30,19 @@ export function useLibraryFilters(items: KnowledgeArticle[]) {
   const buscando = filters.search.trim() !== "";
 
   /*
-    O texto de cada artigo, sem marcação — montado **uma vez por acervo**, e
+    O texto de cada artigo, sem marcação. Montado **uma vez por acervo**, e
     fora do caminho de quem digita.
 
     Sem índice, buscar no corpo limparia o HTML de mil e oitocentos artigos a
     cada tecla. Com índice construído dentro do render, a primeira tecla
     travava a interface por dois segundos e dois. E com o índice preso à busca
     em curso, ele era jogado fora ao limpar o campo e reconstruído na busca
-    seguinte — o mesmo travamento, de novo.
+    seguinte: o mesmo travamento, de novo.
 
     Agora ele é montado quando o navegador está ocioso, logo depois de o acervo
     chegar: quem nunca busca não paga nada de tempo de tela, e quem busca
     encontra o índice pronto. Se a busca começar antes de o ocioso acontecer, o
-    trecho abaixo o constrói na hora — tarde é melhor que nunca.
+    trecho abaixo o constrói na hora, tarde é melhor que nunca.
   */
   const [indice, setIndice] = useState<{
     para: KnowledgeArticle[];
@@ -104,7 +104,7 @@ export function useLibraryFilters(items: KnowledgeArticle[]) {
 
       /*
         O corpo entra na busca, e é o que faltava: com o portal importado, o que
-        alguém procura quase nunca está no título — está no meio do artigo.
+        alguém procura quase nunca está no título, está no meio do artigo.
       */
       const matchesSearch =
         search === "" ||
@@ -130,7 +130,7 @@ export function useLibraryFilters(items: KnowledgeArticle[]) {
     });
   }, [items, filters, taxonomy, searchIndex]);
 
-  /** Quantos artigos ficaram sem seção — o filtro só aparece se houver algum. */
+  /** Quantos artigos ficaram sem seção: o filtro só aparece se houver algum. */
   const unclassifiedCount = useMemo(
     () => items.filter((item) => findSection(taxonomy, item.sectionId) === undefined).length,
     [items, taxonomy]

@@ -17,14 +17,14 @@ import { buildNotices, unreadCount, type MentionHit } from "../notices";
  * A central de avisos, montada a partir do que já está em memória.
  *
  * Nenhuma consulta nova: histórico, planos, acervo e acompanhamentos já estão
- * nos providers, e a central é uma leitura deles — pela mesma razão de o painel
+ * nos providers, e a central é uma leitura deles. Pela mesma razão de o painel
  * não custar consulta.
  *
  * **A última visita fica no navegador**, e isso é um limite conhecido: quem ler
  * um aviso no computador vai encontrá-lo como novo no celular. A alternativa é
  * uma coluna por pessoa no banco, que é a versão certa e é outra peça. Guardar
  * aqui responde "o que mudou desde a última vez que eu olhei **nesta
- * máquina**", que é verdade — e é melhor que não avisar nada.
+ * máquina**", que é verdade, e é melhor que não avisar nada.
  */
 export function useNotices() {
   const { events } = useActivity();
@@ -42,7 +42,7 @@ export function useNotices() {
 
   /*
     A menção guarda identificador; quem lê resolve. Aqui a comparação é com o
-    id da conta e, sem conta, com o nome digitado no cabeçalho — que é o que
+    id da conta e, sem conta, com o nome digitado no cabeçalho, que é o que
     identifica a pessoa no modo local.
   */
   const mentions = useMemo<MentionHit[]>(() => {

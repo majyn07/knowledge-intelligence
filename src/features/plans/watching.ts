@@ -10,7 +10,7 @@ import type { PlanWorkspaceItem } from "./types/PlanWorkspace";
  *
  * "Meu trabalho" responde pelo que está atribuído. Estes dois caminhos são o
  * que faltava: o registro que você escolheu acompanhar, e aquele em que alguém
- * escreveu o seu nome. Nenhum dos dois transfere responsabilidade — e é por
+ * escreveu o seu nome. Nenhum dos dois transfere responsabilidade, e é por
  * isso que ficam numa lista separada em vez de engrossar a fila de trabalho.
  */
 
@@ -23,7 +23,7 @@ export interface WatchItem {
   projectId: string;
   href: string;
   reason: WatchReason;
-  /** Encerrado — publicado, arquivado — continua na lista, mas dizendo isso. */
+  /** Encerrado (publicado, arquivado) continua na lista, mas dizendo isso. */
   isClosed: boolean;
 }
 
@@ -67,7 +67,7 @@ export function buildWatching(input: {
   const add = (item: WatchItem) => {
     /*
       Acompanhar e ser mencionado no mesmo registro é um item só. O
-      acompanhamento vence porque foi uma escolha explícita — a menção pode ter
+      acompanhamento vence porque foi uma escolha explícita: a menção pode ter
       sido de passagem.
     */
     const key = `${item.kind}:${item.id}`;
@@ -115,7 +115,7 @@ export function buildWatching(input: {
         id: follow.subjectId,
         /*
           O registro pode ter sido excluído. O rótulo guardado no
-          acompanhamento é o que mantém a linha legível — some o registro, não
+          acompanhamento é o que mantém a linha legível. Some o registro, não
           o fato de alguém ter escolhido acompanhá-lo.
         */
         title: plan?.title || follow.subjectLabel || "Registro removido",

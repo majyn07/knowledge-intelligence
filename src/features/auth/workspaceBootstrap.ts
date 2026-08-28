@@ -53,7 +53,7 @@ function readLocal(taxonomy: Taxonomy) {
   /*
     Chave ausente cai na semente, e não em lista vazia.
 
-    O produto mostra a semente enquanto ninguém editou aquela coleção — nunca
+    O produto mostra a semente enquanto ninguém editou aquela coleção, nunca
     chega a gravar nada. Tratar isso como "não há nada" quebraria o envio: os
     atendimentos, planos e artigos da semente referenciam os projetos dela por
     chave estrangeira, e subiriam apontando para projeto inexistente.
@@ -173,7 +173,7 @@ export function pendingCollections(
  * caminho que ninguém entenderia.
  *
  * Envia tudo, mesmo o que já subiu: a gravação é por identificador, então
- * reenviar é inofensivo — e garante que os registros referenciados existam
+ * reenviar é inofensivo, e garante que os registros referenciados existam
  * antes de quem os referencia, inclusive quando só falta uma parte.
  */
 export async function pushLocalWorkspace(

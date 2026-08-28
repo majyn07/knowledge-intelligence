@@ -6,7 +6,7 @@
  * desfazer é a falha provável, e ela deixa a equipe inteira sem banco.
  *
  * Variável já presente em `process.env` tem precedência sobre `.env.local` no
- * Next — é o que faz isto funcionar sem tocar no arquivo.
+ * Next. É o que faz isto funcionar sem tocar no arquivo.
  */
 
 import { spawn } from "node:child_process";

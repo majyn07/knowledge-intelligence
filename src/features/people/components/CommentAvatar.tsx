@@ -10,7 +10,7 @@ import { PersonAvatar } from "./PersonAvatar";
 /**
  * O retrato de quem assinou, a partir da referência guardada.
  *
- * A autoria pode ser uma pessoa, uma equipe ou — nos registros anteriores — um
+ * A autoria pode ser uma pessoa, uma equipe ou (nos registros anteriores) um
  * nome solto. Os três casos aparecem: equipe com o símbolo dela, pessoa com o
  * retrato ou as iniciais, e o nome antigo pelas iniciais, que continuam
  * distinguindo mesmo sem cadastro por trás.

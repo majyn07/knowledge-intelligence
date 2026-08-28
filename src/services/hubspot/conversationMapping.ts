@@ -22,7 +22,7 @@ const ENTIDADES: Record<string, string> = {
 };
 
 /**
- * O corpo vem com HTML mesmo no campo `text`, que deveria ser texto puro — e
+ * O corpo vem com HTML mesmo no campo `text`, que deveria ser texto puro, e
  * de forma assimétrica: no que sai do suporte a tag está lá, no que entra do
  * cliente não.
  *
@@ -126,7 +126,7 @@ export function toConversationMessages(
  * O cursor da próxima página, ou `null` no fim.
  *
  * Existe como função nomeada porque a armadilha mora aqui: **uma página pode
- * voltar vazia e ainda ter continuação**. Medido — `limit=3` devolveu zero
+ * voltar vazia e ainda ter continuação**. Medido. `limit=3` devolveu zero
  * registros com o cursor presente, e o fio tinha 38. Parar na lista vazia
  * grava conversa vazia, que é pior que não importar.
  */

@@ -6,7 +6,7 @@ import { sanitizeHtml } from "./sanitizeHtml";
 /**
  * Ajustes no HTML que veio do portal, para ele viver dentro do produto.
  *
- * Nada aqui converte o conteúdo — o modelo guarda `contentFormat` justamente
+ * Nada aqui converte o conteúdo: o modelo guarda `contentFormat` justamente
  * para isso não acontecer. O que estas funções fazem é o mínimo para que o
  * texto do portal seja legível na nossa tela: âncora nos títulos e nenhuma cor
  * fixa disputando com o tema.
@@ -16,7 +16,7 @@ import { sanitizeHtml } from "./sanitizeHtml";
  * Âncoras nos títulos.
  *
  * O índice lateral aponta para `#id`, e o Markdown ganha esse `id` do próprio
- * renderizador. O HTML do portal chega sem nenhum — então o índice existiria e
+ * renderizador. O HTML do portal chega sem nenhum. Então o índice existiria e
  * nenhum item dele levaria a lugar algum. O `id` sai da mesma função nos dois
  * formatos, então a âncora é a mesma venha o artigo de onde vier.
  */
@@ -47,7 +47,7 @@ const DE_APARENCIA = /(^|;)\s*(color|background|background-color|font-family|fon
  * Tira as cores fixas do conteúdo do portal.
  *
  * O portal escreve `color: #000000` direto no atributo `style` dos parágrafos.
- * Dentro do produto isso vira texto preto sobre fundo escuro — ilegível no tema
+ * Dentro do produto isso vira texto preto sobre fundo escuro. Ilegível no tema
  * escuro, e é o mesmo motivo de a aparência viver em variáveis e não em valor
  * cravado.
  *
@@ -70,7 +70,7 @@ export function withoutFixedColors(html: string): string {
 /**
  * Links do corpo, resolvidos.
  *
- * O artigo do portal cita outros artigos do portal — e, sem tratamento, cada
+ * O artigo do portal cita outros artigos do portal, e, sem tratamento, cada
  * citação joga quem lê para fora do produto. Se o artigo citado já está no
  * acervo, o link passa a levar para a nossa página dele: o acervo deixa de ser
  * mil e oitocentos textos soltos e vira uma coisa navegável.
@@ -107,8 +107,8 @@ export function withResolvedLinks(
 /**
  * O identificador de artigo dentro de um endereço do portal.
  *
- * Vazio quando o endereço não é de artigo — categoria, seção, âncora de
- * navegação — ou quando não é do portal.
+ * Vazio quando o endereço não é de artigo. Categoria, seção, âncora de
+ * navegação, ou quando não é do portal.
  */
 export function portalArticleIdFromHref(href: string): string {
   if (!/suporte\.altoqi\.com\.br|^\/hc\//i.test(href)) return "";
@@ -139,7 +139,7 @@ const MARCADORES = ["observação", "observacao", "importante", "atenção", "at
  *
  * O portal não marca aviso com estrutura: escreve `<strong>Observação</strong>:`
  * e segue no mesmo parágrafo. Como é o recurso visual mais usado nos artigos,
- * vale reconhecê-lo — e o reconhecimento é **só de apresentação**: nada do que
+ * vale reconhecê-lo, e o reconhecimento é **só de apresentação**: nada do que
  * está guardado muda, e o parágrafo que não for reconhecido continua um
  * parágrafo comum. Errar aqui não perde informação.
  */
@@ -176,7 +176,7 @@ export interface BuildArticleHtmlOptions {
  * O HTML do portal, pronto para a tela.
  *
  * A ordem importa e não é arbitrária: primeiro sai o que executa, depois o que
- * disputa com o tema, e só então entra o que a tela acrescenta — âncora,
+ * disputa com o tema, e só então entra o que a tela acrescenta. Âncora,
  * destaque, link resolvido e marcação da busca. Inverter faria a limpeza apagar
  * o que acabou de ser posto, e a busca marcaria dentro de atributo.
  */

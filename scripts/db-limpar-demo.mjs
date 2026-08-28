@@ -4,16 +4,16 @@
  * O que **sai**: projeto, atendimento, conversa, análise, plano, artigo e
  * histórico. Tudo isso foi semeado para o produto ter o que mostrar antes de
  * existir dado real, e dado inventado num hub de conhecimento é pior que tela
- * vazia — decisão tomada sobre ele é decisão perdida.
+ * vazia, decisão tomada sobre ele é decisão perdida.
  *
  * O que **fica**, e a distinção é o ponto:
  *
- * - `taxonomy_*` — a estrutura do portal, levantada do `suporte.altoqi.com.br`.
+ * - `taxonomy_*`: a estrutura do portal, levantada do `suporte.altoqi.com.br`.
  *   É real, e é o vocabulário contra o qual todo artigo importado será
  *   classificado.
- * - `teams` — as quatro equipes do suporte, com os nomes que elas têm.
- * - `profiles` — quem entrou de fato. Apagar perfil apaga conta de gente.
- * - `dashboard_panels` — painel guarda a pergunta, não a resposta. Não é dado.
+ * - `teams`: as quatro equipes do suporte, com os nomes que elas têm.
+ * - `profiles`. Quem entrou de fato. Apagar perfil apaga conta de gente.
+ * - `dashboard_panels`, painel guarda a pergunta, não a resposta. Não é dado.
  *
  * A ordem é a de dependência ao contrário: conversa antes de atendimento,
  * atendimento antes de projeto. Apagar o pai primeiro esbarraria na chave

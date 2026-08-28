@@ -17,7 +17,7 @@ import { hubspot } from "./hubspotClient";
  *
  * É a única coisa que a API entrega e o arquivo não: a exportação da HubSpot
  * traz o ticket, não o fio de mensagens. O atendimento em si continua vindo
- * daqui — o escopo `tickets` não está na credencial, e isso está registrado em
+ * daqui: o escopo `tickets` não está na credencial, e isso está registrado em
  * `docs/hubspot-pendencias.md`.
  */
 

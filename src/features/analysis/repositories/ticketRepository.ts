@@ -20,8 +20,8 @@ function persist<T>(key: string, value: T[]): void {
 /**
  * Fronteira local dos atendimentos e das conversas.
  *
- * Quando a origem passar a ser a HubSpot mediada pela Claude, é este arquivo
- * que muda — o serviço, o provider e as telas continuam como estão.
+ * Quando a origem passar a ser a HubSpot, é este arquivo que muda: o serviço,
+ * o provider e as telas continuam como estão.
  */
 export const ticketRepository = {
   getSeedTickets(): Ticket[] {

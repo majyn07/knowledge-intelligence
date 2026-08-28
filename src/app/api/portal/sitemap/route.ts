@@ -7,7 +7,7 @@ import { fetchSitemap } from "@/services/portal/portalClient";
  * A lista de artigos do portal.
  *
  * Um pedido só, e é o que o cliente usa para saber quantas páginas visitar e
- * quais mudaram desde a última importação — o `lastmod` é o que faz a segunda
+ * quais mudaram desde a última importação: o `lastmod` é o que faz a segunda
  * varredura custar quase nada.
  */
 export async function GET() {

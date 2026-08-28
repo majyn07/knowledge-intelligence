@@ -7,12 +7,12 @@ import { resolveAssignment, type Person, type Team } from "@/models/Assignment";
  * motivo da atribuição: o nome é editável pela própria pessoa, e um texto que
  * guardasse só o nome perderia o vínculo assim que alguém se renomeasse.
  *
- * O rótulo vai junto de propósito. Ele não é a fonte da verdade — quem exibe
- * resolve o identificador e mostra o nome atual — mas é o que sobra quando a
+ * O rótulo vai junto de propósito. Ele não é a fonte da verdade. Quem exibe
+ * resolve o identificador e mostra o nome atual, mas é o que sobra quando a
  * conta some, e sobrar "@Raoni" é melhor que sobrar "@pes-7f3a".
  */
 
-/** `@[Nome](identificador)` — o rótulo não pode conter `]`, o id não pode conter `)`. */
+/** `@[Nome](identificador)`: o rótulo não pode conter `]`, o id não pode conter `)`. */
 const MENTION = /@\[([^\]\n]+)\]\(([^)\s]+)\)/g;
 
 export interface Mention {
@@ -73,8 +73,8 @@ export function mentionSegments(text: string): MentionSegment[] {
 /**
  * O nome a exibir para uma menção.
  *
- * Resolve pelo identificador, que é o vínculo. Quando ele não resolve mais —
- * conta removida, equipe excluída — devolve o rótulo guardado, porque a menção
+ * Resolve pelo identificador, que é o vínculo. Quando ele não resolve mais.
+ * Conta removida, equipe excluída. Devolve o rótulo guardado, porque a menção
  * aconteceu e apagá-la reescreveria o que foi dito.
  */
 export function mentionName(

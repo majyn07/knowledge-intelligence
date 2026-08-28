@@ -21,8 +21,8 @@ interface BreadcrumbsProps {
  * Onde a pessoa está, e como voltar.
  *
  * O menu lateral diz para onde se pode ir; a trilha diz de onde se veio. São
- * perguntas diferentes, e a segunda ficava sem resposta nas telas de detalhe —
- * abrir um artigo pela busca deixava a pessoa sem caminho de volta para a
+ * perguntas diferentes, e a segunda ficava sem resposta nas telas de detalhe.
+ * Abrir um artigo pela busca deixava a pessoa sem caminho de volta para a
  * Biblioteca que não fosse o botão do navegador.
  */
 export function Breadcrumbs({ leaf }: BreadcrumbsProps) {

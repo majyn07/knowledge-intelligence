@@ -34,7 +34,7 @@ function normalizeEntries(raw: unknown): TaxonomyEntry[] {
  * Duas regras que não são só defensivas:
  *
  * Registro sem id ou sem nome é **descartado**, não completado. Categoria com
- * id gerado na hora quebraria o vínculo com os artigos que apontam para ela —
+ * id gerado na hora quebraria o vínculo com os artigos que apontam para ela,
  * pior que não existir, porque pareceria certa.
  *
  * Seção órfã, cuja categoria não está mais na lista, também sai. Ela nunca
@@ -83,7 +83,7 @@ export function normalizeTaxonomy(raw: unknown): Taxonomy {
 /**
  * Lê a taxonomia guardada, caindo para a semente do portal quando o registro
  * não tem categoria nenhuma. Um cadastro vazio deixaria a Biblioteca sem
- * classificação possível — cair para a semente é mais útil que um app inerte.
+ * classificação possível. Cair para a semente é mais útil que um app inerte.
  */
 export function parseTaxonomy(raw: string): Taxonomy {
   const parsed = normalizeTaxonomy(JSON.parse(raw));

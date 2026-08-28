@@ -9,7 +9,7 @@ const DAY = 24 * HOUR;
 /**
  * Texto relativo a partir de uma diferença de tempo.
  *
- * Pura e recebendo `now`, para poder ser testada sem congelar o relógio — o
+ * Pura e recebendo `now`, para poder ser testada sem congelar o relógio: o
  * mesmo critério dos indicadores por período.
  */
 export function relativeLabel(date: Date, now: Date): string {
@@ -57,7 +57,7 @@ export function absoluteLabel(date: Date): string {
 /**
  * Data em linguagem de quem lê, com o instante exato ao passar o mouse.
  *
- * "há 3 dias" responde a pergunta que se faz ao bater o olho — se é recente.
+ * "há 3 dias" responde a pergunta que se faz ao bater o olho, se é recente.
  * "12 de maio de 2026, 14:30" responde a que se faz depois, e por isso fica no
  * título em vez de ocupar a linha.
  *

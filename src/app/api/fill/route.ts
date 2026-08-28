@@ -23,7 +23,7 @@ import { activeProviderReadsFiles } from "@/services/ai/providers/catalog";
  *
  * Existe para a tela não oferecer o que o provedor ativo não faz: com um
  * provedor que só lê texto, o botão de anexar levaria a um erro toda vez. É a
- * mesma regra do botão de entrar com a conta Google — botão que às vezes leva
+ * mesma regra do botão de entrar com a conta Google. Botão que às vezes leva
  * a lugar nenhum é pior que botão que ainda não existe.
  *
  * Deduzir isso no navegador exigiria expor qual provedor está valendo, que é

@@ -25,7 +25,7 @@ export interface WorkItem {
  *
  * Inclui o que está atribuído à minha equipe, e não só a mim: enquanto a maior
  * parte do time não entrou no produto, a equipe é onde a atribuição de fato
- * mora — ignorá-la deixaria a tela vazia justamente para quem mais precisa
+ * mora. Ignorá-la deixaria a tela vazia justamente para quem mais precisa
  * dela.
  */
 function isMine(
@@ -45,7 +45,7 @@ function isMine(
  * O trabalho de uma pessoa, atravessando projetos.
  *
  * A fila de atenção da tela de projeto responde "o que trava este projeto".
- * Esta responde "o que trava **você**" — e ninguém trabalha em um projeto de
+ * Esta responde "o que trava **você**", e ninguém trabalha em um projeto de
  * cada vez, o que era o limite da anterior.
  *
  * Artigo entra sem prazo, porque não tem: o sinal dele é ter começado e não
@@ -108,7 +108,7 @@ export function buildMyWork(
       projectId: article.projectId,
       href: `/library/${article.id}`,
       stage: article.status,
-      // Sem prazo, o artigo nunca chega ao topo da fila — só a parada o move.
+      // Sem prazo, o artigo nunca chega ao topo da fila, só a parada o move.
       rank: stalled ? 2 : 4,
       reason: stalled ? `sem movimento há ${parado} dias` : "em andamento",
     });

@@ -75,7 +75,7 @@ describe("buildMyWork", () => {
   it("inclui o que está atribuído à minha equipe", () => {
     /*
       Enquanto a maior parte do time não entrou, a equipe é onde a atribuição
-      de fato mora — ignorá-la deixaria a tela vazia justamente para quem mais
+      de fato mora. Ignorá-la deixaria a tela vazia justamente para quem mais
       precisa dela.
     */
     const items = buildMyWork(
@@ -145,7 +145,7 @@ describe("buildMyWork", () => {
     expect(items.map((i) => i.id)).toEqual(["atrasado", "parado", "tranquilo"]);
   });
 
-  it("artigo sem prazo nunca chega ao topo — só a parada o move", () => {
+  it("artigo sem prazo nunca chega ao topo, só a parada o move", () => {
     const items = buildMyWork(
       {
         ...base,

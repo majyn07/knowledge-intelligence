@@ -5,7 +5,7 @@ import { portalIdOf } from "./portalSitemap";
  *
  * O template é uniforme: numa amostra de doze artigos espalhados pelo sitemap,
  * título, corpo e trilha saíram em todos, com corpos de 966 a 22.713
- * caracteres. Ainda assim nada aqui é obrigatório por suposição — página que
+ * caracteres. Ainda assim nada aqui é obrigatório por suposição. Página que
  * não entrega título ou corpo devolve `null` e é **contada**, nunca gravada
  * pela metade.
  */
@@ -29,7 +29,7 @@ const NOMEADAS: Record<string, string> = {
   "&apos;": "'",
   "&nbsp;": " ",
   "&ndash;": "–",
-  "&mdash;": "—",
+  "&mdash;": ",",
   "&hellip;": "…",
   "&laquo;": "«",
   "&raquo;": "»",
@@ -50,12 +50,12 @@ const NOMEADAS: Record<string, string> = {
 const TEM_ENTIDADE = /&(#x?[0-9a-f]+|[a-z]+);/i;
 
 /**
- * Título e resumo vêm de atributo de meta tag, então chegam escapados — e às
+ * Título e resumo vêm de atributo de meta tag, então chegam escapados, e às
  * vezes **duas vezes**.
  *
  * O portal escreve `&amp;quot;AF-8&amp;quot;` no `meta description`: uma
  * passada devolve `&quot;AF-8&quot;`, que é o que aparecia na tela. Duas
- * passadas resolvem, e o teto de duas é deliberado — decodificar até parar
+ * passadas resolvem, e o teto de duas é deliberado. Decodificar até parar
  * transformaria um artigo que **fala sobre** `&amp;` no caractere solto.
  */
 function decodeOnce(raw: string): string {
@@ -100,7 +100,7 @@ export function breadcrumbOf(html: string): string[] {
  * O corpo do artigo, e só ele.
  *
  * O `<article>` do portal envolve o layout inteiro: dezenove `div` de grade da
- * HubSpot — `container-fluid`, `row-fluid`, `widget-span` — antes de chegar ao
+ * HubSpot (`container-fluid`, `row-fluid`, `widget-span`) antes de chegar ao
  * texto. Importar isso trazia o andaime junto, e era o que aparecia na tela.
  *
  * A âncora certa é o campo de texto rico, que a HubSpot marca com
@@ -155,8 +155,8 @@ const FIM_DE_FRASE = /[.!?…:;]$/;
  * só três terminavam em pontuação. Importar fielmente significa importar
  * "…siga direto ao item 5 do presente artigo antes de le".
  *
- * Cortar na última palavra inteira não inventa nada — descarta um fragmento
- * que não carrega informação — e as reticências dizem que há mais adiante.
+ * Cortar na última palavra inteira não inventa nada. Descarta um fragmento
+ * que não carrega informação, e as reticências dizem que há mais adiante.
  * Frase que termina normalmente não é tocada.
  */
 export function tidySummary(bruto: string): string {

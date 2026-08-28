@@ -11,7 +11,7 @@ const STATUSES = ARTICLE_STATUSES;
 /**
  * O rascunho, quando existe.
  *
- * Rascunho sem conteúdo nenhum é o mesmo que não ter rascunho — e deixá-lo
+ * Rascunho sem conteúdo nenhum é o mesmo que não ter rascunho, e deixá-lo
  * como objeto vazio faria a tela anunciar "versão em preparo" sobre nada.
  */
 function normalizeDraft(raw: unknown): { draft?: ArticleDraft } {
@@ -54,7 +54,7 @@ function comparable(value: string) {
  * cadastro.
  *
  * Antes desta sprint o artigo guardava `product`, `module` e `category` como
- * strings soltas — três campos onde o portal tem dois, nenhum restrito. A
+ * strings soltas. Três campos onde o portal tem dois, nenhum restrito. A
  * correspondência é por nome: o produto vira categoria, o módulo vira seção.
  *
  * Quando nada bate, devolve vazio **de propósito**. Encaixar o artigo na
@@ -109,7 +109,7 @@ function migrateGenre(value: Record<string, unknown>, taxonomy: Taxonomy): strin
  * A entrada é `unknown` de propósito: o registro foi gravado por alguma versão
  * do produto, possivelmente anterior à atual, e não conhece campos que vieram
  * depois. Sem normalizar, a primeira leitura de um campo ausente derruba a
- * tela — foi o que aconteceu com `author`.
+ * tela. Foi o que aconteceu com `author`.
  *
  * A taxonomia entra porque a classificação deixou de ser texto solto e passou
  * a ser vínculo com o cadastro: sem o vocabulário não há como migrar.

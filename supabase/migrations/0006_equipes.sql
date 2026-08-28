@@ -1,7 +1,7 @@
 -- Equipes, e a pessoa deixando de ser lista para virar conta.
 --
 -- Até aqui "pessoa" era um registro digitado em Configurações, e equipe era
--- outro registro na mesma lista — por isso a semente misturava "Suporte Visus"
+-- outro registro na mesma lista. Por isso a semente misturava "Suporte Visus"
 -- com um nome próprio. Com login de verdade, os dois se separam: a equipe é
 -- cadastro, a pessoa é quem entrou.
 --
@@ -28,7 +28,7 @@ alter publication supabase_realtime add table public.teams;
 
 -- A pessoa pertence a uma equipe. Foi decisão de produto: no suporte AltoQi
 -- alguém é de Elétrica ou de Hidráulica, não das duas. Se um dia houver
--- sobreposição real, isto vira tabela de ligação — e a mudança é aqui.
+-- sobreposição real, isto vira tabela de ligação, e a mudança é aqui.
 --
 -- `set null` e não `cascade`: remover a equipe não pode apagar a conta de
 -- ninguém. A pessoa fica sem equipe e alguém reatribui.

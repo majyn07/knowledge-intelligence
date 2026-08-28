@@ -79,8 +79,8 @@ export function buildPortalImportPlan(
 
     /*
       A seção vem da trilha do portal, que é a verdade sobre onde o artigo
-      mora. Mas quando o portal não traz nenhuma — artigo com trilha de dois
-      degraus —, a classificação que alguém fez aqui dentro é preservada:
+      mora. Mas quando o portal não traz nenhuma. Artigo com trilha de dois
+      degraus., a classificação que alguém fez aqui dentro é preservada:
       apagá-la seria a importação desfazendo revisão humana.
     */
     const doPortal = resolveSection(taxonomy, pagina.sectionName, pagina.categoryName);
@@ -110,7 +110,7 @@ export function buildPortalImportPlan(
       // Gênero e responsável são nossos, não do portal: reimportar não os apaga.
       genreId: existente?.genreId ?? "",
       /*
-        O que está no portal público está publicado — não é suposição, é o que
+        O que está no portal público está publicado, não é suposição, é o que
         a página ser pública significa. E só publicado conta como cobertura
         documental na análise.
       */

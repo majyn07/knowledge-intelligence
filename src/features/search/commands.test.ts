@@ -5,7 +5,7 @@ import { commandGroup, commands, matchCommands } from "./commands";
 describe("matchCommands", () => {
   it("campo vazio devolve tudo, porque é o estado em que a paleta abre", () => {
     // Antes disto, `Ctrl+K` sem digitar mostrava só "digite ao menos dois
-    // caracteres" — uma tela que não faz nada.
+    // caracteres": uma tela que não faz nada.
     expect(matchCommands("")).toHaveLength(commands.length);
     expect(matchCommands("   ")).toHaveLength(commands.length);
   });

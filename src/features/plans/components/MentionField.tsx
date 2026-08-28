@@ -34,7 +34,7 @@ function comparable(value: string) {
  * Campo de comentário com menção a pessoa ou equipe.
  *
  * O `@` abre a lista de quem existe; escolher alguém insere identificador e
- * rótulo. Digitar o nome à mão continua funcionando — é texto —, só não vira
+ * rótulo. Digitar o nome à mão continua funcionando (é texto), só não vira
  * vínculo, e é essa a diferença que a lista existe para oferecer.
  *
  * Equipes aparecem junto de propósito: enquanto a maior parte do time não
@@ -98,7 +98,7 @@ export function MentionField({
 
     /*
       O cursor precisa voltar para depois da menção. O React só reescreve o
-      valor no próximo quadro, então o posicionamento acontece depois dele —
+      valor no próximo quadro, então o posicionamento acontece depois dele,
       fazê-lo agora seria sobre o texto antigo.
     */
     requestAnimationFrame(() => {

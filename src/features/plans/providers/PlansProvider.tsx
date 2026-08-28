@@ -71,7 +71,7 @@ export function PlansProvider({ children }: { children: ReactNode }) {
   const [status, setStatus] = useState<PlanStatus | "all">("all");
   const selectedPlan = plans.find((plan) => plan.id === selectedPlanId) ?? plans[0];
 
-  /** Toda alteração carimba a data — o plano é um documento vivo. */
+  /** Toda alteração carimba a data: o plano é um documento vivo. */
   const patchPlan = useCallback(
     (planId: string, patch: (plan: PlanWorkspaceItem) => PlanWorkspaceItem) => {
       setPlans((current) =>

@@ -17,7 +17,7 @@ import {
 import { usePeople } from "./PeopleProvider";
 
 interface FollowsContextValue {
-  /** Só os desta pessoa — a lista completa não interessa a nenhuma tela. */
+  /** Só os desta pessoa: a lista completa não interessa a nenhuma tela. */
   myFollows: Follow[];
   isFollowing: (kind: FollowKind, subjectId: string) => boolean;
   toggleFollow: (input: {
@@ -36,8 +36,8 @@ const FollowsContext = createContext<FollowsContextValue | null>(null);
  *
  * É a única coleção do produto que é **por pessoa** e não da equipe: o resto é
  * compartilhado porque descreve o trabalho, e este descreve interesse. A
- * política do banco continua a mesma — não há papéis, todo mundo alcança tudo
- * — e quem filtra é a tela.
+ * política do banco continua a mesma, não há papéis, todo mundo alcança tudo
+ *, e quem filtra é a tela.
  *
  * Acompanhar não é atribuir: não move responsabilidade, não muda a fila de
  * ninguém e sai com um clique.
@@ -55,7 +55,7 @@ export function FollowsProvider({ children }: { children: ReactNode }) {
     identify: (follow) => follow.id,
   });
 
-  // Sem conta há uma pessoa só — a que está no navegador — e ela é a vazia.
+  // Sem conta há uma pessoa só (a que está no navegador) e ela é a vazia.
   const personId = me?.id ?? "";
 
   const myFollows = useMemo(() => followsOf(follows, personId), [follows, personId]);

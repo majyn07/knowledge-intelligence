@@ -6,7 +6,7 @@ describe("classifyFile", () => {
   it("manda PDF como anexo, para o modelo ver a página", () => {
     /*
       Extrair texto de PDF no navegador resolveria o digital e falharia no
-      escaneado — que é o que mais chega de um suporte.
+      escaneado, que é o que mais chega de um suporte.
     */
     expect(classifyFile("atendimento.pdf", "application/pdf")).toEqual({
       role: "anexo",

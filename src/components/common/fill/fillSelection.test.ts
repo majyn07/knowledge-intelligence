@@ -88,7 +88,7 @@ describe("applySelection", () => {
   it("nada marcado devolve nada, e não um objeto com campos vazios", () => {
     /*
       Um objeto com strings vazias apagaria o formulário inteiro ao ser
-      aplicado — o oposto do que "não aplicar nada" significa.
+      aplicado: o oposto do que "não aplicar nada" significa.
     */
     const revisaveis = toReviewable([proposta("name", "Projeto A")], LABELS, {});
 
@@ -102,7 +102,7 @@ describe("propostas de lista", () => {
   it("lista nunca é substituição, porque soma ao que já existe", () => {
     /*
       Quem já digitou uma mensagem à mão antes de anexar o documento não
-      deveria perdê-la. O que já está lá é informado, não alertado — aviso que
+      deveria perdê-la. O que já está lá é informado, não alertado. Aviso que
       não corresponde a nada ensina alguém a ignorar avisos.
     */
     const [item] = toReviewable([listaDe("messages", [{ body: "nova" }])], LABELS_LISTA, {

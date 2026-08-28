@@ -23,7 +23,7 @@ let quotaWarned = false;
  *
  * O servidor e o primeiro render do cliente produzem sempre o mesmo HTML, a
  * partir de `fallback`. O valor guardado só entra depois da montagem, e a
- * escrita só começa quando a leitura terminou — assim o fallback nunca
+ * escrita só começa quando a leitura terminou. Assim o fallback nunca
  * sobrescreve o que já estava salvo.
  *
  * Falha de escrita não derruba a aplicação: o estado continua em memória e o

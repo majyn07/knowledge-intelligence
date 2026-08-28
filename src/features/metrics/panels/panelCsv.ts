@@ -6,7 +6,7 @@ import type { PanelResult } from "./runPanel";
  *
  * Aspas duplicadas e o campo inteiro entre aspas quando há separador, aspa ou
  * quebra de linha. Sem isto, uma seção chamada "Elétrica, geral" viraria duas
- * colunas — e o arquivo abriria torto sem nada indicando por quê.
+ * colunas, e o arquivo abriria torto sem nada indicando por quê.
  */
 function field(value: string | number): string {
   const text = String(value);
@@ -38,7 +38,7 @@ export function panelToCsv(spec: PanelSpec, result: PanelResult): string {
     /*
       A tabela cruzada sai como tabela: uma coluna por valor da segunda
       dimensão. Achatá-la em pares "linha, coluna, valor" seria mais fácil de
-      gerar e mais difícil de ler — e a planilha existe para ser lida.
+      gerar e mais difícil de ler, e a planilha existe para ser lida.
     */
     linhas.push(["", ...result.matrix.columns.map((column) => column.label), "Total"].map(field).join(";"));
 

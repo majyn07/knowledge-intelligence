@@ -1,6 +1,6 @@
 -- As datas do plano são texto de exibição, não instantes.
 --
--- O modelo guarda `createdAt` e `updatedAt` como string em português —
+-- O modelo guarda `createdAt` e `updatedAt` como string em português,
 -- "15 jul. 2026", "Hoje, 10:30", "Ontem, 16:20". Declarei as colunas como
 -- `timestamptz` e a migração do conteúdo local morria ali, derrubando junto
 -- tudo que vinha depois na ordem: artigos e histórico.
@@ -12,7 +12,7 @@
 --
 -- O mesmo critério já valia em `tickets.occurred_on`. Quando a sprint de
 -- prazos precisar ordenar e comparar, o campo vira data **no modelo** primeiro
--- — é decisão de produto, não de schema.
+--. É decisão de produto, não de schema.
 
 alter table public.plans
   alter column created_at type text using created_at::text,

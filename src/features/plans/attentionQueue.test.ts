@@ -109,7 +109,7 @@ describe("buildAttentionQueue", () => {
     expect(parado.map((e) => e.plan.id)).toEqual(["b"]);
   });
 
-  it("plano publicado não vence nem para — ele terminou", () => {
+  it("plano publicado não vence nem para. Ele terminou", () => {
     const plans = [plano("pronto", { dueDate: dia(-10), status: "published" })];
 
     expect(buildAttentionQueue(plans, [evento("pronto", dia(-90))], agora)).toEqual([]);

@@ -136,7 +136,7 @@ export default function IndicatorsPage() {
                 </p>
 
                 <p className="mt-2 text-2xl font-semibold tabular-nums">
-                  {coverageNow.percentage === null ? "—" : `${coverageNow.percentage}%`}
+                  {coverageNow.percentage === null ? "," : `${coverageNow.percentage}%`}
                 </p>
 
                 <p className="mt-2 text-sm leading-6 text-muted-foreground">
@@ -180,7 +180,7 @@ export default function IndicatorsPage() {
 
         {/*
           O funil responde onde o fluxo trava; o mapa, o que falta cobrir. Os
-          cartões acima contam o que existe — as três perguntas são diferentes.
+          cartões acima contam o que existe: as três perguntas são diferentes.
         */}
         <PanelBoard />
 

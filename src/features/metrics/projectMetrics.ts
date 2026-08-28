@@ -28,7 +28,16 @@ export function selectProjectMetrics({ projectId, analyses, plans, articles, tic
   const projectTickets = projectId ? tickets.filter((ticket) => ticket.projectId === projectId) : [];
   const projectAnalyses = projectId ? analyses.filter((analysis) => analysis.projectId === projectId) : [];
   const projectPlans = projectId ? plans.filter((plan) => plan.projectId === projectId) : [];
-  const projectArticles = projectId ? articles.filter((article) => article.projectId === projectId) : [];
+  /*
+    O acervo não se recorta por iniciativa, e por isso entra inteiro.
+
+    O artigo é do hub: os 1.822 importados do portal têm `projectId` vazio, e
+    filtrar por igualdade zerava todo contador de artigo. Inclusive o cartão
+    que diz "Disponíveis na Biblioteca", que mostrava zero com a Biblioteca
+    cheia. O recorte legítimo do artigo é por equipe, e quem o faz é a tela de
+    indicadores, antes de chamar aqui.
+  */
+  const projectArticles = articles;
   const opportunities: ProjectOpportunity[] = projectAnalyses.flatMap((analysis) =>
     analysis.result.opportunities.map((opportunity) => ({
       ...opportunity,
@@ -87,7 +96,12 @@ export function selectProjectMetrics({ projectId, analyses, plans, articles, tic
       published: articleCount("published"),
       archived: articleCount("archived"),
     },
-    isEmpty: projectAnalyses.length === 0 && projectPlans.length === 0 && projectArticles.length === 0,
+    /*
+      Vazio é sobre o **trabalho** da iniciativa, e o acervo não é trabalho
+      dela: contá-lo faria uma iniciativa recém-criada nunca parecer vazia,
+      porque o hub tem 1.822 artigos que ela não originou.
+    */
+    isEmpty: projectAnalyses.length === 0 && projectPlans.length === 0,
   };
 }
 

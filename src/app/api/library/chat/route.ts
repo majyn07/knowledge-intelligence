@@ -8,7 +8,7 @@ import { resolveActiveProvider } from "@/services/ai/providers/catalog";
 /**
  * Consultar a IA sobre o artigo aberto.
  *
- * O acervo vive no navegador, então o artigo chega junto do pedido — mesma
+ * O acervo vive no navegador, então o artigo chega junto do pedido. Mesma
  * forma da análise e da sugestão de seção: o servidor recebe a evidência já
  * resolvida em vez de sair procurando.
  */
@@ -54,7 +54,7 @@ export async function POST(request: Request) {
 export async function GET() {
   /*
     Um provedor **em uso**, não apenas configurado: com chave declarada e
-    ausente, `resolveActiveProvider` devolve `id: null` — e oferecer o painel
+    ausente, `resolveActiveProvider` devolve `id: null`, e oferecer o painel
     ali levaria a um erro que a tela já sabia que ia acontecer.
   */
   const ativo = resolveActiveProvider(process.env);

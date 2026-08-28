@@ -16,7 +16,7 @@ export interface PublishCheck {
   label: string;
   /** Verdadeiro quando o item está pronto. */
   ok: boolean;
-  /** Quando falso, explica o que falta — sem impedir a publicação. */
+  /** Quando falso, explica o que falta, sem impedir a publicação. */
   hint?: string;
 }
 
@@ -35,7 +35,7 @@ interface PublishConfirmDialogProps {
 /**
  * Publicar é o passo que torna o trabalho visível. A confirmação existe para
  * que seja um ato deliberado: mostra o que ainda está incompleto e o efeito da
- * publicação, mas não bloqueia — a equipe decide.
+ * publicação, mas não bloqueia: a equipe decide.
  */
 export function PublishConfirmDialog({
   open,

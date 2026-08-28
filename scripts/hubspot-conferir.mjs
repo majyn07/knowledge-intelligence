@@ -3,7 +3,7 @@
  *
  * Existe porque sondar endpoint por endpoint conclui por eliminação e erra: foi
  * assim que `cms.knowledge_base.articles.read` quase passou por "a Biblioteca
- * dá" — o escopo está concedido e não há API atrás dele. Perguntar ao token
+ * dá": o escopo está concedido e não há API atrás dele. Perguntar ao token
  * quais escopos ele carrega é a única resposta que não é palpite.
  *
  * Somente leitura, em série. Sem argumento são sete pedidos; com um número de
@@ -83,7 +83,7 @@ if (!info.ok) {
 
 /*
   Só os que decidem alguma coisa para o nosso ciclo. Os outros trinta e poucos
-  são objeto de CRM comercial — deals, quotes, carts — que o produto não toca.
+  são objeto de CRM comercial (deals, quotes, carts) que o produto não toca.
 */
 const QUE_IMPORTAM = [
   ["conversations.read", "ler fios e mensagens"],
@@ -161,7 +161,7 @@ if (!alvo) {
       /*
         O endpoint mistura mensagem com evento de sistema (THREAD_STATUS_CHANGE,
         sem campo `text`). Gravar tudo faria a análise tratar mudança de status
-        como evidência — por isso o filtro entra aqui, não depois.
+        como evidência, por isso o filtro entra aqui, não depois.
       */
       const reais = todas.filter((x) => x.type === "MESSAGE");
       console.log(`    ${todas.length} registros, dos quais ${reais.length} são mensagem`);

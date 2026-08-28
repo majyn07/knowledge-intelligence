@@ -19,7 +19,7 @@ interface FollowButtonProps {
  *
  * Quem abriu o atendimento que originou o plano quer saber quando ele publica,
  * e não vai virar responsável por isso. Até aqui a única forma de ver um
- * registro na própria lista era ser dono dele — e assumir o que não é seu para
+ * registro na própria lista era ser dono dele, e assumir o que não é seu para
  * conseguir acompanhar sujaria a atribuição de todo mundo.
  */
 export function FollowButton({
@@ -39,7 +39,7 @@ export function FollowButton({
       onClick={() => toggleFollow({ kind, subjectId, subjectLabel, projectId })}
       title={
         following
-          ? "Sai da sua lista. A responsabilidade não muda — ela nunca foi sua por acompanhar."
+          ? "Sai da sua lista. A responsabilidade não muda. Ela nunca foi sua por acompanhar."
           : "Entra na sua lista sem virar sua responsabilidade."
       }
     >

@@ -41,7 +41,7 @@ export function TeamFilter({ teams, value, onChange }: TeamFilterProps) {
 /**
  * O que o recorte por equipe não alcança.
  *
- * Plano tem responsável e artigo tem autor. Atendimento e análise não têm — e
+ * Plano tem responsável e artigo tem autor. Atendimento e análise não têm, e
  * quem escolhe uma equipe precisa saber que aqueles números continuam sendo
  * do projeto inteiro. Sem esta linha, a tela pareceria dizer que a equipe
  * registrou 3 atendimentos, o que ela nunca mediu.

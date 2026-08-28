@@ -2,7 +2,7 @@
 --
 -- Uma dimensão responde "quantos por estágio". Duas respondem "quantos por
 -- estágio em cada seção do portal", que é a pergunta que de fato se faz numa
--- reunião de cobertura — e a que obrigava a montar seis painéis e comparar de
+-- reunião de cobertura, e a que obrigava a montar seis painéis e comparar de
 -- cabeça.
 --
 -- Coluna de verdade e não `jsonb` porque ela é lida em toda montagem de tela,

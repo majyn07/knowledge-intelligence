@@ -9,7 +9,7 @@ import {
  *
  * Tudo aqui é função pura sobre a taxonomia inteira: recebe, devolve nova.
  * O provider só guarda o resultado. Isso mantém a regra testável e deixa a
- * troca de armazenamento — que vem na sprint de fundação compartilhada —
+ * troca de armazenamento (que vem na sprint de fundação compartilhada)
  * restrita a uma camada.
  */
 
@@ -91,7 +91,7 @@ export function renameCategory(
  * Remove a categoria e, com ela, as seções que só existiam dentro dela.
  *
  * Os artigos que apontavam para essas seções **não são tocados**: continuam
- * com o identificador antigo, que passa a não resolver. É deliberado — a tela
+ * com o identificador antigo, que passa a não resolver. É deliberado: a tela
  * de artigos sem seção existe para que eles apareçam e sejam reclassificados,
  * em vez de serem realocados por adivinhação.
  */
@@ -157,7 +157,7 @@ export function removeSection(taxonomy: Taxonomy, id: string): Taxonomy {
   };
 }
 
-/** Listas simples — gênero e tipo de oportunidade compartilham o comportamento. */
+/** Listas simples. Gênero e tipo de oportunidade compartilham o comportamento. */
 export type EntryList = "genres" | "opportunityTypes";
 
 const entryPrefix: Record<EntryList, string> = {
@@ -208,7 +208,7 @@ export function renameEntry(
  *
  * Um artigo precisa de gênero e uma oportunidade precisa de tipo. Esvaziar a
  * lista deixaria o formulário sem opção nenhuma e o registro impossível de
- * completar — a única restrição que o cadastro impõe, e por um motivo.
+ * completar: a única restrição que o cadastro impõe, e por um motivo.
  */
 export function removeEntry(
   taxonomy: Taxonomy,

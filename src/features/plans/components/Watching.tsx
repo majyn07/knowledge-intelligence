@@ -41,7 +41,7 @@ export function Watching() {
   return (
     <PageSection
       title="Acompanhando"
-      description="Registros que você escolheu seguir ou onde mencionaram você. Não são sua responsabilidade — estão aqui para você não perder de vista."
+      description="Registros que você escolheu seguir ou onde mencionaram você. Não são sua responsabilidade, estão aqui para você não perder de vista."
     >
       <ul className="flex flex-col gap-1.5">
         {items.map((item) => (

@@ -47,7 +47,7 @@ describe("parseFieldFill", () => {
 
   it("descarta campo que não perguntamos", () => {
     /*
-      Resposta desalinhada escreveria num campo que a tela não mostrou — e o
+      Resposta desalinhada escreveria num campo que a tela não mostrou, e o
       registro sairia com dado que ninguém reviu.
     */
     const { fields } = parseFieldFill(
@@ -142,7 +142,7 @@ describe("parseFieldFill", () => {
   it("resposta ilegível vira resultado vazio, e não exceção", () => {
     /*
       A rota trata falha de provedor; formato inválido não pode derrubar o
-      preenchimento inteiro — a tela continua com o que a pessoa digitou.
+      preenchimento inteiro: a tela continua com o que a pessoa digitou.
     */
     expect(parseFieldFill("isto não é json", PEDIDO)).toEqual({
       fields: [],

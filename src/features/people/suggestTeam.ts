@@ -6,7 +6,7 @@ import { findSection, type Taxonomy } from "@/models/Taxonomy";
  *
  * É **sugestão**, e a diferença importa: derivar a atribuição
  * automaticamente criaria um responsável que ninguém escolheu, e num cadastro
- * incompleto — QiOnboarding e Novidades de Release não têm equipe óbvia — o
+ * incompleto (QiOnboarding e Novidades de Release não têm equipe óbvia) o
  * palpite apareceria com cara de decisão. Aqui o formulário chega preenchido
  * e quem preenche troca se estiver errado.
  *
@@ -15,8 +15,8 @@ import { findSection, type Taxonomy } from "@/models/Taxonomy";
  * pior que campo vazio: ninguém desconfia do que já veio preenchido.
  *
  * A seção vence a categoria quando alguma equipe a declarou. O suporte do
- * Builder é dividido por disciplina — Elétrica e Hidráulica são equipes
- * diferentes —, e disciplina no portal é **seção**, não categoria: as duas
+ * Builder é dividido por disciplina. Elétrica e Hidráulica são equipes
+ * diferentes., e disciplina no portal é **seção**, não categoria: as duas
  * teriam de declarar "AltoQi Builder" e desligariam a sugestão uma da outra.
  * Já Visus e Eberick respondem pelo produto inteiro, e para elas a categoria
  * continua sendo a declaração certa.
@@ -40,7 +40,7 @@ export function suggestTeam(
 /**
  * As equipes que respondem por uma categoria.
  *
- * A tela de cadastro usa para avisar quando duas declararam a mesma — o que é
+ * A tela de cadastro usa para avisar quando duas declararam a mesma: o que é
  * permitido, mas desliga a sugestão.
  */
 export function teamsOfCategory(categoryId: string, teams: Team[]): Team[] {

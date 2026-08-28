@@ -8,8 +8,8 @@ describe("isTrashed", () => {
   it("ausente e vazio são a mesma coisa: vivo", () => {
     /*
       Registro gravado antes da coluna existir não tem o campo, e o
-      normalizador devolve vazio. Os dois precisam significar "em uso" —
-      senão a primeira leitura esvaziaria o produto.
+      normalizador devolve vazio. Os dois precisam significar "em uso".
+      Senão a primeira leitura esvaziaria o produto.
     */
     expect(isTrashed(item("a"))).toBe(false);
     expect(isTrashed(item("a", ""))).toBe(false);

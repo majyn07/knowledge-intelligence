@@ -31,7 +31,7 @@ const COR = {
  * Escapa texto para XML.
  *
  * O título é escrito por uma pessoa e vai direto para dentro de um documento
- * — um `&` sem escapar produz um arquivo inválido que nenhum visualizador
+ *: um `&` sem escapar produz um arquivo inválido que nenhum visualizador
  * abre, e um `<` produziria marcação.
  */
 function escape(value: string): string {

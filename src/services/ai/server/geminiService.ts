@@ -18,14 +18,14 @@ import { classifyProviderFailure } from "../providers/providerFailure";
  * O modelo é **fixado por versão**, e nunca por apelido móvel.
  *
  * `gemini-flash-latest` existe e seria mais curto, mas trocaria o modelo por
- * baixo do produto sem ninguém decidir — e aqui resultado de critério que
+ * baixo do produto sem ninguém decidir, e aqui resultado de critério que
  * ninguém escolheu precisa ser anunciado. Um modelo novo muda o texto que a
  * análise devolve; isso é mudança de produto, e entra por commit.
  *
  * `gemini-2.5-flash` esteve aqui e **parou de existir para chave nova**: o
  * Google responde `404` dizendo que só quem já usava continua tendo acesso. A
  * produção seguia funcionando com a chave antiga, então o defeito só aparecia
- * para quem configurasse o ambiente do zero — que é exatamente quem tem menos
+ * para quem configurasse o ambiente do zero. Que é exatamente quem tem menos
  * informação para entender o erro.
  *
  * A escolha foi medida contra a API, e não contra a documentação: o próprio
@@ -45,7 +45,7 @@ function getClient(): GoogleGenAI {
  * O único ponto que fala com o SDK.
  *
  * A mensagem de sistema é separada porque o Gemini a recebe num campo próprio,
- * e não como turno da conversa — é exatamente o tipo de detalhe que a fronteira
+ * e não como turno da conversa. É exatamente o tipo de detalhe que a fronteira
  * existe para não vazar para cima.
  */
 async function complete(
@@ -58,7 +58,7 @@ async function complete(
   const texto = conversationOf(messages);
 
   /*
-    Sem anexo o conteúdo continua sendo a string de sempre — o SDK aceita as
+    Sem anexo o conteúdo continua sendo a string de sempre: o SDK aceita as
     duas formas, e trocar a chamada inteira por partes faria toda análise
     existente passar por um caminho novo sem necessidade.
 
@@ -94,7 +94,7 @@ async function complete(
     });
 
     /*
-      Resposta vazia não é falha de rede: o modelo respondeu e não disse nada —
+      Resposta vazia não é falha de rede: o modelo respondeu e não disse nada,
       filtro de segurança, ou geração interrompida. Vale a mesma classificação
       de desconhecida, mas com o motivo escrito, senão vira "indisponível" e
       manda tentar de novo para sempre.

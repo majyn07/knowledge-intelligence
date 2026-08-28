@@ -47,9 +47,16 @@ export function searchKnowledge(
     return [];
   }
 
+  /*
+    O acervo inteiro entra, sem recorte por iniciativa.
+
+    O artigo é do hub e não pertence a projeto nenhum: os 1.822 importados
+    do portal têm `projectId` vazio. Recortar aqui pelo projeto do
+    atendimento fazia toda análise responder "nada cobre isto" sobre um
+    portal que cobre, que é o mesmo defeito que a Biblioteca já pagou uma vez.
+  */
   return articles
     .filter((article) => article.status === "published")
-    .filter((article) => !query.projectId || article.projectId === query.projectId)
     .map((article) => {
       let score = 0;
 

@@ -17,7 +17,7 @@ interface RecommendationCardProps {
 
 /**
    Ícone por nome do tipo. A lista é cadastro, então nome desconhecido cai no
-   genérico em vez de quebrar — igual ao gênero do artigo.
+   genérico em vez de quebrar, igual ao gênero do artigo.
 */
 function getIcon(name: string) {
   if (name.startsWith("Novo artigo") || name.startsWith("Atualizar")) {

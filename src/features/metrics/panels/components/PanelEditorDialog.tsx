@@ -80,7 +80,7 @@ function novoPainel(): PanelSpec {
  * frente de quem edita, em vez de aceitar em silêncio e mostrar um painel
  * vazio depois.
  *
- * O estado nasce do prop e não é sincronizado depois — quem abre remonta o
+ * O estado nasce do prop e não é sincronizado depois. Quem abre remonta o
  * componente com `key`, como todo formulário deste produto.
  */
 export function PanelEditorDialog({ spec, open, onOpenChange, onSave }: PanelEditorDialogProps) {
@@ -280,7 +280,7 @@ export function PanelEditorDialog({ spec, open, onOpenChange, onSave }: PanelEdi
                       // Número único não comporta quebra: seria um número por
                       // linha, sem linha.
                       /*
-                        Com cruzamento só a tabela serve — barra empilhada
+                        Com cruzamento só a tabela serve. Barra empilhada
                         esconderia metade dos números. Sem ele, número único
                         não comporta quebra: seria um número por linha, sem
                         linha.
@@ -310,7 +310,7 @@ export function PanelEditorDialog({ spec, open, onOpenChange, onSave }: PanelEdi
             <span className="text-sm">
               Somente o projeto ativo
               <span className="mt-0.5 block text-xs text-muted-foreground">
-                Sem isto, o painel conta todos os projetos — inclusive os que não
+                Sem isto, o painel conta todos os projetos. Inclusive os que não
                 estão selecionados no cabeçalho.
               </span>
             </span>

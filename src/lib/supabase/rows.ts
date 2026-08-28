@@ -14,7 +14,7 @@ import type { ArticleRow, TaxonomyCategoryRow, TaxonomyEntryRow, TaxonomySection
  * do código, nem a resposta de vir truncada.
  *
  * Coluna nula vira string vazia, que é como o modelo representa "não
- * definido" — o `sectionId` de um artigo sem classificação é `""`, nunca
+ * definido": o `sectionId` de um artigo sem classificação é `""`, nunca
  * `null`, para que ninguém precise testar dois casos.
  */
 
@@ -72,7 +72,7 @@ export function fromArticle(article: KnowledgeArticle): ArticleRow {
     /*
       Vazio vira nulo, como já acontecia com seção e gênero duas linhas abaixo.
 
-      O artigo do acervo não pertence a iniciativa nenhuma — é do hub. Texto
+      O artigo do acervo não pertence a iniciativa nenhuma. É do hub. Texto
       vazio não é ausência para o Postgres, e a chave estrangeira recusava os
       1.822 artigos do portal no fim de uma varredura de quarenta e cinco
       minutos.
@@ -103,7 +103,7 @@ export function fromArticle(article: KnowledgeArticle): ArticleRow {
  *
  * Seção órfã é descartada, como no normalizador do armazenamento local: ela
  * nunca apareceria em cascata nenhuma e ficaria acumulando em silêncio. Aqui a
- * chave estrangeira já impede que aconteça, mas a leitura não depende disso —
+ * chave estrangeira já impede que aconteça, mas a leitura não depende disso:
  * uma resposta parcial, com categorias faltando, produziria o mesmo efeito.
  */
 export function toTaxonomy(
@@ -158,7 +158,7 @@ export function toTaxonomy(
   return {
     categories: categories.sort((a, b) => a.order - b.order),
     /*
-      Sem ordenação global aqui: `order` de seção é relativo à categoria dela —
+      Sem ordenação global aqui: `order` de seção é relativo à categoria dela:
       o Builder vai de 0 a 49 e o Eberick recomeça em 0. Ordenar a lista
       inteira intercalaria seções de categorias diferentes. Quem exibe usa
       `sectionsOf`, que ordena dentro do escopo certo.

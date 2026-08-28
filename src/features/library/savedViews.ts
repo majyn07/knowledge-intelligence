@@ -16,7 +16,7 @@ import type { LibraryFilters } from "./types/LibraryFilters";
  * Um recorte guardado.
  *
  * Guarda a **pergunta**, como o painel: quais filtros, qual ordenação, quais
- * colunas. Não guarda quais artigos — a lista é refeita a cada abertura, sobre
+ * colunas. Não guarda quais artigos: a lista é refeita a cada abertura, sobre
  * o acervo de agora.
  */
 export interface SavedView {
@@ -33,7 +33,7 @@ const DIRECTIONS: readonly SortDirection[] = ["asc", "desc"];
 /**
  * Garante que as colunas fazem sentido.
  *
- * Uma visão gravada antes de uma coluna existir — ou depois de uma sair —
+ * Uma visão gravada antes de uma coluna existir (ou depois de uma sair)
  * volta com a lista corrigida. E o título nunca some: sem ele a linha deixa de
  * identificar o registro.
  */
@@ -116,7 +116,7 @@ export function fromSavedView(view: SavedView): SavedViewRow {
  * A visão corresponde ao que está na tela.
  *
  * Serve para a tela marcar qual visão está ativa. Compara só o que a visão
- * guarda — o que ela não guarda não pode desqualificá-la.
+ * guarda: o que ela não guarda não pode desqualificá-la.
  */
 export function matchesView(view: SavedView, filters: LibraryFilters, sort: Sort): boolean {
   return (

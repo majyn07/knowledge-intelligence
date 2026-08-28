@@ -6,8 +6,8 @@ import type { Follow } from "./follows";
  * O que aconteceu que interessa a **você**.
  *
  * A menção existia e não chegava a lugar nenhum: quem era mencionado só
- * descobria abrindo a tela certa por acaso. Como não há e-mail para notificar —
- * e não vai haver enquanto o SMTP não existir —, o caminho honesto é o produto
+ * descobria abrindo a tela certa por acaso. Como não há e-mail para notificar,
+ * e não vai haver enquanto o SMTP não existir., o caminho honesto é o produto
  * contar por si.
  *
  * Puro, e recebe tudo resolvido, como `runPanel`: os providers já têm as
@@ -15,7 +15,7 @@ import type { Follow } from "./follows";
  *
  * **Nem tudo vira aviso.** Um produto que avisa demais é um produto cujos
  * avisos ninguém lê, e aí o aviso que importava se perde junto. Fato relevante
- * aqui é mudança de estágio, plano criado, oportunidade aprovada e exclusão —
+ * aqui é mudança de estágio, plano criado, oportunidade aprovada e exclusão,
  * "alguém editou um artigo" não é.
  */
 
@@ -129,7 +129,7 @@ export function buildNotices(input: NoticeInput): Notice[] {
   return avisos.sort((a, b) => b.at.localeCompare(a.at)).slice(0, limit);
 }
 
-/** Quantos ainda não foram vistos — é o número no sino. */
+/** Quantos ainda não foram vistos. É o número no sino. */
 export function unreadCount(notices: Notice[]): number {
   return notices.filter((notice) => notice.unread).length;
 }

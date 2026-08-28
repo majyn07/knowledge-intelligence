@@ -21,7 +21,7 @@ export function headingId(text: string): string {
 /**
  * Os títulos de um conteúdo em HTML.
  *
- * O artigo do portal é HTML, e procurar `#` nele não acha nada — o índice
+ * O artigo do portal é HTML, e procurar `#` nele não acha nada: o índice
  * ficava vazio em mil e oitocentos artigos. O `id` é o mesmo que o Markdown
  * produz, para a âncora funcionar igual nos dois formatos.
  */
@@ -47,7 +47,7 @@ function htmlHeadings(content: string): ArticleHeading[] {
 }
 
 /**
- * Lê o índice diretamente do conteúdo escrito — nada é armazenado à parte.
+ * Lê o índice diretamente do conteúdo escrito, nada é armazenado à parte.
  *
  * O formato é **declarado**, como em todo lugar que toca conteúdo: adivinhar
  * pelo texto erraria com artigo que menciona `#` ou que escreve `<h2>` como

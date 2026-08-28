@@ -14,7 +14,7 @@ import type { AIProviderId } from "./catalog";
  *
  * Somar um provedor é escrever um arquivo que satisfaça isto e citá-lo no
  * registro. Nada fora de `services/ai/server` conhece nome de modelo, formato
- * de mensagem ou SDK — foi para isso que a fronteira existe.
+ * de mensagem ou SDK. Foi para isso que a fronteira existe.
  */
 /**
  * Quanto raciocínio o pedido justifica.
@@ -22,17 +22,17 @@ import type { AIProviderId } from "./catalog";
  * Não é ajuste fino de desempenho: é a diferença entre a extração funcionar e
  * estourar o prazo. Medido contra a API, com a mesma página e o mesmo pedido:
  * com raciocínio, **59 segundos** e 1661 tokens de pensamento; sem,
- * **14 segundos** e a mesma resposta — 417 contra 421 tokens de saída. Era o
+ * **14 segundos** e a mesma resposta, 417 contra 421 tokens de saída. Era o
  * raciocínio que consumia o prazo inteiro e devolvia `503` sob anexo maior.
  *
  * `minimo` é para **extrair o que está escrito**: ler um documento e distribuir
  * o conteúdo por campos não exige deliberação, e pagá-la custa a resposta.
- * `padrao` é para julgar — a análise do atendimento, onde a conclusão não está
+ * `padrao` é para julgar: a análise do atendimento, onde a conclusão não está
  * no texto e precisa ser construída.
  *
  * É conceito de todos os provedores atuais, e não da Google: cada um mapeia
  * para o que o seu SDK chama disso. Quem não tiver o conceito ignora, e nada
- * quebra — a diferença aparece no relógio, não no contrato.
+ * quebra: a diferença aparece no relógio, não no contrato.
  */
 export type AIReasoning = "minimo" | "padrao";
 
@@ -46,7 +46,7 @@ export interface AIProvider {
    * Um pedido qualquer, com as mensagens já montadas.
    *
    * Existe porque `chat` e `analyze` carregavam o construtor de prompt da
-   * análise dentro do provider — o que obrigava toda operação nova a virar um
+   * análise dentro do provider: o que obrigava toda operação nova a virar um
    * método novo do contrato. Com isto, o prompt fica onde é assunto do
    * produto, e o provider volta a saber só falar com o modelo.
    *
@@ -55,8 +55,8 @@ export interface AIProvider {
    * anexar é detalhe do pedido, não outra operação.
    *
    * **Quem não lê arquivo declara `readsFiles: false` no catálogo, e não
-   * ignora a opção.** Ignorar produziria a pior resposta possível — o modelo
-   * respondendo sobre nada, sem erro, com o documento descartado em silêncio —
+   * ignora a opção.** Ignorar produziria a pior resposta possível: o modelo
+   * respondendo sobre nada, sem erro, com o documento descartado em silêncio,
    * e quem pediu concluiria que o arquivo não tinha a informação. Declarado,
    * o pedido é recusado antes de sair e a tela nem oferece o anexo.
    *

@@ -163,7 +163,7 @@ describe("ticketService e o número de origem", () => {
 
   /*
     `importedAt` registra quando o vínculo nasceu. Reescrevê-lo a cada gravação
-    incidental apagaria o fato — e é o mesmo motivo de a parada de um plano se
+    incidental apagaria o fato, e é o mesmo motivo de a parada de um plano se
     medir pelo histórico e não por `updatedAt`.
   */
   it("preserva a data original quando o número não mudou", () => {

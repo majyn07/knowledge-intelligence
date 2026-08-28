@@ -26,12 +26,12 @@ import { signInErrorMessage } from "../signInError";
  *
  * São três, não dois, e a diferença importa:
  *
- * `local`    — não há backend configurado. O produto funciona sobre o
+ * `local`   , não há backend configurado. O produto funciona sobre o
  *              `localStorage`, como sempre funcionou. Não é erro nem
  *              degradação: é o modo em que ele roda sem depender de rede.
- * `anonimo`  — há backend, e ninguém entrou. Nada pode ser lido, porque as
+ * `anonimo` . Há backend, e ninguém entrou. Nada pode ser lido, porque as
  *              políticas do banco fecham tudo para quem não tem perfil.
- * `conectado`— há backend e sessão.
+ * `conectado`. Há backend e sessão.
  */
 export type AccessState = "carregando" | "local" | "anonimo" | "conectado";
 
@@ -63,7 +63,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
 
     /*
       O `catch` não é zelo excessivo: se a sessão guardada expirou, a rede
-      caiu ou o token de renovação foi revogado, esta promessa **rejeita** — e
+      caiu ou o token de renovação foi revogado, esta promessa **rejeita**, e
       sem tratamento `ready` ficava falso para sempre, o portão renderizava
       nada, e o resultado era uma tela branca sem uma linha de erro.
 
@@ -94,7 +94,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
 
   /**
    * Acesso por link enviado ao e-mail. Não há senha em lugar nenhum do
-   * produto — nada para vazar, nada para alguém digitar numa tela errada.
+   * produto, nada para vazar, nada para alguém digitar numa tela errada.
    *
    * O domínio é conferido aqui só para dar erro imediato e legível. Quem
    * decide de verdade é o banco: há `check constraint` na tabela de perfis e
@@ -126,7 +126,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
    * fora da equipe do projeto. Aqui não há caixa de entrada no caminho.
    *
    * `hd` pede ao Google para oferecer só contas do domínio. É conveniência, e
-   * **não** segurança — o parâmetro sai do navegador e pode ser alterado por
+   * **não** segurança: o parâmetro sai do navegador e pode ser alterado por
    * quem quiser. Quem garante a restrição continua sendo o gatilho no banco,
    * que recusa quem não é da AltoQi.
    */
