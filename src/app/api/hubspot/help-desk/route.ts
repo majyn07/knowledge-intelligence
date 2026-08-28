@@ -16,8 +16,8 @@ import {
 /**
  * A caixa do suporte, um pedaço por requisição.
  *
- * `GET` devolve uma página da listagem: cem fios, barato, e o cursor da
- * próxima. `POST` lê um lote de fios: caro, uma requisição à HubSpot por fio.
+ * `GET` devolve uma página da listagem: cem conversas, barato, e o cursor da
+ * próxima. `POST` lê um lote de conversas: caro, uma requisição à HubSpot por conversa.
  *
  * Quem conduz o laço é a tela, como na varredura do portal. A listagem inteira
  * são umas 550 páginas e estouraria o prazo de uma requisição só, e quem
@@ -81,7 +81,7 @@ export async function GET(request: Request) {
 
     /*
       A janela é obrigatória, e não tem padrão. Sem ela a lista sai do mais
-      antigo e não para: são mais de setenta mil fios na caixa do suporte, e
+      antigo e não para: são mais de setenta mil conversas na caixa do suporte, e
       alcançar o mês corrente custaria mais de mil requisições.
     */
     const desde = (url.searchParams.get("desde") ?? "").trim();
@@ -102,7 +102,7 @@ export async function GET(request: Request) {
   }
 }
 
-/** Lê um lote de fios. Caro: uma ida à HubSpot por fio, mais a associação. */
+/** Lê um lote de conversas. Caro: uma ida à HubSpot por conversa, mais a associação. */
 export async function POST(request: Request) {
   if (!hubspotConfigured()) {
     return NextResponse.json(
@@ -119,23 +119,23 @@ export async function POST(request: Request) {
     return NextResponse.json({ message: "Corpo inválido." }, { status: 400 });
   }
 
-  const bruto = body && typeof body === "object" && "fios" in body ? body.fios : null;
-  const fios = Array.isArray(bruto) ? bruto : [];
+  const bruto = body && typeof body === "object" && "conversas" in body ? body.conversas : null;
+  const conversas = Array.isArray(bruto) ? bruto : [];
 
-  if (fios.length === 0) {
-    return NextResponse.json({ message: "Informe os fios a ler." }, { status: 400 });
+  if (conversas.length === 0) {
+    return NextResponse.json({ message: "Informe as conversas a ler." }, { status: 400 });
   }
 
-  if (fios.length > POR_LOTE) {
+  if (conversas.length > POR_LOTE) {
     return NextResponse.json(
-      { message: `O lote não pode passar de ${POR_LOTE} fios.` },
+      { message: `O lote não pode passar de ${POR_LOTE} conversas.` },
       { status: 400 }
     );
   }
 
   try {
-    const lote = fios.map((fio) => {
-      const registro = fio as Record<string, unknown>;
+    const lote = conversas.map((conversa) => {
+      const registro = conversa as Record<string, unknown>;
 
       return {
         id: String(registro.id ?? "").trim(),
@@ -146,8 +146,8 @@ export async function POST(request: Request) {
       };
     });
 
-    if (lote.some((fio) => fio.id === "")) {
-      return NextResponse.json({ message: "Há fio sem identificador." }, { status: 400 });
+    if (lote.some((conversa) => conversa.id === "")) {
+      return NextResponse.json({ message: "Há conversa sem identificador." }, { status: 400 });
     }
 
     return NextResponse.json(await lerLote(lote));

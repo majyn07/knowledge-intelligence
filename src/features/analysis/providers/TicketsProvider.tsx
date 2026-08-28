@@ -104,13 +104,13 @@ export function TicketsProvider({ children }: { children: ReactNode }) {
    * aconteceu antes.
    *
    * A conversa não vem junto de propósito. A exportação da HubSpot traz o
-   * ticket, não o fio de mensagens. Inventar uma conversa vazia faria a
+   * ticket, não o histórico de mensagens. Inventar uma conversa vazia faria a
    * análise achar que tem evidência quando não tem.
    */
   /**
    * O que veio da caixa do suporte: atendimento e conversa, de uma vez.
    *
-   * Separado de `importTickets` porque o arquivo exportado não traz o fio de
+   * Separado de `importTickets` porque o arquivo exportado não traz a conversa de
    * mensagens e a API traz. Gravar em duas chamadas faria a análise poder rodar
    * no intervalo, sobre um atendimento cuja evidência ainda não chegou.
    *

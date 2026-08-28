@@ -56,12 +56,20 @@ grant execute on function public.is_admin() to authenticated;
 -- nada.
 --
 -- Escrever passa a ser o próprio perfil, ou qualquer um se for administrador.
+-- Cada política é recriada, e não só criada.
+--
+-- Esta migração foi aplicada à mão no editor de SQL do painel antes de o
+-- `db:migrate` voltar a funcionar, então o registro de migrações não sabia dela
+-- e ela roda de novo. Um arquivo de migração que só funciona na primeira vez é
+-- um arquivo que trava a fila inteira na segunda.
 drop policy if exists profiles_membros on public.profiles;
 
+drop policy if exists profiles_leitura on public.profiles;
 create policy profiles_leitura on public.profiles
   for select to authenticated
   using (public.is_member());
 
+drop policy if exists profiles_escrita_propria on public.profiles;
 create policy profiles_escrita_propria on public.profiles
   for update to authenticated
   using (id = auth.uid() or public.is_admin())
@@ -70,6 +78,7 @@ create policy profiles_escrita_propria on public.profiles
 -- Conta não se apaga, se desativa: o histórico já registrou o que a pessoa fez,
 -- e apagar deixaria esses registros apontando para o vazio. A regra é a mesma
 -- desde 0006, e agora ela está na política em vez de só no costume.
+drop policy if exists profiles_insercao on public.profiles;
 create policy profiles_insercao on public.profiles
   for insert to authenticated
   with check (id = auth.uid());

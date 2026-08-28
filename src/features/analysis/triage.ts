@@ -1,5 +1,5 @@
 import { articleVocabulary } from "@/features/library/content/articleTerms";
-import { jaccard, termsOf } from "@/lib/vocabulary";
+import { jaccard, semCorrespondencia, termsOf } from "@/lib/vocabulary";
 import type { KnowledgeArticle } from "@/models/KnowledgeArticle";
 import type { Ticket } from "@/models/Ticket";
 
@@ -85,7 +85,12 @@ interface TicketComTermos {
 
 /** O que um atendimento diz, para efeito de comparação. */
 function corpusDo(ticket: Ticket): string {
-  return `${ticket.title} ${ticket.solution}`;
+  return semCorrespondencia(`${ticket.title} ${ticket.solution}`);
+}
+
+/** O vocabulário de um atendimento, já sem o que a correspondência traz junto. */
+export function ticketTerms(ticket: Ticket): string[] {
+  return termsOf(corpusDo(ticket));
 }
 
 /**
@@ -166,7 +171,7 @@ export function triageTickets(
       continue;
     }
 
-    const termos = new Set(termsOf(corpusDo(ticket)));
+    const termos = new Set(ticketTerms(ticket));
 
     if (termos.size < TERMOS_MINIMOS) {
       ignorados.semTextoSuficiente += 1;

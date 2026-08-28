@@ -2,18 +2,9 @@ import type { KnowledgeArticle } from "@/models/KnowledgeArticle";
 import type { KnowledgeQuery } from "@/models/KnowledgeQuery";
 import type { KnowledgeSearchResult } from "@/models/KnowledgeSearchResult";
 
-import { articleText } from "../content/articleText";
+import { deacentuar, isCommonWord } from "@/lib/vocabulary";
 
-/**
- * Palavras muito frequentes em português não indicam proximidade de assunto:
- * sem esta lista, dois artigos passam a se relacionar por "para" ou "como".
- */
-const STOPWORDS = new Set([
-  "para", "com", "que", "dos", "das", "por", "uma", "nao", "não", "como",
-  "mais", "sem", "sobre", "pode", "ser", "est", "esta", "este", "isso",
-  "quando", "onde", "apos", "após", "seu", "sua", "aos", "nas", "nos",
-  "foi", "são", "sao", "tem", "caso", "deve", "todos", "toda", "cada",
-]);
+import { articleText } from "../content/articleText";
 
 const TITLE_WEIGHT = 10;
 const KEYWORD_WEIGHT = 8;
@@ -29,11 +20,29 @@ export function searchKnowledge(
   articles: KnowledgeArticle[],
   query: KnowledgeQuery
 ): KnowledgeSearchResult[] {
+  /*
+    A decisão de o que é palavra útil vem de `lib/vocabulary`, e não de uma
+    lista aqui.
+
+    Havia uma, com trinta e cinco palavras e sem tirar acento, e ela era a
+    terceira do produto sobre o mesmo assunto. Três listas do mesmo vocabulário
+    divergem, e divergiam: a comparação entre artigos descartava "projeto" e
+    "janela", e esta aqui os deixava passar.
+
+    O tamanho mínimo continua aqui, e continua três. Ele é decisão desta busca
+    e não do vocabulário: "laje", "viga", "SPDA" e "IFC" são o que separa um
+    artigo do outro neste acervo, e a barra alta da comparação entre dois
+    artigos jogaria os quatro fora.
+
+    O termo guardado é o **acentuado**, e a decisão usa a forma sem acento. O
+    casamento adiante é `includes` contra o corpo do artigo, que tem acento:
+    procurar "fissuracao" ali não acharia "fissuração".
+  */
   const terms = query.text
     .toLowerCase()
     .split(/\s+/)
-    .map((term) => term.trim())
-    .filter((term) => term.length > 2 && !STOPWORDS.has(term));
+    .map((term) => term.replace(/^[^\p{L}\p{N}]+|[^\p{L}\p{N}]+$/gu, ""))
+    .filter((term) => term.length > 2 && !isCommonWord(deacentuar(term)));
 
   const maxScore =
     terms.length *

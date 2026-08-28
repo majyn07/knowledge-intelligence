@@ -70,6 +70,13 @@ export function LibraryProvider({ children }: { children: ReactNode }) {
     fromRows: (rows) => rows.map(toArticle),
     toRow: fromArticle,
     identify: (article) => article.id,
+    /*
+      O acervo é a coleção que justifica isto: são 1.822 artigos e 22,7 MB, e
+      sem a releitura incremental um colega classificando **um** deles fazia
+      cada aba aberta da equipe baixar o acervo inteiro. `fromRows` aqui é um
+      `map` linha a linha, que é o que a opção exige.
+    */
+    releituraIncremental: true,
     // O vocabulário é capturado na montagem, que é quando a migração acontece.
     parseLocal: (raw) => parseArticles(raw, taxonomy),
   });

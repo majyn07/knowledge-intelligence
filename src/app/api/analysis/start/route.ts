@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { aiErrorResponse } from "@/services/ai/analysis/aiErrorResponse";
 import { startAnalysisRequestSchema } from "@/services/ai/analysis/analysisRequestSchema";
 import { startAnalysisService } from "@/services/ai/analysis/startAnalysisService";
+import { invalidRequestMessage } from "@/services/ai/analysis/invalidRequest";
 
 export async function POST(request: Request) {
   let body: unknown;
@@ -14,7 +15,9 @@ export async function POST(request: Request) {
 
   const parsedRequest = startAnalysisRequestSchema.safeParse(body);
   if (!parsedRequest.success) {
-    return NextResponse.json({ message: "Dados inválidos para iniciar a análise." }, { status: 400 });
+    return NextResponse.json({
+        message: invalidRequestMessage("Dados inválidos para iniciar a análise.", parsedRequest.error),
+      }, { status: 400 });
   }
 
   try {

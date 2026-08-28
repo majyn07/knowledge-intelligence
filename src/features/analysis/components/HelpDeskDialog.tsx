@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import { Download, Loader2, Square } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -18,9 +18,12 @@ import {
   janelaDeMeses,
   MESES_PADRAO,
   planejarVarredura,
-  type FioListado,
+  type ConversaListada,
   type PlanoDeVarredura,
 } from "@/services/hubspot/helpDeskSchedule";
+
+import { useActivity } from "@/features/activities/providers/ActivityProvider";
+import { RelativeDate } from "@/components/common/RelativeDate";
 
 import { useTickets } from "../providers/TicketsProvider";
 
@@ -32,23 +35,23 @@ import { useTickets } from "../providers/TicketsProvider";
  * não, e é ela que traz o assunto, o diálogo inteiro e as datas.
  *
  * A varredura é em duas passadas porque as duas custam coisas diferentes. A
- * listagem é barata, cem fios por requisição, e diz o que existe; a leitura é
- * cara, uma requisição por fio, e só visita o que a janela alcança e o que
+ * listagem é barata, cem conversas por requisição, e diz o que existe; a leitura é
+ * cara, uma requisição por conversa, e só visita o que a janela alcança e o que
  * mudou desde a última vez.
  */
 
 type Etapa = "inicio" | "listando" | "planejado" | "lendo" | "fim";
 
 interface Progresso {
-  fios: number;
+  conversas: number;
   lidos: number;
   trazidos: number;
   falhas: number;
 }
 
-const VAZIO: Progresso = { fios: 0, lidos: 0, trazidos: 0, falhas: 0 };
+const VAZIO: Progresso = { conversas: 0, lidos: 0, trazidos: 0, falhas: 0 };
 
-/** Quantos fios por lote de leitura. O servidor recusa acima disso. */
+/** Quantos conversas por lote de leitura. O servidor recusa acima disso. */
 const POR_LOTE = 20;
 
 /**
@@ -83,6 +86,27 @@ export function HelpDeskDialog({
 }) {
   const { tickets, importFromHelpDesk } = useTickets();
   const { activeProjectId } = useProject();
+  const { events } = useActivity();
+
+  /**
+   * A última busca, de quem quer que tenha feito.
+   *
+   * A leitura é compartilhada: ela grava no banco de todos, e quem rodar depois
+   * vê "já estão aqui e em dia" e não relê nada. Mas a **listagem** repete: são
+   * ~110 páginas para varrer três meses, toda vez que alguém clica, mesmo que
+   * não haja nada novo. Com catorze pessoas curiosas isso vira mil e quinhentas
+   * requisições ao CRM para descobrir que não há o que fazer.
+   *
+   * Então a tela diz quando foi a última e quem fez, antes de qualquer clique.
+   * Não bloqueia: quem quiser conferir de novo confere.
+   */
+  const ultimaBusca = useMemo(
+    () =>
+      events.find(
+        (evento) => evento.subject.kind === "ticket" && evento.subject.id === "help-desk"
+      ),
+    [events]
+  );
 
   const [etapa, setEtapa] = useState<Etapa>("inicio");
   const [erro, setErro] = useState<string | null>(null);
@@ -93,7 +117,7 @@ export function HelpDeskDialog({
   /*
     Um teto de quantos ler, e não só de qual período.
     
-    Três meses da caixa do suporte são quase onze mil fios, e ler todos custa
+    Três meses da caixa do suporte são quase onze mil conversas, e ler todos custa
     horas contra o CRM de produção. Quem quer ver como fica, ou mostrar para a
     equipe, precisa de uma amostra: sem teto a única opção é começar tudo e
     parar no meio, o que dá no mesmo e assusta mais.
@@ -156,12 +180,12 @@ export function HelpDeskDialog({
 
       /*
         A janela vai para o servidor, e é o que torna isto viável. A caixa do
-        suporte tem mais de setenta mil fios e a lista sai do mais antigo:
+        suporte tem mais de setenta mil conversas e a lista sai do mais antigo:
         alcançar o mês corrente sem filtrar custaria mais de mil requisições.
         Com a janela, três meses são 110 páginas.
       */
       const desde = janelaDeMeses(new Date(), meses);
-      const fios: FioListado[] = [];
+      const conversas: ConversaListada[] = [];
 
       for (const caixa of caixas) {
         let cursor: string | undefined;
@@ -174,10 +198,10 @@ export function HelpDeskDialog({
 
           const pagina = await pedir(`/api/hubspot/help-desk?${query}`);
 
-          fios.push(...((pagina.fios as FioListado[]) ?? []));
+          conversas.push(...((pagina.conversas as ConversaListada[]) ?? []));
           cursor = (pagina.proxima as string | null) ?? undefined;
 
-          setProgresso((atual) => ({ ...atual, fios: fios.length }));
+          setProgresso((atual) => ({ ...atual, conversas: conversas.length }));
         } while (cursor);
       }
 
@@ -193,7 +217,7 @@ export function HelpDeskDialog({
           ultimaMensagemEm: String(ticket.raw?.ultimaMensagemEm ?? ""),
         }));
 
-      setPlano(planejarVarredura(fios, conhecidos, desde));
+      setPlano(planejarVarredura(conversas, conhecidos, desde));
       setEtapa("planejado");
     } catch (falha) {
       setErro(falha instanceof Error ? falha.message : "Não foi possível listar.");
@@ -201,7 +225,7 @@ export function HelpDeskDialog({
     }
   }
 
-  /** Segunda passada: lê os fios do plano, em lotes, e grava de uma vez. */
+  /** Segunda passada: lê as conversas do plano, em lotes, e grava de uma vez. */
   async function ler() {
     if (!plano) return;
 
@@ -220,7 +244,7 @@ export function HelpDeskDialog({
         if (parar.current) break;
 
         const lote = aLer.slice(inicio, inicio + POR_LOTE);
-        const resposta = await pedir("/api/hubspot/help-desk", { fios: lote });
+        const resposta = await pedir("/api/hubspot/help-desk", { conversas: lote });
 
         const atendimentos = (resposta.atendimentos as Record<string, never>[]) ?? [];
         falhas += Number(resposta.falhas ?? 0);
@@ -269,7 +293,7 @@ export function HelpDeskDialog({
           });
         }
 
-        setProgresso({ fios: aLer.length, lidos, trazidos: trazidos.length, falhas });
+        setProgresso({ conversas: aLer.length, lidos, trazidos: trazidos.length, falhas });
       }
 
       /*
@@ -325,9 +349,19 @@ export function HelpDeskDialog({
 
             <p className="text-xs leading-5 text-muted-foreground">
               A listagem sai sempre do mais antigo, então descobrir o que existe leva alguns
-              minutos mesmo para uma janela curta. Depois disso, só os fios da janela são lidos,
+              minutos mesmo para uma janela curta. Depois disso, só as conversas da janela são lidos,
               e reexecutar pula o que não mudou.
             </p>
+
+            {ultimaBusca && (
+              <p className="rounded-lg border border-border/70 bg-muted/25 px-3 py-2 text-xs leading-5 text-muted-foreground">
+                Última busca <RelativeDate value={ultimaBusca.at} />
+                {ultimaBusca.actor ? `, por ${ultimaBusca.actor}` : ""}: {ultimaBusca.detail}.
+                <br />
+                O que ela trouxe já está aqui para todo mundo. Buscar de novo só vale se algo
+                mudou desde então.
+              </p>
+            )}
 
             <Button onClick={listar} className="w-full">
               Ver o que há nas caixas
@@ -339,7 +373,7 @@ export function HelpDeskDialog({
           <div className="space-y-3">
             <p className="flex items-center gap-2 text-sm">
               <Loader2 className="h-4 w-4 animate-spin" />
-              Listando as caixas… {progresso.fios.toLocaleString("pt-BR")} fios até agora
+              Listando as caixas… {progresso.conversas.toLocaleString("pt-BR")} conversas até agora
             </p>
 
             <Button variant="outline" className="w-full" onClick={() => (parar.current = true)}>
@@ -408,7 +442,7 @@ export function HelpDeskDialog({
             <p className="flex items-center gap-2 text-sm">
               <Loader2 className="h-4 w-4 animate-spin" />
               {progresso.lidos.toLocaleString("pt-BR")} de{" "}
-              {progresso.fios.toLocaleString("pt-BR")} lidos
+              {progresso.conversas.toLocaleString("pt-BR")} lidos
             </p>
 
             <div className="grid grid-cols-2 gap-2">
@@ -432,7 +466,7 @@ export function HelpDeskDialog({
 
             {progresso.falhas > 0 && (
               <p className="text-xs text-muted-foreground">
-                {progresso.falhas} fio(s) falharam e ficaram para trás. Rodar de novo tenta só
+                {progresso.falhas} conversa(s) falharam e ficaram para trás. Rodar de novo tenta só
                 eles.
               </p>
             )}

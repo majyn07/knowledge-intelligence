@@ -59,9 +59,26 @@ export class AIUnsupportedInputError extends Error {
   }
 }
 
+/**
+ * A resposta do modelo não cabe no contrato.
+ *
+ * Carrega **onde** não coube. A tela continua dizendo "peça de novo", que é o
+ * que a pessoa pode fazer, mas o registro do servidor precisava dizer qual
+ * campo: "formato inválido" sem campo é o mesmo beco do "dados inválidos" na
+ * entrada, e um prompt que erra sempre no mesmo lugar é ajuste de prompt, não
+ * de sorte.
+ *
+ * Só caminho de campo e motivo. Nada do texto que o modelo devolveu, que é
+ * escrito sobre o atendimento do cliente.
+ */
 export class InvalidAnalysisResponseError extends Error {
-  constructor() {
-    super("A IA retornou uma análise em formato inválido.");
+  readonly problemas: string[];
+
+  constructor(problemas: string[] = []) {
+    const onde = problemas.length > 0 ? ` (${problemas.join("; ")})` : "";
+
+    super(`A IA retornou uma análise em formato inválido.${onde}`);
     this.name = "InvalidAnalysisResponseError";
+    this.problemas = problemas;
   }
 }

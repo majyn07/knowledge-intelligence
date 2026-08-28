@@ -391,7 +391,7 @@ por `objectTypeId`, registro individual) e todos devolvem 403, enquanto
 é rota errada: é o objeto que está fechado.
 
 Sobra a conversa, e ela é o que o arquivo não traz: a exportação da HubSpot traz
-o ticket, não o fio de mensagens. O fio se liga ao atendimento pelo
+o ticket, não o histórico de mensagens. O conversa se liga ao atendimento pelo
 `associatedTicketId`, que vem **pelo lado da conversa** e não exige o escopo
 ausente.
 
@@ -511,6 +511,31 @@ mil e oitocentos registros num pedido só passa de vinte megabytes e falha, e
 falhou, deixando o acervo em quatrocentos e quarenta com cara de acervo
 inteiro. Vinte e cinco por pedido, com o erro chegando à tela: `void` numa
 promessa engole a exceção, e o laço morre calado.
+
+**A releitura relê só o que mudou.** Ela continua buscando o estado atual em
+vez de aplicar o evento, pelo motivo de sempre, mas em dois passos: a lista de
+identificadores com o carimbo de gravação, e depois só as linhas cujo carimbo
+mudou. Um colega classificando **um** artigo custava onze pedidos e 22,7 MB em
+cada aba aberta da equipe; agora custa três pedidos e 221 ms, medido.
+
+O carimbo é `synced_at`, do gatilho, e **não** `updated_at`. Os dois têm donos
+diferentes: `updated_at` é do produto e guarda o `lastmod` do portal, que é como
+a varredura sabe o que já está em dia; salvar rascunho não o toca e restaurar da
+lixeira também não. Um gatilho sobre ele consertaria a releitura e faria a
+varredura rebaixar 1.822 páginas a cada execução.
+
+Ela recua para a releitura inteira sempre que não puder responder com certeza:
+banco sem a coluna, memória sem carimbo, quase tudo mudado, falha ao buscar. O
+contrário, tela com dado velho, é o defeito que ninguém percebe.
+
+É **opção por coleção**, e não padrão, porque exige `fromRows` que converta
+linha a linha: quem decide algo olhando o conjunto não pode receber um pedaço
+dele. Hoje só o acervo a liga, que é a coleção que a justifica.
+
+**E a leitura paginada ordena por `id`.** Não era ordenada, e paginar com
+`range` sobre consulta sem ordem é indefinido no Postgres: entre duas páginas o
+planejador pode repetir uma linha e pular outra, e a coleção chegaria com um
+artigo duplicado e outro ausente, sem erro nenhum.
 
 **E o tempo real não pode reler durante a nossa própria escrita.** Cada lote
 gravado dispara um evento, a releitura devolve uma visão **parcial** do banco,
@@ -860,6 +885,110 @@ numa tabela, quem fechasse o navegador sem avisar ficaria "editando" para
 sempre. O aviso de presença cobre o antes; `useStaleRecordWarning` cobre o
 depois, quando alguém gravou enquanto você digitava.
 
+## Atendimentos
+
+**A tela é um help desk, e a conversa fica no meio.** Três colunas: a lista à
+esquerda, a conversa no centro, o contexto à direita, e a análise embaixo em
+largura cheia. Empilhado, um diálogo de noventa e quatro mensagens empurrava os
+atributos e a análise para fora da tela; a conversa rola dentro da própria
+caixa e não arrasta a página.
+
+A identidade fica **acima da conversa**, não na lateral. Número da HubSpot,
+cliente e assunto dizem o que se está lendo, e na coluna estreita um assunto
+como "Ticket AltoQi nº47954714157 - Falha Abrir Software - Builder" quebrava em
+seis linhas. O número da HubSpot vem primeiro e o nosso identificador nem
+aparece: `hs-6952014856` é o id da conversa e não acha nada na busca do CRM.
+
+O contexto perdeu a grade de três colunas pelo mesmo motivo. O ponto de quebra
+do Tailwind mede a **janela**, não a coluna: numa tela larga a lateral
+continuaria tentando três células de dois centímetros.
+
+**Duas perguntas, duas vistas.** Atender é "este atendimento aqui"; a fila de
+triagem é "por qual começar". Com mil na fila a segunda deixa de ser opcional, e
+ela existia só dentro do Levantamento, que é outra tela: mandar quem trabalha os
+atendimentos para outro lugar para descobrir por onde começar é o que faz
+ninguém descobrir.
+
+**A fila espera o acervo chegar.** A ordem sai de `score = quantos * (1 -
+cobertura)`, e sem a Biblioteca a cobertura de todo grupo é zero, que é a
+leitura mais alarmante possível: "o acervo não responde nada disto". Foi o que a
+tela mostrou por alguns segundos rodando contra o banco, com os 1.822 artigos a
+caminho. Enquanto não chegou, esqueleto.
+
+### A análise, exercitada contra dado real
+
+Ela estava quebrada de ponta a ponta, e a tela dizia sempre a mesma frase: "não
+foi possível concluir a análise". Foram três defeitos empilhados, e nenhum deles
+tinha como ser diagnosticado da tela.
+
+**O pedido levava o registro cru junto.** O contexto passava o atendimento
+inteiro, e o atendimento passou a carregar `raw`, que é o que a HubSpot devolveu
+sem redução: e-mail, telefone e as 795 propriedades do objeto. Isso ia ao
+provedor de IA **por acidente**, que é a pior forma de decidir sobre dado de
+cliente, e o contrato estrito do servidor recusava todo pedido desde o dia em
+que o campo entrou no modelo. Hoje os campos vão nomeados um a um; se um do
+registro cru fizer falta ao prompt, alguém decide que ele vai.
+
+**O contrato mostrado ao modelo tinha uma chave que não era resposta.**
+`z.toJSONSchema` acrescenta `$schema`, que declara o dialeto do documento. O
+modelo não tem como saber a diferença entre metadado e campo: mostrado o objeto
+e mandado responder naquela forma, ele devolvia `$schema` junto, e o contrato de
+saída, estrito, derrubava a análise.
+
+**Resposta cortada não é resposta inválida.** Sem `maxOutputTokens` declarado
+vale o teto do modelo, e a análise de uma conversa de oitenta mensagens chega
+perto dele: o JSON vinha aberto e sem fechar. Isso subia como "formato inválido,
+peça de novo", que manda repetir um pedido que vai ser cortado no mesmo lugar. O
+`finishReason` decide, e o que não é `STOP` é dito como veio.
+
+**E "dados inválidos" sozinho é detalhe nenhum.** As cinco rotas de IA
+respondiam a frase e mais nada, nem na tela nem no registro do servidor. Agora
+dizem o caminho do campo e o motivo, que é forma e não conteúdo: nenhum valor do
+pedido é copiado para a resposta.
+
+### O e-mail do suporte não é vocabulário
+
+O que a HubSpot devolve como solução é o **e-mail inteiro**, com saudação,
+assinatura, links e horário de atendimento. Tokenizado cru, ele agrupava
+atendimentos pela correspondência e não pelo assunto, e isso apareceu na
+primeira vez que a fila rodou contra dado real:
+
+- multa de cancelamento e pagamento de dívida no mesmo grupo, unidos por
+  "atenciosamente, atendentes, acesse, agradecemos": o grupo era a **assinatura**
+  de quem respondeu;
+- importação de IFC e falha ao abrir o programa no mesmo grupo, unidos por
+  "12h, 13h30, 17h30, 9h": o grupo era o **expediente**;
+- `2e82`, `4abd` e `360002887154` listados como as palavras que descrevem um
+  grupo, sendo pedaços de identificador dentro de uma URL.
+
+São três cortes, e cada um responde a um desses. Endereço e e-mail saem antes de
+virar palavra; a cortesia da correspondência tem lista própria; e hora de
+relógio sai da regra que existe para deixar `D15` e `V10` entrarem. Número solto
+sai junto das palavras comuns, porque `47968252511` é chamado e `2024` é ano em
+qualquer texto deste produto.
+
+A lista vive em `lib/vocabulary` e é **opt-in**: só o texto do atendimento a
+pede. Artigo publicado não abre com "prezado", e "acesso" ou "atendimento" são
+assunto legítimo dentro de um artigo.
+
+E ela não vale só para a triagem. A busca por artigos relacionados que a análise
+faz casava pela correspondência também: um chamado de importação de IFC no
+Eberick trouxe um artigo sobre o Visus Cost Management, ligado por "situação,
+neste, atendimento, identificamos, solicitação". Relacionado que não se sustenta
+é pior que nenhum, porque a análise apresenta os cinco como o que o acervo tem
+sobre o caso, e quem confia abre os cinco uma vez só.
+
+**Havia três listas de palavras comuns, e elas divergiam.** A comparação entre
+artigos descartava "projeto" e "janela"; a busca por relacionados tinha as suas
+trinta e cinco, sem tirar acento, e as deixava passar. Agora a **lista** é uma
+só, e o **tamanho mínimo** continua de quem chama: comparar dois artigos longos
+quer a barra alta, senão qualquer par do Builder se parece; casar uma consulta
+contra o acervo quer a barra baixa, porque "laje", "viga", "SPDA" e "IFC" são
+justamente o que separa um artigo do outro aqui.
+
+A cobertura que a fila mostrava antes disso estava **inflada pelo mesmo ruído**:
+o que o acervo "cobria" eram as palavras de cortesia.
+
 ## Operar em volume
 
 Cartão e tabela **convivem**. A grade responde "o que tem aqui" e é boa para
@@ -956,7 +1085,7 @@ plano são de cada uma. O atendimento casa pelo `source.externalId` da HubSpot,
 como o artigo casa pelo `portalArticleId`, e reimportar preserva a iniciativa
 escolhida aqui dentro. Ela é decisão nossa, não do CRM.
 
-A conversa **não** vem no lote. A exportação traz o ticket, não o fio de
+A conversa **não** vem no lote. A exportação traz o ticket, não a conversa de
 mensagens, e semear uma conversa vazia faria a análise achar que tem evidência
 quando não tem.
 
@@ -1062,6 +1191,40 @@ Média de nada é `null`, nunca zero, zero diria "chega instantaneamente".
 
 Relógio nunca é lido durante o render. Use `useNow`: ler no render é impuro e
 diverge na hidratação, porque servidor e cliente têm horas diferentes.
+
+## Indicadores
+
+**O tempo do ciclo atravessa registros, e é o único que atravessa.** Do dia em
+que o cliente perguntou até o evento que publicou o artigo nascido dali. O resto
+do painel mede um artigo indo de rascunho a publicado, que é o tempo da
+**redação**: o do ciclo inclui tudo que fica parado antes de alguém começar a
+escrever, que é justamente onde ele trava.
+
+`averageDaysTo` não responde isso e não deveria: ela conta da primeira aparição
+**do registro** no histórico.
+
+A mediana vai ao lado da média porque a média mente aqui. Um artigo antigo
+publicado hoje, a partir de um atendimento de dois anos atrás, sozinho leva a
+média a centenas de dias, e quem lê conclui que o ciclo é lento quando o normal
+são duas semanas.
+
+Conta a **primeira** publicação, não a última: um artigo recolhido e republicado
+fechou o ciclo na primeira vez, e contar a segunda faria uma correção de vírgula
+parecer atraso de meses. O que não fecha o ciclo fica fora, com ressalva por
+motivo: sem atendimento de origem, sem data que dê para situar no tempo, ou
+publicado antes da data do atendimento.
+
+**Os assuntos que mais chegam são a fila de triagem lida por outra pessoa.** A
+mesma conta: lá ela diz "leia este primeiro", aqui diz "é isto que está
+chegando, e o acervo cobre tanto por cento", que é a frase que se leva a uma
+reunião. A ordem muda junto com a pergunta: a fila ordena por sinal
+(`quantos × (1 - cobertura)`), esta lista ordena por **volume**, senão o número
+na tela discordaria da lista embaixo dele.
+
+**A página exporta inteira.** Os painéis já saíam um a um, e um a um é o que não
+serve para quem monta um slide: eram doze arquivos. A planilha leva o recorte
+que gerou os números escrito em cima e a ressalva ao lado de cada um que tem
+uma, porque fora da tela ninguém sabe o que ficou de fora.
 
 ## Painéis
 
@@ -1173,16 +1336,17 @@ Testes cobrem lógica pura, nunca componentes: a leitura do sitemap e da página
 do portal com o plano de importação e a decisão do que revisitar, o preparo do
 HTML do artigo (âncora, cor removida, link resolvido, destaque da busca) com
 a limpeza do que executa, o trecho da busca, a sobreposição entre artigos com o vocabulário que os
-compara e a duplicata de título, a comparação de dois, a leitura da conversa da HubSpot com a paginação que não
+compara e a duplicata de título, a triagem do atendimento e a consulta da análise com o corte
+do que a correspondência traz junto, a recusa que diz qual campo, a comparação de dois, a leitura da conversa da HubSpot com a paginação que não
 para na página vazia, o mapeamento de mensagens do provedor, a consulta da IA
 sobre o artigo, o rótulo da iniciativa, motor de busca e busca
 transversal, transições de artigo e de plano, métricas por projeto e por
-período, parsing da resposta da IA, a escolha do provedor com a classificação
+período, o tempo do ciclo com as ressalvas dele e a planilha da página, parsing da resposta da IA, a escolha do provedor com a classificação
 das falhas dele, a leitura da sugestão de seção, a leitura do preenchimento de
 formulário com a seleção do que aplicar e a classificação do arquivo
 anexado, o recorte na URL, a central de avisos, o levantamento, índice do artigo, critérios de publicação,
 fronteira de armazenamento com a divisão em lotes da
-gravação compartilhada, a leitura de arquivo delimitado com o mapeamento de
+gravação compartilhada e o plano da releitura incremental, a leitura de arquivo delimitado com o mapeamento de
 colunas e os planos de importação de artigo e de atendimento, a recuperação de texto não salvo, o cadastro
 de taxonomia com a migração da
 classificação antiga, os normalizadores de artigo, plano e atendimento, o motor

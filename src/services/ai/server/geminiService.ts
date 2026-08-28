@@ -106,6 +106,28 @@ async function complete(
       });
     }
 
+    /*
+      Resposta cortada tem nome próprio.
+
+      Sem `maxOutputTokens` declarado vale o teto do modelo, e a análise de uma
+      conversa de oitenta mensagens chega perto dele: o texto vem pela metade,
+      com o JSON aberto e sem fechar. Isso subia como "a IA devolveu uma
+      análise em formato inválido. Peça de novo", que manda a pessoa repetir um
+      pedido que vai ser cortado de novo, no mesmo lugar.
+
+      `STOP` é o fim normal. Qualquer outro motivo é dito como veio, pelo mesmo
+      princípio das outras falhas de provedor: o texto original é a única pista
+      de quem administra.
+    */
+    const motivo = response.candidates?.[0]?.finishReason;
+
+    if (motivo && motivo !== "STOP") {
+      throw new AIProviderError("gemini", {
+        kind: "desconhecida",
+        detail: `O modelo interrompeu a resposta (${motivo}).`,
+      });
+    }
+
     return response.text;
   } catch (error) {
     if (error instanceof AIProviderError) throw error;

@@ -29,7 +29,16 @@ const NOMEADAS: Record<string, string> = {
   "&apos;": "'",
   "&nbsp;": " ",
   "&ndash;": "–",
-  "&mdash;": ",",
+  /*
+    O travessão volta a ser travessão.
+
+    A varredura que tirou travessão do texto **nosso** passou por cima desta
+    tabela, e aqui ela não é preferência de escrita: é o decodificador do HTML
+    do portal. Com a vírgula no lugar, "Builder &mdash; Estrutural" virava
+    "Builder , Estrutural" nos 1.822 artigos importados. O texto é do cliente e
+    não se reescreve.
+  */
+  "&mdash;": "—",
   "&hellip;": "…",
   "&laquo;": "«",
   "&raquo;": "»",

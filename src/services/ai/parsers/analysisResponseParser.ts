@@ -9,11 +9,18 @@ export function parseAnalysisResponse(response: string): KnowledgeAnalysisResult
   try {
     parsedResponse = JSON.parse(response.trim());
   } catch {
-    throw new InvalidAnalysisResponseError();
+    throw new InvalidAnalysisResponseError(["a resposta não é um JSON"]);
   }
 
   const validation = analysisResponseSchema.safeParse(parsedResponse);
-  if (!validation.success) throw new InvalidAnalysisResponseError();
+
+  if (!validation.success) {
+    throw new InvalidAnalysisResponseError(
+      validation.error.issues
+        .slice(0, 5)
+        .map((issue) => `${issue.path.join(".") || "raiz"}: ${issue.message}`)
+    );
+  }
 
   return {
     ...validation.data,

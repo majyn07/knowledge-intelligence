@@ -139,6 +139,17 @@ describe("decodeEntities", () => {
     expect(decodeEntities("&amp;quot;AF-8&amp;quot;")).toBe('"AF-8"');
   });
 
+  /*
+    O travessão é do portal, e não nosso. Uma varredura que tirava travessão do
+    texto que escrevemos passou por cima desta tabela, e "Builder &mdash;
+    Estrutural" virou "Builder , Estrutural" nos 1.822 importados.
+  */
+  it("resolve travessão e meia-risca sem trocar por pontuação", () => {
+    expect(decodeEntities("Builder &mdash; Estrutural &ndash; Vigas")).toBe(
+      "Builder — Estrutural – Vigas"
+    );
+  });
+
   it("resolve as letras acentuadas em nome", () => {
     expect(decodeEntities("c&iacute;rculos e op&ccedil;&otilde;es")).toBe("círculos e opções");
   });

@@ -124,7 +124,7 @@ describe("toConversationMessages", () => {
 });
 
 describe("actorIdsOf", () => {
-  it("junta os atores sem repetir, para um pedido só por fio", () => {
+  it("junta os atores sem repetir, para um pedido só por conversa", () => {
     const ids = actorIdsOf([
       msg({ createdBy: "A-1" }),
       msg({ createdBy: "V-2" }),

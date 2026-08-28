@@ -4,6 +4,7 @@ import { aiErrorResponse } from "@/services/ai/analysis/aiErrorResponse";
 import { fieldFillRequestSchema } from "@/services/ai/fill/fieldFill";
 import { fieldFillService } from "@/services/ai/fill/fieldFillService";
 import { activeProviderReadsFiles } from "@/services/ai/providers/catalog";
+import { invalidRequestMessage } from "@/services/ai/analysis/invalidRequest";
 
 /**
  * Preenchimento de formulário a partir do que a pessoa escreveu ou anexou.
@@ -49,7 +50,9 @@ export async function POST(request: Request) {
 
   if (!parsed.success) {
     return NextResponse.json(
-      { message: "Dados inválidos para preencher o formulário." },
+      {
+        message: invalidRequestMessage("Dados inválidos para preencher o formulário.", parsed.error),
+      },
       { status: 400 }
     );
   }

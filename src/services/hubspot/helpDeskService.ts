@@ -4,7 +4,7 @@ import { record, text } from "@/lib/shape";
 import type { SupportConversationMessage } from "@/models/SupportConversation";
 
 import { nextCursor, toConversationMessages, type HubSpotActor } from "./conversationMapping";
-import type { FioListado } from "./helpDeskSchedule";
+import type { ConversaListada } from "./helpDeskSchedule";
 import { hubspot } from "./hubspotClient";
 import { toOwnerTeams, type OwnerTeams } from "./ownerTeams";
 import { produtosNoTexto } from "./produtoDoAtendimento";
@@ -58,9 +58,9 @@ export function caixasConfiguradas(env: Record<string, string | undefined>): str
 const POR_PAGINA = 100;
 
 /**
- * Quantos fios um lote de leitura visita.
+ * Quantos conversas um lote de leitura visita.
  *
- * Cada fio custa duas ou três requisições à HubSpot, então vinte por lote dá
+ * Cada conversa custa duas ou três requisições à HubSpot, então vinte por lote dá
  * uma requisição nossa de poucos segundos: curta o bastante para caber no
  * prazo, longa o bastante para o progresso não virar mil idas ao servidor.
  */
@@ -78,7 +78,7 @@ const PAUSA_MS = 120;
 const espera = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 export interface PaginaDeFios {
-  fios: FioListado[];
+  conversas: ConversaListada[];
   /** O cursor da próxima página, ou `null` quando a caixa acabou. */
   proxima: string | null;
 }
@@ -88,7 +88,7 @@ export interface PaginaDeFios {
  *
  * A janela vai para o servidor, e essa é a diferença entre viável e inviável.
  * Sem ela a lista sai do mais antigo e não para: a caixa do suporte tem mais de
- * setenta mil fios, e depois de setecentas páginas a varredura ainda estava em
+ * setenta mil conversas, e depois de setecentas páginas a varredura ainda estava em
  * 2025. Alcançar o mês corrente custaria mais de mil requisições, toda vez.
  *
  * **Os dois parâmetros só funcionam juntos**, e isso não está óbvio em lugar
@@ -96,7 +96,7 @@ export interface PaginaDeFios {
  * `sort=latestMessageTimestamp` sozinho devolve 400 dizendo que o outro
  * precisa estar presente. Foi a mensagem de erro que entregou a combinação.
  *
- * Medido: três meses da caixa do suporte são 10.978 fios em 110 páginas.
+ * Medido: três meses da caixa do suporte são 10.978 conversas em 110 páginas.
  */
 export async function umaPaginaDeFios(
   inboxId: string,
@@ -114,25 +114,25 @@ export async function umaPaginaDeFios(
 
   const pagina: unknown = await hubspot.get(`/conversations/v3/conversations/threads?${query}`);
 
-  return { fios: threadsDaPagina(pagina), proxima: nextCursor(pagina) };
+  return { conversas: threadsDaPagina(pagina), proxima: nextCursor(pagina) };
 }
 
-export interface AtendimentoDoFio {
+export interface AtendimentoDaConversa {
   ticket: ThreadTicket;
   messages: SupportConversationMessage[];
-  /** Quem abriu, e de qual empresa. Vazio quando o fio não tem contato ligado. */
-  contato?: ContatoDoFio;
+  /** Quem abriu, e de qual empresa. Vazio quando a conversa não tem contato ligado. */
+  contato?: ContatoDaConversa;
   /**
    * O identificador do chamado na HubSpot.
    *
-   * Obrigatório: fio sem chamado associado não entra, porque não é atendimento.
+   * Obrigatório: conversa sem chamado associado não entra, porque não é atendimento.
    */
   ticketId: string;
   /** O registro cru, como a origem devolveu. */
   raw: Record<string, unknown>;
 }
 
-async function mensagensDoFio(threadId: string): Promise<unknown[]> {
+async function mensagensDaConversa(threadId: string): Promise<unknown[]> {
   const query = new URLSearchParams({ limit: String(POR_PAGINA) });
 
   const pagina: unknown = await hubspot.get(
@@ -145,14 +145,14 @@ async function mensagensDoFio(threadId: string): Promise<unknown[]> {
 }
 
 /**
- * O chamado ligado ao fio.
+ * O chamado ligado à conversa.
  *
  * A leitura do objeto de ticket é 403, mas a **associação** não: ela devolve o
  * identificador, e é o que permite o registro daqui carregar o número real do
  * chamado. Falha em silêncio de propósito: sem o número o atendimento continua
  * válido, e derrubar a varredura por causa disso sairia caro demais.
  */
-async function chamadoDoFio(threadId: string): Promise<string | undefined> {
+async function chamadoDaConversa(threadId: string): Promise<string | undefined> {
   try {
     const resposta: unknown = await hubspot.get(
       `/crm/v4/objects/conversation/${threadId}/associations/ticket`
@@ -164,7 +164,7 @@ async function chamadoDoFio(threadId: string): Promise<string | undefined> {
   }
 }
 
-export interface ContatoDoFio {
+export interface ContatoDaConversa {
   nome: string;
   empresa: string;
 }
@@ -183,7 +183,7 @@ export interface ContatoDoFio {
  *
  * Falha em silêncio, como o chamado: sem contato o atendimento continua válido.
  */
-async function contatoDoFio(threadId: string): Promise<ContatoDoFio | undefined> {
+async function contatoDoFio(threadId: string): Promise<ContatoDaConversa | undefined> {
   try {
     const assoc: unknown = await hubspot.get(
       `/crm/v4/objects/conversation/${threadId}/associations/contact`
@@ -242,24 +242,24 @@ async function resolverAtores(brutas: unknown[]): Promise<Map<string, HubSpotAct
 }
 
 /**
- * Lê um lote de fios, um por vez.
+ * Lê um lote de conversas, um por vez.
  *
- * Em série dentro do lote: são dezenas de milhares de fios do outro lado, e o
+ * Em série dentro do lote: são dezenas de milhares de conversas do outro lado, e o
  * limite de taxa chegaria no primeiro lote paralelo.
  *
  * O que falha não derruba o que já veio. Quem começou uma varredura de mil não
- * pode perder tudo por causa do fio setecentos, e a contagem de falhas volta
+ * pode perder tudo por causa da conversa setecentos, e a contagem de falhas volta
  * para a tela dizer quantos ficaram para trás.
  */
 export async function lerLote(
-  fios: FioListado[]
-): Promise<{ atendimentos: AtendimentoDoFio[]; falhas: number }> {
-  const atendimentos: AtendimentoDoFio[] = [];
+  conversas: ConversaListada[]
+): Promise<{ atendimentos: AtendimentoDaConversa[]; falhas: number }> {
+  const atendimentos: AtendimentoDaConversa[] = [];
   let falhas = 0;
 
-  for (const fio of fios) {
+  for (const conversa of conversas) {
     try {
-      const brutas = await mensagensDoFio(fio.id);
+      const brutas = await mensagensDaConversa(conversa.id);
 
       /*
         Os atores vêm antes do mapeamento, e não depois: é por eles que se
@@ -268,11 +268,11 @@ export async function lerLote(
       */
       const [atores, ticketId, contato] = await Promise.all([
         resolverAtores(brutas),
-        chamadoDoFio(fio.id),
-        contatoDoFio(fio.id),
+        chamadoDaConversa(conversa.id),
+        contatoDoFio(conversa.id),
       ]);
 
-      const ticket = toThreadTicket({ id: fio.id, createdAt: fio.criadoEm }, brutas, atores);
+      const ticket = toThreadTicket({ id: conversa.id, createdAt: conversa.criadoEm }, brutas, atores);
 
       /*
         Duas condições, e as duas vieram de errar antes.
@@ -303,9 +303,9 @@ export async function lerLote(
             decidir de antemão o que a origem pode ter.
           */
           raw: {
-            threadId: fio.id,
-            criadoEm: fio.criadoEm,
-            ...(fio.ultimaMensagemEm ? { ultimaMensagemEm: fio.ultimaMensagemEm } : {}),
+            threadId: conversa.id,
+            criadoEm: conversa.criadoEm,
+            ...(conversa.ultimaMensagemEm ? { ultimaMensagemEm: conversa.ultimaMensagemEm } : {}),
             hubspotTicketId: ticketId,
             origemDoTitulo: ticket.titleOrigin,
             mensagens: ticket.messageCount,
@@ -340,7 +340,7 @@ export async function lerLote(
 /**
  * Os donos e suas equipes, numa passada por varredura.
  *
- * Resolve o vínculo e-mail → equipe uma vez, e não uma vez por fio. Vale
+ * Resolve o vínculo e-mail → equipe uma vez, e não uma vez por conversa. Vale
  * lembrar o que a medição mostrou: as seis equipes de Suporte da conta têm as
  * mesmas dezoito pessoas, então isso distingue Setup de Suporte e não diz de
  * qual produto o atendimento é.

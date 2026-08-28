@@ -36,14 +36,45 @@ if (!url) {
   process.exit(1);
 }
 
+/**
+ * Escapa usuário e senha dentro da URL.
+ *
+ * O `pg` entrega a string ao `new URL`, e a senha que o Supabase gerou tem
+ * espaço e barra: a URL era recusada antes de qualquer conexão, com um
+ * `ERR_INVALID_URL` que não diz qual parte está errada. Foi por isso que a
+ * migração do registro cru acabou colada à mão no editor de SQL do painel.
+ *
+ * Nada é impresso aqui, como no resto do arquivo.
+ */
+function escaparCredencial(bruta) {
+  const barras = bruta.indexOf("//");
+  const arroba = bruta.lastIndexOf("@");
+
+  if (barras === -1 || arroba === -1) return bruta;
+
+  const esquema = bruta.slice(0, barras + 2);
+  const credencial = bruta.slice(barras + 2, arroba);
+  const resto = bruta.slice(arroba);
+
+  const doisPontos = credencial.indexOf(":");
+  if (doisPontos === -1) return bruta;
+
+  const usuario = decodeURIComponent(credencial.slice(0, doisPontos));
+  const senha = decodeURIComponent(credencial.slice(doisPontos + 1));
+
+  return `${esquema}${encodeURIComponent(usuario)}:${encodeURIComponent(senha)}${resto}`;
+}
+
 /*
   O `pg` recente trata `sslmode=require` como verificação completa da cadeia, e
   o certificado do Supabase não resolve por CA pública. `uselibpqcompat`
   devolve o significado clássico: conexão cifrada, sem verificar a CA.
 */
-const connectionString = url.includes("uselibpqcompat")
-  ? url
-  : `${url}${url.includes("?") ? "&" : "?"}uselibpqcompat=true&sslmode=require`;
+const comCredencial = escaparCredencial(url);
+
+const connectionString = comCredencial.includes("uselibpqcompat")
+  ? comCredencial
+  : `${comCredencial}${comCredencial.includes("?") ? "&" : "?"}uselibpqcompat=true&sslmode=require`;
 
 const client = new pg.Client({ connectionString });
 await client.connect();

@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { aiErrorResponse } from "@/services/ai/analysis/aiErrorResponse";
 import { sectionSuggestionRequestSchema } from "@/services/ai/classify/sectionSuggestion";
 import { suggestSectionService } from "@/services/ai/classify/suggestSectionService";
+import { invalidRequestMessage } from "@/services/ai/analysis/invalidRequest";
 
 /**
  * Sugestão de seção para artigos sem classificação.
@@ -31,7 +32,9 @@ export async function POST(request: Request) {
 
   if (!parsed.success) {
     return NextResponse.json(
-      { message: "Dados inválidos para sugerir seção." },
+      {
+        message: invalidRequestMessage("Dados inválidos para sugerir seção.", parsed.error),
+      },
       { status: 400 }
     );
   }
