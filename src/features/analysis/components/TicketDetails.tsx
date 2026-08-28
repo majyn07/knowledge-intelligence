@@ -52,11 +52,24 @@ export function TicketDetails({
     : [];
 
   /*
-    Cai para o título quando o registro não traz. Atendimento que entrou antes
-    deste campo existir não o tem gravado, e reimportar tudo para preencher um
-    campo derivado seria caro por nada: a origem é o título nos dois casos.
+    Quem diz qual programa está usando é o cliente, e nem sempre no título: "não
+    consigo abrir o projeto" no assunto e "estou no Eberick 2024" na terceira
+    mensagem. Então o título e a fala do cliente entram juntos.
+    
+    A resposta do suporte fica de fora de propósito. Ela cita produto o tempo
+    todo por educação ("aqui no Builder você faria assim"), e isso marcaria como
+    Builder um atendimento que era sobre outra coisa.
+    
+    Recalcula quando o registro não traz gravado: atendimento que entrou antes
+    deste campo existir não o tem, e reimportar tudo para preencher um campo
+    derivado seria caro por nada.
   */
-  const produtos = gravados.length > 0 ? gravados : produtosNoTexto(ticket.title);
+  const daConversa = messages
+    .filter((mensagem) => mensagem.role === "cliente")
+    .map((mensagem) => mensagem.body);
+
+  const produtos =
+    gravados.length > 0 ? gravados : produtosNoTexto([ticket.title, ...daConversa].join(" "));
 
   const cliente =
     typeof ticket.raw?.contato === "object" && ticket.raw.contato !== null
