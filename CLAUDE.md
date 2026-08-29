@@ -1052,6 +1052,14 @@ exigem sessão para escrever. Fazê-lo funcionar exigiria devolver ao ambiente
 uma chave que ignora todas elas, removida de propósito. Então quem sincroniza é
 o navegador de quem já está aqui, com a sessão que ele já tem.
 
+**Ela acompanha a sessão, e não a rota.** Vivia dentro da tela de Atendimentos,
+e ali só rodava enquanto alguém estava naquela tela — enquanto a própria tela
+prometia "com o produto aberto". Ligada por duas horas com o produto aberto
+noutra página, não rodou uma vez, e não havia erro para achar porque não havia
+nada acontecendo. Hoje é um componente sem desenho, montado no layout; quem
+mostra estado continua sendo o cartão em Atendimentos, onde a consequência
+aparece.
+
 **O preço está na tela, não escondido:** de madrugada e no fim de semana
 ninguém tem a aba aberta, e nada entra. É por isso que a retomada cobre o
 **intervalo perdido** e não a última hora: se a última busca foi na sexta, quem

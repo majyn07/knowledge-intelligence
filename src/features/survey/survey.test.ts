@@ -331,7 +331,7 @@ describe("título repetido", () => {
   ];
 
   const achado = (artigos: KnowledgeArticle[]): Finding | undefined =>
-    buildSurvey({ articles: artigos, tickets: [], analyses: [], plans: [], taxonomy, now }).find(
+    buildSurvey({ articles: artigos, tickets: [], taxonomy, now }).find(
       (item) => item.kind === "duplicado"
     );
 
