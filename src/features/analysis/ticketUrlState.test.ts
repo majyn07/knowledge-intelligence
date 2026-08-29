@@ -36,7 +36,7 @@ describe("readTicketRecorte", () => {
     const recorte = readTicketRecorte(readParams("", TICKET_URL_DEFAULTS), EMPRESAS, 1);
 
     expect(recorte.filters).toEqual(defaultTicketFilters);
-    expect(recorte.sort).toBe("recentes");
+    expect(recorte.sort).toBe("atividade");
     expect(recorte.page).toBe(1);
   });
 
@@ -60,7 +60,7 @@ describe("readTicketRecorte", () => {
   it("ordem desconhecida volta para a padrão", () => {
     const params = readParams("?ordem=aleatoria", TICKET_URL_DEFAULTS);
 
-    expect(readTicketRecorte(params, EMPRESAS, 1).sort).toBe("recentes");
+    expect(readTicketRecorte(params, EMPRESAS, 1).sort).toBe("atividade");
   });
 
   /* Página fora do intervalo volta para a primeira, em vez de mostrar vazio. */
@@ -82,7 +82,7 @@ describe("toTicketParams", () => {
   it("o padrão não aparece no endereço", () => {
     const query = applyParams(
       "",
-      toTicketParams(defaultTicketFilters, "recentes", 1),
+      toTicketParams(defaultTicketFilters, defaultTicketSort, 1),
       TICKET_URL_DEFAULTS
     );
 
@@ -92,7 +92,7 @@ describe("toTicketParams", () => {
   it("escreve só o que difere do padrão", () => {
     const query = applyParams(
       "",
-      toTicketParams({ search: "flecha", stage: "a-analisar", company: "all", client: "all", product: "all" }, "recentes", 2),
+      toTicketParams({ search: "flecha", stage: "a-analisar", company: "all", client: "all", product: "all" }, defaultTicketSort, 2),
       TICKET_URL_DEFAULTS
     );
 
@@ -110,7 +110,7 @@ describe("toTicketParams", () => {
   it("preserva o parâmetro que não é nosso", () => {
     const query = applyParams(
       "?ticket=tic-7",
-      toTicketParams({ ...defaultTicketFilters, search: "viga" }, "recentes", 1),
+      toTicketParams({ ...defaultTicketFilters, search: "viga" }, defaultTicketSort, 1),
       TICKET_URL_DEFAULTS
     );
 
@@ -121,7 +121,7 @@ describe("toTicketParams", () => {
   it("a busca vai sem espaço em volta", () => {
     const query = applyParams(
       "",
-      toTicketParams({ ...defaultTicketFilters, search: "  flecha  " }, "recentes", 1),
+      toTicketParams({ ...defaultTicketFilters, search: "  flecha  " }, defaultTicketSort, 1),
       TICKET_URL_DEFAULTS
     );
 

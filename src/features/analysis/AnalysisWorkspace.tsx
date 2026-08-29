@@ -37,12 +37,13 @@ import { analysisService } from "./services/analysisService";
 import { useTickets } from "./providers/TicketsProvider";
 import { usePlans } from "../plans/providers/PlansProvider";
 import { useLibrary } from "../library/providers/LibraryProvider";
+import { useListaPorTeclado } from "./hooks/useListaPorTeclado";
 
 const SIDEBAR_STORAGE_KEY = "visus-workspace-sidebar-collapsed";
 
 export function AnalysisWorkspace() {
   const { activeProject, activeProjectId } = useProject();
-  const { ticketsOf, conversationOf, deleteTicket } = useTickets();
+  const { ticketsOf, conversationOf, deleteTicket, conversations } = useTickets();
   const {
     getAnalysis,
     saveAnalysis,
@@ -65,7 +66,19 @@ export function AnalysisWorkspace() {
     fallback: false,
   });
 
-  const projectTickets = ticketsOf(activeProjectId);
+  /*
+    Memorizado porque a **identidade** do array importa, e não só o conteúdo.
+
+    `ticketsOf` filtra e devolve um array novo a cada chamada; a cada render,
+    portanto, um array diferente com os mesmos mil atendimentos dentro. Quem
+    guarda trabalho pesado por coleção (o índice da busca, num `WeakMap`; a
+    triagem, num `useMemo`) via chave nova toda vez e refazia tudo. Medido: 4,4 s
+    entre uma tecla e a lista responder.
+  */
+  const projectTickets = useMemo(
+    () => ticketsOf(activeProjectId),
+    [activeProjectId, ticketsOf]
+  );
 
   /*
     Onde cada atendimento esta no ciclo. Sai de duas fontes ja em memoria: as
@@ -88,7 +101,7 @@ export function AnalysisWorkspace() {
     [activeProjectId, analyses, articles]
   );
 
-  const recorte = useTicketRecorte(projectTickets, ciclo);
+  const recorte = useTicketRecorte(projectTickets, ciclo, conversations);
 
 
   /*
@@ -199,6 +212,17 @@ export function AnalysisWorkspace() {
 
   const [importOpen, setImportOpen] = useState(false);
   const [helpDeskOpen, setHelpDeskOpen] = useState(false);
+
+  /*
+    Andar pela fila com o teclado, como num help desk. Desligado enquanto há
+    diálogo aberto: ali as setas são de quem está no diálogo.
+  */
+  useListaPorTeclado({
+    ids: recorte.pagina.map((ticket) => ticket.id),
+    selecionado: selectedTicketId,
+    aoSelecionar: setSelectedTicketId,
+    ativo: !importOpen && !helpDeskOpen && deletingTicketId === null,
+  });
 
   const dialogs = (
     <>

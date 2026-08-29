@@ -3,18 +3,21 @@
 import { useCallback, useMemo } from "react";
 
 import { useUrlState } from "@/hooks/useUrlState";
+import { searchTerms } from "@/lib/vocabulary";
 import { paginate } from "@/lib/pagination";
+import type { SupportConversation } from "@/models/SupportConversation";
 import type { Ticket } from "@/models/Ticket";
 
 import {
   clienteDo,
-  matchesTicket,
+  combinaComBusca,
   produtosDoTicket,
   sortTickets,
   ticketStage,
   type TicketCycle,
   type TicketSort,
 } from "../ticketTableView";
+import { indexarAtendimentos, indexarConversas } from "../ticketSearchIndex";
 import {
   defaultTicketFilters,
   defaultTicketSort,
@@ -22,6 +25,7 @@ import {
   TICKET_URL_DEFAULTS,
   toTicketParams,
   type TicketFilters,
+  type TicketStageFilter,
 } from "../ticketUrlState";
 
 /**
@@ -52,6 +56,8 @@ export interface TicketRecorteResult {
   empresas: string[];
   clientes: string[];
   produtos: string[];
+  /** Quantos há em cada etapa, dentro do recorte atual. */
+  porEtapa: Record<TicketStageFilter, number>;
   setFilters: (proximo: TicketFilters) => void;
   setSort: (proximo: TicketSort) => void;
   setPage: (proxima: number) => void;
@@ -59,7 +65,16 @@ export interface TicketRecorteResult {
   temRecorte: boolean;
 }
 
-export function useTicketRecorte(tickets: Ticket[], ciclo: TicketCycle): TicketRecorteResult {
+export function useTicketRecorte(
+  tickets: Ticket[],
+  ciclo: TicketCycle,
+  /*
+    As conversas entram para a busca alcançar o que o cliente escreveu. Opcional
+    porque nem toda tela as tem em mãos, e a ausência só torna a busca mais
+    estreita, nunca errada.
+  */
+  conversas: readonly SupportConversation[] = []
+): TicketRecorteResult {
   const [params, escrever] = useUrlState(TICKET_URL_DEFAULTS);
 
   /*
@@ -114,11 +129,21 @@ export function useTicketRecorte(tickets: Ticket[], ciclo: TicketCycle): TicketR
     [clientes, empresas, params, produtos]
   );
 
-  const filtrados = useMemo(() => {
-    const { filters } = recorte;
+  const conversaDe = useMemo(() => indexarConversas(conversas), [conversas]);
+  const termosDe = useMemo(() => indexarAtendimentos(tickets), [tickets]);
 
-    const passou = tickets.filter((ticket) => {
-      if (filters.stage !== "all" && ticketStage(ticket, ciclo) !== filters.stage) return false;
+  /*
+    Tudo que passou, **menos** o filtro de etapa.
+
+    Uma passada só, e não duas: a lista e a contagem por etapa perguntam a mesma
+    coisa a um passo de distância uma da outra, e escrever as duas em separado
+    dobrava o custo da busca sobre mil atendimentos.
+  */
+  const candidatos = useMemo(() => {
+    const { filters } = recorte;
+    const busca = searchTerms(filters.search);
+
+    return tickets.filter((ticket) => {
       if (filters.company !== "all" && ticket.company.trim() !== filters.company) return false;
       if (filters.client !== "all" && clienteDo(ticket).trim() !== filters.client) return false;
 
@@ -126,11 +151,48 @@ export function useTicketRecorte(tickets: Ticket[], ciclo: TicketCycle): TicketR
         return false;
       }
 
-      return matchesTicket(ticket, filters.search);
+      return combinaComBusca(
+        busca,
+        termosDe.get(ticket.id) ?? [],
+        conversaDe.get(ticket.id) ?? ""
+      );
     });
+  }, [conversaDe, recorte, termosDe, tickets]);
+
+  const filtrados = useMemo(() => {
+    const { filters } = recorte;
+
+    const passou =
+      filters.stage === "all"
+        ? candidatos
+        : candidatos.filter((ticket) => ticketStage(ticket, ciclo) === filters.stage);
 
     return sortTickets(passou, recorte.sort);
-  }, [ciclo, recorte, tickets]);
+  }, [candidatos, ciclo, recorte]);
+
+  /*
+    Quantos há em cada etapa, contados **antes** do filtro de etapa e depois dos
+    outros.
+
+    É a conta do help desk: "A analisar (812)" diz onde está o trabalho antes de
+    alguém clicar para descobrir. Contar depois do próprio filtro daria sempre o
+    total da etapa escolhida e zero nas outras, que não informa nada; contar
+    antes dos outros filtros mostraria números que não correspondem ao recorte
+    em que a pessoa está.
+  */
+  const porEtapa = useMemo(() => {
+    const contagem: Record<TicketStageFilter, number> = {
+      all: candidatos.length,
+      "a-analisar": 0,
+      analisado: 0,
+      publicado: 0,
+      "sem-solucao": 0,
+    };
+
+    for (const ticket of candidatos) contagem[ticketStage(ticket, ciclo)] += 1;
+
+    return contagem;
+  }, [candidatos, ciclo]);
 
   const page = paginate(filtrados, recorte.page, POR_PAGINA);
 
@@ -152,6 +214,7 @@ export function useTicketRecorte(tickets: Ticket[], ciclo: TicketCycle): TicketR
     empresas,
     clientes,
     produtos,
+    porEtapa,
 
     /* Mudar o filtro volta para a primeira página: a sétima pode não existir mais. */
     setFilters: (proximo) => escreverRecorte(proximo, recorte.sort, 1),

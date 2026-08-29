@@ -4,6 +4,7 @@ import type { Ticket } from "@/models/Ticket";
 
 import {
   chamadoDo,
+  ultimaAtividadeDe,
   clienteDo,
   matchesTicket,
   produtosDoTicket,
@@ -235,5 +236,61 @@ describe("a célula de cliente", () => {
     expect(ticketCellValue(daHubSpot("Guilherme Barcelos", "1"), "client", vazio)).toBe(
       "Guilherme Barcelos"
     );
+  });
+});
+
+/*
+  O que se procura quase nunca está no assunto: metade deles começa com "Ticket
+  AltoQi nº". A frase que descreve o problema está na conversa.
+*/
+describe("a busca dentro da conversa", () => {
+  it("acha pelo que o cliente escreveu", () => {
+    const ticket = atendimento({ title: "Ticket AltoQi nº47809916061" });
+
+    expect(matchesTicket(ticket, "deslocado", "o modelo ifc esta deslocado na laje")).toBe(true);
+  });
+
+  it("exige todos os termos, mesmo espalhados entre campo e conversa", () => {
+    const ticket = atendimento({ title: "Falha ao abrir" });
+
+    expect(matchesTicket(ticket, "falha deslocado", "o modelo esta deslocado")).toBe(true);
+    expect(matchesTicket(ticket, "falha inexistente", "o modelo esta deslocado")).toBe(false);
+  });
+
+  it("sem conversa, continua valendo o que já valia", () => {
+    expect(matchesTicket(atendimento(), "flecha")).toBe(true);
+    expect(matchesTicket(atendimento(), "deslocado")).toBe(false);
+  });
+});
+
+describe("ordenar por atividade recente", () => {
+  const comAtividade = (id: string, quando: string) =>
+    atendimento({ id, raw: { ultimaMensagemEm: quando } });
+
+  /*
+    A ordem de um help desk: um chamado aberto na semana passada e respondido
+    hoje é trabalho de hoje.
+  */
+  it("põe na frente o que se moveu por último", () => {
+    const lista = [
+      comAtividade("antigo", "2026-08-01T10:00:00.000Z"),
+      comAtividade("novo", "2026-08-28T10:00:00.000Z"),
+    ];
+
+    expect(sortTickets(lista, "atividade").map((t) => t.id)).toEqual(["novo", "antigo"]);
+  });
+
+  /* O que não dá para situar no tempo não é nem recente nem antigo. */
+  it("manda para o fim o que não tem carimbo", () => {
+    const lista = [atendimento({ id: "sem" }), comAtividade("com", "2026-08-01T10:00:00.000Z")];
+
+    expect(sortTickets(lista, "atividade").map((t) => t.id)).toEqual(["com", "sem"]);
+  });
+
+  it("lê o carimbo do registro cru", () => {
+    expect(ultimaAtividadeDe(comAtividade("a", "2026-08-28T10:00:00.000Z"))).toBe(
+      "2026-08-28T10:00:00.000Z"
+    );
+    expect(ultimaAtividadeDe(atendimento())).toBe("");
   });
 });

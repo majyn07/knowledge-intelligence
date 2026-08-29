@@ -30,6 +30,7 @@ export const ticketStageFilterLabel: Record<TicketStageFilter, string> = {
 };
 
 export const TICKET_SORTS: TicketSort[] = [
+  "atividade",
   "recentes",
   "antigos",
   "assunto",
@@ -43,7 +44,7 @@ export const TICKET_URL_DEFAULTS: ParamValues = {
   empresa: "all",
   cliente: "all",
   produto: "all",
-  ordem: "recentes",
+  ordem: "atividade",
   pagina: "1",
 };
 
@@ -72,7 +73,14 @@ export const defaultTicketFilters: TicketFilters = {
   product: "all",
 };
 
-export const defaultTicketSort: TicketSort = "recentes";
+/**
+ * A fila abre pela atividade, e não pela data do atendimento.
+ *
+ * É a ordem de um help desk: um chamado aberto na semana passada e respondido
+ * hoje é trabalho de hoje. A data do atendimento diz quando ele nasceu, que é
+ * outra pergunta, e continua ali como opção.
+ */
+export const defaultTicketSort: TicketSort = "atividade";
 
 export interface TicketRecorte {
   filters: TicketFilters;

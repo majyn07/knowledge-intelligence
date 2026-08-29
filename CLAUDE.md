@@ -1099,6 +1099,41 @@ O interruptor vive no banco, e não no navegador. Tema e forma da lista são
 preferência de máquina; este decide se o produto fala com o servidor de suporte,
 e vale para as catorze ao mesmo tempo. Nasce desligado.
 
+### Procurar o atendimento, como num help desk
+
+**A busca alcança o que o cliente escreveu.** Ela varria assunto, cliente,
+empresa e solução, tudo que está **fora** da conversa, e metade dos assuntos
+começa com "Ticket AltoQi nº". Quem procura "modelo IFC deslocado" procura uma
+frase da terceira mensagem. É o mesmo movimento que a Biblioteca fez quando o
+portal entrou.
+
+Campo casa por **prefixo de palavra**, para a lista responder a "vig" enquanto
+alguém digita; conversa casa por **trecho**, porque quebrar dezesseis mil
+mensagens em palavras a cada tecla não se paga, e quem procura dentro da
+conversa escreve a palavra inteira.
+
+**A ordem padrão é a atividade, não a data do atendimento.** Um chamado aberto
+semana passada e respondido hoje é trabalho de hoje. A data de abertura diz
+quando ele nasceu, que é outra pergunta, e continua na lista.
+
+**A contagem por etapa fica ao lado do filtro**, contada depois dos outros
+filtros e antes do de etapa: "A analisar (812)" diz onde está o trabalho antes
+de alguém clicar para descobrir. Contar depois do próprio filtro daria o total
+da etapa escolhida e zero nas outras.
+
+**Seta e `j`/`k` andam pela fila**, dentro da página e sem dar a volta: voltar
+ao primeiro depois do último faz alguém reler sem perceber. Como todo atalho de
+uma tecla, precisa da guarda de digitação, senão `k` no campo de busca move a
+lista em vez de escrever. O selecionado acompanha a rolagem e se anuncia por
+`aria-current`: o destaque é cor, e cor não chega a quem lê por leitor de tela.
+
+**A identidade do array importa, e não só o conteúdo.** `ticketsOf` filtra e
+devolve um array novo a cada chamada, então cada render entregava mil
+atendimentos numa embalagem diferente. Todo trabalho guardado por coleção (o
+índice da busca num `WeakMap`, a triagem num `useMemo`) via chave nova e refazia
+tudo: **4,4 s entre a tecla e a lista responder**, medido, contra 120 ms depois.
+O índice não era o gargalo; a chave dele era.
+
 **Duas perguntas, duas vistas.** Atender é "este atendimento aqui"; a fila de
 triagem é "por qual começar". Com mil na fila a segunda deixa de ser opcional, e
 ela existia só dentro do Levantamento, que é outra tela: mandar quem trabalha os

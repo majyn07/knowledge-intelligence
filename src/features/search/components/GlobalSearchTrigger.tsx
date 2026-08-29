@@ -7,21 +7,7 @@ import { Button } from "@/components/ui/button";
 
 import { GlobalSearchDialog } from "./GlobalSearchDialog";
 import { ShortcutsDialog } from "./ShortcutsDialog";
-
-/**
- * Um atalho de tecla só não pode disparar enquanto a pessoa escreve.
- *
- * "/" e "?" são caracteres comuns em português. Sem esta guarda, digitar
- * "e/ou" numa descrição abriria a paleta no meio da frase.
- */
-function isTyping(target: EventTarget | null): boolean {
-  if (!(target instanceof HTMLElement)) return false;
-
-  return (
-    target.isContentEditable ||
-    ["INPUT", "TEXTAREA", "SELECT"].includes(target.tagName)
-  );
-}
+import { isTyping } from "@/lib/typing";
 
 export function GlobalSearchTrigger() {
   const [open, setOpen] = useState(false);

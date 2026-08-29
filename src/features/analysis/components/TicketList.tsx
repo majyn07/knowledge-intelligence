@@ -11,7 +11,9 @@ import {
   User,
   X,
 } from "lucide-react";
+import { useEffect, useRef } from "react";
 
+import { RelativeDate } from "@/components/common/RelativeDate";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -27,6 +29,7 @@ import {
   clienteDo,
   ticketStage,
   ticketStageLabel,
+  ultimaAtividadeDe,
   type TicketCycle,
 } from "../ticketTableView";
 import {
@@ -161,6 +164,13 @@ export function TicketList({
               onClick={() => recorte.setFilters({ ...recorte.filters, stage: etapa })}
             >
               {ticketStageFilterLabel[etapa]}
+
+              {/*
+                A contagem ao lado do rótulo, como num help desk: ela diz onde
+                está o trabalho antes de alguém clicar para descobrir. Conta
+                dentro do recorte atual, senão o número discordaria da lista.
+              */}
+              <span className="ml-1 tabular-nums opacity-60">{recorte.porEtapa[etapa]}</span>
             </Button>
           ))}
         </div>
@@ -342,10 +352,29 @@ function TicketRow({
   const etapa = ticketStage(ticket, ciclo);
   const cliente = clienteDo(ticket);
   const chamado = chamadoDo(ticket);
+  const atividade = ultimaAtividadeDe(ticket);
+
+  /*
+    O item selecionado acompanha o teclado.
+
+    A coluna rola dentro dela mesma e mostra umas seis linhas das vinte e cinco
+    da página: sem isto, a sexta seta moveria uma seleção que saiu da tela, e
+    quem está percorrendo a fila veria a lista parar de responder. `nearest`
+    porque `center` sacode a lista a cada passo, mesmo quando o item já está
+    visível.
+  */
+  const item = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    if (selected) item.current?.scrollIntoView({ block: "nearest" });
+  }, [selected]);
 
   return (
     <button
+      ref={item}
       onClick={() => onSelect(ticket.id)}
+      /* O destaque é cor, e cor não chega a quem lê por leitor de tela. */
+      aria-current={selected}
       className={`w-full border-b border-border/60 px-4 py-4 text-left transition-colors last:border-b-0 ${
         selected ? "bg-primary/8" : "hover:bg-muted/45"
       }`}
@@ -380,11 +409,20 @@ function TicketRow({
               </div>
             )}
 
-            {chamado !== "" && (
-              <span className="inline-block rounded bg-muted px-1.5 py-0.5 font-mono text-[10px]">
-                #{chamado}
-              </span>
-            )}
+            <div className="flex flex-wrap items-center gap-2">
+              {chamado !== "" && (
+                <span className="rounded bg-muted px-1.5 py-0.5 font-mono text-[10px]">
+                  #{chamado}
+                </span>
+              )}
+
+              {/*
+                Quando a conversa se moveu pela última vez, e não a data do
+                atendimento: um chamado aberto na semana passada e respondido
+                hoje é trabalho de hoje.
+              */}
+              {atividade !== "" && <RelativeDate value={atividade} />}
+            </div>
           </div>
         </div>
 

@@ -165,9 +165,16 @@ export function ticketCellValue(
   }
 }
 
-export type TicketSort = "recentes" | "antigos" | "assunto" | "empresa" | "cliente";
+export type TicketSort =
+  | "atividade"
+  | "recentes"
+  | "antigos"
+  | "assunto"
+  | "empresa"
+  | "cliente";
 
 export const ticketSortLabel: Record<TicketSort, string> = {
+  atividade: "Atividade recente",
   recentes: "Mais recentes",
   antigos: "Mais antigos",
   assunto: "Assunto (A–Z)",
@@ -181,10 +188,30 @@ export const ticketSortLabel: Record<TicketSort, string> = {
  * O que não dá para situar no tempo não é nem recente nem antigo, e deixá-lo
  * no topo de "mais recentes" faria a lista abrir com o que menos se sabe.
  */
+/**
+ * Quando a conversa se moveu pela última vez.
+ *
+ * É o carimbo que a HubSpot devolve na listagem, guardado no registro cru. Não
+ * é a data do atendimento: um chamado aberto na semana passada e respondido
+ * hoje é trabalho de hoje, e num help desk é por isso que se ordena.
+ */
+export function ultimaAtividadeDe(ticket: Ticket): string {
+  const carimbo = ticket.raw?.ultimaMensagemEm;
+
+  return typeof carimbo === "string" ? carimbo : "";
+}
+
 export function sortTickets(tickets: Ticket[], sort: TicketSort): Ticket[] {
   const copia = [...tickets];
 
   switch (sort) {
+    /*
+      A ordem de um help desk: o que se mexeu por último vem primeiro. Sem
+      carimbo vai para o fim, pelo mesmo motivo da data vazia — o que não dá
+      para situar no tempo não é nem recente nem antigo.
+    */
+    case "atividade":
+      return copia.sort((a, b) => ultimaAtividadeDe(b).localeCompare(ultimaAtividadeDe(a)));
     case "recentes":
       return copia.sort((a, b) => (b.date || "").localeCompare(a.date || ""));
     case "antigos":
@@ -223,14 +250,39 @@ export function sortTickets(tickets: Ticket[], sort: TicketSort): Ticket[] {
  * Cada termo casa por prefixo, porque quem digita "vig" está no meio de
  * escrever "viga" e a lista precisa reagir enquanto ele digita.
  */
-export function matchesTicket(ticket: Ticket, query: string): boolean {
-  const termos = searchTerms(query);
+export function matchesTicket(ticket: Ticket, query: string, conversa = ""): boolean {
+  return combinaComBusca(searchTerms(query), searchTerms(camposDoTicket(ticket).join(" ")), conversa);
+}
 
-  if (termos.length === 0) return true;
+/**
+ * O casamento em si, sobre texto **já preparado**.
+ *
+ * Separado de `matchesTicket` porque a lista prepara uma vez por coleção o que
+ * esta fazia a cada tecla, por atendimento. Quem tem só um registro em mãos
+ * continua chamando a de cima.
+ */
+export function combinaComBusca(
+  busca: string[],
+  texto: string[],
+  conversa = ""
+): boolean {
+  if (busca.length === 0) return true;
 
-  const texto = searchTerms(campos(ticket).join(" "));
+  /*
+    A conversa entra por último e por um caminho diferente: os campos casam por
+    prefixo de palavra, e a conversa por trecho.
 
-  return termos.every((termo) => texto.some((palavra) => palavra.startsWith(termo)));
+    O prefixo existe para a lista reagir enquanto alguém digita "vig". Fazer o
+    mesmo sobre dezesseis mil mensagens exigiria quebrar tudo em palavras a cada
+    tecla; `includes` sobre o texto já limpo custa uma varredura, e num acervo
+    de quatro megabytes isso é barato.
+
+    A diferença aparece pouco: quem digita "vig" acha pelo assunto de qualquer
+    forma, e quem procura dentro da conversa costuma escrever a palavra inteira.
+  */
+  return busca.every(
+    (termo) => texto.some((palavra) => palavra.startsWith(termo)) || conversa.includes(termo)
+  );
 }
 
 /**
@@ -245,7 +297,7 @@ export function matchesTicket(ticket: Ticket, query: string): boolean {
  * **E o cliente**, que é como as pessoas realmente procuram: quem atendeu
  * lembra do nome de quem ligou muito antes de lembrar do assunto que digitou.
  */
-function campos(ticket: Ticket): string[] {
+export function camposDoTicket(ticket: Ticket): string[] {
   return [
     ticket.title,
     clienteDo(ticket),
