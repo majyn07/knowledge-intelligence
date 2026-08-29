@@ -1202,6 +1202,16 @@ ele a lista informa que doze artigos casam e não diz por quê, e a pessoa abre 
 doze. Acento não atrapalha em lugar nenhum: quem digita "secao" acha "seção",
 porque exigir o acento certo é fazer errar duas vezes antes de achar.
 
+**Título repetido não é sempre problema nosso, e a ação muda com isso.** Dos
+seis títulos repetidos no acervo, **cinco são do portal**: cada artigo tem
+endereço próprio lá, e apagar um aqui não resolve porque a próxima importação o
+traz de volta. A decisão é de quem publica. O sexto é nosso: o portal serve a
+mesma página por `/articles/<id>` e por `/<slug>`, e como a identidade sai da
+URL, o mesmo texto entrou duas vezes.
+
+Dizer "decidir qual fica" para os cinco primeiros seria mandar alguém fazer um
+trabalho que volta sozinho na semana seguinte.
+
 **Artigos que se sobrepõem é o achado que só o acervo inteiro permite.** Dois
 artigos ensinando a mesma coisa, cada um respondendo metade, e quem procura
 encontra um dos dois sem saber do outro. A comparação é **dentro da seção**.
@@ -1523,7 +1533,7 @@ Testes cobrem lógica pura, nunca componentes: a leitura do sitemap e da página
 do portal com o plano de importação e a decisão do que revisitar, o preparo do
 HTML do artigo (âncora, cor removida, link resolvido, destaque da busca) com
 a limpeza do que executa, o trecho da busca, a sobreposição entre artigos com o vocabulário que os
-compara e a duplicata de título, a porta da HubSpot com o freio dela e a decisão da busca
+compara e a duplicata de título com a distinção entre a do portal e a nossa, a porta da HubSpot com o freio dela e a decisão da busca
 automática, a janela da busca, a triagem do atendimento e a consulta da análise com o corte
 do que a correspondência traz junto e a medição do que o acervo repete, a recusa que diz qual campo, a comparação de dois, a leitura da conversa da HubSpot com a paginação que não
 para na página vazia, o mapeamento de mensagens do provedor, a consulta da IA

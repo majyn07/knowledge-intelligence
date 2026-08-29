@@ -318,12 +318,43 @@ export function buildSurvey(input: SurveyInput): Finding[] {
   for (const grupo of findDuplicates(articles)) {
     const quantos = grupo.articles.length;
 
+    /*
+      Duplicata do portal e duplicata nossa pedem ações opostas, e a tela dizia
+      "decidir qual fica" para as duas.
+
+      Quando cada um tem identidade própria no portal, são dois artigos
+      publicados lá, e apagar um aqui não resolve nada: a próxima importação o
+      traz de volta. A decisão é de quem publica, e o que este achado pode fazer
+      é levar a conversa para lá.
+
+      Medido no acervo: dos seis títulos repetidos, cinco são assim.
+    */
+    const doPortal = grupo.articles.every((article) => Boolean(article.portalArticleId));
+
+    const identidades = new Set(grupo.articles.map((article) => article.portalArticleId));
+
+    /*
+      O portal serve o mesmo artigo por dois endereços, `/articles/<id>` e
+      `/<slug>`, e o identificador sai da URL. Quando um par tem um numérico e
+      um que não é, é o mesmo texto entrando duas vezes — e aí a duplicata é
+      nossa. Foi o sexto caso.
+    */
+    const mesmaPaginaDuasVezes =
+      doPortal &&
+      identidades.size === quantos &&
+      grupo.articles.some((article) => /^\d+$/.test(article.portalArticleId ?? "")) &&
+      grupo.articles.some((article) => !/^\d+$/.test(article.portalArticleId ?? ""));
+
     achados.push({
       id: `duplicado:${grupo.articles.map((article) => article.id).join(":")}`,
       kind: "duplicado",
       origin: "calculado",
       severity: "alta",
-      action: `Decidir qual dos ${quantos} fica`,
+      action: mesmaPaginaDuasVezes
+        ? "Unificar: é a mesma página, importada por dois endereços"
+        : doPortal
+          ? `Levar ao portal: são ${quantos} artigos publicados lá`
+          : `Decidir qual dos ${quantos} fica`,
       subject: grupo.title,
       /*
         O `why` é texto puro: a tela o mostra como veio. Marcação de Markdown
@@ -334,11 +365,24 @@ export function buildSurvey(input: SurveyInput): Finding[] {
         const caminho = sectionPath(taxonomy, grupo.sectionId);
         const onde = caminho ? `em ${caminho}` : "e ainda sem seção";
 
-        return grupo.identical
+        if (mesmaPaginaDuasVezes) {
+          return (
+            `A mesma página do portal entrou duas vezes, ${onde}: o endereço curto e o ` +
+            `com número dão identidades diferentes ao mesmo artigo. Apagar um aqui resolve, ` +
+            `e o outro continua no ar.`
+          );
+        }
+
+        const base = grupo.identical
           ? `${quantos} artigos com o mesmo título, ${onde}, com o conteúdo idêntico ` +
             `caractere a caractere. São cópias no ar ao mesmo tempo.`
           : `${quantos} artigos com o mesmo título, ${onde}, e o conteúdo diverge entre ` +
             `eles. Quem procura acha um sem saber que o outro existe e diz outra coisa.`;
+
+        return doPortal
+          ? `${base} Cada um tem endereço próprio no portal, então apagar aqui não resolve: ` +
+            `a próxima importação traz de volta. Quem decide é quem publica lá.`
+          : base;
       })(),
       /*
         Dois vão para a comparação; três ou mais não cabem nela, e a busca pelo

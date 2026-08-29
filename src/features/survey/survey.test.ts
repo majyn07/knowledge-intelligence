@@ -318,3 +318,46 @@ describe("a lista inteira", () => {
     expect(resumo.propostos).toBe(0);
   });
 });
+
+/*
+  Duplicata do portal e duplicata nossa pedem ações opostas, e a tela dizia
+  "decidir qual fica" para as duas. Medido no acervo: dos seis títulos
+  repetidos, cinco são do portal.
+*/
+describe("título repetido", () => {
+  const par = (extra: [Partial<KnowledgeArticle>, Partial<KnowledgeArticle>]) => [
+    artigo({ id: "d1", title: "Como funciona o Suporte", ...extra[0] }),
+    artigo({ id: "d2", title: "Como funciona o Suporte", ...extra[1] }),
+  ];
+
+  const achado = (artigos: KnowledgeArticle[]): Finding | undefined =>
+    buildSurvey({ articles: artigos, tickets: [], analyses: [], plans: [], taxonomy, now }).find(
+      (item) => item.kind === "duplicado"
+    );
+
+  it("manda ao portal quando cada um tem endereço próprio lá", () => {
+    const item = achado(par([{ portalArticleId: "111" }, { portalArticleId: "222" }]));
+
+    expect(item?.action).toContain("Levar ao portal");
+    expect(item?.why).toContain("apagar aqui não resolve");
+  });
+
+  /*
+    O portal serve o mesmo artigo por `/articles/<id>` e por `/<slug>`, e o
+    identificador sai da URL: o mesmo texto entra duas vezes.
+  */
+  it("reconhece a mesma página entrando por dois endereços", () => {
+    const item = achado(par([{ portalArticleId: "360022260694" }, { portalArticleId: "como-preencher-com-cores" }]));
+
+    expect(item?.action).toContain("Unificar");
+    expect(item?.why).toContain("duas vezes");
+  });
+
+  /* Escrito aqui dentro é decisão nossa, e aí "qual fica" é a pergunta certa. */
+  it("pede a decisão quando os artigos nasceram aqui", () => {
+    const item = achado(par([{}, {}]));
+
+    expect(item?.action).toContain("Decidir qual");
+    expect(item?.why).not.toContain("portal");
+  });
+});
