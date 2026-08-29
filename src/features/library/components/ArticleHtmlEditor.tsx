@@ -20,6 +20,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 
+import { limparColagem, textoComoHtml } from "../content/pasteHtml";
+
 /**
  * Editor do artigo em HTML.
  *
@@ -33,6 +35,9 @@ import { Textarea } from "@/components/ui/textarea";
  * funciona em todo navegador que importa. A troca está declarada: fidelidade do
  * conteúdo vale mais que pureza de API, porque o conteúdo é da AltoQi e a API é
  * detalhe nosso.
+ *
+ * A colagem é tratada, e é o buraco que a fidelidade tinha: sem tratamento, o
+ * `contenteditable` aceita a marcação do Word inteira, sem sintoma na tela.
  *
  * **Não publica no portal.** Editar aqui altera o acervo; lançar de volta na
  * HubSpot é decisão de outra ordem e fica para a sprint ProjetoAprovado.
@@ -110,6 +115,58 @@ export function ArticleHtmlEditor({ value, onChange, resetKey }: ArticleHtmlEdit
 
   function aplicar(nome: string, argumento?: string) {
     comando(nome, argumento);
+    capturar();
+  }
+
+  /**
+   * A colagem traz só o que a barra sabe produzir.
+   *
+   * Um `contenteditable` sem tratamento aceita o que estiver na área de
+   * transferência, e o que costuma estar ali é Word, Google Docs ou outra aba.
+   * A marcação de origem entra inteira, não muda nada na tela de quem colou, e
+   * fica dentro de um artigo que vai para o cliente. É a pior forma de
+   * degradar, porque não tem sintoma.
+   *
+   * A inserção é pelo intervalo, e **não** por `execCommand("insertHTML")`.
+   * Medido: o Chrome embrulha o que o `insertHTML` recebe num `<span>` com o
+   * estilo calculado do ponto de inserção, `color: lab(96.52 ...)` e
+   * `font-size: 0.9375rem`. Seria trocar a marcação do Word pela do navegador,
+   * que é o mesmo problema com outro nome.
+   *
+   * O preço é o desfazer: uma inserção feita à mão nem sempre entra na pilha do
+   * navegador. Fidelidade do conteúdo vale mais, e o `Ver HTML` continua ali
+   * para desfazer no braço.
+   */
+  function aoColar(evento: React.ClipboardEvent<HTMLDivElement>) {
+    evento.preventDefault();
+
+    const html = evento.clipboardData.getData("text/html");
+    const texto = evento.clipboardData.getData("text/plain");
+
+    const conteudo = html ? limparColagem(html) : textoComoHtml(texto);
+
+    if (conteudo === "") return;
+
+    const selecao = window.getSelection();
+
+    if (!selecao || selecao.rangeCount === 0) return;
+
+    const intervalo = selecao.getRangeAt(0);
+    intervalo.deleteContents();
+
+    const pedaco = intervalo.createContextualFragment(conteudo);
+    const ultimo = pedaco.lastChild;
+
+    intervalo.insertNode(pedaco);
+
+    /* O cursor fica depois do que entrou, e não antes: colar e continuar digitando. */
+    if (ultimo) {
+      intervalo.setStartAfter(ultimo);
+      intervalo.collapse(true);
+      selecao.removeAllRanges();
+      selecao.addRange(intervalo);
+    }
+
     capturar();
   }
 
@@ -206,6 +263,7 @@ export function ArticleHtmlEditor({ value, onChange, resetKey }: ArticleHtmlEdit
           aria-label="Corpo do artigo"
           onInput={capturar}
           onBlur={capturar}
+          onPaste={aoColar}
           className="article-html max-h-[32rem] min-h-[20rem] overflow-y-auto p-4 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         />
       ) : (
