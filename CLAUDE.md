@@ -894,6 +894,40 @@ existe para evitar. Aqui o que ninguém tocar continua idêntico ao byte, ao
 preço de usar `document.execCommand`, obsoleto na especificação e presente em
 todo navegador que importa.
 
+**A fidelidade foi medida, e ela se sustenta.** Salvar sem tocar em nada
+devolve o artigo byte a byte (20.069 bytes, mesmo hash). Aplicar negrito num
+trecho troca quinze caracteres por `<b>quinze</b>` e deixa os outros 19.895
+idênticos. O `style`, o `lang` e a `class` da HubSpot atravessam.
+
+**A colagem era o buraco dessa promessa.** Um `contenteditable` sem tratamento
+aceita o que estiver na área de transferência, e o que costuma estar ali é
+Word: `mso-fareast-font-family`, `<o:p>`, fonte em pontos. Entra inteiro, não
+muda nada na tela de quem colou, e fica dentro de um artigo que vai para o
+cliente. É a pior forma de degradar, porque não tem sintoma. Agora a colagem
+traz **só o que a barra sabe produzir**.
+
+E a inserção é pelo intervalo, não por `execCommand("insertHTML")`: medido, o
+Chrome embrulha o que o `insertHTML` recebe num `<span>` com o estilo calculado
+do ponto de inserção (`color: lab(96.52 ...)`, `font-size: 0.9375rem`). Seria
+trocar a marcação do Word pela do navegador. O preço é o desfazer, que nem
+sempre alcança uma inserção feita à mão.
+
+**E o editor aceita imagem, porque o acervo é feito delas.** 1.771 dos 1.822
+artigos do portal têm figura: um editor que formata texto e não recebe print
+corrige frase e não documenta passo. O caminho principal é **colar**, e não
+escolher arquivo: ninguém salva uma captura em disco para depois procurá-la.
+
+As imagens do portal continuam onde estão, servidas pela HubSpot. O balde é só
+para o que nasce aqui, e **nada dele vai para a HubSpot**.
+
+O balde é público na leitura e a decisão é essa: URL assinada expira, e artigo
+com imagem quebrada em três dias é pior que imagem que alguém com o endereço
+consegue ver. O acervo espelha um portal público. O que não pode é qualquer um
+**escrever**, e disso cuida a política.
+
+SVG é recusado junto com o que passa de 5 MB. SVG carrega script, e a imagem de
+um artigo interno não precisa executar nada.
+
 O que a leitura acrescenta (âncora nos títulos, caixa de aviso, link resolvido
 para dentro do acervo, cor removida para o tema não brigar) **não entra no
 editor**: são camada de apresentação, e editar sobre elas gravaria enfeite

@@ -100,6 +100,12 @@ export interface ResultadoDaLeitura {
   trazidos: Trazido[];
   lidos: number;
   falhas: number;
+  /*
+    Por que as conversas que não viraram atendimento ficaram de fora. A tela
+    dizia só "0 viraram atendimento", e zero sem motivo é indistinguível de
+    defeito.
+  */
+  descartados: { semChamado: number; semResposta: number; semAssunto: number };
 }
 
 /**
@@ -126,6 +132,7 @@ export async function lerConversas({
   const trazidos: Trazido[] = [];
   let lidos = 0;
   let falhas = 0;
+  const descartados = { semChamado: 0, semResposta: 0, semAssunto: 0 };
 
   for (let inicio = 0; inicio < visitar.length; inicio += POR_LOTE) {
     if (parou?.()) break;
@@ -137,6 +144,12 @@ export async function lerConversas({
 
     const atendimentos = (resposta.atendimentos as Record<string, never>[]) ?? [];
     falhas += Number(resposta.falhas ?? 0);
+
+    const motivos = (resposta.descartados ?? {}) as Record<string, unknown>;
+
+    for (const chave of ["semChamado", "semResposta", "semAssunto"] as const) {
+      descartados[chave] += Number(motivos[chave] ?? 0);
+    }
     lidos += lote.length;
 
     for (const bruto of atendimentos) {
@@ -182,8 +195,8 @@ export async function lerConversas({
       });
     }
 
-    aoProgredir?.({ trazidos, lidos, falhas });
+    aoProgredir?.({ trazidos, lidos, falhas, descartados });
   }
 
-  return { trazidos, lidos, falhas };
+  return { trazidos, lidos, falhas, descartados };
 }

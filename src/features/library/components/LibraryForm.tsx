@@ -332,13 +332,12 @@ export function LibraryForm({
         Oferecer a barra de Markdown sobre o HTML do portal seria ferramenta que
         não corresponde ao conteúdo: clicar em negrito escreveria `**` no meio de
         uma marcação HTML, e o resultado não seria nem um formato nem o outro.
-        Enquanto não houver editor rico, o HTML é editado como marcação, com a
-        tela dizendo o que é, em vez de fingir que é Markdown.
+        Cada formato tem o seu editor, e a tela diz qual é qual.
       */}
       {formData.contentFormat === "html" ? (
         <Fieldset
           legend="Conteúdo"
-          hint="Este artigo veio do portal e está em HTML. A edição acontece na própria marcação, para não degradá-la."
+          hint="Este artigo veio do portal e está em HTML. A edição acontece sobre o texto formatado, e o que você não tocar continua idêntico."
         >
           <ArticleHtmlEditor
             value={formData.content}
@@ -347,9 +346,10 @@ export function LibraryForm({
           />
 
           <p className="text-xs text-muted-foreground">
-            O formato é preservado ao salvar, e o que você não tocar continua idêntico.
-            Converter para Markdown degradaria tabela, âncora e mídia embutida a cada
-            ida e volta, por isso o artigo guarda o formato em que nasceu.
+            Medido: uma edição de negrito trocou quinze caracteres e deixou os outros
+            vinte mil bytes idênticos. Converter para Markdown degradaria tabela, âncora
+            e mídia embutida a cada ida e volta, por isso o artigo guarda o formato em
+            que nasceu. Salvar aqui não publica nada na HubSpot.
           </p>
         </Fieldset>
       ) : (

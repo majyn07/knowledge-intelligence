@@ -117,6 +117,20 @@ export async function umaPaginaDeFios(
   return { conversas: threadsDaPagina(pagina), proxima: nextCursor(pagina) };
 }
 
+/**
+ * Por que uma conversa não virou atendimento.
+ *
+ * As três razões são as do filtro da porta, e cada uma quer uma resposta
+ * diferente de quem lê: sem chamado é fluxo que o CRM não tratou como
+ * atendimento; sem resposta é o consentimento do WhatsApp, que gera ticket e
+ * ninguém respondeu; sem assunto é conversa que não dá nem para nomear.
+ */
+export interface Descartados {
+  semChamado: number;
+  semResposta: number;
+  semAssunto: number;
+}
+
 export interface AtendimentoDaConversa {
   ticket: ThreadTicket;
   messages: SupportConversationMessage[];
@@ -253,9 +267,23 @@ async function resolverAtores(brutas: unknown[]): Promise<Map<string, HubSpotAct
  */
 export async function lerLote(
   conversas: ConversaListada[]
-): Promise<{ atendimentos: AtendimentoDaConversa[]; falhas: number }> {
+): Promise<{
+  atendimentos: AtendimentoDaConversa[];
+  falhas: number;
+  descartados: Descartados;
+}> {
   const atendimentos: AtendimentoDaConversa[] = [];
   let falhas = 0;
+
+  /*
+    Por que cada conversa ficou de fora.
+
+    A tela dizia "0 viraram atendimento" e mais nada, e zero sem motivo é
+    indistinguível de defeito: numa varredura de cem conversas do suporte, sem
+    uma falha sequer, não dava para saber se o filtro estava certo ou quebrado.
+    Contar o motivo custa três inteiros e responde a pergunta.
+  */
+  const descartados: Descartados = { semChamado: 0, semResposta: 0, semAssunto: 0 };
 
   for (const conversa of conversas) {
     try {
@@ -290,6 +318,10 @@ export async function lerLote(
         ela entra antes, na porta: sem resposta do suporte não há o que analisar,
         e trazer esses registros só afogaria os que têm.
       */
+      if (!ticket) descartados.semAssunto += 1;
+      else if (!ticketId) descartados.semChamado += 1;
+      else if (ticket.solution.trim() === "") descartados.semResposta += 1;
+
       if (ticket && ticketId && ticket.solution.trim() !== "") {
 
         atendimentos.push({
@@ -334,7 +366,7 @@ export async function lerLote(
     await espera(PAUSA_MS);
   }
 
-  return { atendimentos, falhas };
+  return { atendimentos, falhas, descartados };
 }
 
 /**

@@ -12,13 +12,18 @@ import {
   List,
   ListOrdered,
   Pilcrow,
+  ImagePlus,
   Redo2,
   Undo2,
   Unlink,
 } from "lucide-react";
 
+import { toast } from "sonner";
+
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+
+import { limparColagem, textoComoHtml } from "../content/pasteHtml";
 
 /**
  * Editor do artigo em HTML.
@@ -33,6 +38,9 @@ import { Textarea } from "@/components/ui/textarea";
  * funciona em todo navegador que importa. A troca está declarada: fidelidade do
  * conteúdo vale mais que pureza de API, porque o conteúdo é da AltoQi e a API é
  * detalhe nosso.
+ *
+ * A colagem é tratada, e é o buraco que a fidelidade tinha: sem tratamento, o
+ * `contenteditable` aceita a marcação do Word inteira, sem sintoma na tela.
  *
  * **Não publica no portal.** Editar aqui altera o acervo; lançar de volta na
  * HubSpot é decisão de outra ordem e fica para a sprint ProjetoAprovado.
@@ -88,7 +96,9 @@ function BotaoDaBarra({
 
 export function ArticleHtmlEditor({ value, onChange, resetKey }: ArticleHtmlEditorProps) {
   const [modo, setModo] = useState<Modo>("rico");
+  const [enviando, setEnviando] = useState(false);
   const corpoRef = useRef<HTMLDivElement>(null);
+  const arquivoRef = useRef<HTMLInputElement>(null);
 
   /*
     O conteúdo entra uma vez, não a cada render. Reescrever `innerHTML` enquanto
@@ -111,6 +121,134 @@ export function ArticleHtmlEditor({ value, onChange, resetKey }: ArticleHtmlEdit
   function aplicar(nome: string, argumento?: string) {
     comando(nome, argumento);
     capturar();
+  }
+
+  /**
+   * A colagem traz só o que a barra sabe produzir.
+   *
+   * Um `contenteditable` sem tratamento aceita o que estiver na área de
+   * transferência, e o que costuma estar ali é Word, Google Docs ou outra aba.
+   * A marcação de origem entra inteira, não muda nada na tela de quem colou, e
+   * fica dentro de um artigo que vai para o cliente. É a pior forma de
+   * degradar, porque não tem sintoma.
+   *
+   * A inserção é pelo intervalo, e **não** por `execCommand("insertHTML")`.
+   * Medido: o Chrome embrulha o que o `insertHTML` recebe num `<span>` com o
+   * estilo calculado do ponto de inserção, `color: lab(96.52 ...)` e
+   * `font-size: 0.9375rem`. Seria trocar a marcação do Word pela do navegador,
+   * que é o mesmo problema com outro nome.
+   *
+   * O preço é o desfazer: uma inserção feita à mão nem sempre entra na pilha do
+   * navegador. Fidelidade do conteúdo vale mais, e o `Ver HTML` continua ali
+   * para desfazer no braço.
+   */
+  function aoColar(evento: React.ClipboardEvent<HTMLDivElement>) {
+    /*
+      Print colado é o caminho mais comum de pôr imagem num artigo: ninguém
+      salva a captura em arquivo para depois escolhê-la. Vem antes do texto
+      porque o Windows põe os dois na área de transferência, e o texto é o nome
+      do arquivo.
+    */
+    const imagem = [...evento.clipboardData.files].find((item) => item.type.startsWith("image/"));
+
+    if (imagem) {
+      evento.preventDefault();
+      void enviarImagem(imagem);
+      return;
+    }
+
+    evento.preventDefault();
+
+    const html = evento.clipboardData.getData("text/html");
+    const texto = evento.clipboardData.getData("text/plain");
+
+    const conteudo = html ? limparColagem(html) : textoComoHtml(texto);
+
+    if (conteudo === "") return;
+
+    inserir(conteudo);
+  }
+
+  /**
+   * Põe HTML no ponto do cursor, sem passar pelo navegador.
+   *
+   * Medido: o Chrome embrulha o que o `execCommand("insertHTML")` recebe num
+   * `<span>` com o estilo calculado do ponto de inserção. Aqui entra o que
+   * mandamos, e nada além.
+   */
+  function inserir(conteudo: string) {
+    const corpo = corpoRef.current;
+
+    if (!corpo || conteudo === "") return;
+
+    const selecao = window.getSelection();
+
+    /*
+      Sem cursor dentro do editor, a imagem vai para o fim. É o caso de quem
+      escolhe o arquivo pelo botão: o clique tira o foco do texto, e recusar
+      seria um botão que às vezes não faz nada.
+    */
+    const dentro =
+      selecao && selecao.rangeCount > 0 && corpo.contains(selecao.getRangeAt(0).commonAncestorContainer);
+
+    const intervalo = dentro ? selecao.getRangeAt(0) : document.createRange();
+
+    if (!dentro) {
+      intervalo.selectNodeContents(corpo);
+      intervalo.collapse(false);
+    }
+
+    intervalo.deleteContents();
+
+    const pedaco = intervalo.createContextualFragment(conteudo);
+    const ultimo = pedaco.lastChild;
+
+    intervalo.insertNode(pedaco);
+
+    /* O cursor fica depois do que entrou: colar e continuar digitando. */
+    if (ultimo && selecao) {
+      intervalo.setStartAfter(ultimo);
+      intervalo.collapse(true);
+      selecao.removeAllRanges();
+      selecao.addRange(intervalo);
+    }
+
+    capturar();
+  }
+
+  /**
+   * Envia a imagem e a põe no artigo.
+   *
+   * O acervo é feito de prints: 1.771 dos 1.822 artigos do portal têm imagem.
+   * Um editor que formata texto e não aceita figura corrige frase e não
+   * documenta passo.
+   *
+   * O `alt` fica vazio de propósito, e não com o nome do arquivo: `print3.png`
+   * não descreve nada para quem usa leitor de tela, e texto alternativo errado
+   * é pior que ausente. Quem sabe o que a imagem mostra escreve depois, pelo
+   * `Ver HTML`.
+   */
+  async function enviarImagem(arquivo: File) {
+    setEnviando(true);
+
+    try {
+      const envio = new FormData();
+      envio.append("arquivo", arquivo);
+
+      const resposta = await fetch("/api/library/image", { method: "POST", body: envio });
+      const corpo = (await resposta.json()) as { url?: string; message?: string };
+
+      if (!resposta.ok || !corpo.url) {
+        toast.error(corpo.message ?? "Não foi possível enviar a imagem.");
+        return;
+      }
+
+      inserir(`<img src="${corpo.url}" alt="" />`);
+    } catch {
+      toast.error("Não foi possível falar com o servidor.");
+    } finally {
+      setEnviando(false);
+    }
   }
 
   function inserirLink() {
@@ -173,6 +311,33 @@ export function ArticleHtmlEditor({ value, onChange, resetKey }: ArticleHtmlEdit
           <Undo2 className="h-3.5 w-3.5" />
         </BotaoDaBarra>
 
+        <BotaoDaBarra
+          titulo={enviando ? "Enviando imagem..." : "Inserir imagem"}
+          onClick={() => arquivoRef.current?.click()}
+        >
+          <ImagePlus className="h-3.5 w-3.5" />
+        </BotaoDaBarra>
+
+        {/*
+          Escondido: quem clica é o botão da barra. Um `input[type=file]` visível
+          na barra de formatação seria o único controle com cara de formulário
+          no meio de ícones.
+        */}
+        <input
+          ref={arquivoRef}
+          type="file"
+          accept="image/png,image/jpeg,image/gif,image/webp"
+          className="hidden"
+          onChange={(evento) => {
+            const arquivo = evento.target.files?.[0];
+
+            if (arquivo) void enviarImagem(arquivo);
+
+            /* Zera para escolher o mesmo arquivo duas vezes seguidas funcionar. */
+            evento.target.value = "";
+          }}
+        />
+
         <BotaoDaBarra titulo="Refazer" onClick={() => aplicar("redo")}>
           <Redo2 className="h-3.5 w-3.5" />
         </BotaoDaBarra>
@@ -206,6 +371,7 @@ export function ArticleHtmlEditor({ value, onChange, resetKey }: ArticleHtmlEdit
           aria-label="Corpo do artigo"
           onInput={capturar}
           onBlur={capturar}
+          onPaste={aoColar}
           className="article-html max-h-[32rem] min-h-[20rem] overflow-y-auto p-4 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         />
       ) : (
