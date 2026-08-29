@@ -104,6 +104,8 @@ describe("buildTicketImportPlan", () => {
       title: "Assunto antigo",
       solution: "",
       company: "",
+      causa: "",
+      motivoDeContato: "",
       date: "2026-01-01",
       source: { provider: "hubspot", externalId: "45812", importedAt: "2026-01-01T00:00:00.000Z" },
     };
@@ -126,6 +128,8 @@ describe("buildTicketImportPlan", () => {
       projectId: "p9",
       title: "Antigo",
       solution: "",
+      causa: "",
+      motivoDeContato: "",
       company: "",
       date: "",
       source: { provider: "hubspot", externalId: "45812", importedAt: "2026-01-01T00:00:00.000Z" },
@@ -134,6 +138,77 @@ describe("buildTicketImportPlan", () => {
     expect(plan("Ticket ID,Assunto\n45812,Novo", undefined, [existente]).update[0].projectId).toBe(
       "p9"
     );
+  });
+
+  /*
+    O relatório do suporte chega para **somar** a classificação a atendimentos
+    que já existem, e esses vieram pela conversa: é do `raw` que a lista tira o
+    nome do cliente e o número do chamado. Reconstruir o registro do zero teria
+    apagado os dois em mil linhas, sem erro nenhum.
+  */
+  it("reimportar preserva o que o arquivo não traz", () => {
+    const existente: Ticket = {
+      id: "t1",
+      projectId: "p9",
+      title: "Antigo",
+      solution: "Resposta que o relatório não traz",
+      causa: "",
+      motivoDeContato: "",
+      company: "Alpha",
+      date: "2026-07-15",
+      raw: { contato: { nome: "Fulano" }, hubspotTicketId: "45812" },
+      source: { provider: "hubspot", externalId: "45812", importedAt: "2026-01-01T00:00:00.000Z" },
+    };
+
+    const atualizado = plan(
+      "Ticket ID,Assunto,Causa,Motivo de contato" +
+        "\n45812,Antigo,Erro de instalação,Dúvida de uso",
+      undefined,
+      [existente]
+    ).update[0];
+
+    expect(atualizado.causa).toBe("Erro de instalação");
+    expect(atualizado.motivoDeContato).toBe("Dúvida de uso");
+    expect(atualizado.raw).toEqual(existente.raw);
+    expect(atualizado.solution).toBe("Resposta que o relatório não traz");
+    expect(atualizado.company).toBe("Alpha");
+    expect(atualizado.date).toBe("2026-07-15");
+  });
+
+  /*
+    Coluna mapeada manda, inclusive vazia: se o relatório diz que o campo está
+    em branco, isso é informação, e não ausência de informação.
+  */
+  it("coluna mapeada e vazia apaga; coluna ausente não opina", () => {
+    const existente: Ticket = {
+      id: "t1",
+      projectId: "p1",
+      title: "Antigo",
+      solution: "",
+      causa: "Erro de instalação",
+      motivoDeContato: "Dúvida de uso",
+      company: "",
+      date: "",
+      source: { provider: "hubspot", externalId: "45812", importedAt: "2026-01-01T00:00:00.000Z" },
+    };
+
+    const atualizado = plan("Ticket ID,Assunto,Causa\n45812,Antigo,", undefined, [existente])
+      .update[0];
+
+    expect(atualizado.causa).toBe("");
+    expect(atualizado.motivoDeContato).toBe("Dúvida de uso");
+  });
+
+  /*
+    "Motivo do contato" mapeava para o assunto, de quando o assunto era a única
+    coisa que descrevia o atendimento. Deixar assim apagaria a classificação no
+    mesmo movimento em que ela chega.
+  */
+  it("motivo de contato não vira assunto", () => {
+    const resultado = plan("Ticket ID,Assunto,Motivo do contato\n45812,O assunto,Dúvida de uso");
+
+    expect(resultado.create[0].title).toBe("O assunto");
+    expect(resultado.create[0].motivoDeContato).toBe("Dúvida de uso");
   });
 
   it("o mesmo atendimento duas vezes no arquivo vira um registro só", () => {

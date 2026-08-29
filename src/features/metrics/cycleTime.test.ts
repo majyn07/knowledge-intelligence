@@ -14,6 +14,8 @@ const atendimento = (id: string, date: string): Ticket => ({
   title: `Atendimento ${id}`,
   solution: "Resolvido.",
   company: "Construtora",
+  causa: "",
+  motivoDeContato: "",
   date,
 });
 

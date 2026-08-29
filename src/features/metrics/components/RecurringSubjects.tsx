@@ -9,6 +9,8 @@ import { triageTickets } from "@/features/analysis/triage";
 import { useLibrary } from "@/features/library/providers/LibraryProvider";
 import type { Ticket } from "@/models/Ticket";
 
+import { SupportClassification } from "./SupportClassification";
+
 /** Quantos assuntos a tela mostra. Leitura de relance, não relatório. */
 const NA_LISTA = 5;
 
@@ -53,8 +55,24 @@ export function RecurringSubjects({ tickets }: { tickets: Ticket[] }) {
   return (
     <PageSection
       title="Assuntos que mais chegam"
-      description="Atendimentos resolvidos que ainda não viraram conhecimento, agrupados pelas palavras que dividem. Calculado dos dados: palavra em comum não é a mesma dúvida, e quem confirma é a análise."
+      description="Duas leituras da mesma fila: a classificação que o suporte fez na HubSpot, e o agrupamento que o produto calcula para medir o que o acervo cobre."
     >
+      {/*
+        A classificação declarada vem primeiro, e é deliberado: ela foi decidida
+        por alguém com o caso em mãos, enquanto o agrupamento abaixo é medida de
+        semelhança. Quando as duas discordam, a de cima é a que se leva para uma
+        reunião.
+      */}
+      <SupportClassification tickets={tickets} />
+
+      <div className="mt-6">
+        <h3 className="text-sm font-semibold">O que o acervo ainda não cobre</h3>
+        <p className="mt-0.5 mb-3 text-xs leading-5 text-muted-foreground">
+          Atendimentos resolvidos que ainda não viraram conhecimento, agrupados pelas palavras que
+          dividem. Calculado dos dados: palavra em comum não é a mesma dúvida, e quem confirma é a
+          análise.
+        </p>
+
       {!isHydrated ? (
         <div className="h-28 animate-pulse rounded-xl bg-muted/40" />
       ) : triagem.excedeuTeto ? (
@@ -108,6 +126,7 @@ export function RecurringSubjects({ tickets }: { tickets: Ticket[] }) {
           ))}
         </ul>
       )}
+      </div>
     </PageSection>
   );
 }

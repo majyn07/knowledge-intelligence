@@ -7,6 +7,21 @@ export interface Ticket extends Trashable {
   solution: string;
   company: string;
   date: string;
+  /**
+   * A classificação que o suporte já fez, espelhada.
+   *
+   * São **duas** perguntas, e por isso dois campos: causa é "por que
+   * aconteceu", motivo de contato é "por que ele nos procurou". Um defeito de
+   * instalação pode chegar como dúvida de uso, e juntar as duas num campo só
+   * perderia exatamente essa distinção.
+   *
+   * Vem do arquivo, e não da API: o escopo `tickets` não está na credencial, e
+   * a decisão de concedê-lo não é nossa. Vazio é estado legítimo — o
+   * atendimento que entrou pela conversa não traz nenhuma das duas, e a tela
+   * conta quantos faltam em vez de fingir classificação.
+   */
+  causa: string;
+  motivoDeContato: string;
   source?: SupportRecordSource;
   /**
    * O registro como a origem devolveu, sem redução.

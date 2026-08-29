@@ -174,6 +174,14 @@ export async function lerConversas({
             reencontrar o atendimento na HubSpot, que é o que a equipe faz.
           */
           company: dados.contato?.empresa ?? "",
+          /*
+            Vazias, e não é omissão: a causa e o motivo de contato vivem em
+            propriedades do ticket, e o escopo `tickets` não está na credencial.
+            Elas entram pelo relatório exportado do suporte, que é a mesma porta
+            por onde o atendimento já entra por arquivo.
+          */
+          causa: "",
+          motivoDeContato: "",
           date: dados.ticket.date,
           source: {
             provider: "hubspot",

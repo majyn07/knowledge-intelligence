@@ -67,6 +67,8 @@ const ticket = (overrides: Partial<Ticket> = {}): Ticket => ({
   title: "",
   solution: "",
   company: "",
+  causa: "",
+  motivoDeContato: "",
   date: "",
   ...overrides,
 });

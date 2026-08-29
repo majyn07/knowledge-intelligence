@@ -10,6 +10,12 @@ describe("normalizeTicket", () => {
       title: "",
       solution: "",
       company: "",
+      /*
+        Vazias e presentes: o atendimento gravado antes da classificação existir
+        não as conhece, e a primeira leitura de um campo ausente derruba a tela.
+      */
+      causa: "",
+      motivoDeContato: "",
       date: "",
     });
   });

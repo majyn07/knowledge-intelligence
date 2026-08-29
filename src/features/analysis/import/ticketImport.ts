@@ -19,6 +19,8 @@ export const TICKET_FIELDS = [
   "solution",
   "company",
   "date",
+  "causa",
+  "motivoDeContato",
   "externalId",
 ] as const;
 
@@ -31,6 +33,8 @@ export const ticketFieldLabel: Record<TicketField, string> = {
   solution: "Solução",
   company: "Empresa",
   date: "Data do atendimento",
+  causa: "Causa",
+  motivoDeContato: "Motivo de contato",
   externalId: "Identificador na HubSpot",
 };
 
@@ -40,12 +44,16 @@ export const TICKET_REQUIRED: TicketField[] = ["title"];
 /**
  * Correspondência exata, como na importação de artigos.
  *
- * "assunto" e "motivo do contato" são os nomes que a HubSpot usa; casar por
- * trecho faria "data de fechamento" e "data de criação" disputarem o mesmo
- * campo, e a que ganhasse contaminaria o arquivo inteiro.
+ * Casar por trecho faria "data de fechamento" e "data de criação" disputarem o
+ * mesmo campo, e a que ganhasse contaminaria o arquivo inteiro.
+ *
+ * "Motivo do contato" saiu de `title` e virou campo próprio. Ele estava ali de
+ * quando o assunto era a única coisa que descrevia o atendimento, e mapeá-lo
+ * para o assunto agora apagaria a classificação no mesmo movimento em que ela
+ * chega: a coluna existe justamente para responder outra pergunta.
  */
 const KNOWN: Record<TicketField, string[]> = {
-  title: ["assunto", "subject", "titulo", "title", "motivo do contato", "ticket name"],
+  title: ["assunto", "subject", "titulo", "title", "ticket name"],
   solution: ["solucao", "solution", "resolucao", "resposta", "descricao", "description"],
   company: ["empresa", "company", "cliente", "conta", "associated company"],
   date: [
@@ -55,6 +63,18 @@ const KNOWN: Record<TicketField, string[]> = {
     "data de criacao",
     "create date",
     "created at",
+  ],
+  /*
+    Duas perguntas parecidas e dois campos, então a correspondência tem de ser
+    exata: "motivo" sozinho não entra em nenhum dos dois, porque escolher um
+    seria adivinhar qual, em mil e vinte e cinco linhas de uma vez.
+  */
+  causa: ["causa", "cause", "causa do contato", "causa raiz", "root cause"],
+  motivoDeContato: [
+    "motivo de contato",
+    "motivo do contato",
+    "motivo de contato do ticket",
+    "contact reason",
   ],
   externalId: ["id", "ticket id", "record id", "id do ticket", "identificador"],
 };
@@ -180,13 +200,36 @@ export function buildTicketImportPlan(
     const existente = externalId ? porExterno.get(externalId) : undefined;
     const jaNoPlano = externalId ? noPlano.get(externalId) : undefined;
 
+    /*
+      A reimportação **atualiza**, e o que o arquivo não traz é preservado.
+
+      Antes o atendimento era reconstruído do zero, e isso ficou perigoso no dia
+      em que ele passou a chegar por dois caminhos: os 1.025 que vieram pela
+      conversa carregam `raw`, e é de lá que saem o nome do cliente e o número
+      do chamado que a lista mostra. Importar o relatório do suporte só para
+      somar a classificação teria apagado os dois, em silêncio, em mil linhas.
+
+      Coluna mapeada manda, inclusive vazia: se o relatório diz que o campo está
+      em branco, isso é informação. Coluna que não foi mapeada não opina.
+      Qual é qual está na tela de mapeamento, antes do clique.
+    */
+    const trazido = (campo: TicketField, valor: string, anterior: string) =>
+      mapping[campo] === null ? anterior : valor;
+
     const ticket: Ticket = {
+      ...existente,
       id: existente?.id ?? jaNoPlano?.id ?? crypto.randomUUID(),
       projectId: existente?.projectId ?? options.projectId,
       title,
-      solution,
-      company: cell(row, mapping, "company"),
-      date,
+      solution: trazido("solution", solution, existente?.solution ?? ""),
+      company: trazido("company", cell(row, mapping, "company"), existente?.company ?? ""),
+      causa: trazido("causa", cell(row, mapping, "causa"), existente?.causa ?? ""),
+      motivoDeContato: trazido(
+        "motivoDeContato",
+        cell(row, mapping, "motivoDeContato"),
+        existente?.motivoDeContato ?? ""
+      ),
+      date: trazido("date", date, existente?.date ?? ""),
       ...(externalId
         ? { source: { provider: "hubspot" as const, externalId, importedAt } }
         : {}),

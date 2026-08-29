@@ -1476,6 +1476,43 @@ parecer atraso de meses. O que não fecha o ciclo fica fora, com ressalva por
 motivo: sem atendimento de origem, sem data que dê para situar no tempo, ou
 publicado antes da data do atendimento.
 
+**Causa e motivo de contato são duas perguntas, e ficam separadas.** O suporte
+já classifica cada chamado na HubSpot, com o caso em mãos, e classificação
+declarada vence agrupamento calculado: "por que aconteceu" e "por que ele nos
+procurou" têm respostas diferentes, e um defeito de instalação chega como
+dúvida de uso. Somá-las num ranking só faria metade das linhas responder outra
+coisa.
+
+Elas entram **pelo relatório exportado**, não pela API: o escopo `tickets` não
+está na credencial, e as propriedades vivem no ticket. Vazio é o estado de
+todos os 1.025 que entraram pela conversa, e a tela diz isso com o caminho
+junto, em vez de mostrar lista vazia.
+
+A fatia é sobre os **classificados**, não sobre o total: dividir pelo total
+misturaria "isto é raro" com "isto não foi classificado", e as duas pedem
+providências diferentes. Quantos ficaram de fora vai escrito ao lado.
+
+**A reimportação atualiza, e o que o arquivo não traz é preservado** — a mesma
+regra do artigo, que o atendimento não seguia. Ele era reconstruído do zero, e
+isso ficou perigoso quando ele passou a chegar por dois caminhos: importar o
+relatório só para somar a classificação teria apagado o `raw` de mil e vinte e
+cinco registros, que é de onde saem o nome do cliente e o número do chamado.
+Coluna mapeada manda, inclusive vazia; coluna ausente não opina.
+
+O mesmo valia para a **edição à mão**: montado campo a campo, o formulário
+apagava `raw` ao corrigir uma data. Campo a campo tem esse preço, e quem
+acrescenta campo ao modelo precisa citá-lo ali.
+
+E "motivo do contato" mapeava para o **assunto**, de quando o assunto era a
+única coisa que descrevia o atendimento. Deixar assim apagaria a classificação
+no mesmo movimento em que ela chega.
+
+**O que o provedor de IA vê do atendimento é escrito à mão, campo a campo.** Era
+o modelo inteiro, e por isso o `raw` vazou para lá no dia em que o campo nasceu.
+Um tipo que copia o modelo manda ao provedor todo campo que alguém acrescentar
+depois, sem ninguém decidir: causa e motivo ficaram de fora por decisão, e não
+por esquecimento.
+
 **Os assuntos que mais chegam são a fila de triagem lida por outra pessoa.** A
 mesma conta: lá ela diz "leia este primeiro", aqui diz "é isto que está
 chegando, e o acervo cobre tanto por cento", que é a frase que se leva a uma
@@ -1612,7 +1649,7 @@ fronteira de armazenamento com a divisão em lotes da
 gravação compartilhada e o plano da releitura incremental, a leitura de arquivo delimitado com o mapeamento de
 colunas e os planos de importação de artigo e de atendimento, a recuperação de texto não salvo, o cadastro
 de taxonomia com a migração da
-classificação antiga, os normalizadores de artigo, plano e atendimento, o motor
+classificação antiga, a contagem por causa e por motivo de contato, os normalizadores de artigo, plano e atendimento, o motor
 e o desenho dos painéis, a trilha de navegação, o recorte por equipe, as
 menções, o que se acompanha, a lixeira, a tabela com suas visões salvas, o rascunho do artigo e a tradução
 do erro de acesso.

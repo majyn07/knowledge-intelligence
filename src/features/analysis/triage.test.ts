@@ -13,6 +13,8 @@ const atendimento = (extra: Partial<Ticket> = {}): Ticket => ({
   title: "Atendimento",
   solution: "Resolvido.",
   company: "Construtora",
+  causa: "",
+  motivoDeContato: "",
   date: "2026-08-01",
   ...extra,
 });

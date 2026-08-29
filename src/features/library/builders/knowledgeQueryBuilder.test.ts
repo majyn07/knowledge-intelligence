@@ -11,6 +11,8 @@ const atendimento = (extra: Partial<Ticket> = {}): Ticket => ({
   title: "Importar IFC no Eberick",
   solution: "Orientado a usar atualização completa do 3D.",
   company: "Construtora",
+  causa: "",
+  motivoDeContato: "",
   date: "2026-08-01",
   ...extra,
 });

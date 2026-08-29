@@ -22,7 +22,7 @@ const base: GlobalSearchInput = {
     },
   ],
   tickets: [
-    { id: "45812", projectId: "p1", title: "Erro ao autenticar", solution: "Workflow", company: "Alpha", date: "" },
+    { id: "45812", projectId: "p1", title: "Erro ao autenticar", solution: "Workflow", company: "Alpha", causa: "", motivoDeContato: "", date: "" },
   ],
   analyses: [],
   plans: [],

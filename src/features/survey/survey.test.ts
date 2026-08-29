@@ -47,6 +47,8 @@ const atendimento = (over: Partial<Ticket>): Ticket => ({
   title: "Erro ao exportar",
   solution: "Resolvido reinstalando.",
   company: "",
+  causa: "",
+  motivoDeContato: "",
   date: "2026-08-01",
   ...over,
 });
