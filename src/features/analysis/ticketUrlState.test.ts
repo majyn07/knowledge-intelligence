@@ -4,6 +4,7 @@ import { applyParams, readParams } from "@/lib/urlState";
 
 import {
   defaultTicketFilters,
+  defaultTicketSort,
   readTicketRecorte,
   TICKET_URL_DEFAULTS,
   toTicketParams,
@@ -21,6 +22,8 @@ describe("readTicketRecorte", () => {
     const recorte = readTicketRecorte(params, EMPRESAS, 5);
 
     expect(recorte.filters).toEqual({
+      client: "all",
+      product: "all",
       search: "flecha",
       stage: "a-analisar",
       company: "Construtora Alfa",
@@ -89,7 +92,7 @@ describe("toTicketParams", () => {
   it("escreve só o que difere do padrão", () => {
     const query = applyParams(
       "",
-      toTicketParams({ search: "flecha", stage: "a-analisar", company: "all" }, "recentes", 2),
+      toTicketParams({ search: "flecha", stage: "a-analisar", company: "all", client: "all", product: "all" }, "recentes", 2),
       TICKET_URL_DEFAULTS
     );
 
@@ -123,5 +126,48 @@ describe("toTicketParams", () => {
     );
 
     expect(query).toBe("?busca=flecha");
+  });
+});
+
+/*
+  Cliente e produto entram pela mesma regra da empresa: link colado envelhece, e
+  filtrar por alguém que sumiu da base mostra tela vazia com cara de fila vazia.
+*/
+describe("cliente e produto no endereço", () => {
+  it("lê os dois quando existem hoje", () => {
+    const recorte = readTicketRecorte(
+      { cliente: "Guilherme Barcelos", produto: "AltoQi Eberick" },
+      EMPRESAS,
+      5,
+      ["Guilherme Barcelos"],
+      ["AltoQi Eberick"]
+    );
+
+    expect(recorte.filters.client).toBe("Guilherme Barcelos");
+    expect(recorte.filters.product).toBe("AltoQi Eberick");
+  });
+
+  it("volta para todos quando o valor não existe mais", () => {
+    const recorte = readTicketRecorte(
+      { cliente: "Quem Saiu", produto: "Produto Extinto" },
+      EMPRESAS,
+      5,
+      ["Guilherme Barcelos"],
+      ["AltoQi Eberick"]
+    );
+
+    expect(recorte.filters.client).toBe("all");
+    expect(recorte.filters.product).toBe("all");
+  });
+
+  it("o que está no padrão sai do endereço", () => {
+    const params = toTicketParams(
+      { ...defaultTicketFilters, client: "Ana" },
+      defaultTicketSort,
+      1
+    );
+
+    expect(params.cliente).toBe("Ana");
+    expect(params.produto).toBe("all");
   });
 });

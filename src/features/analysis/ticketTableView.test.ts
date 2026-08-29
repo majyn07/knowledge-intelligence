@@ -3,7 +3,10 @@ import { describe, expect, it } from "vitest";
 import type { Ticket } from "@/models/Ticket";
 
 import {
+  chamadoDo,
+  clienteDo,
   matchesTicket,
+  produtosDoTicket,
   sortTickets,
   ticketCellValue,
   ticketStage,
@@ -123,5 +126,114 @@ describe("matchesTicket", () => {
 
   it("busca vazia não filtra nada", () => {
     expect(matchesTicket(atendimento(), "   ")).toBe(true);
+  });
+});
+
+/**
+ * O que a HubSpot devolve e o modelo não guarda em campo próprio: o nome de
+ * quem abriu e o número do chamado. Os dois vivem no registro cru, e a busca,
+ * o filtro e a lista precisam da mesma resposta.
+ */
+const daHubSpot = (nome: string, chamado: string, extra: Partial<Ticket> = {}) =>
+  atendimento({ raw: { contato: { nome }, hubspotTicketId: chamado }, ...extra });
+
+describe("clienteDo e chamadoDo", () => {
+  it("leem o nome e o número do registro cru", () => {
+    const ticket = daHubSpot("Guilherme Barcelos", "47809916061");
+
+    expect(clienteDo(ticket)).toBe("Guilherme Barcelos");
+    expect(chamadoDo(ticket)).toBe("47809916061");
+  });
+
+  /* Atendimento cadastrado à mão não tem registro cru, e isso é estado previsto. */
+  it("devolvem vazio sem registro cru", () => {
+    expect(clienteDo(atendimento())).toBe("");
+    expect(chamadoDo(atendimento())).toBe("");
+  });
+
+  it("não quebram com registro cru de outra forma", () => {
+    expect(clienteDo(atendimento({ raw: { contato: "texto solto" } }))).toBe("");
+    expect(chamadoDo(atendimento({ raw: { hubspotTicketId: 47809916061 } }))).toBe("");
+  });
+});
+
+describe("a busca do atendimento", () => {
+  /*
+    O campo prometia "nº do chamado" e varria o id da conversa: quem copiava o
+    número da HubSpot e colava aqui não achava nada, e não tinha como saber que
+    procurava o número certo no campo errado.
+  */
+  it("acha pelo número do chamado da HubSpot", () => {
+    expect(matchesTicket(daHubSpot("Guilherme", "47809916061"), "47809916061")).toBe(true);
+  });
+
+  it("acha pelo id da conversa, que é o que está na URL da tela", () => {
+    const ticket = atendimento({
+      source: { provider: "hubspot", externalId: "11101673731", importedAt: "" },
+    });
+
+    expect(matchesTicket(ticket, "11101673731")).toBe(true);
+  });
+
+  /* Quem atendeu lembra do nome de quem ligou antes do assunto que digitou. */
+  it("acha pelo nome de quem abriu", () => {
+    expect(matchesTicket(daHubSpot("Guilherme Barcelos", "1"), "barcelos")).toBe(true);
+  });
+
+  it("continua achando por assunto e empresa", () => {
+    expect(matchesTicket(atendimento(), "flecha")).toBe(true);
+    expect(matchesTicket(atendimento(), "alfa")).toBe(true);
+  });
+
+  it("não acha o que não está em campo nenhum", () => {
+    expect(matchesTicket(daHubSpot("Guilherme", "1"), "eberick")).toBe(false);
+  });
+});
+
+describe("produtosDoTicket", () => {
+  /* Gravado vence dedução: veio da HubSpot e não se adivinha por cima. */
+  it("prefere o que veio gravado", () => {
+    const ticket = atendimento({ title: "Erro no Builder", raw: { produtos: ["Eberick"] } });
+
+    expect(produtosDoTicket(ticket)).toEqual(["Eberick"]);
+  });
+
+  it("deduz do assunto quando não há gravado", () => {
+    expect(produtosDoTicket(atendimento({ title: "Falha ao abrir o Builder" }))).toContain(
+      "AltoQi Builder"
+    );
+  });
+
+  /*
+    A tela de detalhe passa a fala do cliente, onde "estou no Eberick 2024"
+    aparece muito mais do que no assunto.
+  */
+  it("aceita o texto da conversa quando quem chama o tem", () => {
+    const ticket = atendimento({ title: "Não consigo abrir o projeto" });
+
+    expect(produtosDoTicket(ticket, "estou no Eberick 2024")).toContain("AltoQi Eberick");
+  });
+
+  it("sem produto identificável devolve vazio", () => {
+    expect(produtosDoTicket(atendimento({ title: "Dúvida geral" }))).toEqual([]);
+  });
+});
+
+describe("ordenar por cliente", () => {
+  it("põe em ordem alfabética de quem abriu", () => {
+    const lista = [
+      daHubSpot("Zuleica", "1", { id: "z" }),
+      daHubSpot("Ana", "2", { id: "a" }),
+    ];
+
+    expect(sortTickets(lista, "cliente").map((t) => t.id)).toEqual(["a", "z"]);
+  });
+});
+
+describe("a célula de cliente", () => {
+  it("mostra o nome de quem abriu", () => {
+    expect(ticketCellValue(daHubSpot("Guilherme Barcelos", "1"), "client", vazio)).toBe(
+      "Guilherme Barcelos"
+    );
   });
 });

@@ -968,6 +968,28 @@ O contexto perdeu a grade de três colunas pelo mesmo motivo. O ponto de quebra
 do Tailwind mede a **janela**, não a coluna: numa tela larga a lateral
 continuaria tentando três células de dois centímetros.
 
+### Procurar um atendimento entre mil
+
+A busca varre assunto, **cliente**, empresa, solução e os dois identificadores.
+O do chamado entrou porque a tela já o prometia e não o entregava: o campo dizia
+"nº do chamado" e varria o id da **conversa**, então quem copiava `47954714157`
+da HubSpot não achava nada e não tinha como saber que procurava o número certo
+no campo errado.
+
+O cliente entrou porque é assim que se procura: quem atendeu lembra do nome de
+quem ligou muito antes do assunto que digitou. E porque empresa quase não vem
+preenchida — cem dos mil e vinte e cinco.
+
+Três recortes, e cada um responde uma pergunta: **cliente** ("o que este me
+pediu"), **empresa** ("o que esta conta abriu") e **produto** ("quanto disto é
+Eberick"). O produto é **deduzido do texto** e o rótulo diz isso: a
+classificação que o suporte faz na HubSpot está atrás do escopo `tickets`, que a
+credencial não alcança.
+
+A dedução é **uma só**, compartilhada com a tela de detalhe. Duas divergem, e a
+divergência apareceria como o filtro escondendo um atendimento que o detalhe
+marca como Builder.
+
 ### O freio das chamadas à HubSpot
 
 São **três** controles, e eles respondem perguntas diferentes.
@@ -1542,7 +1564,7 @@ do portal com o plano de importação e a decisão do que revisitar, o preparo d
 HTML do artigo (âncora, cor removida, link resolvido, destaque da busca) com
 a limpeza do que executa, o trecho da busca, a sobreposição entre artigos com o vocabulário que os
 compara e a duplicata de título com a distinção entre a do portal e a nossa, a porta da HubSpot com o freio dela e a decisão da busca
-automática, a janela da busca, a triagem do atendimento e a consulta da análise com o corte
+automática, a janela da busca, a busca e os recortes do atendimento, a triagem dele e a consulta da análise com o corte
 do que a correspondência traz junto e a medição do que o acervo repete, a recusa que diz qual campo, a comparação de dois, a leitura da conversa da HubSpot com a paginação que não
 para na página vazia, o mapeamento de mensagens do provedor, a consulta da IA
 sobre o artigo, o rótulo da iniciativa, motor de busca e busca

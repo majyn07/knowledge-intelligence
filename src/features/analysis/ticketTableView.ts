@@ -1,5 +1,6 @@
 import { formatDay } from "@/lib/dates";
 import { searchTerms } from "@/lib/vocabulary";
+import { produtosNoTexto } from "@/services/hubspot/produtoDoAtendimento";
 import type { Ticket } from "@/models/Ticket";
 
 /**
@@ -15,8 +16,68 @@ import type { Ticket } from "@/models/Ticket";
  * derivada.
  */
 
+/**
+ * Quem abriu o atendimento, e o número dele na HubSpot.
+ *
+ * Os dois vivem no registro cru: o modelo não tem campo para nenhum deles
+ * porque o nome é dado do cliente e o número é da HubSpot, e guardar campo
+ * nosso para o que é espelho criaria duas respostas para a mesma pergunta.
+ *
+ * Ficam aqui, e não espalhados pela tela, porque a busca, o filtro, a lista e
+ * a exportação precisam da mesma resposta: quatro leituras do mesmo `raw`
+ * divergem, e a divergência apareceria como a busca achando um atendimento que
+ * a lista mostra sem nome.
+ */
+export function clienteDo(ticket: Ticket): string {
+  const contato = ticket.raw?.contato;
+
+  if (typeof contato !== "object" || contato === null) return "";
+
+  const nome = (contato as { nome?: unknown }).nome;
+
+  return typeof nome === "string" ? nome : "";
+}
+
+export function chamadoDo(ticket: Ticket): string {
+  return typeof ticket.raw?.hubspotTicketId === "string" ? ticket.raw.hubspotTicketId : "";
+}
+
+/**
+ * Que produto o cliente disse estar usando: Builder, Eberick, Visus.
+ *
+ * "Solução" na AltoQi é o produto, e não a resposta que o suporte deu.
+ *
+ * Gravado quando veio da HubSpot; deduzido quando não veio, porque atendimento
+ * que entrou antes deste campo existir não o tem e reimportar tudo para
+ * preencher um campo derivado seria caro por nada.
+ *
+ * `textoExtra` é por onde a tela de detalhe passa a fala do cliente: lá a
+ * conversa está em mãos, e "estou no Eberick 2024" aparece na terceira
+ * mensagem muito mais do que no assunto. A lista não tem a conversa, e se
+ * contenta com assunto e solução.
+ *
+ * Uma dedução só, e não uma por tela: duas divergem, e a divergência
+ * apareceria como o filtro escondendo um atendimento que o detalhe marca como
+ * Builder.
+ */
+export function produtosDoTicket(ticket: Ticket, textoExtra = ""): string[] {
+  const gravados = Array.isArray(ticket.raw?.produtos)
+    ? (ticket.raw.produtos as unknown[]).map(String).filter(Boolean)
+    : [];
+
+  if (gravados.length > 0) return gravados;
+
+  /*
+    A resposta do suporte fica de fora de propósito. Ela cita produto o tempo
+    todo por educação ("aqui no Builder você faria assim"), e isso marcaria
+    como Builder um atendimento que era sobre outra coisa.
+  */
+  return produtosNoTexto([ticket.title, textoExtra].join(" "));
+}
+
 export const TICKET_COLUMNS = [
   "title",
+  "client",
   "company",
   "date",
   "stage",
@@ -27,6 +88,7 @@ export type TicketColumn = (typeof TICKET_COLUMNS)[number];
 
 export const ticketColumnLabel: Record<TicketColumn, string> = {
   title: "Assunto",
+  client: "Cliente",
   company: "Empresa",
   date: "Data",
   stage: "No ciclo",
@@ -39,7 +101,13 @@ export const ticketColumnLabel: Record<TicketColumn, string> = {
  */
 export const TICKET_REQUIRED_COLUMNS: TicketColumn[] = ["title"];
 
-export const defaultTicketColumns: TicketColumn[] = ["title", "company", "date", "stage"];
+export const defaultTicketColumns: TicketColumn[] = [
+  "title",
+  "client",
+  "company",
+  "date",
+  "stage",
+];
 
 /**
  * Onde o atendimento está no ciclo.
@@ -84,6 +152,8 @@ export function ticketCellValue(
   switch (column) {
     case "title":
       return ticket.title;
+    case "client":
+      return clienteDo(ticket);
     case "company":
       return ticket.company;
     case "date":
@@ -95,13 +165,14 @@ export function ticketCellValue(
   }
 }
 
-export type TicketSort = "recentes" | "antigos" | "assunto" | "empresa";
+export type TicketSort = "recentes" | "antigos" | "assunto" | "empresa" | "cliente";
 
 export const ticketSortLabel: Record<TicketSort, string> = {
   recentes: "Mais recentes",
   antigos: "Mais antigos",
   assunto: "Assunto (A–Z)",
   empresa: "Empresa (A–Z)",
+  cliente: "Cliente (A–Z)",
 };
 
 /**
@@ -128,6 +199,12 @@ export function sortTickets(tickets: Ticket[], sort: TicketSort): Ticket[] {
       return copia.sort(
         (a, b) =>
           a.company.localeCompare(b.company, "pt-BR") || a.title.localeCompare(b.title, "pt-BR")
+      );
+    case "cliente":
+      return copia.sort(
+        (a, b) =>
+          clienteDo(a).localeCompare(clienteDo(b), "pt-BR") ||
+          a.title.localeCompare(b.title, "pt-BR")
       );
   }
 }
@@ -156,6 +233,25 @@ export function matchesTicket(ticket: Ticket, query: string): boolean {
   return termos.every((termo) => texto.some((palavra) => palavra.startsWith(termo)));
 }
 
+/**
+ * O que a busca varre.
+ *
+ * **O número do chamado entrou porque a tela já o prometia e não o entregava.**
+ * O campo dizia "nº do chamado" e varria `source.externalId`, que é o id da
+ * conversa: quem copiava `47954714157` da HubSpot e colava aqui não achava
+ * nada, e não tinha como saber que estava procurando pelo número certo no
+ * campo errado. O id da conversa fica, porque é o que aparece na URL da tela.
+ *
+ * **E o cliente**, que é como as pessoas realmente procuram: quem atendeu
+ * lembra do nome de quem ligou muito antes de lembrar do assunto que digitou.
+ */
 function campos(ticket: Ticket): string[] {
-  return [ticket.title, ticket.company, ticket.solution, ticket.source?.externalId ?? ""];
+  return [
+    ticket.title,
+    clienteDo(ticket),
+    ticket.company,
+    ticket.solution,
+    chamadoDo(ticket),
+    ticket.source?.externalId ?? "",
+  ];
 }
