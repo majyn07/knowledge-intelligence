@@ -21,6 +21,14 @@ const estado = (extra: Partial<EstadoDaSincronizacao> = {}): EstadoDaSincronizac
   ultimaEm: "",
   execucaoEm: "",
   execucaoPor: "",
+  /*
+    Sem atraso por padrão nos testes antigos: eles foram escritos para a janela
+    que ia até agora, e continuam descrevendo essa regra. Os do atraso pedem o
+    atraso explicitamente, logo abaixo.
+  */
+  atrasoDias: 0,
+  janelaDias: 30,
+  cursorEm: "",
   ...extra,
 });
 
@@ -38,7 +46,10 @@ describe("decidirSincronizacao", () => {
   });
 
   it("busca quando o intervalo fechou", () => {
-    const decisao = decidirSincronizacao(estado({ ligado: true, ultimaEm: horasAtras(2) }), AGORA);
+    const decisao = decidirSincronizacao(
+      estado({ ligado: true, ultimaEm: horasAtras(2), cursorEm: horasAtras(2) }),
+      AGORA
+    );
 
     expect(decisao.sincronizar).toBe(true);
   });
@@ -49,7 +60,10 @@ describe("decidirSincronizacao", () => {
     silêncio.
   */
   it("a janela cobre o intervalo perdido, e não a última hora", () => {
-    const decisao = decidirSincronizacao(estado({ ligado: true, ultimaEm: horasAtras(72) }), AGORA);
+    const decisao = decidirSincronizacao(
+      estado({ ligado: true, ultimaEm: horasAtras(72), cursorEm: horasAtras(72) }),
+      AGORA
+    );
 
     if (!decisao.sincronizar) throw new Error("deveria sincronizar");
 
@@ -63,7 +77,10 @@ describe("decidirSincronizacao", () => {
     na virada cai no vão entre duas execuções, sem erro nenhum.
   */
   it("recua um pouco além da última execução", () => {
-    const decisao = decidirSincronizacao(estado({ ligado: true, ultimaEm: horasAtras(2) }), AGORA);
+    const decisao = decidirSincronizacao(
+      estado({ ligado: true, ultimaEm: horasAtras(2), cursorEm: horasAtras(2) }),
+      AGORA
+    );
 
     if (!decisao.sincronizar) throw new Error("deveria sincronizar");
 
@@ -166,7 +183,7 @@ describe("uma varredura por vez", () => {
     const abandonada = new Date(AGORA.getTime() - TRANCA_ABANDONADA_MS - 1000).toISOString();
 
     const decisao = decidirSincronizacao(
-      estado({ ultimaEm: horasAtras(5), execucaoEm: abandonada }),
+      estado({ ultimaEm: horasAtras(5), cursorEm: horasAtras(5), execucaoEm: abandonada }),
       AGORA
     );
 
@@ -179,5 +196,81 @@ describe("uma varredura por vez", () => {
 
   it("carimbo ilegível não tranca ninguém", () => {
     expect(varreduraEmCurso(estado({ execucaoEm: "ontem" }), AGORA)).toBe(false);
+  });
+});
+
+/*
+  Medido contra a caixa real: nas conversas mais recentes de uma janela de três
+  dias, 119 de 144 não tinham chamado associado; nas mais antigas da mesma
+  janela, treze de vinte viraram atendimento. Ler o que acabou de chegar é ler
+  antes de existir o que se quer.
+*/
+describe("a janela fica atrás do agora", () => {
+  const comAtraso = (extra: Partial<EstadoDaSincronizacao> = {}) =>
+    estado({ atrasoDias: 2, janelaDias: 10, ultimaEm: horasAtras(5), ...extra });
+
+  it("o fim da janela recua o atraso escolhido", () => {
+    const decisao = decidirSincronizacao(comAtraso({ cursorEm: horasAtras(96) }), AGORA);
+
+    if (!decisao.sincronizar) throw new Error("deveria sincronizar");
+
+    const recuoDoFim = AGORA.getTime() - new Date(decisao.ate).getTime();
+
+    expect(recuoDoFim).toBe(2 * 24 * 60 * 60 * 1000);
+  });
+
+  /* Zero devolve o comportamento antigo: janela até agora. */
+  it("sem atraso, o fim é agora", () => {
+    const decisao = decidirSincronizacao(
+      comAtraso({ atrasoDias: 0, cursorEm: horasAtras(5) }),
+      AGORA
+    );
+
+    if (!decisao.sincronizar) throw new Error("deveria sincronizar");
+
+    expect(new Date(decisao.ate).getTime()).toBe(AGORA.getTime());
+  });
+
+  /*
+    Uma busca à mão que varreu até agora já cobriu tudo que está maduro.
+    Buscar de novo antes de o tempo passar seria reler o mesmo.
+  */
+  it("não busca quando o cursor já passou do fim da janela", () => {
+    const decisao = decidirSincronizacao(comAtraso({ cursorEm: horasAtras(1) }), AGORA);
+
+    expect(decisao).toEqual({ sincronizar: false, motivo: "nada-maduro" });
+  });
+
+  /* O teto existe para uma volta de férias não virar a varredura do trimestre. */
+  it("a janela não passa da largura máxima", () => {
+    const decisao = decidirSincronizacao(comAtraso({ cursorEm: horasAtras(24 * 90) }), AGORA);
+
+    if (!decisao.sincronizar) throw new Error("deveria sincronizar");
+
+    const largura = new Date(decisao.ate).getTime() - new Date(decisao.desde).getTime();
+
+    expect(largura).toBe(10 * 24 * 60 * 60 * 1000);
+  });
+
+  /* Quem só fez busca à mão antes de ligar a automática não tem cursor. */
+  it("sem cursor, parte da largura máxima", () => {
+    const decisao = decidirSincronizacao(comAtraso({ cursorEm: "" }), AGORA);
+
+    if (!decisao.sincronizar) throw new Error("deveria sincronizar");
+
+    const largura = new Date(decisao.ate).getTime() - new Date(decisao.desde).getTime();
+
+    expect(largura).toBe(10 * 24 * 60 * 60 * 1000);
+  });
+
+  it("atraso negativo é tratado como zero", () => {
+    const decisao = decidirSincronizacao(
+      comAtraso({ atrasoDias: -5, cursorEm: horasAtras(5) }),
+      AGORA
+    );
+
+    if (!decisao.sincronizar) throw new Error("deveria sincronizar");
+
+    expect(new Date(decisao.ate).getTime()).toBe(AGORA.getTime());
   });
 });

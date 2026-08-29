@@ -1000,6 +1000,51 @@ vivia dentro do diálogo, entrelaçada com `setState`, e enquanto havia um
 chamador isso bastava. Duas cópias divergem, e a que roda sozinha seria
 justamente a que ninguém está olhando quando divergir.
 
+### O chamado é associado depois, e isso muda a janela
+
+**Conversa recente costuma não ter ticket ainda.** Medido nas duas pontas da
+mesma janela de três dias: nas conversas **mais antigas**, treze de vinte viram
+atendimento; nas **mais recentes**, cento e dezenove de cento e quarenta e
+quatro são descartadas por não ter chamado associado.
+
+Não é defeito nosso e não é defeito da HubSpot: o ticket nasce quando alguém do
+suporte trata a conversa, e isso leva horas. Ler o que acabou de chegar é ler
+antes de existir o que se quer.
+
+Duas consequências. **Buscar a última hora rende quase nada**, o que torna a
+sincronização automática de hora em hora muito menos útil do que parecia.
+E **conversa sem chamado volta a ser lida em toda varredura**, porque nunca
+entra aqui e portanto nunca fica "em dia": o custo se repete até o ticket
+aparecer.
+
+Por isso a janela da busca automática é **atrasada**: ela termina alguns dias
+antes do agora, e a conversa é lida quando já tem chamado. Vira atendimento na
+primeira leitura, sem descarte e sem releitura.
+
+**Quanto de atraso é cadastro, não constante.** Dois dias é a partida, e o
+número certo depende de quanto o suporte demora para associar o ticket — coisa
+que quem trabalha lá sabe melhor que qualquer medição nossa. Zero devolve o
+comportamento antigo, e a tela diz o que ele custa.
+
+O preço está na tela junto com o controle: o atendimento demora esse tanto para
+aparecer aqui. É trocar rapidez que não entrega por lentidão que entrega, e
+quem quiser o que caiu agora usa a busca à mão com o atalho de um dia.
+
+**O cursor não é o instante da busca.** `ultimaEm` é quando alguém buscou;
+`cursorEm` é o fim da janela que aquela busca cobriu. Com dois dias de atraso,
+buscar hoje cobre até anteontem, e a próxima precisa partir de anteontem.
+Confundir os dois faria a janela nunca andar, ou andar duas vezes sobre o mesmo.
+
+### A varredura só anda com a aba em primeiro plano
+
+O navegador estrangula aba em segundo plano, e a varredura é um laço de
+`fetch` no cliente. Medido: com a aba ativa, oitenta conversas em meio minuto;
+com ela atrás, vinte em vinte e cinco minutos. Um lote só.
+
+É a mesma armadilha já anotada aqui sobre medição em aba oculta, e ela pesa
+mais na sincronização automática que na busca à mão: quem clica em buscar fica
+olhando, quem depende da automática tem o produto numa aba entre outras vinte.
+
 ### A sincronização automática não é um cron
 
 Um cron roda no servidor **sem sessão de ninguém**, e as políticas de acesso
