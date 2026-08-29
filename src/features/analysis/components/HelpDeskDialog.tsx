@@ -50,9 +50,24 @@ interface Progresso {
   lidos: number;
   trazidos: number;
   falhas: number;
+  /*
+    Por que as conversas lidas não viraram atendimento.
+
+    A tela dizia "0 viraram atendimento" e mais nada. Numa varredura de cem
+    conversas do suporte, sem uma falha sequer, isso é indistinguível de
+    defeito: não dá para saber se o filtro está certo ou quebrado. Número sem
+    motivo é o que ensina alguém a desconfiar da tela.
+  */
+  descartados: { semChamado: number; semResposta: number; semAssunto: number };
 }
 
-const VAZIO: Progresso = { conversas: 0, lidos: 0, trazidos: 0, falhas: 0 };
+const VAZIO: Progresso = {
+  conversas: 0,
+  lidos: 0,
+  trazidos: 0,
+  falhas: 0,
+  descartados: { semChamado: 0, semResposta: 0, semAssunto: 0 },
+};
 
 
 /**
@@ -258,6 +273,7 @@ export function HelpDeskDialog({
             lidos: parcial.lidos,
             trazidos: parcial.trazidos.length,
             falhas: parcial.falhas,
+            descartados: parcial.descartados,
           }),
         parou: () => parar.current,
       });
@@ -462,6 +478,8 @@ export function HelpDeskDialog({
               <Numero valor={progresso.falhas} rotulo="falharam" />
             </div>
 
+            <MotivoDoDescarte descartados={progresso.descartados} />
+
             <Button variant="outline" className="w-full" onClick={() => (parar.current = true)}>
               <Square className="mr-1.5 h-3.5 w-3.5" />
               Parar depois deste lote
@@ -475,6 +493,8 @@ export function HelpDeskDialog({
               {progresso.trazidos.toLocaleString("pt-BR")} atendimento(s) trazidos, com a conversa
               junto.
             </p>
+
+            <MotivoDoDescarte descartados={progresso.descartados} />
 
             {progresso.falhas > 0 && (
               <p className="text-xs text-muted-foreground">
@@ -520,5 +540,41 @@ export function HelpDeskButton({ onClick }: { onClick: () => void }) {
       <Download className="mr-1.5 h-4 w-4" />
       Buscar na HubSpot
     </Button>
+  );
+}
+
+/**
+ * Por que as conversas lidas não viraram atendimento.
+ *
+ * Cada motivo pede uma resposta diferente de quem lê, e por isso são três
+ * números e não um: **sem chamado** é fluxo que o CRM não tratou como
+ * atendimento; **sem resposta do suporte** é o consentimento do WhatsApp, que
+ * gera ticket e ninguém respondeu; **sem assunto** é conversa que não dá nem
+ * para nomear.
+ *
+ * Nenhum deles é defeito. Todos são a porta funcionando, e dizê-los é o que
+ * separa "a busca não trouxe nada porque não havia nada" de "a busca está
+ * quebrada".
+ */
+function MotivoDoDescarte({
+  descartados,
+}: {
+  descartados: { semChamado: number; semResposta: number; semAssunto: number };
+}) {
+  const total = descartados.semChamado + descartados.semResposta + descartados.semAssunto;
+
+  if (total === 0) return null;
+
+  const partes = [
+    descartados.semResposta > 0 ? `${descartados.semResposta} sem resposta do suporte` : "",
+    descartados.semChamado > 0 ? `${descartados.semChamado} sem chamado na HubSpot` : "",
+    descartados.semAssunto > 0 ? `${descartados.semAssunto} sem assunto` : "",
+  ].filter(Boolean);
+
+  return (
+    <p className="rounded-lg border border-border/70 bg-muted/25 px-3 py-2 text-xs leading-5 text-muted-foreground">
+      {total} conversa(s) ficaram de fora: {partes.join(", ")}. Não é falha: atendimento entra com
+      número de chamado e resposta de gente, senão o fluxo de robô afogaria os que têm.
+    </p>
   );
 }
