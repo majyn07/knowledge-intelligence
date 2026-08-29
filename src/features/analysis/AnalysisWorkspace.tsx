@@ -108,7 +108,7 @@ export function AnalysisWorkspace() {
     janela é o intervalo desde a última busca, que é pequeno por construção.
   */
   const buscarSozinho = useCallback(
-    async (desde: string) => {
+    async (desde: string, ate: string) => {
       const tranca = await tomarTranca(currentPerson);
 
       if (!tranca.tomada) return;
@@ -123,7 +123,7 @@ export function AnalysisWorkspace() {
             ultimaMensagemEm: String(ticket.raw?.ultimaMensagemEm ?? ""),
           }));
 
-        const plano = planejarVarredura(conversas, conhecidos, desde);
+        const plano = planejarVarredura(conversas, conhecidos, desde, ate);
 
         const { trazidos } = await lerConversas({
           visitar: plano.visitar,
@@ -132,7 +132,13 @@ export function AnalysisWorkspace() {
         });
 
         importFromHelpDesk(trazidos, "automática");
-        await soltarTranca(true);
+
+        /*
+          O cursor guarda o **fim da janela**, e não o instante da busca. Com
+          atraso de dois dias, buscar hoje cobre até anteontem, e a próxima
+          precisa partir de anteontem.
+        */
+        await soltarTranca(true, ate);
       } catch {
         /*
           Em silêncio, e de propósito. Ninguém pediu esta busca: um aviso de

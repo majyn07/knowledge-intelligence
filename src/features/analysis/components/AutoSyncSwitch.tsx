@@ -20,6 +20,24 @@ import {
 import { gravarEstado, lerEstado } from "../autoSyncRepository";
 
 /**
+ * As opções de atraso, em dias.
+ *
+ * Curtas e discretas de propósito: é escolha de processo, não de precisão. Zero
+ * existe para quem quiser o comportamento antigo, e a tela diz o que ele custa.
+ */
+const ATRASOS = [
+  { dias: 0, rotulo: "agora" },
+  { dias: 1, rotulo: "1 dia atrás" },
+  { dias: 2, rotulo: "2 dias atrás" },
+  { dias: 3, rotulo: "3 dias atrás" },
+  { dias: 7, rotulo: "1 semana atrás" },
+];
+
+function rotuloDoAtraso(dias: number): string {
+  return ATRASOS.find((opcao) => opcao.dias === dias)?.rotulo ?? `${dias} dia(s) atrás`;
+}
+
+/**
  * O interruptor da busca automática.
  *
  * Ele fica na tela de Atendimentos, e não em Configurações, porque é aqui que
@@ -51,6 +69,33 @@ export function AutoSyncSwitch() {
   if (!isSharedWorkspace() || !estado) return null;
 
   const decisao = decidirSincronizacao(estado, new Date());
+
+  /**
+   * Muda o atraso da janela.
+   *
+   * É cadastro e não constante pela regra desta casa, e porque o número certo
+   * depende de quanto o suporte demora para associar o ticket — coisa que quem
+   * trabalha lá sabe melhor que qualquer medição nossa.
+   */
+  async function mudarAtraso(dias: number) {
+    if (!estado) return;
+
+    setGravando(true);
+    const falha = await gravarEstado({ ...estado, atrasoDias: dias });
+    setGravando(false);
+
+    if (falha) {
+      toast.error(`Não foi possível mudar: ${falha.erro}`);
+      return;
+    }
+
+    await carregar();
+    toast.success(
+      dias === 0
+        ? "A busca automática passa a olhar até agora."
+        : `A busca automática passa a olhar até ${dias} dia(s) atrás.`
+    );
+  }
 
   async function alternar(campo: "ligado" | "bloqueado") {
     if (!estado) return;
@@ -118,9 +163,44 @@ export function AutoSyncSwitch() {
           {estado.ligado && (
             <p className="mt-1.5 max-w-2xl text-xs leading-5 text-muted-foreground">
               De madrugada e no fim de semana ninguém tem o produto aberto, e nada entra. Quando
-              alguém abre, a busca cobre o intervalo perdido.
+              alguém abre, a busca cobre o intervalo perdido. Ela também só anda com esta aba à
+              frente: o navegador estrangula aba de fundo.
             </p>
           )}
+
+          {/*
+            O atraso da janela, com o motivo ao lado.
+
+            Sem a frase, ligar a automática e não ver nada entrando parece
+            defeito. Medido na caixa real: nas conversas mais recentes de uma
+            janela de três dias, 119 de 144 não tinham chamado associado.
+          */}
+          <div className="mt-3 flex flex-wrap items-center gap-2">
+            <span className="text-xs text-muted-foreground">Olhar até</span>
+
+            {souAdministrador ? (
+              <select
+                className="h-7 rounded-lg border border-border/70 bg-background px-2 text-xs"
+                value={estado.atrasoDias}
+                disabled={gravando}
+                onChange={(evento) => void mudarAtraso(Number(evento.target.value))}
+              >
+                {ATRASOS.map((opcao) => (
+                  <option key={opcao.dias} value={opcao.dias}>
+                    {opcao.rotulo}
+                  </option>
+                ))}
+              </select>
+            ) : (
+              <span className="text-xs font-medium">{rotuloDoAtraso(estado.atrasoDias)}</span>
+            )}
+
+            <span className="max-w-md text-xs leading-5 text-muted-foreground">
+              {estado.atrasoDias === 0
+                ? "Conversa recente costuma não ter chamado associado ainda, e sem chamado ela não vira atendimento."
+                : "A HubSpot associa o chamado depois que alguém do suporte trata a conversa. Olhar o que acabou de chegar é olhar antes de existir o que se quer."}
+            </span>
+          </div>
 
           <p className="mt-2 text-xs text-muted-foreground">
             {estado.ultimaEm === "" ? (

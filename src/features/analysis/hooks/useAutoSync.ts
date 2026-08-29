@@ -34,7 +34,7 @@ const CONFERIR_A_CADA_MS = 5 * 60 * 1000;
 /** Quanto esperar depois de a aba abrir, para não competir com a carga inicial. */
 const ESPERA_INICIAL_MS = 30 * 1000;
 
-export function useAutoSync(buscar: (desde: string) => Promise<void>) {
+export function useAutoSync(buscar: (desde: string, ate: string) => Promise<void>) {
   const { souAdministrador } = usePeople();
 
   /*
@@ -70,7 +70,7 @@ export function useAutoSync(buscar: (desde: string) => Promise<void>) {
       ocupado.current = true;
 
       try {
-        await buscarRef.current(decisao.desde);
+        await buscarRef.current(decisao.desde, decisao.ate);
       } finally {
         ocupado.current = false;
       }

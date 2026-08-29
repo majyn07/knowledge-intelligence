@@ -1,6 +1,11 @@
 "use client";
 
-import { varreduraEmCurso, type EstadoDaSincronizacao } from "./autoSync";
+import {
+  ATRASO_PADRAO_DIAS,
+  JANELA_PADRAO_DIAS,
+  varreduraEmCurso,
+  type EstadoDaSincronizacao,
+} from "./autoSync";
 
 /**
  * O interruptor da busca automática, que vive no banco e não no navegador.
@@ -33,6 +38,9 @@ const VAZIO: EstadoDaSincronizacao = {
   ultimaEm: "",
   execucaoEm: "",
   execucaoPor: "",
+  atrasoDias: ATRASO_PADRAO_DIAS,
+  janelaDias: JANELA_PADRAO_DIAS,
+  cursorEm: "",
 };
 
 /**
@@ -50,6 +58,12 @@ export function normalizarEstado(valor: unknown): EstadoDaSincronizacao {
   const texto = (chave: string) =>
     typeof bruto[chave] === "string" ? (bruto[chave] as string) : "";
 
+  const numero = (chave: string, padrao: number) => {
+    const valor = bruto[chave];
+
+    return typeof valor === "number" && Number.isFinite(valor) && valor >= 0 ? valor : padrao;
+  };
+
   return {
     ligado: bruto.ligado === true,
     /*
@@ -61,6 +75,14 @@ export function normalizarEstado(valor: unknown): EstadoDaSincronizacao {
     ultimaEm: texto("ultimaEm"),
     execucaoEm: texto("execucaoEm"),
     execucaoPor: texto("execucaoPor"),
+    /*
+      Ausente vira o padrão, e não zero: uma linha gravada antes destes campos
+      existirem não pode chegar com a janela colada no agora, que é justamente
+      o comportamento que eles vieram corrigir.
+    */
+    atrasoDias: numero("atrasoDias", ATRASO_PADRAO_DIAS),
+    janelaDias: numero("janelaDias", JANELA_PADRAO_DIAS),
+    cursorEm: texto("cursorEm"),
   };
 }
 
@@ -150,8 +172,15 @@ export async function renovarTranca(quem: string): Promise<void> {
   await gravarEstado({ ...atual, execucaoEm: new Date().toISOString(), execucaoPor: quem });
 }
 
-/** Devolve a tranca e registra que houve busca agora. */
-export async function soltarTranca(marcarBusca: boolean): Promise<void> {
+/**
+ * Devolve a tranca e registra que houve busca.
+ *
+ * `ate` é o **fim da janela varrida**, e não o instante da busca: com atraso de
+ * dois dias, buscar hoje cobre até anteontem, e a próxima precisa partir de
+ * anteontem. Vazio significa que a janela ia até agora, que é o caso da busca à
+ * mão com atalho.
+ */
+export async function soltarTranca(marcarBusca: boolean, ate = ""): Promise<void> {
   const atual = await lerEstado();
 
   if (!atual) return;
@@ -161,5 +190,6 @@ export async function soltarTranca(marcarBusca: boolean): Promise<void> {
     execucaoEm: "",
     execucaoPor: "",
     ultimaEm: marcarBusca ? new Date().toISOString() : atual.ultimaEm,
+    cursorEm: marcarBusca ? (ate || new Date().toISOString()) : atual.cursorEm,
   });
 }
