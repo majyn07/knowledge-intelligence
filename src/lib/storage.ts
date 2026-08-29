@@ -1,3 +1,5 @@
+import { limparCache } from "./collectionCache";
+
 export type StorageWriteResult = "ok" | "quota" | "unavailable" | "error";
 
 /**
@@ -132,6 +134,20 @@ export function clearAppStorage(): void {
   } catch {
     // Armazenamento indisponível: não há o que limpar.
   }
+
+  /*
+    O cache do acervo vai junto, e não é detalhe.
+
+    Esta função é o que a tela de falha oferece, e a promessa dela é voltar à
+    semente. O acervo no IndexedDB são 22,7 MB fora do `localStorage`: deixá-lo
+    aqui faria a promessa ser mentira, e o formato antigo que trouxe alguém até
+    esta tela pode estar justamente nele.
+
+    Sem `await` porque quem chama recarrega a página em seguida, e a limpeza já
+    foi pedida ao navegador. Esperar por ela seria adiar o recarregar por um
+    resultado que não muda o que vem depois.
+  */
+  void limparCache();
 }
 
 function isQuotaError(error: unknown): boolean {

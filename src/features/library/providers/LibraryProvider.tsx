@@ -77,6 +77,12 @@ export function LibraryProvider({ children }: { children: ReactNode }) {
       `map` linha a linha, que é o que a opção exige.
     */
     releituraIncremental: true,
+    /*
+      E a abertura lê o que já está no navegador antes de perguntar o que mudou.
+      Sem isto, cada abertura do produto baixava os 22,7 MB de novo, e são
+      catorze pessoas abrindo várias vezes por dia.
+    */
+    usaCache: true,
     // O vocabulário é capturado na montagem, que é quando a migração acontece.
     parseLocal: (raw) => parseArticles(raw, taxonomy),
   });

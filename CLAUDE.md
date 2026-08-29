@@ -494,7 +494,16 @@ profundo que só é lido inteiro.
 
 Tabela nova precisa de `grant` explícito para `authenticated`: RLS decide
 quais linhas aparecem depois que a tabela é alcançável, não se ela é
-alcançável.
+alcançável. E precisa de `notify pgrst, 'reload schema'`: o PostgREST guarda o
+schema em cache, e sem o aviso ele responde como se a tabela não existisse.
+
+**O mapa de tabelas tipadas está cheio.** A décima sexta entrada estoura o
+limite de inferência do TypeScript no genérico da Supabase, e o efeito não é um
+erro na tabela nova: **as outras quinze colapsam para `never`**, e a queixa
+aparece longe, em `profiles`, como se `is_admin` não existisse. Quem fica de
+fora do mapa não pode usar `from()`: ele compila com um disfarce e não dispara
+requisição nenhuma, sem erro e sem rede. O caminho é uma rota nossa, com o
+cliente de servidor, que é onde a sessão vem do cookie.
 
 ### Como o dado chega às telas
 
@@ -536,6 +545,28 @@ dele. Hoje só o acervo a liga, que é a coleção que a justifica.
 `range` sobre consulta sem ordem é indefinido no Postgres: entre duas páginas o
 planejador pode repetir uma linha e pular outra, e a coleção chegaria com um
 artigo duplicado e outro ausente, sem erro nenhum.
+
+**E a abertura lê o navegador antes de perguntar ao banco.** A releitura
+incremental resolveu o eco do tempo real; a abertura continuava custando os
+22,7 MB, toda vez, para catorze pessoas várias vezes por dia. O acervo fica no
+IndexedDB (o `localStorage` tem teto de 5 a 10 MB e não caberia), e o que se
+guarda são as **linhas**, não os registros convertidos: a conversão é onde mora
+o normalizador. Medido: de 12 pedidos e 3.653 ms para **3 pedidos e 1.366 ms**.
+
+Três defeitos meus no caminho, e todos silenciosos:
+
+Converter as linhas do cache **duas vezes** produzia dois arrays de objetos
+diferentes, e a gravação compara identidade: os 1.822 pareciam alterados e o
+produto os **regravava no banco** a cada abertura.
+
+Abrir e fechar o IndexedDB por operação fazia as chamadas se atropelarem; o
+`close()` de uma derrubava a transação da outra, quem recebia `null` entendia
+"sem cache" e baixava tudo. Uma conexão só, guardada como promessa.
+
+E a carga inicial rodava a cada render. A guarda é uma ref, e com ela o `alive`
+da limpeza teve de sair: o React desmonta e remonta, a limpeza marcava
+`alive = false` com a leitura no ar, a segunda execução saía pela guarda, e o
+resultado chegava para ser descartado. A tela ficava em esqueleto, sem erro.
 
 **E o tempo real não pode reler durante a nossa própria escrita.** Cada lote
 gravado dispara um evento, a releitura devolve uma visão **parcial** do banco,
