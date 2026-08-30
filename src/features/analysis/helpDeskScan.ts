@@ -1,6 +1,7 @@
 "use client";
 
 import type { SupportConversation } from "@/models/SupportConversation";
+import { emptyClassification } from "@/models/TicketClassification";
 import type { Ticket } from "@/models/Ticket";
 import type { ConversaListada } from "@/services/hubspot/helpDeskSchedule";
 
@@ -174,6 +175,13 @@ export async function lerConversas({
             reencontrar o atendimento na HubSpot, que é o que a equipe faz.
           */
           company: dados.contato?.empresa ?? "",
+          /*
+            Vazia, e não é omissão: a classificação vive em propriedades do
+            ticket, e o escopo `tickets` não está na credencial. Ela entra pelo
+            relatório exportado do suporte, que é a mesma porta por onde o
+            atendimento já entra por arquivo.
+          */
+          ...emptyClassification(),
           date: dados.ticket.date,
           source: {
             provider: "hubspot",

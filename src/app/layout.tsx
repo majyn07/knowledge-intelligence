@@ -9,6 +9,7 @@ import { PanelsProvider } from "@/features/metrics/panels/PanelsProvider";
 import { FollowsProvider } from "@/features/people/providers/FollowsProvider";
 import { SavedViewsProvider } from "@/features/library/providers/SavedViewsProvider";
 import { LibraryProvider } from "@/features/library/providers/LibraryProvider";
+import { PermissionsProvider } from "@/features/auth/providers/PermissionsProvider";
 import { PeopleProvider } from "@/features/people/providers/PeopleProvider";
 import { ActivityProvider } from "@/features/activities/providers/ActivityProvider";
 import { KnowledgeLifecycleProvider } from "@/features/analysis/providers/KnowledgeLifecycleProvider";
@@ -24,6 +25,7 @@ import { AccessGate } from "@/features/auth/components/AccessGate";
 import { WorkspaceBootstrap } from "@/features/auth/components/WorkspaceBootstrap";
 
 import "./globals.css";
+import { AutoSync } from "@/features/analysis/components/AutoSync";
 
 /**
  * Poppins é a fonte da identidade AltoQi e vem do kit de marca, servida daqui
@@ -109,6 +111,12 @@ export default function RootLayout({
           <TaxonomyProvider>
           <WorkspaceBootstrap>
           <PeopleProvider>
+          {/*
+            Permissões logo abaixo de quem sabe se você administra, e acima de
+            todo domínio: quase toda tela pergunta se pode oferecer um botão, e
+            cada uma buscando por conta própria seriam seis idas por abertura.
+          */}
+          <PermissionsProvider>
           <ActivityProvider>
           <ProjectProvider>
             <TicketsProvider>
@@ -122,7 +130,24 @@ export default function RootLayout({
                   <PanelsProvider>
                     {/* Acompanhamentos dependem de saber quem é a pessoa, e de mais nada. */}
                     <FollowsProvider>
-                      <SavedViewsProvider>{children}</SavedViewsProvider>
+                      <SavedViewsProvider>
+                        {/*
+                          A busca automática acompanha a sessão, e não a rota.
+
+                          Ela vivia dentro da tela de Atendimentos, e ali só
+                          rodava enquanto alguém estava naquela tela — enquanto
+                          a própria tela prometia "com o produto aberto".
+                          Ligada por duas horas com o produto aberto noutra
+                          página, não rodou uma vez, e não havia erro para
+                          achar porque não havia nada acontecendo.
+
+                          Não desenha nada: quem mostra estado é o cartão em
+                          Atendimentos, onde a consequência aparece.
+                        */}
+                        <AutoSync />
+
+                        {children}
+                      </SavedViewsProvider>
                     </FollowsProvider>
                   </PanelsProvider>
                 </LibraryProvider>
@@ -132,6 +157,7 @@ export default function RootLayout({
 
           </ProjectProvider>
           </ActivityProvider>
+          </PermissionsProvider>
           </PeopleProvider>
           </WorkspaceBootstrap>
           </TaxonomyProvider>

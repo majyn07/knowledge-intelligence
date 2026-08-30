@@ -1,5 +1,10 @@
 import type { Ticket } from "@/models/Ticket";
 import { toIsoDate } from "@/lib/dates";
+import {
+  TICKET_CLASSIFICATION_FIELDS,
+  TICKET_CLASSIFICATIONS,
+  type TicketClassificationField,
+} from "@/models/TicketClassification";
 import type { DelimitedTable } from "@/lib/delimited";
 
 /**
@@ -19,6 +24,7 @@ export const TICKET_FIELDS = [
   "solution",
   "company",
   "date",
+  ...TICKET_CLASSIFICATION_FIELDS,
   "externalId",
 ] as const;
 
@@ -32,7 +38,8 @@ export const ticketFieldLabel: Record<TicketField, string> = {
   company: "Empresa",
   date: "Data do atendimento",
   externalId: "Identificador na HubSpot",
-};
+  ...Object.fromEntries(TICKET_CLASSIFICATIONS.map((item) => [item.key, item.label])),
+} as Record<TicketField, string>;
 
 /** Sem assunto a linha não identifica atendimento nenhum. */
 export const TICKET_REQUIRED: TicketField[] = ["title"];
@@ -40,12 +47,16 @@ export const TICKET_REQUIRED: TicketField[] = ["title"];
 /**
  * Correspondência exata, como na importação de artigos.
  *
- * "assunto" e "motivo do contato" são os nomes que a HubSpot usa; casar por
- * trecho faria "data de fechamento" e "data de criação" disputarem o mesmo
- * campo, e a que ganhasse contaminaria o arquivo inteiro.
+ * Casar por trecho faria "data de fechamento" e "data de criação" disputarem o
+ * mesmo campo, e a que ganhasse contaminaria o arquivo inteiro.
+ *
+ * "Motivo do contato" saiu de `title` e virou campo próprio. Ele estava ali de
+ * quando o assunto era a única coisa que descrevia o atendimento, e mapeá-lo
+ * para o assunto agora apagaria a classificação no mesmo movimento em que ela
+ * chega: a coluna existe justamente para responder outra pergunta.
  */
 const KNOWN: Record<TicketField, string[]> = {
-  title: ["assunto", "subject", "titulo", "title", "motivo do contato", "ticket name"],
+  title: ["assunto", "subject", "titulo", "title", "ticket name"],
   solution: ["solucao", "solution", "resolucao", "resposta", "descricao", "description"],
   company: ["empresa", "company", "cliente", "conta", "associated company"],
   date: [
@@ -56,6 +67,16 @@ const KNOWN: Record<TicketField, string[]> = {
     "create date",
     "created at",
   ],
+  /*
+    Os cabeçalhos da classificação saem do registro em `TicketClassification`,
+    e não de uma segunda cópia aqui: a importação, a contagem e a tela precisam
+    concordar sobre quais campos existem. Duas listas do mesmo vocabulário
+    divergem, e a divergência apareceria como a tela oferecendo uma lista que a
+    importação nunca preenche.
+  */
+  ...(Object.fromEntries(
+    TICKET_CLASSIFICATIONS.map((item) => [item.key, item.headers])
+  ) as Record<TicketClassificationField, string[]>),
   externalId: ["id", "ticket id", "record id", "id do ticket", "identificador"],
 };
 
@@ -180,13 +201,36 @@ export function buildTicketImportPlan(
     const existente = externalId ? porExterno.get(externalId) : undefined;
     const jaNoPlano = externalId ? noPlano.get(externalId) : undefined;
 
+    /*
+      A reimportação **atualiza**, e o que o arquivo não traz é preservado.
+
+      Antes o atendimento era reconstruído do zero, e isso ficou perigoso no dia
+      em que ele passou a chegar por dois caminhos: os 1.025 que vieram pela
+      conversa carregam `raw`, e é de lá que saem o nome do cliente e o número
+      do chamado que a lista mostra. Importar o relatório do suporte só para
+      somar a classificação teria apagado os dois, em silêncio, em mil linhas.
+
+      Coluna mapeada manda, inclusive vazia: se o relatório diz que o campo está
+      em branco, isso é informação. Coluna que não foi mapeada não opina.
+      Qual é qual está na tela de mapeamento, antes do clique.
+    */
+    const trazido = (campo: TicketField, valor: string, anterior: string) =>
+      mapping[campo] === null ? anterior : valor;
+
     const ticket: Ticket = {
+      ...existente,
       id: existente?.id ?? jaNoPlano?.id ?? crypto.randomUUID(),
       projectId: existente?.projectId ?? options.projectId,
       title,
-      solution,
-      company: cell(row, mapping, "company"),
-      date,
+      solution: trazido("solution", solution, existente?.solution ?? ""),
+      company: trazido("company", cell(row, mapping, "company"), existente?.company ?? ""),
+      ...(Object.fromEntries(
+        TICKET_CLASSIFICATION_FIELDS.map((campo) => [
+          campo,
+          trazido(campo, cell(row, mapping, campo), existente?.[campo] ?? ""),
+        ])
+      ) as Record<TicketClassificationField, string>),
+      date: trazido("date", date, existente?.date ?? ""),
       ...(externalId
         ? { source: { provider: "hubspot" as const, externalId, importedAt } }
         : {}),

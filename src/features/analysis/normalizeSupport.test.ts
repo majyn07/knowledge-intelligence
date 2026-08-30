@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 
+import { emptyClassification } from "@/models/TicketClassification";
+
 import { normalizeConversation, normalizeTicket, parseTickets } from "./normalizeSupport";
 
 describe("normalizeTicket", () => {
@@ -10,6 +12,11 @@ describe("normalizeTicket", () => {
       title: "",
       solution: "",
       company: "",
+      /*
+        Vazias e presentes: o atendimento gravado antes da classificação existir
+        não a conhece, e a primeira leitura de um campo ausente derruba a tela.
+      */
+      ...emptyClassification(),
       date: "",
     });
   });

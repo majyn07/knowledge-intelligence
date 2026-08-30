@@ -146,8 +146,9 @@ BrandTheme → Taxonomy → People → Activity → Project
 mundo depende dela: a Biblioteca precisa do vocabulário para migrar o que leu
 do armazenamento, e os filtros de artigo e de projeto leem as opções dali.
 
-`Activity` fica acima dos domínios porque todos registram eventos nele e ele não
-depende de ninguém. `Tickets` fica acima de `KnowledgeLifecycle` porque a análise
+`Activity` fica acima dos domínios porque todos registram eventos nele. Depende
+só de `People`, e por um motivo: o evento carimba **quem** age, e perguntar num
+lugar só é o que impede vinte e dois chamadores de divergirem. `Tickets` fica acima de `KnowledgeLifecycle` porque a análise
 parte do atendimento. `Panels` fica por último pelo motivo inverso: não depende
 de ninguém, e quem lê os painéis precisa de todos os domínios acima para contar.
 
@@ -337,6 +338,73 @@ comentário é registro do que foi dito, e não se reescreve.
 **Não há papéis, por decisão.** A equipe é treinada e o histórico responde por
 quem fez o quê. A política do banco é a mesma em todas as tabelas; se um dia
 houver papéis, ela muda ali e em nenhum outro lugar.
+
+**A exceção é curta e está escrita numa tela.** Existem ações cujo custo não é
+do conteúdo: buscar na HubSpot gasta requisições contra uma máquina que atende
+cliente, esvaziar a lixeira apaga para catorze pessoas, importar um arquivo
+reescreve mil registros num clique. Para essas, "a equipe é treinada" não basta,
+porque o erro de uma cai sobre todas.
+
+São seis, e cada uma precisou justificar por que o histórico não resolvia.
+Guardar tudo trocaria um produto onde ninguém trava por um onde todo mundo
+espera aprovação, que é o oposto do que ele é.
+
+**Onde a regra é conferida vai na tela**, e não é detalhe: a porta de verdade é
+o servidor, e só a HubSpot tem rota nossa. As outras são escondidas na tela, o
+que impede o clique e não impede quem conhece o caminho. Apresentar as duas do
+mesmo jeito seria vender uma trava que não existe.
+
+**A da HubSpot não se afrouxa**, e o normalizador do servidor a defende mesmo de
+quem chame a rota direto: bastaria gravar `todos` no banco para abrir a porta.
+As outras nascem em `todos`, que é como o produto sempre funcionou, e quem
+administra decide apertar.
+
+**Ler a lista é de todos.** Quem encontra um botão escondido precisa poder
+descobrir por quê, e onde se muda. Esconder a regra de quem não pode mudá-la
+transforma configuração em folclore: "acho que só o fulano consegue".
+
+**A auditoria é o mesmo histórico, com outras perguntas.** A linha do tempo
+responde "o que aconteceu neste projeto"; quem administra pergunta "o que esta
+pessoa fez" e "o que mudou na semana passada", e a resposta **atravessa
+iniciativas** — recortar por projeto deixaria de fora justamente quem trabalhou
+noutro. Não há registro paralelo: eventos são acrescentados e nunca editados, e
+um segundo registro divergiria do primeiro, sendo o segundo o que ninguém
+confere.
+
+O dia do evento é o de quem lê, nunca os dez primeiros caracteres do ISO: um
+evento das 21h de 27 de agosto no Brasil cairia em 28, e quem procura "o dia 27"
+não acharia o que fez à noite. Evento com data ilegível fica **fora** de janela,
+e continua na lista sem janela: esconder porque a data não se lê seria perder o
+registro de que ele existiu.
+
+**Quem fez guarda identificador, além do rótulo.** O evento sempre guardou
+`actor` em texto, e isso continua: o rótulo é o que sobra quando a conta some, e
+"excluído por Ana" segue legível depois de a Ana sair. Só que ele não responde
+"foi a mesma pessoa?", e a auditoria mostrou o custo: uma conta criada como
+`raoni.silva` e renomeada para `Raoni Teste` aparecia como **duas** pessoas, com
+21 eventos numa e 22 na outra, e quem procurava o que ela fez escolhia uma e
+perdia metade. É a mesma lição que a atribuição e a menção já tinham aprendido.
+
+Os dois convivem: o identificador responde "foi a mesma pessoa?", o rótulo
+responde "como ela se chamava quando isto aconteceu?", e a segunda resposta não
+se reescreve. A lista de pessoas do filtro mostra o nome de hoje com os
+anteriores ao lado.
+
+O carimbo é **no funil**, dentro de `record`, e não nos vinte e dois chamadores:
+foi por espalhar que o `actor` divergiu. Isso torna `Activity` dependente de
+`People` — ela já ficava abaixo na ordem, então nada se moveu; o que muda é o
+motivo.
+
+**Evento anterior à coluna não é preenchido.** Casar pelo nome seria inventar
+vínculo, e `raoni.silva` parecer o prefixo de um e-mail é coincidência, não
+prova. Ali o rótulo é tudo que há, e a tela mostra assim.
+
+**Quem fez não é quem responde**, e a auditoria expôs a confusão no dado real.
+O evento gravava `currentPerson || item.author`, e autor e responsável guardam
+identificador — inclusive de **equipe**, porque classificar um artigo preenche o
+autor a partir da categoria. O resultado era `team-suporte-estruturas` listado
+como pessoa que criou artigos. Sem sessão a resposta certa é vazia, e a tela diz
+"não registrado": afirmar que alguém fez algo que não fez é pior que não saber.
 
 **A equipe é sugerida, nunca derivada.** Cada equipe declara em Configurações
 por quais categorias do portal responde, e classificar um artigo preenche o
@@ -968,6 +1036,28 @@ O contexto perdeu a grade de três colunas pelo mesmo motivo. O ponto de quebra
 do Tailwind mede a **janela**, não a coluna: numa tela larga a lateral
 continuaria tentando três células de dois centímetros.
 
+### Procurar um atendimento entre mil
+
+A busca varre assunto, **cliente**, empresa, solução e os dois identificadores.
+O do chamado entrou porque a tela já o prometia e não o entregava: o campo dizia
+"nº do chamado" e varria o id da **conversa**, então quem copiava `47954714157`
+da HubSpot não achava nada e não tinha como saber que procurava o número certo
+no campo errado.
+
+O cliente entrou porque é assim que se procura: quem atendeu lembra do nome de
+quem ligou muito antes do assunto que digitou. E porque empresa quase não vem
+preenchida — cem dos mil e vinte e cinco.
+
+Três recortes, e cada um responde uma pergunta: **cliente** ("o que este me
+pediu"), **empresa** ("o que esta conta abriu") e **produto** ("quanto disto é
+Eberick"). O produto é **deduzido do texto** e o rótulo diz isso: a
+classificação que o suporte faz na HubSpot está atrás do escopo `tickets`, que a
+credencial não alcança.
+
+A dedução é **uma só**, compartilhada com a tela de detalhe. Duas divergem, e a
+divergência apareceria como o filtro escondendo um atendimento que o detalhe
+marca como Builder.
+
 ### O freio das chamadas à HubSpot
 
 São **três** controles, e eles respondem perguntas diferentes.
@@ -999,6 +1089,74 @@ uma vez no começo: aba fechada no meio deixaria a tranca fechada para sempre.
 vivia dentro do diálogo, entrelaçada com `setState`, e enquanto havia um
 chamador isso bastava. Duas cópias divergem, e a que roda sozinha seria
 justamente a que ninguém está olhando quando divergir.
+
+### O anexo do cliente é copiado uma vez, não buscado sempre
+
+**A conversa de e-mail carrega arquivo, e é a maior parte do acervo.** Dos 445
+fios que nunca passaram pelo bot, 378 são e-mail; medido em dez deles, 27 anexos
+em 209 mensagens. Quase sempre o print da tela com o erro, que é justamente a
+evidência que falta quando se lê o chamado.
+
+Isso corrigiu uma medição errada: a primeira amostra disse "zero imagens" e era
+de chat e WhatsApp, onde o bot não recebe arquivo. **Vinte fios recentes de uma
+caixa não representam o acervo, e o corte que importava era o canal.**
+
+**Não é preciso escopo nenhum.** O anexo já vem completo na resposta que
+`conversations.read` devolve: `fileId`, nome, uso e uma URL assinada de CDN que
+responde 200 sem autenticação. `files/v3/files/{id}` dá 403, e não faz falta.
+
+**Mas a URL não se guarda.** A assinatura tem prazo dentro dela
+(`?Expires=…&Signature=…`), e a medida valia cerca de um dia: gravada junto do
+atendimento, funcionaria hoje e estaria quebrada amanhã, sem erro nenhum
+dizendo por quê.
+
+Sobravam dois caminhos, e o de buscar de novo a cada exibição foi **recusado**:
+seriam duas requisições contra o servidor de suporte toda vez que alguém
+abrisse um chamado para olhar uma figura, que é exatamente o que o freio existe
+para impedir. Então o arquivo é copiado **uma vez** e servido do nosso balde;
+da segunda em diante a HubSpot nem fica sabendo.
+
+A cópia é **por atendimento pedido**, e não em lote na varredura: copiar tudo
+seriam milhares de arquivos, a maioria que ninguém vai abrir. E pedir é ato de
+alguém, porque a maioria dos atendimentos não tem anexo e um pedido automático
+por abertura gastaria uma requisição para descobrir que não havia nada. Pasta
+vazia ganha marca, senão "não tem anexo" seria consultado para sempre.
+
+**O balde é privado, e aqui a decisão é o contrário da do balde de artigos.**
+Lá o conteúdo é público por natureza e URL que expira deixaria artigo com
+imagem quebrada. Aqui é print de tela de cliente, com nome de projeto e caminho
+de arquivo dentro. Quem exibe pede uma URL assinada de uma hora, gerada para
+quem já entrou.
+
+A porta **não** exige administrador: a varredura é de quem administra porque
+gera milhares de requisições, e abrir um anexo gera uma. O atendimento que
+entrou pela caixa guarda `raw.threadId`, e com ele a consulta por
+`associatedTicketId` some — ela só servia para descobrir um identificador já
+gravado aqui.
+
+**O freio é conferido depois do balde, e não na entrada.** Conferido em cima, o
+anexo já copiado também era recusado — e servi-lo não fala com a HubSpot.
+Ligar o freio esconderia da equipe evidência que ela já tem em casa, e não é
+para isso que ele existe. Verificado com ele ligado: o copiado abre, o que ainda
+não foi copiado responde 423.
+
+**Medido de ponta a ponta**, contra um chamado real de nove anexos: a primeira
+busca leva 13 s e diz "hubspot"; a segunda leva 705 ms, diz "cópia" e não sai
+uma requisição. Atendimento sem anexo nenhum responde em 147 ms na segunda vez,
+por causa da marca.
+
+**A varredura conta quantos anexos há**, com as mensagens já em mãos e zero
+requisição a mais. Serve para a lista mostrar onde está a evidência sem ninguém
+abrir chamado por chamado, e para a tela não oferecer "buscar anexos" onde
+sabidamente não há nenhum. **Ausente é desconhecido, e não zero:** os 1.025 que
+entraram antes deste campo continuam oferecendo o botão, porque sumir com a
+seção neles esconderia anexo que existe.
+
+**O nome do arquivo é codificado na chave, não sanitizado.** A primeira versão
+trocava espaço e acento por hífen, e o efeito só aparecia na **segunda**
+leitura: "erro eberick.png" voltava "erro-eberick.png", então o mesmo anexo
+tinha nome diferente antes e depois da cópia. A ordem também é fixada, porque a
+lista do balde e a da HubSpot não coincidem.
 
 ### O chamado é associado depois, e isso muda a janela
 
@@ -1052,6 +1210,14 @@ exigem sessão para escrever. Fazê-lo funcionar exigiria devolver ao ambiente
 uma chave que ignora todas elas, removida de propósito. Então quem sincroniza é
 o navegador de quem já está aqui, com a sessão que ele já tem.
 
+**Ela acompanha a sessão, e não a rota.** Vivia dentro da tela de Atendimentos,
+e ali só rodava enquanto alguém estava naquela tela — enquanto a própria tela
+prometia "com o produto aberto". Ligada por duas horas com o produto aberto
+noutra página, não rodou uma vez, e não havia erro para achar porque não havia
+nada acontecendo. Hoje é um componente sem desenho, montado no layout; quem
+mostra estado continua sendo o cartão em Atendimentos, onde a consequência
+aparece.
+
 **O preço está na tela, não escondido:** de madrugada e no fim de semana
 ninguém tem a aba aberta, e nada entra. É por isso que a retomada cobre o
 **intervalo perdido** e não a última hora: se a última busca foi na sexta, quem
@@ -1068,6 +1234,41 @@ histórico inteiro disparada sozinha.
 O interruptor vive no banco, e não no navegador. Tema e forma da lista são
 preferência de máquina; este decide se o produto fala com o servidor de suporte,
 e vale para as catorze ao mesmo tempo. Nasce desligado.
+
+### Procurar o atendimento, como num help desk
+
+**A busca alcança o que o cliente escreveu.** Ela varria assunto, cliente,
+empresa e solução, tudo que está **fora** da conversa, e metade dos assuntos
+começa com "Ticket AltoQi nº". Quem procura "modelo IFC deslocado" procura uma
+frase da terceira mensagem. É o mesmo movimento que a Biblioteca fez quando o
+portal entrou.
+
+Campo casa por **prefixo de palavra**, para a lista responder a "vig" enquanto
+alguém digita; conversa casa por **trecho**, porque quebrar dezesseis mil
+mensagens em palavras a cada tecla não se paga, e quem procura dentro da
+conversa escreve a palavra inteira.
+
+**A ordem padrão é a atividade, não a data do atendimento.** Um chamado aberto
+semana passada e respondido hoje é trabalho de hoje. A data de abertura diz
+quando ele nasceu, que é outra pergunta, e continua na lista.
+
+**A contagem por etapa fica ao lado do filtro**, contada depois dos outros
+filtros e antes do de etapa: "A analisar (812)" diz onde está o trabalho antes
+de alguém clicar para descobrir. Contar depois do próprio filtro daria o total
+da etapa escolhida e zero nas outras.
+
+**Seta e `j`/`k` andam pela fila**, dentro da página e sem dar a volta: voltar
+ao primeiro depois do último faz alguém reler sem perceber. Como todo atalho de
+uma tecla, precisa da guarda de digitação, senão `k` no campo de busca move a
+lista em vez de escrever. O selecionado acompanha a rolagem e se anuncia por
+`aria-current`: o destaque é cor, e cor não chega a quem lê por leitor de tela.
+
+**A identidade do array importa, e não só o conteúdo.** `ticketsOf` filtra e
+devolve um array novo a cada chamada, então cada render entregava mil
+atendimentos numa embalagem diferente. Todo trabalho guardado por coleção (o
+índice da busca num `WeakMap`, a triagem num `useMemo`) via chave nova e refazia
+tudo: **4,4 s entre a tecla e a lista responder**, medido, contra 120 ms depois.
+O índice não era o gargalo; a chave dele era.
 
 **Duas perguntas, duas vistas.** Atender é "este atendimento aqui"; a fila de
 triagem é "por qual começar". Com mil na fila a segunda deixa de ser opcional, e
@@ -1201,6 +1402,16 @@ Quando a busca casa, o cartão mostra **o trecho com o termo destacado**. Sem
 ele a lista informa que doze artigos casam e não diz por quê, e a pessoa abre os
 doze. Acento não atrapalha em lugar nenhum: quem digita "secao" acha "seção",
 porque exigir o acento certo é fazer errar duas vezes antes de achar.
+
+**Título repetido não é sempre problema nosso, e a ação muda com isso.** Dos
+seis títulos repetidos no acervo, **cinco são do portal**: cada artigo tem
+endereço próprio lá, e apagar um aqui não resolve porque a próxima importação o
+traz de volta. A decisão é de quem publica. O sexto é nosso: o portal serve a
+mesma página por `/articles/<id>` e por `/<slug>`, e como a identidade sai da
+URL, o mesmo texto entrou duas vezes.
+
+Dizer "decidir qual fica" para os cinco primeiros seria mandar alguém fazer um
+trabalho que volta sozinho na semana seguinte.
 
 **Artigos que se sobrepõem é o achado que só o acervo inteiro permite.** Dois
 artigos ensinando a mesma coisa, cada um respondendo metade, e quem procura
@@ -1401,6 +1612,79 @@ parecer atraso de meses. O que não fecha o ciclo fica fora, com ressalva por
 motivo: sem atendimento de origem, sem data que dê para situar no tempo, ou
 publicado antes da data do atendimento.
 
+**São dois pipelines com vocabulários próprios, e os campos não se fundem.** O
+de Setup pergunta a causa raiz e chama o motivo de "sintoma"; o de Suporte tem
+só a categoria, e não tem causa nenhuma. Um chamado passa por um dos dois, então
+cada lista cobre uma parte do acervo — somar Sintoma com Categoria num ranking
+só misturaria dois vocabulários sem que quem lê tivesse como saber.
+
+São sete campos, e os nomes saíram do ticket real: `[Setup] Causa | Qual a causa
+raiz que gerou o problema?`, `[Setup] Sintoma | Motivo detalhado do contato`,
+`[Setup] Tipo de Problema`, `[Support] Categoria | Motivo principal do contato`,
+`Fechamento | Qual o motivo do encerramento do ticket?`, `Quem abriu?` e
+`Proteção tecnológica`.
+
+**O vocabulário vive num lugar só**, `models/TicketClassification`: a importação
+reconhece o cabeçalho, a contagem agrupa e a tela desenha, e as três precisam
+concordar sobre quais campos existem. Escritas em separado divergem — já
+aconteceu com o cadastro de rotas e com as chaves de armazenamento — e aqui a
+divergência apareceria como a tela oferecendo uma lista que a importação nunca
+preenche. Cabeçalho repetido entre dois campos é recusado por teste: o
+mapeamento escolhe a primeira coluna que casa, e a coluna cairia num campo por
+acidente.
+
+**As sete estão vazias, e vão continuar.** Elas entram pelo relatório
+exportado, não pela API: o escopo `tickets` não está na credencial, e a
+exportação em CSV não está disponível para a equipe. Nenhuma das duas portas é
+decisão nossa.
+
+**O que sobrou é o próprio cliente.** O bot pergunta antes de abrir o chamado, e
+pergunta e resposta são mensagens da conversa, que já temos. Não é dedução: é a
+opção que a pessoa clicou, copiada literal. Medido nas 974 conversas: 409 trazem
+a área do contato e 314 o tipo da solicitação.
+
+Elas ficam **ao lado** das propriedades do ticket e rotuladas pelo que são — a
+escolha do cliente, não a classificação que o suporte fez depois de ler o caso.
+As duas se parecem e respondem perguntas diferentes, e quem leva um número a uma
+reunião precisa saber qual está lendo. Causa raiz não tem equivalente aqui: ela
+é o diagnóstico de quem atendeu, e não existe na conversa.
+
+**Escolha de menu não termina em ponto**, e isso precisou ser medido. O teto de
+tamanho sozinho deixou passar "Bom dia, voltou o acesso. Está funcionando
+normalmente." — cinquenta e cinco caracteres, dentro do limite, listada no
+ranking como se uma pessoa a tivesse escolhido. Nenhuma das dezesseis opções
+reais tem pontuação de fim. "Voltar ao menu anterior" também sai: é navegação, e
+quem voltou respondeu depois.
+
+Vazio é o estado de todos os 1.025 nas sete do suporte, e a tela diz isso **uma
+vez**, com o caminho junto — sete caixas idênticas seriam sete vezes a mesma
+frase.
+
+A fatia é sobre os **classificados**, não sobre o total: dividir pelo total
+misturaria "isto é raro" com "isto não foi classificado", e as duas pedem
+providências diferentes. Quantos ficaram de fora vai escrito ao lado.
+
+**A reimportação atualiza, e o que o arquivo não traz é preservado** — a mesma
+regra do artigo, que o atendimento não seguia. Ele era reconstruído do zero, e
+isso ficou perigoso quando ele passou a chegar por dois caminhos: importar o
+relatório só para somar a classificação teria apagado o `raw` de mil e vinte e
+cinco registros, que é de onde saem o nome do cliente e o número do chamado.
+Coluna mapeada manda, inclusive vazia; coluna ausente não opina.
+
+O mesmo valia para a **edição à mão**: montado campo a campo, o formulário
+apagava `raw` ao corrigir uma data. Campo a campo tem esse preço, e quem
+acrescenta campo ao modelo precisa citá-lo ali.
+
+E "motivo do contato" mapeava para o **assunto**, de quando o assunto era a
+única coisa que descrevia o atendimento. Deixar assim apagaria a classificação
+no mesmo movimento em que ela chega.
+
+**O que o provedor de IA vê do atendimento é escrito à mão, campo a campo.** Era
+o modelo inteiro, e por isso o `raw` vazou para lá no dia em que o campo nasceu.
+Um tipo que copia o modelo manda ao provedor todo campo que alguém acrescentar
+depois, sem ninguém decidir: causa e motivo ficaram de fora por decisão, e não
+por esquecimento.
+
 **Os assuntos que mais chegam são a fila de triagem lida por outra pessoa.** A
 mesma conta: lá ela diz "leia este primeiro", aqui diz "é isto que está
 chegando, e o acervo cobre tanto por cento", que é a frase que se leva a uma
@@ -1523,8 +1807,8 @@ Testes cobrem lógica pura, nunca componentes: a leitura do sitemap e da página
 do portal com o plano de importação e a decisão do que revisitar, o preparo do
 HTML do artigo (âncora, cor removida, link resolvido, destaque da busca) com
 a limpeza do que executa, o trecho da busca, a sobreposição entre artigos com o vocabulário que os
-compara e a duplicata de título, a porta da HubSpot com o freio dela e a decisão da busca
-automática, a janela da busca, a triagem do atendimento e a consulta da análise com o corte
+compara e a duplicata de título com a distinção entre a do portal e a nossa, a porta da HubSpot com o freio dela e a decisão da busca
+automática, a leitura do anexo do cliente, a janela da busca, a busca e os recortes do atendimento, a triagem dele e a consulta da análise com o corte
 do que a correspondência traz junto e a medição do que o acervo repete, a recusa que diz qual campo, a comparação de dois, a leitura da conversa da HubSpot com a paginação que não
 para na página vazia, o mapeamento de mensagens do provedor, a consulta da IA
 sobre o artigo, o rótulo da iniciativa, motor de busca e busca
@@ -1532,12 +1816,12 @@ transversal, transições de artigo e de plano, métricas por projeto e por
 período, o tempo do ciclo com as ressalvas dele e a planilha da página, parsing da resposta da IA, a escolha do provedor com a classificação
 das falhas dele, a leitura da sugestão de seção, a leitura do preenchimento de
 formulário com a seleção do que aplicar e a classificação do arquivo
-anexado, o recorte na URL, a central de avisos, o levantamento, índice do artigo, critérios de publicação,
+anexado, o recorte na URL, a central de avisos, o catálogo de ações guardadas e a auditoria do histórico, o levantamento, índice do artigo, critérios de publicação,
 fronteira de armazenamento com a divisão em lotes da
 gravação compartilhada e o plano da releitura incremental, a leitura de arquivo delimitado com o mapeamento de
 colunas e os planos de importação de artigo e de atendimento, a recuperação de texto não salvo, o cadastro
 de taxonomia com a migração da
-classificação antiga, os normalizadores de artigo, plano e atendimento, o motor
+classificação antiga, a contagem da classificação com o vocabulário dos dois pipelines e a leitura da escolha que o cliente fez no bot, os normalizadores de artigo, plano e atendimento, o motor
 e o desenho dos painéis, a trilha de navegação, o recorte por equipe, as
 menções, o que se acompanha, a lixeira, a tabela com suas visões salvas, o rascunho do artigo e a tradução
 do erro de acesso.

@@ -111,3 +111,72 @@ export async function requireAdmin(): Promise<Autorizacao> {
 
   return { ok: true };
 }
+
+/**
+ * Entrou? É só isso que esta pergunta responde.
+ *
+ * Separada do freio de propósito. O freio existe para impedir que alguém
+ * sobrecarregue o servidor de suporte, e servir um anexo **já copiado** para o
+ * nosso balde não fala com a HubSpot: recusar ali faria ligar o freio esconder
+ * da equipe evidência que ela já tem em casa, que não é o que ele foi feito
+ * para fazer.
+ */
+export async function requireMember(): Promise<Autorizacao> {
+  if (!isSharedWorkspace()) return { ok: true };
+
+  const supabase = await createSupabaseServerClient();
+
+  if (!supabase) {
+    return { ok: false, status: 503, message: "O espaço compartilhado não está configurado." };
+  }
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return { ok: false, status: 401, message: "Entre para ver isto." };
+  }
+
+  return { ok: true };
+}
+
+/**
+ * O freio, sozinho, para quem já conferiu a sessão.
+ *
+ * Conferido **imediatamente antes de falar com a HubSpot**, e não na entrada da
+ * rota: é o que faz o interruptor parar o que gasta requisição sem parar o que
+ * já está guardado aqui.
+ *
+ * Não exige administrador. A varredura é de quem administra porque gera
+ * milhares de requisições; abrir o anexo de um chamado gera uma, e quem está
+ * lendo aquele chamado é quem precisa ver o print que o cliente mandou.
+ */
+export async function requireHubSpotRead(): Promise<Autorizacao> {
+  if (!isSharedWorkspace()) return { ok: true };
+
+  const supabase = await createSupabaseServerClient();
+
+  if (!supabase) {
+    return { ok: false, status: 503, message: "O espaço compartilhado não está configurado." };
+  }
+
+  const { data: config } = await supabase
+    .from("app_settings" as never)
+    .select("value")
+    .eq("key", "hubspot_auto_sync")
+    .maybeSingle();
+
+  const valor = (config as { value?: { bloqueado?: unknown } } | null)?.value;
+
+  if (valor?.bloqueado === true) {
+    return {
+      ok: false,
+      status: 423,
+      message:
+        "As chamadas à HubSpot estão bloqueadas, então o que ainda não foi copiado não pode ser buscado. Quem administra desbloqueia na tela de Atendimentos.",
+    };
+  }
+
+  return { ok: true };
+}

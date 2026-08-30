@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { AlertTriangle, FileUp, Upload } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { usePermissions } from "@/features/auth/providers/PermissionsProvider";
 import { Label } from "@/components/ui/label";
 import {
   Select,
@@ -416,8 +417,18 @@ export function ImportDialog({
   );
 }
 
-/** Botão que abre a importação, para a barra da Biblioteca. */
+/**
+ * Botão que abre a importação.
+ *
+ * Some quando a ação está restrita: um clique reescreve milhares de registros,
+ * e o plano é mostrado antes mas o desfazer não existe. Esconder não é a trava
+ * — a regra fica escrita em Configurações, para quem procura o botão que sumiu.
+ */
 export function ImportButton({ onClick }: { onClick: () => void }) {
+  const { pode } = usePermissions();
+
+  if (!pode("importarArquivo")) return null;
+
   return (
     <Button variant="outline" onClick={onClick}>
       <FileUp className="mr-1.5 h-4 w-4" />

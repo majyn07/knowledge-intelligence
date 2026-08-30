@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import type { Ticket } from "@/models/Ticket";
+import { emptyClassification } from "@/models/TicketClassification";
 import { parseDelimited } from "@/lib/delimited";
 
 import {
@@ -104,6 +105,7 @@ describe("buildTicketImportPlan", () => {
       title: "Assunto antigo",
       solution: "",
       company: "",
+      ...emptyClassification(),
       date: "2026-01-01",
       source: { provider: "hubspot", externalId: "45812", importedAt: "2026-01-01T00:00:00.000Z" },
     };
@@ -126,6 +128,7 @@ describe("buildTicketImportPlan", () => {
       projectId: "p9",
       title: "Antigo",
       solution: "",
+      ...emptyClassification(),
       company: "",
       date: "",
       source: { provider: "hubspot", externalId: "45812", importedAt: "2026-01-01T00:00:00.000Z" },
@@ -134,6 +137,101 @@ describe("buildTicketImportPlan", () => {
     expect(plan("Ticket ID,Assunto\n45812,Novo", undefined, [existente]).update[0].projectId).toBe(
       "p9"
     );
+  });
+
+  /*
+    O relatório do suporte chega para **somar** a classificação a atendimentos
+    que já existem, e esses vieram pela conversa: é do `raw` que a lista tira o
+    nome do cliente e o número do chamado. Reconstruir o registro do zero teria
+    apagado os dois em mil linhas, sem erro nenhum.
+  */
+  it("reimportar preserva o que o arquivo não traz", () => {
+    const existente: Ticket = {
+      id: "t1",
+      projectId: "p9",
+      title: "Antigo",
+      solution: "Resposta que o relatório não traz",
+      ...emptyClassification(),
+      company: "Alpha",
+      date: "2026-07-15",
+      raw: { contato: { nome: "Fulano" }, hubspotTicketId: "45812" },
+      source: { provider: "hubspot", externalId: "45812", importedAt: "2026-01-01T00:00:00.000Z" },
+    };
+
+    const atualizado = plan(
+      "Ticket ID,Assunto,[Setup] Causa,[Setup] Sintoma" +
+        "\n45812,Antigo,Erro de instalação,Dúvida de uso",
+      undefined,
+      [existente]
+    ).update[0];
+
+    expect(atualizado.causa).toBe("Erro de instalação");
+    expect(atualizado.sintoma).toBe("Dúvida de uso");
+    expect(atualizado.raw).toEqual(existente.raw);
+    expect(atualizado.solution).toBe("Resposta que o relatório não traz");
+    expect(atualizado.company).toBe("Alpha");
+    expect(atualizado.date).toBe("2026-07-15");
+  });
+
+  /*
+    Coluna mapeada manda, inclusive vazia: se o relatório diz que o campo está
+    em branco, isso é informação, e não ausência de informação.
+  */
+  it("coluna mapeada e vazia apaga; coluna ausente não opina", () => {
+    const existente: Ticket = {
+      id: "t1",
+      projectId: "p1",
+      title: "Antigo",
+      solution: "",
+      ...emptyClassification(),
+      causa: "Erro de instalação",
+      sintoma: "Dúvida de uso",
+      company: "",
+      date: "",
+      source: { provider: "hubspot", externalId: "45812", importedAt: "2026-01-01T00:00:00.000Z" },
+    };
+
+    const atualizado = plan("Ticket ID,Assunto,Causa\n45812,Antigo,", undefined, [existente])
+      .update[0];
+
+    expect(atualizado.causa).toBe("");
+    expect(atualizado.sintoma).toBe("Dúvida de uso");
+  });
+
+  /*
+    "Motivo do contato" mapeava para o assunto, de quando o assunto era a única
+    coisa que descrevia o atendimento. Deixar assim apagaria a classificação no
+    mesmo movimento em que ela chega.
+  */
+  it("motivo de contato não vira assunto", () => {
+    const resultado = plan("Ticket ID,Assunto,Motivo do contato\n45812,O assunto,Dúvida de uso");
+
+    expect(resultado.create[0].title).toBe("O assunto");
+    expect(resultado.create[0].categoria).toBe("Dúvida de uso");
+  });
+
+  /*
+    Os cabeçalhos que a HubSpot escreve carregam o prefixo do pipeline e a
+    pergunta inteira. Cada pipeline tem o seu vocabulário: o de Setup pergunta a
+    causa raiz e chama o motivo de "sintoma", o de Suporte só tem a categoria.
+    Reconhecer só "causa" deixaria o mapeamento em branco no arquivo de verdade.
+  */
+  it("reconhece os cabeçalhos como a HubSpot os escreve", () => {
+    const doSetup = guessTicketMapping([
+      "Ticket ID",
+      "Assunto",
+      "[Setup] Causa | Qual a causa raiz que gerou o problema?",
+      "[Setup] Sintoma | Motivo detalhado do contato",
+    ]);
+
+    expect(doSetup.causa).toBe(2);
+    expect(doSetup.sintoma).toBe(3);
+
+    const doSuporte = guessTicketMapping([
+      "[Support] Categoria | Motivo principal do contato",
+    ]);
+
+    expect(doSuporte.categoria).toBe(0);
   });
 
   it("o mesmo atendimento duas vezes no arquivo vira um registro só", () => {

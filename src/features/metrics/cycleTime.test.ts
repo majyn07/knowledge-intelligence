@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import type { ActivityEvent } from "@/models/ActivityEvent";
 import type { KnowledgeArticle } from "@/models/KnowledgeArticle";
 import type { Ticket } from "@/models/Ticket";
+import { emptyClassification } from "@/models/TicketClassification";
 
 import { cycleTime } from "./cycleTime";
 
@@ -14,6 +15,7 @@ const atendimento = (id: string, date: string): Ticket => ({
   title: `Atendimento ${id}`,
   solution: "Resolvido.",
   company: "Construtora",
+  ...emptyClassification(),
   date,
 });
 

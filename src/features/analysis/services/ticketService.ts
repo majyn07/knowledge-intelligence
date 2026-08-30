@@ -1,5 +1,6 @@
 import type { SupportConversation, SupportConversationMessage } from "@/models/SupportConversation";
 import type { Ticket } from "@/models/Ticket";
+import { classificationOf, emptyClassification } from "@/models/TicketClassification";
 
 import type { TicketFormData } from "../types/TicketFormData";
 
@@ -59,6 +60,8 @@ export const ticketService = {
       title: data.title.trim(),
       solution: data.solution.trim(),
       company: data.company.trim(),
+      /* Cadastro à mão não classifica: quem classifica é o suporte, na HubSpot. */
+      ...emptyClassification(),
       date: data.date.trim(),
       ...externalSource(data.externalId, now),
     };
@@ -101,6 +104,17 @@ export const ticketService = {
       solution: data.solution.trim(),
       company: data.company.trim(),
       date: data.date.trim(),
+      /*
+        O que o formulário não edita, ele preserva.
+
+        Campo a campo tem um preço: o campo que entra no modelo depois e não é
+        citado aqui some na primeira edição, sem erro nenhum. `raw` é de onde a
+        lista tira o nome do cliente e o número do chamado, e a classificação do
+        suporte não é nossa para reescrever — corrigir a data de um atendimento
+        apagaria os três.
+      */
+      ...classificationOf(ticket),
+      ...(ticket.raw ? { raw: ticket.raw } : {}),
       ...(ticket.deletedAt ? { deletedAt: ticket.deletedAt } : {}),
       ...procedencia,
     };

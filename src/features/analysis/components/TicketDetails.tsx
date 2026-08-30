@@ -6,7 +6,7 @@ import { PageSection } from "@/components/common/page/PageSection";
 import { formatDay } from "@/lib/dates";
 import type { AnalysisStatus } from "@/models/KnowledgeLifecycle";
 import type { SupportConversation } from "@/models/SupportConversation";
-import { produtosNoTexto } from "@/services/hubspot/produtoDoAtendimento";
+import { produtosDoTicket } from "../ticketTableView";
 import type { Ticket } from "@/models/Ticket";
 
 interface TicketDetailsProps {
@@ -33,10 +33,6 @@ export function TicketDetails({ ticket, conversation, analysisStatus }: TicketDe
     "Solução" na AltoQi é o produto: Builder, Eberick, Visus. Não é a resposta
     que o suporte deu, e a tela mostrava um e-mail inteiro nesse campo.
   */
-  const gravados = Array.isArray(ticket.raw?.produtos)
-    ? (ticket.raw.produtos as unknown[]).map(String).filter(Boolean)
-    : [];
-
   /*
     Quem diz qual programa está usando é o cliente, e nem sempre no título: "não
     consigo abrir o projeto" no assunto e "estou no Eberick 2024" na terceira
@@ -54,8 +50,7 @@ export function TicketDetails({ ticket, conversation, analysisStatus }: TicketDe
     .filter((mensagem) => mensagem.role === "cliente")
     .map((mensagem) => mensagem.body);
 
-  const produtos =
-    gravados.length > 0 ? gravados : produtosNoTexto([ticket.title, ...daConversa].join(" "));
+  const produtos = produtosDoTicket(ticket, daConversa.join(" "));
 
   return (
     <div className="space-y-5">

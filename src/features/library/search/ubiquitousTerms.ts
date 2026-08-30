@@ -21,19 +21,22 @@ import { articleText } from "../content/articleText";
 /**
  * Acima disto o termo é do acervo, não do assunto.
  *
- * O número foi medido contra os 1.822 artigos publicados: 15.105 termos
- * distintos, e **119** passam de um quarto. É um bisturi, não um martelo, e o
- * que ele pega é exatamente o que aparecia como motivo de um artigo ser
- * relacionado: "para" em 99%, "que" em 98%, "como" em 95%, "projeto" em 76%,
- * "acesse" em 60%, "selecione" em 50%.
+ * O número foi medido contra os 1.822 artigos publicados: **117** termos passam
+ * de um quarto. É um bisturi, não um martelo, e o que ele pega é exatamente o
+ * que aparecia como motivo de um artigo ser relacionado: "para" em 99%, "que"
+ * em 98%, "como" em 92%, "projeto" em 75%, "selecione" e "acesse" na casa dos
+ * cinquenta.
  *
  * A fronteira dos 25% custa alguns termos de engenharia junto, "croqui" e
  * "pavimento" entre eles. É o lado certo do erro: um termo que está em
  * quinhentos artigos não estreita busca nenhuma, e deixá-lo passar devolve a
  * parede de palavras que a medição veio desfazer.
  *
- * `nbsp` aparece em 99%, e isso é outra coisa: é `&nbsp;` escapando da limpeza
- * do HTML. A medição o descarta junto, mas a origem continua lá.
+ * A medição roda sobre `articleText`, e é por isso que ela mede palavra e não
+ * marcação. Uma medição anterior, feita fora dele, apontou `nbsp` em 99% dos
+ * artigos e me fez registrar um defeito que não existe: o `articleText`
+ * decodifica `&nbsp;`, e no texto limpo ele aparece em **zero** artigos. Medir
+ * por fora do caminho que o produto usa mede outra coisa.
  */
 export const LIMIAR_DE_ONIPRESENCA = 0.25;
 

@@ -36,6 +36,8 @@ interface PeopleContextValue {
   me: Person | null;
   /** Nome de quem opera, para o histórico registrar autoria. */
   currentPerson: string;
+  /** Identificador de quem age. Vazio no modo navegador, onde não há conta. */
+  currentPersonId: string;
   /** Só faz sentido sem servidor: com conta, quem opera é quem entrou. */
   setCurrentPerson: (name: string) => void;
 
@@ -144,6 +146,14 @@ export function PeopleProvider({ children }: { children: ReactNode }) {
 
   const currentPerson = me?.name ?? localActor;
 
+  /*
+    O identificador de quem está agindo, para o histórico não depender do nome.
+
+    Vazio no modo navegador, onde não há conta: ali "atuando como" é texto
+    digitado, e inventar identificador para ele criaria vínculo que não existe.
+  */
+  const currentPersonId = me?.id ?? "";
+
   const updateMe = useCallback(
     async (fields: { name?: string; role?: string; teamId?: string; avatarUrl?: string }) => {
       if (!supabase || !me) return;
@@ -241,6 +251,7 @@ export function PeopleProvider({ children }: { children: ReactNode }) {
       isHydrated,
       me,
       currentPerson,
+      currentPersonId,
       setCurrentPerson: setLocalActor,
       updateMe,
       updatePerson,
@@ -259,6 +270,7 @@ export function PeopleProvider({ children }: { children: ReactNode }) {
     }),
     [
       currentPerson,
+      currentPersonId,
       deactivate,
       isHydrated,
       me,

@@ -4,6 +4,7 @@ import type { AnalysisRecord } from "@/models/KnowledgeLifecycle";
 import type { KnowledgeArticle } from "@/models/KnowledgeArticle";
 import type { PlanWorkspaceItem } from "@/features/plans/types/PlanWorkspace";
 import type { Ticket } from "@/models/Ticket";
+import { emptyClassification } from "@/models/TicketClassification";
 
 import { selectProjectMetrics } from "./projectMetrics";
 
@@ -67,6 +68,7 @@ const ticket = (overrides: Partial<Ticket> = {}): Ticket => ({
   title: "",
   solution: "",
   company: "",
+  ...emptyClassification(),
   date: "",
   ...overrides,
 });

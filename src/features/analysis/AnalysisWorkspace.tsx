@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useMemo, useEffect, useState } from "react";
+import { useMemo, useEffect, useState } from "react";
 import { Sparkles } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -12,7 +12,6 @@ import { TicketImportButton, TicketImportDialog } from "./components/TicketImpor
 import { usePersistedState } from "@/hooks/usePersistedState";
 import { useQueryParam } from "@/hooks/useQueryParam";
 import { countOrphans } from "@/models/Trash";
-import { usePeople } from "@/features/people/providers/PeopleProvider";
 import { useProject } from "@/providers/ProjectProvider";
 
 import { AnalysisPanel } from "./components/AnalysisPanel";
@@ -24,11 +23,7 @@ import { TicketDetails } from "./components/TicketDetails";
 import { TicketList } from "./components/TicketList";
 import { TriageQueue } from "./components/TriageQueue";
 import { triageTickets } from "./triage";
-import { useAutoSync } from "./hooks/useAutoSync";
 import { useTicketRecorte } from "./hooks/useTicketRecorte";
-import { renovarTranca, soltarTranca, tomarTranca } from "./autoSyncRepository";
-import { caixasDoSuporte, lerConversas, listarConversas } from "./helpDeskScan";
-import { planejarVarredura } from "@/services/hubspot/helpDeskSchedule";
 import type { TicketCycle } from "./ticketTableView";
 import { TicketDeleteDialog } from "./components/TicketDialogs";
 import { useAnalysisContext } from "./hooks/useAnalysisContext";
@@ -42,13 +37,13 @@ import { analysisService } from "./services/analysisService";
 import { useTickets } from "./providers/TicketsProvider";
 import { usePlans } from "../plans/providers/PlansProvider";
 import { useLibrary } from "../library/providers/LibraryProvider";
+import { useListaPorTeclado } from "./hooks/useListaPorTeclado";
 
 const SIDEBAR_STORAGE_KEY = "visus-workspace-sidebar-collapsed";
 
 export function AnalysisWorkspace() {
   const { activeProject, activeProjectId } = useProject();
-  const { ticketsOf, conversationOf, deleteTicket, importFromHelpDesk } = useTickets();
-  const { currentPerson } = usePeople();
+  const { ticketsOf, conversationOf, deleteTicket, conversations } = useTickets();
   const {
     getAnalysis,
     saveAnalysis,
@@ -71,7 +66,19 @@ export function AnalysisWorkspace() {
     fallback: false,
   });
 
-  const projectTickets = ticketsOf(activeProjectId);
+  /*
+    Memorizado porque a **identidade** do array importa, e não só o conteúdo.
+
+    `ticketsOf` filtra e devolve um array novo a cada chamada; a cada render,
+    portanto, um array diferente com os mesmos mil atendimentos dentro. Quem
+    guarda trabalho pesado por coleção (o índice da busca, num `WeakMap`; a
+    triagem, num `useMemo`) via chave nova toda vez e refazia tudo. Medido: 4,4 s
+    entre uma tecla e a lista responder.
+  */
+  const projectTickets = useMemo(
+    () => ticketsOf(activeProjectId),
+    [activeProjectId, ticketsOf]
+  );
 
   /*
     Onde cada atendimento esta no ciclo. Sai de duas fontes ja em memoria: as
@@ -94,65 +101,8 @@ export function AnalysisWorkspace() {
     [activeProjectId, analyses, articles]
   );
 
-  const recorte = useTicketRecorte(projectTickets, ciclo);
+  const recorte = useTicketRecorte(projectTickets, ciclo, conversations);
 
-  /*
-    A busca automática, quando ligada e quando quem está aqui administra.
-
-    Ela usa o mesmo motor do diálogo, e não uma segunda cópia: duas varreduras
-    escritas em separado divergem, e a que roda sozinha seria justamente a que
-    ninguém está olhando quando divergir.
-
-    Sem teto de quantos ler, ao contrário da busca à mão. Ali o teto existe
-    porque alguém escolheu a janela e pode ter escolhido grande demais; aqui a
-    janela é o intervalo desde a última busca, que é pequeno por construção.
-  */
-  const buscarSozinho = useCallback(
-    async (desde: string, ate: string) => {
-      const tranca = await tomarTranca(currentPerson);
-
-      if (!tranca.tomada) return;
-
-      try {
-        const conversas = await listarConversas({ caixas: await caixasDoSuporte(), desde });
-
-        const conhecidos = projectTickets
-          .filter((ticket) => ticket.source?.provider === "hubspot")
-          .map((ticket) => ({
-            externalId: ticket.source?.externalId ?? "",
-            ultimaMensagemEm: String(ticket.raw?.ultimaMensagemEm ?? ""),
-          }));
-
-        const plano = planejarVarredura(conversas, conhecidos, desde, ate);
-
-        const { trazidos } = await lerConversas({
-          visitar: plano.visitar,
-          projectId: activeProjectId ?? "",
-          aoLote: () => void renovarTranca(currentPerson),
-        });
-
-        importFromHelpDesk(trazidos, "automática");
-
-        /*
-          O cursor guarda o **fim da janela**, e não o instante da busca. Com
-          atraso de dois dias, buscar hoje cobre até anteontem, e a próxima
-          precisa partir de anteontem.
-        */
-        await soltarTranca(true, ate);
-      } catch {
-        /*
-          Em silêncio, e de propósito. Ninguém pediu esta busca: um aviso de
-          falha no meio do trabalho de outra pessoa é ruído sobre algo que ela
-          não começou, e a próxima conferência tenta de novo em cinco minutos.
-          A tranca volta de qualquer jeito, senão a falha trancaria a equipe.
-        */
-        await soltarTranca(false);
-      }
-    },
-    [activeProjectId, currentPerson, importFromHelpDesk, projectTickets]
-  );
-
-  useAutoSync(buscarSozinho);
 
   /*
     Duas perguntas, duas vistas. Atender é "este atendimento aqui"; a triagem é
@@ -262,6 +212,17 @@ export function AnalysisWorkspace() {
 
   const [importOpen, setImportOpen] = useState(false);
   const [helpDeskOpen, setHelpDeskOpen] = useState(false);
+
+  /*
+    Andar pela fila com o teclado, como num help desk. Desligado enquanto há
+    diálogo aberto: ali as setas são de quem está no diálogo.
+  */
+  useListaPorTeclado({
+    ids: recorte.pagina.map((ticket) => ticket.id),
+    selecionado: selectedTicketId,
+    aoSelecionar: setSelectedTicketId,
+    ativo: !importOpen && !helpDeskOpen && deletingTicketId === null,
+  });
 
   const dialogs = (
     <>
@@ -386,7 +347,7 @@ export function AnalysisWorkspace() {
                 analysisStatus={analysis?.status}
               />
 
-              <TicketConversation conversation={selectedConversation} />
+              <TicketConversation conversation={selectedConversation} ticket={selectedTicket} />
             </main>
 
             <aside className="min-w-0 xl:sticky xl:top-6 xl:self-start">

@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import type { SupportConversation } from "@/models/SupportConversation";
 import type { Ticket } from "@/models/Ticket";
+import { emptyClassification } from "@/models/TicketClassification";
 
 import { ticketService } from "./ticketService";
 import type { TicketFormData } from "../types/TicketFormData";
@@ -28,6 +29,7 @@ const ticket = (overrides: Partial<Ticket> = {}): Ticket => ({
   title: "Antigo",
   solution: "",
   company: "",
+  ...emptyClassification(),
   date: "",
   ...overrides,
 });

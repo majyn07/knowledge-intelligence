@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { Download, Image as ImageIcon, Plus, RotateCcw } from "lucide-react";
 
 import { BrandEmptyState } from "@/components/brand/BrandEmptyState";
+import { usePermissions } from "@/features/auth/providers/PermissionsProvider";
 import { PageSection } from "@/components/common/page/PageSection";
 import { Button } from "@/components/ui/button";
 import { useActivity } from "@/features/activities/providers/ActivityProvider";
@@ -46,6 +47,7 @@ function download(name: string, content: Blob) {
  */
 export function PanelBoard() {
   const { panels, savePanel, removePanel, movePanel, restoreDefaults } = usePanels();
+  const { pode } = usePermissions();
 
   const { projects, activeProjectId } = useProject();
   const { tickets } = useTickets();
@@ -117,10 +119,13 @@ export function PanelBoard() {
       description="Montados aqui, sem passar pelo código. O painel guarda a pergunta; o número é recalculado a cada abertura."
       actions={
         <div className="flex flex-wrap gap-2">
-          <Button size="sm" variant="outline" onClick={restoreDefaults}>
-            <RotateCcw className="h-3.5 w-3.5" />
-            Restaurar padrão
-          </Button>
+          {/* Descarta os painéis que a equipe montou, e eles são de todos. */}
+          {pode("restaurarPaineis") && (
+            <Button size="sm" variant="outline" onClick={restoreDefaults}>
+              <RotateCcw className="h-3.5 w-3.5" />
+              Restaurar padrão
+            </Button>
+          )}
 
           <Button
             size="sm"

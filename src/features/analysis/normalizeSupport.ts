@@ -26,6 +26,13 @@ export function normalizeTicket(raw: unknown): Ticket {
     title: text(value.title),
     solution: text(value.solution),
     company: text(value.company),
+    categoria: text(value.categoria),
+    sintoma: text(value.sintoma),
+    causa: text(value.causa),
+    tipoDeProblema: text(value.tipoDeProblema),
+    fechamento: text(value.fechamento),
+    quemAbriu: text(value.quemAbriu),
+    protecaoTecnologica: text(value.protecaoTecnologica),
     /*
       O campo era de texto livre, e os registros anteriores guardam
       `dd/mm/aaaa`. A conversão acontece na leitura e se firma na próxima

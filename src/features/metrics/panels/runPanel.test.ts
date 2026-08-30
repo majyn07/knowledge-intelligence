@@ -4,6 +4,7 @@ import type { ActivityEvent } from "@/models/ActivityEvent";
 import type { AnalysisRecord } from "@/models/KnowledgeLifecycle";
 import type { KnowledgeArticle } from "@/models/KnowledgeArticle";
 import type { Taxonomy } from "@/models/Taxonomy";
+import { emptyClassification } from "@/models/TicketClassification";
 import type { PlanWorkspaceItem } from "@/features/plans/types/PlanWorkspace";
 
 import { reconcileSpec, type PanelSpec } from "./panelSpec";
@@ -157,8 +158,8 @@ describe("janela", () => {
     */
     const data = base();
     data.tickets = [
-      { id: "t1", projectId: "p1", title: "A", solution: "", company: "", date: "18/08/2026" },
-      { id: "t2", projectId: "p1", title: "B", solution: "", company: "", date: "10/03/2026" },
+      { id: "t1", projectId: "p1", title: "A", solution: "", company: "", ...emptyClassification(), date: "18/08/2026" },
+      { id: "t2", projectId: "p1", title: "B", solution: "", company: "", ...emptyClassification(), date: "10/03/2026" },
     ];
 
     expect(runPanel(spec({ source: "tickets", window: 30 }), data, agora).total).toBe(1);
@@ -174,7 +175,7 @@ describe("janela", () => {
     */
     const data = base();
     data.tickets = [
-      { id: "t1", projectId: "p1", title: "A", solution: "", company: "", date: "2026-08-01" },
+      { id: "t1", projectId: "p1", title: "A", solution: "", company: "", ...emptyClassification(), date: "2026-08-01" },
     ];
 
     const rows = runPanel(
@@ -191,7 +192,7 @@ describe("janela", () => {
     // nada aconteceu.
     const data = base();
     data.tickets = [
-      { id: "t1", projectId: "p1", title: "A", solution: "", company: "", date: "31/02/2026" },
+      { id: "t1", projectId: "p1", title: "A", solution: "", company: "", ...emptyClassification(), date: "31/02/2026" },
     ];
 
     expect(runPanel(spec({ source: "tickets", window: 365 }), data, agora).total).toBe(0);
