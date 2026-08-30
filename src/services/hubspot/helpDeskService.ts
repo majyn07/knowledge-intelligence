@@ -3,6 +3,7 @@ import "server-only";
 import { record, text } from "@/lib/shape";
 import type { SupportConversationMessage } from "@/models/SupportConversation";
 
+import { attachmentsOf } from "./attachments";
 import { nextCursor, toConversationMessages, type HubSpotActor } from "./conversationMapping";
 import type { ConversaListada } from "./helpDeskSchedule";
 import { hubspot } from "./hubspotClient";
@@ -339,6 +340,17 @@ export async function lerLote(
             criadoEm: conversa.criadoEm,
             ...(conversa.ultimaMensagemEm ? { ultimaMensagemEm: conversa.ultimaMensagemEm } : {}),
             hubspotTicketId: ticketId,
+            /*
+              Quantos arquivos o cliente mandou, contados aqui porque as
+              mensagens já estão em mãos: zero requisição a mais.
+
+              Serve para a lista mostrar onde há evidência sem ninguém abrir
+              chamado por chamado, e para a tela não oferecer "buscar anexos"
+              num atendimento que sabidamente não tem nenhum. Ausente é
+              **desconhecido**, e não zero: os que entraram antes disto existir
+              continuam oferecendo o botão.
+            */
+            anexos: attachmentsOf(brutas).length,
             origemDoTitulo: ticket.titleOrigin,
             mensagens: ticket.messageCount,
             ...(contato ? { contato } : {}),

@@ -7,6 +7,7 @@ import {
   Download,
   PanelLeftClose,
   PanelLeftOpen,
+  Paperclip,
   Search,
   User,
   X,
@@ -353,6 +354,7 @@ function TicketRow({
   const cliente = clienteDo(ticket);
   const chamado = chamadoDo(ticket);
   const atividade = ultimaAtividadeDe(ticket);
+  const anexos = typeof ticket.raw?.anexos === "number" ? ticket.raw.anexos : 0;
 
   /*
     O item selecionado acompanha o teclado.
@@ -413,6 +415,23 @@ function TicketRow({
               {chamado !== "" && (
                 <span className="rounded bg-muted px-1.5 py-0.5 font-mono text-[10px]">
                   #{chamado}
+                </span>
+              )}
+
+              {/*
+                Onde há evidência, sem ninguém abrir chamado por chamado.
+
+                O número vem da varredura, que contou com as mensagens já em
+                mãos. Só aparece quando é maior que zero: "0 anexos" ocuparia
+                espaço em quase toda linha para dizer o normal.
+              */}
+              {anexos > 0 && (
+                <span
+                  className="flex items-center gap-0.5"
+                  title={`${anexos} ${anexos === 1 ? "arquivo" : "arquivos"} do cliente`}
+                >
+                  <Paperclip className="h-3 w-3" aria-hidden />
+                  {anexos}
                 </span>
               )}
 

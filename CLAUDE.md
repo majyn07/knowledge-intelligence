@@ -1122,6 +1122,13 @@ busca leva 13 s e diz "hubspot"; a segunda leva 705 ms, diz "cópia" e não sai
 uma requisição. Atendimento sem anexo nenhum responde em 147 ms na segunda vez,
 por causa da marca.
 
+**A varredura conta quantos anexos há**, com as mensagens já em mãos e zero
+requisição a mais. Serve para a lista mostrar onde está a evidência sem ninguém
+abrir chamado por chamado, e para a tela não oferecer "buscar anexos" onde
+sabidamente não há nenhum. **Ausente é desconhecido, e não zero:** os 1.025 que
+entraram antes deste campo continuam oferecendo o botão, porque sumir com a
+seção neles esconderia anexo que existe.
+
 **O nome do arquivo é codificado na chave, não sanitizado.** A primeira versão
 trocava espaço e acento por hífen, e o efeito só aparecia na **segunda**
 leitura: "erro eberick.png" voltava "erro-eberick.png", então o mesmo anexo

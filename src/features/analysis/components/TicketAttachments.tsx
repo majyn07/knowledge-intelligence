@@ -33,6 +33,17 @@ export function TicketAttachments({ ticket }: { ticket: Ticket }) {
 
   /* Quando o atendimento sabe de qual fio veio, a busca custa uma ida em vez de duas. */
   const threadId = String(ticket.raw?.threadId ?? "");
+
+  /*
+    Quantos a varredura contou, quando contou.
+
+    Ausente é **desconhecido**, e não zero: os 1.025 que entraram antes deste
+    campo existir não o têm, e sumir com a seção neles esconderia anexo que
+    existe. Zero é resposta, e aí a seção não aparece: oferecer "buscar anexos"
+    onde sabidamente não há nenhum é convidar ao clique que não leva a nada.
+  */
+  const contados = ticket.raw?.anexos;
+  const sabidamenteVazio = typeof contados === "number" && contados === 0;
   const [anexos, setAnexos] = useState<Anexo[] | null>(null);
   const [buscando, setBuscando] = useState(false);
   const [erro, setErro] = useState("");
@@ -42,7 +53,7 @@ export function TicketAttachments({ ticket }: { ticket: Ticket }) {
     arquivo ou foi cadastrado à mão, e a seção some em vez de oferecer um botão
     que não vai funcionar.
   */
-  if (externalId === "") return null;
+  if (externalId === "" || sabidamenteVazio) return null;
 
   async function buscar() {
     setBuscando(true);
@@ -90,8 +101,11 @@ export function TicketAttachments({ ticket }: { ticket: Ticket }) {
 
       {anexos === null && !buscando && erro === "" && (
         <p className="mt-1.5 text-xs leading-5 text-muted-foreground">
-          O print que o cliente mandou vive na HubSpot. A primeira busca copia para cá; depois
-          disso abre sem falar com eles de novo.
+          {typeof contados === "number"
+            ? `${contados} ${contados === 1 ? "arquivo" : "arquivos"} neste atendimento. `
+            : ""}
+          O que o cliente mandou vive na HubSpot. A primeira busca copia para cá; depois disso abre
+          sem falar com eles de novo.
         </p>
       )}
 
