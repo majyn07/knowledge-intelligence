@@ -48,7 +48,7 @@ const severityLabel: Record<FindingSeverity, string> = {
  */
 export function SurveyWorkspace() {
   const { items: articles, isHydrated } = useLibrary();
-  const { tickets } = useTickets();
+  const { tickets, conversations } = useTickets();
   const { taxonomy } = useTaxonomy();
   const { analyses } = useKnowledgeLifecycle();
   const now = useNow();
@@ -70,8 +70,8 @@ export function SurveyWorkspace() {
   );
 
   const findings = useMemo(
-    () => (now ? buildSurvey({ articles, tickets, taxonomy, now, analisados }) : []),
-    [analisados, articles, tickets, taxonomy, now]
+    () => (now ? buildSurvey({ articles, tickets, taxonomy, now, analisados, conversations }) : []),
+    [analisados, articles, conversations, tickets, taxonomy, now]
   );
 
   const summary = surveySummary(findings);

@@ -1,4 +1,5 @@
 import type { KnowledgeArticle } from "@/models/KnowledgeArticle";
+import type { SupportConversation } from "@/models/SupportConversation";
 import type { Ticket } from "@/models/Ticket";
 import { findSection, sectionPath, type Taxonomy } from "@/models/Taxonomy";
 
@@ -67,7 +68,25 @@ export interface SurveyInput {
    * torna a fila mais longa, nunca errada.
    */
   analisados?: Set<string>;
+
+  /**
+   * As conversas, para o agrupamento ouvir o cliente.
+   *
+   * Sem elas a triagem cai no e-mail do suporte, que é um modelo: os dois
+   * maiores achados chegaram a ser "156 atendimentos usam as mesmas palavras
+   * (ajuda, conhecimento, entendermos, hesite)". Opcional porque a ausência
+   * empobrece o agrupamento sem torná-lo errado.
+   */
+  conversations?: SupportConversation[];
 }
+
+/**
+ * Quantos atendimentos avulsos ainda cabem como linha própria.
+ *
+ * Acima disso vira um achado só. O número é o mesmo espírito do resto: uma lista
+ * que alguém percorre num dia, e não o acervo transcrito.
+ */
+const AVULSOS_QUE_CABEM = 5;
 
 /** Meses sem atualização a partir dos quais um publicado merece uma olhada. */
 const MESES_PARA_ENVELHECER = 12;
@@ -271,28 +290,77 @@ export function buildSurvey(input: SurveyInput): Finding[] {
     semântica ("cinco atendimentos perguntam a mesma coisa") exige modelo, e
     entra marcada como proposta.
   */
-  const triagem = triageTickets(tickets, articles, analisados);
+  const triagem = triageTickets(tickets, articles, analisados, input.conversations ?? []);
 
-  for (const grupo of triagem.groups) {
-    const varios = grupo.tickets.length > 1;
+  /*
+    **Atendimento sozinho vira um achado só, e não seiscentos.**
+
+    É a mesma lição que "artigo sem seção" já tinha cobrado: acima de um punhado
+    de registros, uma linha por registro deixa de ser lista de trabalho e vira a
+    base inteira transcrita, afogando os três que alguém resolveria naquele dia.
+
+    Aqui isso ficou aritmético: são 679 grupos e só 80 têm mais de um
+    atendimento. Os outros 599 diriam, um a um, "este foi resolvido e não virou
+    artigo" — que é verdade sobre quase todo atendimento e não ajuda a escolher
+    nenhum.
+
+    Grupo com mais de um continua individual: ali o número é o argumento, e o
+    caminho é abrir aquele grupo.
+  */
+  const sozinhos = triagem.groups.filter((grupo) => grupo.tickets.length === 1);
+  const repetidos = triagem.groups.filter((grupo) => grupo.tickets.length > 1);
+
+  for (const grupo of repetidos) {
     const cobertura = Math.round(grupo.coverage * 100);
 
     achados.push({
       id: grupo.id,
       kind: "atendimento-sem-cobertura",
       origin: "calculado",
-      severity: varios || grupo.coverage < 0.5 ? "alta" : "media",
-      action: varios
-        ? `Avaliar se os ${grupo.tickets.length} viram um artigo`
-        : "Avaliar se vira conhecimento",
+      severity: "alta",
+      action: `Avaliar se os ${grupo.tickets.length} viram um artigo`,
       subject: grupo.subject,
-      why: varios
-        ? `${grupo.tickets.length} atendimentos resolvidos usam as mesmas palavras (${grupo.terms
-            .slice(0, 4)
-            .join(", ")}) e nenhum virou artigo. O acervo publicado cobre ${cobertura}% desse vocabulário.`
-        : `Foi resolvido e nenhum artigo nasceu dele. O acervo publicado cobre ${cobertura}% do vocabulário dele.`,
+      why: `${grupo.tickets.length} atendimentos resolvidos usam as mesmas palavras (${grupo.terms
+        .slice(0, 4)
+        .join(", ")}) e nenhum virou artigo. O acervo publicado cobre ${cobertura}% desse vocabulário.`,
       href: `/analysis?ticket=${grupo.tickets[0].id}`,
     });
+  }
+
+  if (sozinhos.length > 0) {
+    /*
+      Um punhado ainda cabe individualmente: com três ou quatro, o agrupado
+      esconderia mais do que mostraria, e a lista tem espaço.
+    */
+    if (sozinhos.length <= AVULSOS_QUE_CABEM) {
+      for (const grupo of sozinhos) {
+        achados.push({
+          id: grupo.id,
+          kind: "atendimento-sem-cobertura",
+          origin: "calculado",
+          severity: grupo.coverage < 0.5 ? "alta" : "media",
+          action: "Avaliar se vira conhecimento",
+          subject: grupo.subject,
+          why: `Foi resolvido e nenhum artigo nasceu dele. O acervo publicado cobre ${Math.round(
+            grupo.coverage * 100
+          )}% do vocabulário dele.`,
+          href: `/analysis?ticket=${grupo.tickets[0].id}`,
+        });
+      }
+    } else {
+      const semCobertura = sozinhos.filter((grupo) => grupo.coverage < 0.5).length;
+
+      achados.push({
+        id: "atendimentos-avulsos",
+        kind: "atendimento-sem-cobertura",
+        origin: "calculado",
+        severity: "media",
+        action: `Percorrer os ${sozinhos.length} atendimentos avulsos`,
+        subject: "Resolvidos que não viraram artigo",
+        why: `Cada um aparece sozinho, sem outro atendimento parecido — ${semCobertura} deles tratam de assunto que o acervo publicado cobre menos da metade. O caminho é a fila de triagem, e não abrir um a um.`,
+        href: "/analysis?vista=triagem",
+      });
+    }
   }
 
   /*

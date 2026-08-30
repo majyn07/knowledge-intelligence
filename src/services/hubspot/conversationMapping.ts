@@ -39,6 +39,18 @@ export function stripHtml(raw: unknown): string {
     .replace(/<\/(p|div|li|tr|h[1-6])>/gi, "\n")
     .replace(/<[^>]+>/g, "")
     .replace(/&nbsp;|&amp;|&lt;|&gt;|&quot;|&#39;/gi, (m) => ENTIDADES[m.toLowerCase()] ?? m)
+    /*
+      Entidade **numérica** também, e ela não era teoria: `&#xa0;` chegou em 115
+      mensagens e virou a palavra "xa0", que o Levantamento chegou a exibir
+      como um dos termos que descrevem um grupo de treze atendimentos. As
+      nomeadas acima não a cobrem, porque a mesma coisa tem duas escritas.
+    */
+    .replace(/&#x([0-9a-f]{1,6});/gi, (_, hex: string) =>
+      String.fromCodePoint(Number.parseInt(hex, 16))
+    )
+    .replace(/&#(\d{1,7});/g, (_, dec: string) => String.fromCodePoint(Number(dec)))
+    /* O espaço inquebrável vira espaço: ele é separador, não palavra. */
+    .replace(/\u00a0/g, " ")
     .replace(/[ \t]+/g, " ")
     .replace(/\n{3,}/g, "\n\n")
     .trim();

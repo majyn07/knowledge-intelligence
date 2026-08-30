@@ -112,8 +112,8 @@ export function AnalysisWorkspace() {
   const [vista, setVista] = useState<"atender" | "triagem">("atender");
 
   const triagem = useMemo(
-    () => triageTickets(projectTickets, articles, ciclo.analisados),
-    [projectTickets, articles, ciclo.analisados]
+    () => triageTickets(projectTickets, articles, ciclo.analisados, conversations),
+    [projectTickets, articles, ciclo.analisados, conversations]
   );
 
   useEffect(() => {

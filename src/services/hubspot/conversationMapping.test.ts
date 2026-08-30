@@ -27,6 +27,21 @@ const msg = (extra: Record<string, unknown> = {}) => ({
 });
 
 describe("stripHtml", () => {
+  /*
+    Entidade numérica também: `&#xa0;` chegou em 115 mensagens e virou a palavra
+    "xa0", que o Levantamento exibiu como um dos termos que descrevem um grupo
+    de treze atendimentos. A mesma coisa tem duas escritas, e a lista de
+    entidades nomeadas só cobre uma.
+  */
+  it("decodifica entidade numérica, hexadecimal e decimal", () => {
+    expect(stripHtml("motivo do contato:&#xa0;: Setup")).toBe("motivo do contato: : Setup");
+    expect(stripHtml("caf&#233; da manh&#227;")).toBe("café da manhã");
+  });
+
+  it("espaço inquebrável vira espaço, e não vira palavra", () => {
+    expect(stripHtml("Erro&#xa0;ao&#xa0;abrir")).toBe("Erro ao abrir");
+  });
+
   it("remove tag do corpo, que vem mesmo no campo de texto puro", () => {
     expect(stripHtml("<p>O Aviso 101 indica algo</p>")).toBe("O Aviso 101 indica algo");
   });

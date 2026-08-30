@@ -1,7 +1,10 @@
 import { articleVocabulary } from "@/features/library/content/articleTerms";
 import { jaccard, semCorrespondencia, termsOf } from "@/lib/vocabulary";
 import type { KnowledgeArticle } from "@/models/KnowledgeArticle";
+import type { SupportConversation } from "@/models/SupportConversation";
 import type { Ticket } from "@/models/Ticket";
+
+import { falaDoCliente, trechosRepetidos } from "./clientVoice";
 
 /**
  * Quais atendimentos valem uma análise.
@@ -83,14 +86,51 @@ interface TicketComTermos {
   termos: Set<string>;
 }
 
-/** O que um atendimento diz, para efeito de comparação. */
-function corpusDo(ticket: Ticket): string {
-  return semCorrespondencia(`${ticket.title} ${ticket.solution}`);
+/**
+ * O que um atendimento diz, para efeito de comparação.
+ *
+ * **A fala do cliente vence o e-mail do suporte**, e foi o Levantamento contra
+ * dado real que cobrou: agrupando por `título + solução`, os dois maiores
+ * achados eram "156 atendimentos usam as mesmas palavras (ajuda, conhecimento,
+ * entendermos, hesite)" — o rodapé do e-mail, apresentando metade do acervo
+ * como um assunto só.
+ *
+ * A resposta do suporte é um modelo; a descrição do cliente é dele. Cortar por
+ * frequência não separava os dois: no e-mail, a faixa de 8% a 30% é rodapé
+ * quase inteira, e "builder" e "eberick" estão dentro dela.
+ *
+ * **Sem fala do cliente, sobra o título — e só ele.** Voltar para `solução`
+ * traria o e-mail do suporte de volta, que é justamente o modelo que este
+ * caminho existe para evitar: o grupo com título "Estou ciente e desejo
+ * continuar" reapareceu colado por "balão, canto, direito", que é a instrução
+ * do widget de chat. O título é curto e às vezes é do robô, mas é do
+ * atendimento; quando ele não dá três termos, o atendimento fica de fora do
+ * agrupamento em vez de entrar por um texto que não é dele.
+ */
+function corpusDo(
+  ticket: Ticket,
+  conversa: SupportConversation | undefined,
+  repetidos: ReadonlySet<string>
+): string {
+  const fala = falaDoCliente(conversa, repetidos);
+
+  if (fala !== "") return semCorrespondencia(fala);
+
+  return semCorrespondencia(ticket.title);
 }
 
-/** O vocabulário de um atendimento, já sem o que a correspondência traz junto. */
-export function ticketTerms(ticket: Ticket): string[] {
-  return termsOf(corpusDo(ticket));
+/**
+ * O vocabulário de um atendimento, já sem o que a correspondência traz junto.
+ *
+ * A conversa é opcional porque nem todo chamador a tem em mãos, e a ausência só
+ * torna a comparação mais pobre, nunca errada.
+ */
+export function ticketTerms(
+  ticket: Ticket,
+  conversa?: SupportConversation,
+  repetidos: ReadonlySet<string> = new Set()
+): string[] {
+  return termsOf(corpusDo(ticket, conversa, repetidos));
 }
 
 /**
@@ -131,8 +171,17 @@ export function triageTickets(
   tickets: Ticket[],
   articles: KnowledgeArticle[],
   analisados: Set<string>,
+  /*
+    As conversas entram para o agrupamento ouvir o cliente em vez do modelo de
+    e-mail do suporte. Opcional pelo mesmo motivo de sempre: quem não as tem
+    obtém uma comparação mais pobre, e não uma errada.
+  */
+  conversas: readonly SupportConversation[] = [],
   limiar = LIMIAR_DE_GRUPO
 ): TriageResult {
+  const repetidos = trechosRepetidos(conversas);
+
+  const conversaDe = new Map(conversas.map((conversa) => [conversa.ticketId, conversa]));
   const ignorados = {
     semSolucao: 0,
     jaVirouArtigo: 0,
@@ -171,7 +220,7 @@ export function triageTickets(
       continue;
     }
 
-    const termos = new Set(ticketTerms(ticket));
+    const termos = new Set(ticketTerms(ticket, conversaDe.get(ticket.id), repetidos));
 
     if (termos.size < TERMOS_MINIMOS) {
       ignorados.semTextoSuficiente += 1;
@@ -182,6 +231,25 @@ export function triageTickets(
   }
 
   const acervo = vocabularioPublicado(articles);
+
+  /*
+    Em quantos atendimentos cada termo aparece, para desempatar a explicação.
+
+    Sem isto, os termos de um grupo saíam **em ordem alfabética**: quase todos
+    empatam na contagem dentro do grupo, e o desempate era o `localeCompare`.
+    A tela dizia "usam as mesmas palavras (abrir, absoluta, anexos, antes)",
+    que é um trecho de dicionário e não uma explicação.
+
+    O que descreve um grupo é o que ele tem e os outros não. Uma passada sobre
+    os candidatos, que já estão em memória.
+  */
+  const emQuantosAtendimentos = new Map<string, number>();
+
+  for (const candidato of candidatos) {
+    for (const termo of candidato.termos) {
+      emQuantosAtendimentos.set(termo, (emQuantosAtendimentos.get(termo) ?? 0) + 1);
+    }
+  }
   const grupos: TicketComTermos[][] = [];
   const usados = new Set<string>();
 
@@ -222,7 +290,11 @@ export function triageTickets(
         : new Set([...contagem].filter(([, n]) => n > 1).map(([palavra]) => palavra));
 
     const termos = [...doGrupo].sort(
-      (a, b) => (contagem.get(b) ?? 0) - (contagem.get(a) ?? 0) || a.localeCompare(b)
+      (a, b) =>
+        (contagem.get(b) ?? 0) - (contagem.get(a) ?? 0) ||
+        /* Empatou dentro do grupo: vence quem aparece em menos atendimentos fora dele. */
+        (emQuantosAtendimentos.get(a) ?? 0) - (emQuantosAtendimentos.get(b) ?? 0) ||
+        a.localeCompare(b)
     );
 
     const ordenados = [...grupo].sort((a, b) => a.ticket.date.localeCompare(b.ticket.date));
