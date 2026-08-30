@@ -1067,6 +1067,48 @@ vivia dentro do diálogo, entrelaçada com `setState`, e enquanto havia um
 chamador isso bastava. Duas cópias divergem, e a que roda sozinha seria
 justamente a que ninguém está olhando quando divergir.
 
+### O anexo do cliente é copiado uma vez, não buscado sempre
+
+**A conversa de e-mail carrega arquivo, e é a maior parte do acervo.** Dos 445
+fios que nunca passaram pelo bot, 378 são e-mail; medido em dez deles, 27 anexos
+em 209 mensagens. Quase sempre o print da tela com o erro, que é justamente a
+evidência que falta quando se lê o chamado.
+
+Isso corrigiu uma medição errada: a primeira amostra disse "zero imagens" e era
+de chat e WhatsApp, onde o bot não recebe arquivo. **Vinte fios recentes de uma
+caixa não representam o acervo, e o corte que importava era o canal.**
+
+**Não é preciso escopo nenhum.** O anexo já vem completo na resposta que
+`conversations.read` devolve: `fileId`, nome, uso e uma URL assinada de CDN que
+responde 200 sem autenticação. `files/v3/files/{id}` dá 403, e não faz falta.
+
+**Mas a URL não se guarda.** A assinatura tem prazo dentro dela
+(`?Expires=…&Signature=…`), e a medida valia cerca de um dia: gravada junto do
+atendimento, funcionaria hoje e estaria quebrada amanhã, sem erro nenhum
+dizendo por quê.
+
+Sobravam dois caminhos, e o de buscar de novo a cada exibição foi **recusado**:
+seriam duas requisições contra o servidor de suporte toda vez que alguém
+abrisse um chamado para olhar uma figura, que é exatamente o que o freio existe
+para impedir. Então o arquivo é copiado **uma vez** e servido do nosso balde;
+da segunda em diante a HubSpot nem fica sabendo.
+
+A cópia é **por atendimento pedido**, e não em lote na varredura: copiar tudo
+seriam milhares de arquivos, a maioria que ninguém vai abrir. E pedir é ato de
+alguém, porque a maioria dos atendimentos não tem anexo e um pedido automático
+por abertura gastaria uma requisição para descobrir que não havia nada. Pasta
+vazia ganha marca, senão "não tem anexo" seria consultado para sempre.
+
+**O balde é privado, e aqui a decisão é o contrário da do balde de artigos.**
+Lá o conteúdo é público por natureza e URL que expira deixaria artigo com
+imagem quebrada. Aqui é print de tela de cliente, com nome de projeto e caminho
+de arquivo dentro. Quem exibe pede uma URL assinada de uma hora, gerada para
+quem já entrou.
+
+A porta é `requireHubSpotRead`, e ela **não** exige administrador: a varredura é
+de quem administra porque gera milhares de requisições, e abrir um anexo gera
+duas. O freio, esse, vale para as duas.
+
 ### O chamado é associado depois, e isso muda a janela
 
 **Conversa recente costuma não ter ticket ainda.** Medido nas duas pontas da
@@ -1717,7 +1759,7 @@ do portal com o plano de importação e a decisão do que revisitar, o preparo d
 HTML do artigo (âncora, cor removida, link resolvido, destaque da busca) com
 a limpeza do que executa, o trecho da busca, a sobreposição entre artigos com o vocabulário que os
 compara e a duplicata de título com a distinção entre a do portal e a nossa, a porta da HubSpot com o freio dela e a decisão da busca
-automática, a janela da busca, a busca e os recortes do atendimento, a triagem dele e a consulta da análise com o corte
+automática, a leitura do anexo do cliente, a janela da busca, a busca e os recortes do atendimento, a triagem dele e a consulta da análise com o corte
 do que a correspondência traz junto e a medição do que o acervo repete, a recusa que diz qual campo, a comparação de dois, a leitura da conversa da HubSpot com a paginação que não
 para na página vazia, o mapeamento de mensagens do provedor, a consulta da IA
 sobre o artigo, o rótulo da iniciativa, motor de busca e busca

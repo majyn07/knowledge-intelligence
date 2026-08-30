@@ -347,7 +347,7 @@ export function AnalysisWorkspace() {
                 analysisStatus={analysis?.status}
               />
 
-              <TicketConversation conversation={selectedConversation} />
+              <TicketConversation conversation={selectedConversation} ticket={selectedTicket} />
             </main>
 
             <aside className="min-w-0 xl:sticky xl:top-6 xl:self-start">

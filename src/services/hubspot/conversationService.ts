@@ -3,6 +3,7 @@ import "server-only";
 import { items, record, text } from "@/lib/shape";
 import type { SupportConversationMessage } from "@/models/SupportConversation";
 
+import { attachmentsOf, type HubSpotAttachment } from "./attachments";
 import {
   actorIdsOf,
   nextCursor,
@@ -95,5 +96,34 @@ export const hubspotConversationService = {
     const atores = await resolverAtores(brutas);
 
     return { threadIds, messages: toConversationMessages(brutas, atores) };
+  },
+
+  /**
+   * Os anexos de um atendimento, com a assinatura de agora.
+   *
+   * Pedido **na hora de exibir**, e não guardado na importação: a URL vem
+   * assinada com o prazo dentro dela, e a que foi medida valia cerca de um dia.
+   * Gravada, funcionaria hoje e estaria quebrada amanhã.
+   *
+   * Não resolve ator, ao contrário de `byExternalId`: quem quer ver o print não
+   * precisa saber quem mandou — isso a conversa já diz. É um pedido a menos por
+   * chamada contra o servidor de suporte.
+   */
+  async anexosDoAtendimento(externalId: string): Promise<HubSpotAttachment[]> {
+    const query = new URLSearchParams({ associatedTicketId: externalId, limit: "10" });
+
+    const conversas: unknown = await hubspot.get(
+      `/conversations/v3/conversations/threads?${query}`
+    );
+
+    const brutas: unknown[] = [];
+
+    for (const conversa of items(record(conversas).results)) {
+      const threadId = text(record(conversa).id);
+
+      if (threadId !== "") brutas.push(...(await mensagensDaConversa(threadId)));
+    }
+
+    return attachmentsOf(brutas);
   },
 };

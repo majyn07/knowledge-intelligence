@@ -4,6 +4,9 @@ import { Bot, Headset, User } from "lucide-react";
 
 import { RelativeDate } from "@/components/common/RelativeDate";
 import type { SupportConversation, SupportConversationMessage } from "@/models/SupportConversation";
+import type { Ticket } from "@/models/Ticket";
+
+import { TicketAttachments } from "./TicketAttachments";
 
 /**
  * A conversa do atendimento, que é o centro da tela.
@@ -15,7 +18,14 @@ import type { SupportConversation, SupportConversationMessage } from "@/models/S
  * Antes disso a conversa vinha depois dos atributos, empilhada, e um diálogo de
  * noventa e quatro mensagens empurrava todo o resto para fora da tela.
  */
-export function TicketConversation({ conversation }: { conversation?: SupportConversation }) {
+export function TicketConversation({
+  conversation,
+  ticket,
+}: {
+  conversation?: SupportConversation;
+  /* Opcional porque nem toda tela que mostra conversa tem o atendimento em mãos. */
+  ticket?: Ticket;
+}) {
   const messages = conversation?.messages ?? [];
 
   return (
@@ -48,6 +58,13 @@ export function TicketConversation({ conversation }: { conversation?: SupportCon
           ))}
         </div>
       )}
+
+      {/*
+        Depois da conversa e fora da caixa que rola: o anexo é do atendimento
+        inteiro, não de uma fala. Ficar dentro da rolagem o esconderia no fim de
+        noventa e quatro mensagens.
+      */}
+      {ticket && <TicketAttachments ticket={ticket} />}
     </section>
   );
 }

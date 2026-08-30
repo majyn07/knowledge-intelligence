@@ -111,3 +111,53 @@ export async function requireAdmin(): Promise<Autorizacao> {
 
   return { ok: true };
 }
+
+/**
+ * Ler um atendimento na HubSpot: exige sessão e respeita o freio, e mais nada.
+ *
+ * Não é a mesma porta da varredura, de propósito. A varredura é de quem
+ * administra porque **gera milhares de requisições**; abrir o anexo de um
+ * chamado gera duas, e quem está lendo aquele chamado é quem precisa ver o
+ * print que o cliente mandou. Exigir administrador ali faria a evidência
+ * depender de alguém estar disponível.
+ *
+ * O freio continua valendo, e é o ponto: ele existe para impedir que alguém
+ * sobrecarregue o servidor de suporte, e uma porta que o ignora é um buraco na
+ * outra.
+ */
+export async function requireHubSpotRead(): Promise<Autorizacao> {
+  if (!isSharedWorkspace()) return { ok: true };
+
+  const supabase = await createSupabaseServerClient();
+
+  if (!supabase) {
+    return { ok: false, status: 503, message: "O espaço compartilhado não está configurado." };
+  }
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return { ok: false, status: 401, message: "Entre para ver o anexo." };
+  }
+
+  const { data: config } = await supabase
+    .from("app_settings" as never)
+    .select("value")
+    .eq("key", "hubspot_auto_sync")
+    .maybeSingle();
+
+  const valor = (config as { value?: { bloqueado?: unknown } } | null)?.value;
+
+  if (valor?.bloqueado === true) {
+    return {
+      ok: false,
+      status: 423,
+      message:
+        "As chamadas à HubSpot estão bloqueadas. Quem administra desbloqueia na tela de Atendimentos.",
+    };
+  }
+
+  return { ok: true };
+}
