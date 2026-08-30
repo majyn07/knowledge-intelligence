@@ -1313,6 +1313,43 @@ respondiam a frase e mais nada, nem na tela nem no registro do servidor. Agora
 dizem o caminho do campo e o motivo, que é forma e não conteúdo: nenhum valor do
 pedido é copiado para a resposta.
 
+### A pergunta é do cliente; a resposta é um modelo
+
+**A triagem agrupava pela resposta do suporte, e o Levantamento cobrou.** Com os
+1.025 atendimentos reais, os dois maiores achados eram "156 atendimentos usam as
+mesmas palavras (ajuda, conhecimento, entendermos, hesite)" — que é *"Precisa de
+Ajuda? Base de Conhecimento"* e *"não hesite em nos contatar"*. O grupo era o
+**rodapé**, e a tela apresentava metade do acervo como um assunto só.
+
+**Cortar por frequência não separa aqui, e isso foi medido.** No e-mail do
+suporte a faixa de 8% a 30% é rodapé quase inteira — "balão", "canto",
+"inferior", "rosa", "hesite", os nomes de quem atendeu — e dentro dela estão
+"builder" (19%) e "eberick" (11%), que é o que distingue um chamado do outro.
+Não existe limiar que separe os dois, porque o corpus é dominado por um modelo
+de e-mail só. Funciona no acervo de artigos porque lá os textos são diversos.
+
+O que separa é **de quem é a fala**: 5.843 termos distintos na resposta do
+suporte contra 11.799 na fala do cliente, nos mesmos atendimentos. Sem conversa,
+volta para título e solução — são 119 dos 1.025.
+
+**Clique não é descrição, e quem diz isso é o corpus.** Das 5.318 falas
+distintas do cliente, 5.148 aparecem numa conversa só; passando de 2%, sobram
+**dezoito**, e as dezoito são botão ou saudação: "Estou ciente e desejo
+continuar" (44%), "Setup e Suporte ao Produto" (30%), "ok", "oi", "1", "2". A
+regra sai do acervo, então acompanha o bot quando o suporte mudar o menu.
+
+**E atendimento sozinho vira um achado só.** É a lição de "artigo sem seção" de
+novo, e aqui ficou aritmética: são 679 grupos e só 80 têm mais de um
+atendimento. Os outros 599 diriam, um a um, "foi resolvido e não virou artigo" —
+verdade sobre quase todo atendimento, e inútil para escolher qual. Um punhado
+ainda cabe individualmente; acima disso o caminho é a fila de triagem.
+
+Medido de ponta a ponta: **290 achados com um grupo de 156** viraram **85 com o
+maior em 17**.
+
+**Ainda não está resolvido**: o maior grupo agora cola pela assinatura do
+**cliente** ("andressa, bancarios, centro"), e não pelo assunto.
+
 ### O e-mail do suporte não é vocabulário
 
 O que a HubSpot devolve como solução é o **e-mail inteiro**, com saudação,

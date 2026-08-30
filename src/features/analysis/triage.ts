@@ -1,7 +1,10 @@
 import { articleVocabulary } from "@/features/library/content/articleTerms";
 import { jaccard, semCorrespondencia, termsOf } from "@/lib/vocabulary";
 import type { KnowledgeArticle } from "@/models/KnowledgeArticle";
+import type { SupportConversation } from "@/models/SupportConversation";
 import type { Ticket } from "@/models/Ticket";
+
+import { falaDoCliente, falasDeBotao } from "./clientVoice";
 
 /**
  * Quais atendimentos valem uma análise.
@@ -83,14 +86,46 @@ interface TicketComTermos {
   termos: Set<string>;
 }
 
-/** O que um atendimento diz, para efeito de comparação. */
-function corpusDo(ticket: Ticket): string {
+/**
+ * O que um atendimento diz, para efeito de comparação.
+ *
+ * **A fala do cliente vence o e-mail do suporte**, e foi o Levantamento contra
+ * dado real que cobrou: agrupando por `título + solução`, os dois maiores
+ * achados eram "156 atendimentos usam as mesmas palavras (ajuda, conhecimento,
+ * entendermos, hesite)" — o rodapé do e-mail, apresentando metade do acervo
+ * como um assunto só.
+ *
+ * A resposta do suporte é um modelo; a descrição do cliente é dele. Cortar por
+ * frequência não separava os dois: no e-mail, a faixa de 8% a 30% é rodapé
+ * quase inteira, e "builder" e "eberick" estão dentro dela.
+ *
+ * Sem conversa, volta para título e solução, que é pouco mas é do atendimento —
+ * são 119 dos 1.025, os que vieram por arquivo ou à mão.
+ */
+function corpusDo(
+  ticket: Ticket,
+  conversa: SupportConversation | undefined,
+  botoes: ReadonlySet<string>
+): string {
+  const fala = falaDoCliente(conversa, botoes);
+
+  if (fala !== "") return semCorrespondencia(fala);
+
   return semCorrespondencia(`${ticket.title} ${ticket.solution}`);
 }
 
-/** O vocabulário de um atendimento, já sem o que a correspondência traz junto. */
-export function ticketTerms(ticket: Ticket): string[] {
-  return termsOf(corpusDo(ticket));
+/**
+ * O vocabulário de um atendimento, já sem o que a correspondência traz junto.
+ *
+ * A conversa é opcional porque nem todo chamador a tem em mãos, e a ausência só
+ * torna a comparação mais pobre, nunca errada.
+ */
+export function ticketTerms(
+  ticket: Ticket,
+  conversa?: SupportConversation,
+  botoes: ReadonlySet<string> = new Set()
+): string[] {
+  return termsOf(corpusDo(ticket, conversa, botoes));
 }
 
 /**
@@ -131,8 +166,17 @@ export function triageTickets(
   tickets: Ticket[],
   articles: KnowledgeArticle[],
   analisados: Set<string>,
+  /*
+    As conversas entram para o agrupamento ouvir o cliente em vez do modelo de
+    e-mail do suporte. Opcional pelo mesmo motivo de sempre: quem não as tem
+    obtém uma comparação mais pobre, e não uma errada.
+  */
+  conversas: readonly SupportConversation[] = [],
   limiar = LIMIAR_DE_GRUPO
 ): TriageResult {
+  const botoes = falasDeBotao(conversas);
+
+  const conversaDe = new Map(conversas.map((conversa) => [conversa.ticketId, conversa]));
   const ignorados = {
     semSolucao: 0,
     jaVirouArtigo: 0,
@@ -171,7 +215,7 @@ export function triageTickets(
       continue;
     }
 
-    const termos = new Set(ticketTerms(ticket));
+    const termos = new Set(ticketTerms(ticket, conversaDe.get(ticket.id), botoes));
 
     if (termos.size < TERMOS_MINIMOS) {
       ignorados.semTextoSuficiente += 1;
