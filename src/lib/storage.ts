@@ -111,6 +111,15 @@ export const STORAGE_KEYS = {
     forma da lista: quem arrastou para o canto esquerdo o fez neste monitor.
   */
   assistantDock: "visus-assistant-dock",
+  /*
+    Um rascunho a caminho do formulário de artigo, entregue por outra tela.
+
+    Entrega, e não estado: quem escreve retira na chegada e a chave some. Fica no
+    navegador porque texto pela metade no servidor ficaria visível para a equipe
+    antes de a pessoa decidir mostrar, que é a mesma razão da recuperação de
+    texto não salvo.
+  */
+  articleHandoff: "visus-article-handoff",
 } as const;
 
 /** Tudo que a recuperação de falha apaga para voltar à semente. */

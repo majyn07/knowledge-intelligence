@@ -48,6 +48,7 @@ import { articleService } from "@/features/library/services/articleService";
 
 import { useProject } from "@/providers/ProjectProvider";
 import { concordar, contar } from "@/lib/plural";
+import { retirarRascunho, type RascunhoEntregue } from "@/features/library/draftHandoff";
 
 export default function LibraryPage() {
   const [importOpen, setImportOpen] = useState(false);
@@ -114,6 +115,36 @@ export default function LibraryPage() {
     primeiro num laço.
   */
   const urlApplied = useRef(false);
+
+  /*
+    Um rascunho entregue por outra tela — hoje, a fila de triagem, onde a IA
+    avaliou se o acervo já cobria o assunto e escreveu o rascunho quando não
+    cobria.
+
+    Retirado num efeito, e não no primeiro render: é armazenamento do navegador,
+    e o servidor não tem como saber que há um. Uma vez só, como a leitura da URL,
+    senão o formulário se reabriria a cada render do pai.
+  */
+  const [entregue, setEntregue] = useState<RascunhoEntregue | null>(null);
+  const rascunhoLido = useRef(false);
+
+  useEffect(() => {
+    if (rascunhoLido.current) return;
+    rascunhoLido.current = true;
+
+    /*
+      A própria chave é o sinal: ela é escrita logo antes de a outra tela
+      navegar para cá, e some na leitura. Um parâmetro na URL seria um segundo
+      jeito de dizer a mesma coisa, e o recorte da tela já mora ali — misturar
+      um sinalizador de uma vez só com o estado que se compartilha por link é o
+      tipo de coisa que faz um filtro sumir por causa do outro.
+    */
+    const chegou = retirarRascunho();
+    if (!chegou) return;
+
+    setEntregue(chegou);
+    openCreateDialog();
+  }, [openCreateDialog]);
 
   useEffect(() => {
     if (!urlRead || urlApplied.current) return;
@@ -339,15 +370,47 @@ export default function LibraryPage() {
           description={
             selectedItem
               ? "Atualize o conteúdo, a classificação e o estágio editorial."
-              : "Todo artigo novo nasce como rascunho e precisa passar por revisão antes de ser publicado."
+              : entregue && entregue.origem
+                ? `Rascunho proposto pela IA a partir de ${entregue.origem}. Confira antes de salvar: nada foi publicado.`
+                : "Todo artigo novo nasce como rascunho e precisa passar por revisão antes de ser publicado."
           }
         >
           <LibraryForm
-            key={selectedItem?.id ?? "novo"}
+            key={selectedItem?.id ?? (entregue ? "entregue" : "novo")}
             projects={projectOptions}
             articles={items}
             editingId={selectedItem?.id}
-            initialData={selectedItem ? articleService.toFormData(selectedItem) : undefined}
+            initialData={
+              selectedItem
+                ? articleService.toFormData(selectedItem)
+                : entregue
+                  ? {
+                      title: entregue.title,
+                      summary: entregue.summary,
+                      content: entregue.content,
+                      /*
+                        Markdown: é o que a IA escreve. O formato é do artigo e
+                        vai declarado, e não adivinhado — cravá-lo na gravação
+                        já converteu artigo importado em silêncio uma vez.
+                      */
+                      contentFormat: "markdown" as const,
+                      /*
+                        O resto nasce vazio de propósito. Seção, gênero e
+                        responsável guardam identificador, e o modelo devolve
+                        texto: preenchê-los daqui seria a classificação
+                        inventada que o produto evita. Quem escreve decide.
+                      */
+                      projectId: "",
+                      genreId: "",
+                      sectionId: "",
+                      status: "draft" as const,
+                      tags: [],
+                      keywords: [],
+                      author: "",
+                      url: "",
+                    }
+                  : undefined
+            }
             submitLabel={selectedItem ? "Atualizar" : "Salvar como rascunho"}
             onSubmit={(data) => { guard.reset(); handleSubmit(data); }}
             onCancel={guard.requestClose}

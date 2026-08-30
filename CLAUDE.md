@@ -1055,6 +1055,40 @@ junto: nome de cliente ali sai do nosso domínio e entra no de terceiro, e nada
 no prompt melhora por saber que a pessoa se chama Ana. Quem atendeu continua
 nomeado — é gente da AltoQi, e o nome distingue quem respondeu o quê.
 
+**A fila vira artigo sem ninguem reler as conversas.** Era a ultima perna manual
+do ciclo: a triagem agrupava, a IA priorizava, e entre "estes 24 atendimentos" e
+um artigo escrito havia alguem relendo 24 conversas. O que faltava nao era
+inteligencia, era a ligacao — a avaliacao de cobertura ja sabia responder "o
+acervo ja cobre isto?" e escrever o rascunho, so nunca tinha sido apontada para
+a fila.
+
+**A primeira pergunta continua sendo se ja existe**, e ali ela vale mais que no
+formulario: um assunto que chegou 24 vezes parece novo justamente porque ninguem
+achou o artigo. "O acervo ja responde" significa que o problema e de busca, e
+nao de conteudo.
+
+**A pergunta e do cliente e a resposta e do suporte, e as duas vao.** So a
+pergunta produz um artigo que descreve o problema e nao o resolve; so a resposta
+produz um artigo que resolve algo que ninguem sabe procurar. Vai uma amostra dos
+mais recentes, dita como amostra: um assunto que chega ha dois anos mudou de
+forma no caminho, e o artigo tem de responder ao que chega hoje. O material fica
+visivel antes do clique, como o plano de importacao.
+
+O rascunho chega ao formulario por **entrega**, nao por estado: a chave some na
+leitura, senao abrir o formulario na semana seguinte traria de volta um rascunho
+que a pessoa ja decidiu nao usar. Fica no navegador pela mesma razao da
+recuperacao de texto nao salvo. E secao, genero e responsavel nascem **vazios**:
+eles guardam identificador e o modelo devolve texto.
+
+**A saudacao de abertura sai, e ela carrega o nome do cliente.** Os marcadores do
+e-mail cortavam para baixo, porque a convencao poe o rodape no fim; a saudacao
+escapava por estar antes de tudo. Medido nas 1.025 solucoes do acervo: 301 (29%)
+abrem com saudacao e **95 (9%) trazem um nome proprio nela** — "Boa tarde,
+Uesley!". Esse texto ia ao provedor, e e a mesma decisao que tirou o nome do
+cliente do transcrito, alcancando o lugar que aquela mudanca nao alcancava. So a
+primeira linha nao vazia, e so se ela for curta: um paragrafo que comeca com
+"Ola" e segue explicando e a resposta, nao o cumprimento.
+
 **A conversa vai limpa e dentro de um teto.** Ia inteira: rodapé, assinatura,
 aviso de segurança do servidor, clique de menu e histórico citado. Medido no
 acervo, **38% do texto** que ia ao modelo era isso — 6,19 milhões de caracteres
@@ -2145,7 +2179,7 @@ para na página vazia, o mapeamento de mensagens do provedor, a consulta da IA
 sobre o artigo, o rótulo da iniciativa, motor de busca e busca
 transversal, transições de artigo e de plano, métricas por projeto e por
 período, o tempo do ciclo com as ressalvas dele e a planilha da página, parsing da resposta da IA com a redução do contrato ao que o provedor lê e o preparo do transcrito, a escolha do provedor com a classificação
-das falhas dele e a decisão de tentar de novo, a leitura da sugestão de seção, a avaliação de cobertura do acervo, a leitura de dois artigos que se
+das falhas dele e a decisão de tentar de novo, a leitura da sugestão de seção, a avaliação de cobertura do acervo, o material que um grupo da fila leva ao artigo com a entrega do rascunho, a leitura de dois artigos que se
 sobrepõem, o retrato que a
 tela dá ao assistente com o encaixe do painel na janela, a leitura do preenchimento de
 formulário com a seleção do que aplicar e a classificação do arquivo

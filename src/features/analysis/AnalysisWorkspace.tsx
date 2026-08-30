@@ -301,6 +301,7 @@ export function AnalysisWorkspace() {
           <TriageQueue
             triagem={triagem}
             acervoPronto={acervoPronto}
+            conversas={conversations}
             onSelectTicket={(ticketId) => {
               setSelectedTicketId(ticketId);
               setVista("atender");

@@ -114,3 +114,42 @@ describe("corpoEscrito", () => {
     expect(corpoEscrito("")).toBe("");
   });
 });
+
+/*
+  A saudacao e enfeite EM CIMA, e os outros marcadores so cortam para baixo.
+  Medido nas 1.025 solucoes do acervo: 301 (29%) abrem com saudacao, e 95 (9%)
+  trazem um nome proprio nela.
+*/
+describe("a saudacao de abertura", () => {
+  it("a saudacao com o nome do cliente sai", () => {
+    const limpo = corpoEscrito("Boa tarde, Uesley!\nReposicione o modelo na origem.");
+
+    expect(limpo).not.toContain("Uesley");
+    expect(limpo).toContain("Reposicione o modelo na origem");
+  });
+
+  it("linha em branco antes da saudacao nao impede o corte", () => {
+    const limpo = corpoEscrito("\n\nBom dia, Eduardo, tudo bem?\nAbra o menu Arquivo.");
+
+    expect(limpo).toBe("Abra o menu Arquivo.");
+  });
+
+  /* Um paragrafo que comeca com Ola e segue explicando e a resposta. */
+  it("linha longa que comeca com saudacao nao e cumprimento", () => {
+    const resposta =
+      "Ola, o erro acontece porque o modelo foi exportado fora da origem e o Eberick nao reposiciona sozinho na importacao, entao e preciso ajustar antes.";
+
+    expect(corpoEscrito(resposta)).toBe(resposta);
+  });
+
+  it("texto sem saudacao fica intacto", () => {
+    expect(corpoEscrito("Reposicione o modelo na origem.")).toBe("Reposicione o modelo na origem.");
+  });
+
+  /* So a primeira linha: um cumprimento no meio do texto e a pessoa falando. */
+  it("saudacao no meio do texto fica", () => {
+    const limpo = corpoEscrito("Segue o retorno.\nBoa tarde para voce tambem.");
+
+    expect(limpo).toContain("Boa tarde");
+  });
+});

@@ -63,6 +63,44 @@ const MARCADORES: RegExp[] = [
 ];
 
 /**
+ * A saudação de abertura, que é enfeite **em cima** e não embaixo.
+ *
+ * Os marcadores acima cortam para baixo, porque a convenção de e-mail põe o
+ * rodapé no fim. A saudação escapava por estar antes de tudo, e ela pesa por
+ * dois motivos.
+ *
+ * **Ela carrega o nome do cliente.** Medido nas 1.025 soluções do acervo: 301
+ * (29%) abrem com saudação e **95 (9%) trazem um nome próprio nela** — "Boa
+ * tarde, Uesley!", "Bom dia, Eduardo, tudo bem?". Esse texto vai ao provedor de
+ * IA, e nome de cliente ali sai do nosso domínio e entra no de terceiro. É a
+ * mesma decisão que tirou o nome do cliente do transcrito, alcançando o lugar
+ * que aquela mudança não alcançava.
+ *
+ * **E ela não descreve nada.** "Boa tarde, tudo bem?" aparece em quase um terço
+ * do acervo: para a triagem, é vocabulário que aproxima atendimentos que não têm
+ * nada a ver um com o outro.
+ *
+ * Só a **primeira** linha não vazia, e só se ela for curta. Um parágrafo que
+ * começa com "Olá" e segue explicando é a resposta, não o cumprimento.
+ */
+const SAUDACAO =
+  /^[ \t>*"']*(bom dia|boa tarde|boa noite|ol[áa]|oi|prezad[oa]s?|car[oa]s?)\b[^\n]{0,60}$/i;
+
+function semSaudacao(texto: string): string {
+  const quebra = texto.indexOf("\n");
+  const primeira = quebra === -1 ? texto : texto.slice(0, quebra);
+
+  /*
+    Linha em branco antes da saudação não impede o corte: o e-mail costuma abrir
+    com uma, e exigir que a saudação seja o primeiro caractere deixaria passar a
+    maioria.
+  */
+  if (primeira.trim() === "") return quebra === -1 ? texto : semSaudacao(texto.slice(quebra + 1));
+
+  return SAUDACAO.test(primeira) && quebra !== -1 ? texto.slice(quebra + 1).trimStart() : texto;
+}
+
+/**
  * Corta no **primeiro** marcador, e não em cada um.
  *
  * O que vem depois do primeiro já é rodapé: cortar pedaço a pedaço deixaria
@@ -78,5 +116,5 @@ export function corpoEscrito(texto: string): string {
     if (achado && achado.index < corte) corte = achado.index;
   }
 
-  return texto.slice(0, corte).trim();
+  return semSaudacao(texto.slice(0, corte).trim()).trim();
 }
