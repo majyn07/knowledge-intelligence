@@ -40,8 +40,13 @@ export async function POST(request: Request) {
   } catch (error) {
     console.error("MERGE_ADVICE_ERROR", error);
 
-    const { status, message } = aiErrorResponse(error);
-    return NextResponse.json({ message }, { status });
+    /*
+      `retriable` vai junto porque a varredura em lote precisa decidir entre
+      tentar de novo e parar, e limite estourado e provedor mal configurado
+      respondem códigos que não os separam.
+    */
+    const { status, message, retriable } = aiErrorResponse(error);
+    return NextResponse.json({ message, retriable }, { status });
   }
 }
 

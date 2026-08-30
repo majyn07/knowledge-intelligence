@@ -19,6 +19,8 @@ describe("concordar", () => {
   /* Acrescentar `s` erraria os dois em silêncio, que é o pior resultado. */
   it("plural irregular vai explícito", () => {
     expect(concordar(2, "sugestão", "sugestões")).toBe("sugestões");
+    /* "par" virou "pars" numa tela real antes de alguém passar o plural. */
+    expect(concordar(137, "par", "pares")).toBe("pares");
     expect(concordar(2, "visível", "visíveis")).toBe("visíveis");
     expect(concordar(1, "sugestão", "sugestões")).toBe("sugestão");
   });

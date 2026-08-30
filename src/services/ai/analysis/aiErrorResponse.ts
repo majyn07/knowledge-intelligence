@@ -20,6 +20,16 @@ import {
 export interface AIErrorResponse {
   status: number;
   message: string;
+  /**
+   * Se esperar e pedir de novo tem chance de dar certo.
+   *
+   * O código sozinho não responde isso: limite estourado e provedor
+   * sobrecarregado são transitórios, e provedor mal configurado responde o
+   * mesmo 503 e não melhora nunca. Quem varre em lote precisa da diferença para
+   * decidir entre tentar de novo e parar, e deduzi-la do texto da mensagem
+   * seria amarrar o laço a uma frase escrita para quem lê a tela.
+   */
+  retriable: boolean;
 }
 
 export function aiErrorResponse(error: unknown): AIErrorResponse {
@@ -29,6 +39,8 @@ export function aiErrorResponse(error: unknown): AIErrorResponse {
       message: error.declared
         ? `O provedor de IA configurado (${error.declared}) não está disponível neste ambiente. Isso se resolve na configuração.`
         : "O serviço de IA não está configurado neste ambiente.",
+      /* Configuração não melhora esperando, mesmo respondendo o mesmo 503. */
+      retriable: false,
     };
   }
 
@@ -39,6 +51,7 @@ export function aiErrorResponse(error: unknown): AIErrorResponse {
           status: 503,
           message:
             "A chave do provedor de IA não foi aceita. Isso se resolve na configuração, tentar de novo não muda.",
+          retriable: false,
         };
 
       case "limite":
@@ -46,12 +59,19 @@ export function aiErrorResponse(error: unknown): AIErrorResponse {
           status: 429,
           message:
             "O provedor de IA atingiu o limite de uso. Espere alguns minutos e peça de novo.",
+          retriable: true,
         };
 
       case "prazo":
         return {
           status: 504,
           message: "O provedor de IA passou do tempo limite. Peça a análise de novo.",
+          /*
+            Pedir de novo à mão faz sentido; repetir sozinho, não. O pedido que
+            estourou o prazo costuma estourar de novo pelo mesmo motivo, e o
+            laço pagaria duas vezes pela mesma espera.
+          */
+          retriable: false,
         };
 
       case "indisponivel":
@@ -59,6 +79,7 @@ export function aiErrorResponse(error: unknown): AIErrorResponse {
           status: 503,
           message:
             "O provedor de IA está indisponível ou sobrecarregado. Espere alguns minutos e peça de novo.",
+          retriable: true,
         };
 
       default:
@@ -72,6 +93,7 @@ export function aiErrorResponse(error: unknown): AIErrorResponse {
           message: error.failure.detail
             ? `O provedor de IA falhou: ${error.failure.detail}`
             : "O provedor de IA falhou sem dizer o motivo.",
+          retriable: false,
         };
     }
   }
@@ -85,6 +107,7 @@ export function aiErrorResponse(error: unknown): AIErrorResponse {
       status: 422,
       message:
         "O provedor de IA configurado neste ambiente não lê arquivos anexados. Descreva em texto, ou peça a quem administra para trocar o provedor.",
+      retriable: false,
     };
   }
 
@@ -92,8 +115,9 @@ export function aiErrorResponse(error: unknown): AIErrorResponse {
     return {
       status: 422,
       message: "A IA devolveu uma análise em formato inválido. Peça de novo.",
+      retriable: false,
     };
   }
 
-  return { status: 500, message: "Não foi possível processar a solicitação." };
+  return { status: 500, message: "Não foi possível processar a solicitação.", retriable: false };
 }

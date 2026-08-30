@@ -870,6 +870,35 @@ listou seis procedimentos que sumiriam numa união descuidada.
 
 Ela não une nada, e a tela não oferece botão para o contrário.
 
+**E ela varre as sobreposições em lote.** O Levantamento aponta **137 pares** no
+acervo real, e ler um par por vez é o trabalho manual que este produto existe
+para deixar de ser manual — a mesma lição da sugestão de seção, que saiu de
+"abra e classifique" para "aqui está a lista".
+
+**Um pedido por par, e não há como agrupar:** cada par leva os dois textos
+inteiros, e dois pares num pedido só seriam quatro artigos com a resposta vindo
+cortada sem ninguém saber. É **o mesmo pedido** da tela de comparação, de
+propósito: um menor aqui responderia mais rápido e diria outra coisa, e quem
+abrisse o par depois de ver "complementares" na lista encontraria "mesmo
+assunto" na tela.
+
+**A pausa entre os pares não é educação, é necessidade.** Medido contra a conta
+real, sem ela a varredura parou no **segundo** par com 429: dois pedidos desse
+tamanho em sequência estouram o limite de taxa. Limite estourado ganha **uma**
+segunda chance depois de espera longa, e só ele — prazo e chave recusada não
+melhoram esperando. A espera é dita na tela: quarenta e cinco segundos de giro
+sem explicação leem como travado, e quem fecha perde o que já foi lido.
+
+O teto é de quem roda, e o preço vai antes do clique: 20 pares levam cerca de 11
+minutos. Os vereditos que pedem decisão vêm primeiro — "assuntos diferentes" é o
+mais comum e o que menos rende olhar, e no topo faria alguém desistir da lista
+antes de chegar ao que importa.
+
+**O vocabulário do artigo passou a ser guardado por artigo**, num `WeakMap` como
+o índice da busca. Ele limpa o HTML e tokeniza o corpo inteiro, e agora dois
+caminhos o pedem sobre o mesmo acervo: o achado de sobreposição e a varredura
+que o avalia. Sem isso, o segundo re-tokenizava os 1.822.
+
 **A varredura de sugestão de seção foi de 25 para 10 por lote.** Vinte e cinco
 ficava na borda do prazo: varrendo os 56 sem seção do acervo real, o primeiro
 lote voltou e o segundo estourou os 90 segundos. Na borda a falha não é
@@ -1043,6 +1072,14 @@ modelo **antes** do transcrito, e à tela, como no artigo longo.
 **Botão que não pode ser clicado diz por quê.** "Analisar com IA" se
 desabilitava com a análise em revisão e continuava escrito a mesma coisa, em
 estilo primário: clique que não faz nada, e quem clica conclui que a IA quebrou.
+
+**E a falha diz se vale tentar de novo**, num campo próprio (`retriable`), porque
+o código não separa: limite estourado e provedor mal configurado responderam o
+mesmo 503 contra a API real. Quem varre em lote precisa da diferença para
+escolher entre repetir e parar, e deduzi-la do texto amarraria o laço a uma frase
+escrita para quem lê a tela. Limite e sobrecarga valem uma segunda chance; chave
+recusada, prazo estourado e configuração ausente, não — esperar não conserta
+nenhum dos três.
 
 **Falha de provedor tem tipo.** Chave recusada, cota estourada, modelo
 sobrecarregado e pedido que passou do prazo eram a mesma frase ("tente
@@ -2108,7 +2145,7 @@ para na página vazia, o mapeamento de mensagens do provedor, a consulta da IA
 sobre o artigo, o rótulo da iniciativa, motor de busca e busca
 transversal, transições de artigo e de plano, métricas por projeto e por
 período, o tempo do ciclo com as ressalvas dele e a planilha da página, parsing da resposta da IA com a redução do contrato ao que o provedor lê e o preparo do transcrito, a escolha do provedor com a classificação
-das falhas dele, a leitura da sugestão de seção, a avaliação de cobertura do acervo, a leitura de dois artigos que se
+das falhas dele e a decisão de tentar de novo, a leitura da sugestão de seção, a avaliação de cobertura do acervo, a leitura de dois artigos que se
 sobrepõem, o retrato que a
 tela dá ao assistente com o encaixe do painel na janela, a leitura do preenchimento de
 formulário com a seleção do que aplicar e a classificação do arquivo
