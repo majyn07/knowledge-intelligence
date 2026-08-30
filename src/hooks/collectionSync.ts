@@ -106,6 +106,66 @@ export function aplicarReleitura<T>({
 }
 
 /**
+ * As mesmas linhas cruas, com as que mudaram no lugar das antigas.
+ *
+ * Existe para o **cache do navegador**, e não para a tela: a releitura
+ * incremental já conserta o que está em memória, mas o cache guarda linhas, e
+ * até aqui só a releitura inteira o reescrevia.
+ *
+ * O efeito era permanente, e não "um pouco velho": medido depois de classificar
+ * 52 artigos, o cache continuou com as 52 linhas antigas, e **toda abertura**
+ * voltava a baixar as mesmas 52. Nada convergia, porque nada reescrevia. Para
+ * catorze pessoas várias vezes por dia, a conta só cresce.
+ *
+ * A recusa anterior era não inventar um segundo caminho de conversão,
+ * reconvertendo registro em linha. Ela continua valendo — e não é preciso
+ * converter nada: as linhas cruas que a releitura acabou de buscar são
+ * exatamente o que o cache quer guardar.
+ */
+export function mesclarLinhas({
+  local,
+  ordem,
+  buscadas,
+}: {
+  /** As linhas que o cache tinha. */
+  local: unknown[];
+  /** Os identificadores na ordem em que o banco os devolveu. */
+  ordem: string[];
+  /** As linhas cruas relidas agora. */
+  buscadas: unknown[];
+}): unknown[] {
+  const porId = new Map<string, unknown>();
+
+  for (const linha of [...local, ...buscadas]) {
+    const id = identificarLinha(linha);
+    if (id !== null) porId.set(id, linha);
+  }
+
+  /*
+    A ordem é a do carimbo remoto, como em `aplicarReleitura`, e quem não está
+    nela sai: é assim que o registro apagado deixa o cache em vez de reaparecer
+    na próxima abertura.
+  */
+  const resultado: unknown[] = [];
+
+  for (const id of ordem) {
+    const linha = porId.get(id);
+    if (linha !== undefined) resultado.push(linha);
+  }
+
+  return resultado;
+}
+
+/** Linha sem `id` legível não entra: guardá-la seria guardar algo que não se acha. */
+function identificarLinha(linha: unknown): string | null {
+  if (typeof linha !== "object" || linha === null) return null;
+
+  const { id } = linha as { id?: unknown };
+
+  return typeof id === "string" && id !== "" ? id : null;
+}
+
+/**
  * Quantos identificadores cabem num pedido.
  *
  * O filtro `in` vai na URL, e identificador de artigo tem trinta e poucos

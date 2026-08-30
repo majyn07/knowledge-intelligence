@@ -636,6 +636,22 @@ da limpeza teve de sair: o React desmonta e remonta, a limpeza marcava
 `alive = false` com a leitura no ar, a segunda execução saía pela guarda, e o
 resultado chegava para ser descartado. A tela ficava em esqueleto, sem erro.
 
+**E a releitura incremental reescreve o cache.** Ela não o reescrevia, com a
+justificativa de que o cache guarda linhas e reconverter registro em linha
+inventaria um segundo caminho de conversão. A recusa está certa; a conclusão não
+estava. **Não é preciso converter nada**: as linhas cruas que ela acabou de
+buscar são exatamente o que o cache quer guardar.
+
+Sem isso o cache não ficava "um pouco velho", ficava velho **para sempre**: nada
+o reescrevia, e toda abertura voltava a baixar as mesmas linhas. Medido depois de
+classificar 52 artigos — através de recarregamentos o cache continuou com as 52
+antigas, e a releitura pagava por elas de novo em cada abertura, para catorze
+pessoas várias vezes por dia. Depois do conserto, a abertura faz três pedidos e
+**nenhum deles traz linha**: só `id` e `synced_at`.
+
+Quem sai da ordem que o banco devolveu sai do cache. Sem isso o registro apagado
+reapareceria na abertura seguinte.
+
 **E o tempo real não pode reler durante a nossa própria escrita.** Cada lote
 gravado dispara um evento, a releitura devolve uma visão **parcial** do banco,
 e ela substitui o estado local no meio do caminho: a escrita competindo

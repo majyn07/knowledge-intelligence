@@ -15,6 +15,7 @@ import {
   POR_PEDIDO_DE_IDS,
   valeIncremental,
   type Carimbo,
+  mesclarLinhas,
 } from "./collectionSync";
 import { criarCoalescer } from "./coalescer";
 
@@ -225,6 +226,12 @@ export function useSharedCollection<T>({
 
   /** O carimbo de gravação de cada linha, como estava na última leitura. */
   const carimbos = useRef<Map<string, string>>(new Map());
+
+  /*
+    As linhas cruas que o cache tem, para a releitura incremental poder
+    reescrevê-lo sem reconverter registro em linha.
+  */
+  const linhasEmCache = useRef<unknown[] | null>(null);
   /*
     As conversões chegam como funções novas a cada render do provider. Guardá-
     las numa ref evita reassinar o tempo real e recarregar a coleção a cada
@@ -393,6 +400,8 @@ export function useSharedCollection<T>({
     (rows: unknown[]) => {
       if (!usaCache) return;
 
+      linhasEmCache.current = rows;
+
       void gravarCache(table, {
         rows,
         carimbos: [...carimbos.current],
@@ -448,14 +457,29 @@ export function useSharedCollection<T>({
     carimbos.current = new Map(remotos.map((linha) => [linha.id, linha.syncedAt]));
 
     /*
-      O cache guarda linhas, e aqui só temos as que mudaram. Reconverter os
-      registros de volta para linha seria inventar um segundo caminho de
-      conversão, e dois caminhos divergem: o cache é atualizado pela releitura
-      inteira, e a incremental deixa o dele um pouco velho de propósito. Velho
-      não é errado: a próxima abertura lê o cache e pergunta o que mudou desde
-      o carimbo dele, que é exatamente o que esta função acabou de fazer.
+      E o cache é reescrito aqui também.
+
+      Ele guarda linhas, e a recusa anterior era não inventar um segundo caminho
+      de conversão reconvertendo registro em linha. A recusa continua valendo, e
+      não é preciso converter nada: `linhas` são as linhas cruas que acabaram de
+      chegar, que é exatamente o que o cache quer guardar.
+
+      Sem isto ele não ficava "um pouco velho", ficava velho para sempre: nada o
+      reescrevia, então toda abertura voltava a baixar as mesmas linhas. Medido
+      depois de classificar 52 artigos — o cache continuou com as 52 antigas
+      através de recarregamentos, e a releitura pagava por elas de novo em cada
+      um, para catorze pessoas várias vezes por dia.
     */
-  }, [fetchCarimbos, fetchPorIds, relerTudo]);
+    if (linhasEmCache.current !== null) {
+      guardarNoCache(
+        mesclarLinhas({
+          local: linhasEmCache.current,
+          ordem: remotos.map((linha) => linha.id),
+          buscadas: linhas,
+        })
+      );
+    }
+  }, [fetchCarimbos, fetchPorIds, guardarNoCache, relerTudo]);
 
   /*
     A carga inicial acontece **uma vez**, e a guarda é uma ref e não a lista de
@@ -519,6 +543,8 @@ export function useSharedCollection<T>({
           setItems(doCache);
           persisted.current = doCache;
           carimbos.current = new Map(guardado.carimbos);
+          /* As linhas ficam guardadas para a releitura incremental reescrever o cache. */
+          linhasEmCache.current = guardado.rows;
           setIsHydrated(true);
 
           /*
@@ -537,6 +563,8 @@ export function useSharedCollection<T>({
           carimbos.current = new Map(lido.carimbos.map((linha) => [linha.id, linha.syncedAt]));
 
           if (usaCache) {
+            linhasEmCache.current = lido.rows;
+
             void gravarCache(table, {
               rows: lido.rows,
               carimbos: [...carimbos.current],
