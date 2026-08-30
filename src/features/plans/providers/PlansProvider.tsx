@@ -93,7 +93,18 @@ export function PlansProvider({ children }: { children: ReactNode }) {
     record({
       type: "plan_created",
       projectId: plan.projectId,
-      actor: currentPerson || plan.owner,
+      /*
+        Quem fez, e não quem responde.
+
+        Era `currentPerson || plan.owner`, e o responsável guarda identificador
+        — inclusive de equipe. A auditoria mostrou o efeito no acervo real:
+        "team-suporte-estruturas" listado como pessoa que realizou eventos.
+
+        São duas perguntas. Sem sessão, a resposta certa é vazia, e a tela diz
+        "não registrado": afirmar que alguém fez algo que não fez é pior que
+        não saber.
+      */
+      actor: currentPerson,
       subject: { kind: "plan", id: plan.id, label: plan.title },
       detail: "Plano criado a partir de oportunidade aprovada na revisão humana.",
     });
@@ -121,7 +132,7 @@ export function PlansProvider({ children }: { children: ReactNode }) {
     record({
       type: "plan_status_changed",
       projectId: plan.projectId,
-      actor: currentPerson || plan.owner,
+      actor: currentPerson,
       subject: { kind: "plan", id: plan.id, label: plan.title },
       detail: `${planStatusLabel[plan.status]} → ${planStatusLabel[next]}`,
       transition: { from: plan.status, to: next },
@@ -137,7 +148,7 @@ export function PlansProvider({ children }: { children: ReactNode }) {
     record({
       type: "plan_updated",
       projectId: plan.projectId,
-      actor: currentPerson || owner,
+      actor: currentPerson,
       subject: { kind: "plan", id: plan.id, label: plan.title },
       detail: owner ? `Responsável definido: ${owner}.` : "Responsável removido.",
     });
@@ -169,7 +180,7 @@ export function PlansProvider({ children }: { children: ReactNode }) {
     record({
       type: "plan_updated",
       projectId: plan.projectId,
-      actor: currentPerson || plan.owner,
+      actor: currentPerson,
       subject: { kind: "plan", id: plan.id, label: plan.title },
       detail: dueDate
         ? `Prazo definido para ${new Date(dueDate).toLocaleDateString("pt-BR")}.`

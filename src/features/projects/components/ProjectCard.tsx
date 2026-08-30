@@ -10,6 +10,7 @@ import { StatusBadge } from "@/components/common/status/StatusBadge";
 import { Card, CardContent } from "@/components/ui/card";
 import { AssigneeName } from "@/features/people/components/AssigneeName";
 import { Button } from "@/components/ui/button";
+import { usePermissions } from "@/features/auth/providers/PermissionsProvider";
 import { RelativeDate } from "@/components/common/RelativeDate";
 
 interface ProjectCardProps {
@@ -26,6 +27,7 @@ const statusVariant: Record<Project["status"], "success" | "warning" | "default"
 };
 
 export function ProjectCard({ project, isActive = false, onEdit, onDelete }: ProjectCardProps) {
+  const { pode } = usePermissions();
   const context = [project.product, project.module].filter(Boolean).join(" · ");
 
   return (
@@ -97,14 +99,20 @@ export function ProjectCard({ project, isActive = false, onEdit, onDelete }: Pro
               <Pencil className="h-4 w-4" />
             </Button>
 
-            <Button
-              size="icon"
-              variant="ghost"
-              aria-label={`Excluir ${project.name}`}
-              onClick={() => onDelete?.(project)}
-            >
-              <Trash2 className="h-4 w-4" />
-            </Button>
+            {/*
+              Excluir leva junto o trabalho ligado à iniciativa — atendimento,
+              análise e plano. O acervo fica, porque nunca foi dela.
+            */}
+            {pode("excluirProjeto") && (
+              <Button
+                size="icon"
+                variant="ghost"
+                aria-label={`Excluir ${project.name}`}
+                onClick={() => onDelete?.(project)}
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            )}
           </div>
         </div>
       </CardContent>

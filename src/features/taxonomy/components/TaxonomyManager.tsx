@@ -8,6 +8,7 @@ import { StatusBadge } from "@/components/common/status/StatusBadge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { usePermissions } from "@/features/auth/providers/PermissionsProvider";
 import { useLibrary } from "@/features/library/providers/LibraryProvider";
 import { sectionsOf } from "@/models/Taxonomy";
 
@@ -116,6 +117,12 @@ function InlineRename({
  * O contador de uso não é enfeite: remover um item que está em uso deixa
  * registros apontando para o vazio, e quem remove precisa saber disso antes.
  */
+/*
+  Editar a classificação é ação guardada: remover uma categoria leva as seções
+  dela e deixa os artigos apontando para o vazio. Aqui o controle fica visível e
+  desligado, e não escondido: a lista continua sendo consulta legítima, e sumir
+  com os botões deixaria a seção parecendo quebrada.
+*/
 function EntryListEditor({
   list,
   title,
@@ -127,6 +134,8 @@ function EntryListEditor({
   hint: string;
   usage: (id: string) => number;
 }) {
+  const { pode } = usePermissions();
+  const podeEditar = pode("editarTaxonomia");
   const { taxonomy, createEntry, deleteEntry, editEntry } = useTaxonomy();
   const [name, setName] = useState("");
 
@@ -165,6 +174,7 @@ function EntryListEditor({
                 size="icon"
                 variant="ghost"
                 aria-label={`Remover ${entry.name}`}
+                disabled={!podeEditar}
                 onClick={() => deleteEntry(list, entry.id)}
               >
                 <Trash2 className="h-4 w-4" />
@@ -187,7 +197,7 @@ function EntryListEditor({
           }}
         />
 
-        <Button onClick={add} disabled={!name.trim()}>
+        <Button onClick={add} disabled={!podeEditar || !name.trim()}>
           <Plus className="mr-1.5 h-4 w-4" />
           Adicionar
         </Button>
@@ -198,6 +208,8 @@ function EntryListEditor({
 
 /** Uma categoria e suas seções, recolhida por padrão. São 146 no total. */
 function CategoryRow({ categoryId }: { categoryId: string }) {
+  const { pode } = usePermissions();
+  const podeEditar = pode("editarTaxonomia");
   const { taxonomy, createSection, deleteSection, deleteCategory, editCategory, editSection } =
     useTaxonomy();
   const { items: articles } = useLibrary();
@@ -251,6 +263,7 @@ function CategoryRow({ categoryId }: { categoryId: string }) {
           size="icon"
           variant="ghost"
           aria-label={`Remover ${category.name}`}
+          disabled={!podeEditar}
           onClick={() => deleteCategory(categoryId)}
         >
           <Trash2 className="h-4 w-4" />
@@ -282,6 +295,7 @@ function CategoryRow({ categoryId }: { categoryId: string }) {
                     size="icon"
                     variant="ghost"
                     aria-label={`Remover ${section.name}`}
+                    disabled={!podeEditar}
                     onClick={() => deleteSection(section.id)}
                   >
                     <Trash2 className="h-3.5 w-3.5" />
@@ -304,7 +318,7 @@ function CategoryRow({ categoryId }: { categoryId: string }) {
               }}
             />
 
-            <Button size="sm" onClick={add} disabled={!name.trim()}>
+            <Button size="sm" onClick={add} disabled={!podeEditar || !name.trim()}>
               <Plus className="mr-1.5 h-4 w-4" />
               Adicionar
             </Button>
@@ -325,6 +339,7 @@ function CategoryRow({ categoryId }: { categoryId: string }) {
 export function TaxonomyManager() {
   const { taxonomy, createCategory, resetToPortal } = useTaxonomy();
   const { items: articles } = useLibrary();
+  const { pode } = usePermissions();
 
   const [name, setName] = useState("");
   const [isProduct, setIsProduct] = useState(true);
@@ -342,7 +357,20 @@ export function TaxonomyManager() {
       title="Classificação"
       description="A estrutura do portal publicado. Categoria e seção classificam o artigo; as listas abaixo alimentam os formulários."
     >
-      <div className="flex flex-col gap-6">
+      {/*
+        Ler continua sendo de todos: quem classifica um artigo precisa saber
+        que vocabulário existe. Só o que **muda** a estrutura fica de fora —
+        remover uma categoria leva as seções dela e deixa os artigos apontando
+        para o vazio, e o vínculo é o identificador, que não volta.
+      */}
+      {!pode("editarTaxonomia") && (
+        <p className="mb-4 rounded-lg border border-dashed px-4 py-2 text-xs leading-5 text-muted-foreground">
+          Editar a classificação está reservado a quem administra. A lista continua aqui para
+          consulta; a regra está em Permissões, acima.
+        </p>
+      )}
+
+      <div className="flex flex-col gap-6" data-somente-leitura={!pode("editarTaxonomia")}>
         <div className="rounded-xl border bg-card p-5">
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
@@ -354,7 +382,7 @@ export function TaxonomyManager() {
               </p>
             </div>
 
-            <Button variant="outline" size="sm" onClick={resetToPortal}>
+            <Button variant="outline" size="sm" disabled={!pode("editarTaxonomia")} onClick={resetToPortal}>
               <RotateCcw className="mr-1.5 h-4 w-4" />
               Voltar à estrutura do portal
             </Button>
@@ -388,7 +416,7 @@ export function TaxonomyManager() {
               É linha de produto
             </label>
 
-            <Button onClick={add} disabled={!name.trim()}>
+            <Button onClick={add} disabled={!pode("editarTaxonomia") || !name.trim()}>
               <Plus className="mr-1.5 h-4 w-4" />
               Adicionar
             </Button>

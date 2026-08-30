@@ -14,6 +14,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { usePermissions } from "@/features/auth/providers/PermissionsProvider";
 import { useTickets } from "@/features/analysis/providers/TicketsProvider";
 import { useLibrary } from "@/features/library/providers/LibraryProvider";
 import { useProject } from "@/providers/ProjectProvider";
@@ -42,6 +43,7 @@ const kindLabel: Record<Item["kind"], string> = {
  */
 export function TrashManager() {
   const { deletedProjects, restoreProject, purgeProject } = useProject();
+  const { pode } = usePermissions();
   const { deletedTickets, restoreTicket, purgeTicket } = useTickets();
   const { deletedItems, restoreItem, purgeItem } = useLibrary();
 
@@ -101,7 +103,14 @@ export function TrashManager() {
       title="Lixeira"
       description="O que foi excluído continua aqui até alguém esvaziar. Não há prazo automático: apagar trabalho sozinho é o mesmo problema que excluir sem rede."
       actions={
-        items.length > 0 && (
+        items.length > 0 &&
+        /*
+          Esconder é não oferecer o que vai ser recusado, e não é a trava: a
+          escrita continua indo pela política do banco, que é a mesma para toda
+          a equipe. Quem quer saber por que o botão sumiu encontra a regra em
+          Configurações, escrita.
+        */
+        pode("esvaziarLixeira") && (
           <Button size="sm" variant="outline" onClick={() => setEmptying(true)}>
             <Trash2 className="mr-1.5 h-3.5 w-3.5" />
             Esvaziar lixeira

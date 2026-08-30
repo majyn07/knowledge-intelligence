@@ -103,7 +103,19 @@ export function LibraryProvider({ children }: { children: ReactNode }) {
       record({
         type: "article_created",
         projectId: newItem.projectId,
-        actor: currentPerson || newItem.author,
+        /*
+          Quem fez, e não quem responde.
+
+          Era `currentPerson || newItem.author`, e o autor guarda identificador
+          — inclusive de **equipe**, porque classificar um artigo preenche o
+          autor a partir da categoria. A auditoria mostrou o resultado:
+          "team-suporte-estruturas" listado como pessoa que criou artigos.
+
+          São duas perguntas: quem executou a ação e quem responde pelo artigo.
+          Sem sessão, a resposta certa é vazia, e a tela diz "não registrado" —
+          afirmar que alguém fez algo que não fez é pior que não saber.
+        */
+        actor: currentPerson,
         subject: { kind: "article", id: newItem.id, label: newItem.title },
         detail: "Artigo criado como rascunho.",
       });
@@ -132,7 +144,8 @@ export function LibraryProvider({ children }: { children: ReactNode }) {
       record({
         type: updatedItem.status === currentItem.status ? "article_updated" : "article_status_changed",
         projectId: updatedItem.projectId,
-        actor: currentPerson || updatedItem.author,
+        /* Quem fez, e não quem responde. Ver o comentário em `createItem`. */
+        actor: currentPerson,
         subject: { kind: "article", id: updatedItem.id, label: updatedItem.title },
         detail: updatedItem.status === currentItem.status
           ? "Conteúdo ou classificação alterados."
@@ -164,7 +177,8 @@ export function LibraryProvider({ children }: { children: ReactNode }) {
       record({
         type: "article_status_changed",
         projectId: currentItem.projectId,
-        actor: currentPerson || currentItem.author,
+        /* Quem fez, e não quem responde. Ver o comentário em `createItem`. */
+        actor: currentPerson,
         subject: { kind: "article", id: currentItem.id, label: currentItem.title },
         detail: articleStatusLabel[currentItem.status] + " → " + articleStatusLabel[status],
         // Chave e não rótulo: rótulo é apresentação e muda; chave é contrato.
@@ -185,7 +199,8 @@ export function LibraryProvider({ children }: { children: ReactNode }) {
       record({
         type: "article_created",
         projectId: newItem.projectId,
-        actor: currentPerson || newItem.author,
+        /* Quem fez, e não quem responde. Ver o comentário em `createItem`. */
+        actor: currentPerson,
         subject: { kind: "article", id: newItem.id, label: newItem.title },
         detail: "Rascunho gerado a partir do plano de melhoria.",
       });
@@ -231,7 +246,8 @@ export function LibraryProvider({ children }: { children: ReactNode }) {
         record({
           type: "article_status_changed",
           projectId: item.projectId,
-          actor: currentPerson || item.author,
+          /* Quem fez, e não quem responde. Ver o comentário em `createItem`. */
+        actor: currentPerson,
           subject: { kind: "article", id: item.id, label: item.title },
           detail: articleStatusLabel[item.status] + " → " + articleStatusLabel[status],
           transition: { from: item.status, to: status },
@@ -392,7 +408,8 @@ export function LibraryProvider({ children }: { children: ReactNode }) {
       record({
         type: "article_updated",
         projectId: article.projectId,
-        actor: currentPerson || article.author,
+        /* Quem fez, e não quem responde. Ver o comentário em `createItem`. */
+        actor: currentPerson,
         subject: { kind: "article", id: article.id, label: article.title },
         detail: `Nova versão publicada: ${mudou.length > 0 ? mudou.map((campo) => draftFieldLabel[campo]).join(", ") : "sem alteração"}`,
       });
@@ -447,7 +464,8 @@ export function LibraryProvider({ children }: { children: ReactNode }) {
       record({
         type: "article_deleted",
         projectId: article.projectId,
-        actor: currentPerson || article.author,
+        /* Quem fez, e não quem responde. Ver o comentário em `createItem`. */
+        actor: currentPerson,
         subject: { kind: "article", id: article.id, label: article.title },
         detail: "Movido para a lixeira.",
       });
@@ -488,7 +506,8 @@ export function LibraryProvider({ children }: { children: ReactNode }) {
         record({
           type: "article_deleted",
           projectId: item.projectId,
-          actor: currentPerson || item.author,
+          /* Quem fez, e não quem responde. Ver o comentário em `createItem`. */
+        actor: currentPerson,
           subject: { kind: "article", id: item.id, label: item.title },
           detail: "Movido para a lixeira em lote.",
         });

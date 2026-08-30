@@ -338,6 +338,51 @@ comentário é registro do que foi dito, e não se reescreve.
 quem fez o quê. A política do banco é a mesma em todas as tabelas; se um dia
 houver papéis, ela muda ali e em nenhum outro lugar.
 
+**A exceção é curta e está escrita numa tela.** Existem ações cujo custo não é
+do conteúdo: buscar na HubSpot gasta requisições contra uma máquina que atende
+cliente, esvaziar a lixeira apaga para catorze pessoas, importar um arquivo
+reescreve mil registros num clique. Para essas, "a equipe é treinada" não basta,
+porque o erro de uma cai sobre todas.
+
+São seis, e cada uma precisou justificar por que o histórico não resolvia.
+Guardar tudo trocaria um produto onde ninguém trava por um onde todo mundo
+espera aprovação, que é o oposto do que ele é.
+
+**Onde a regra é conferida vai na tela**, e não é detalhe: a porta de verdade é
+o servidor, e só a HubSpot tem rota nossa. As outras são escondidas na tela, o
+que impede o clique e não impede quem conhece o caminho. Apresentar as duas do
+mesmo jeito seria vender uma trava que não existe.
+
+**A da HubSpot não se afrouxa**, e o normalizador do servidor a defende mesmo de
+quem chame a rota direto: bastaria gravar `todos` no banco para abrir a porta.
+As outras nascem em `todos`, que é como o produto sempre funcionou, e quem
+administra decide apertar.
+
+**Ler a lista é de todos.** Quem encontra um botão escondido precisa poder
+descobrir por quê, e onde se muda. Esconder a regra de quem não pode mudá-la
+transforma configuração em folclore: "acho que só o fulano consegue".
+
+**A auditoria é o mesmo histórico, com outras perguntas.** A linha do tempo
+responde "o que aconteceu neste projeto"; quem administra pergunta "o que esta
+pessoa fez" e "o que mudou na semana passada", e a resposta **atravessa
+iniciativas** — recortar por projeto deixaria de fora justamente quem trabalhou
+noutro. Não há registro paralelo: eventos são acrescentados e nunca editados, e
+um segundo registro divergiria do primeiro, sendo o segundo o que ninguém
+confere.
+
+O dia do evento é o de quem lê, nunca os dez primeiros caracteres do ISO: um
+evento das 21h de 27 de agosto no Brasil cairia em 28, e quem procura "o dia 27"
+não acharia o que fez à noite. Evento com data ilegível fica **fora** de janela,
+e continua na lista sem janela: esconder porque a data não se lê seria perder o
+registro de que ele existiu.
+
+**Quem fez não é quem responde**, e a auditoria expôs a confusão no dado real.
+O evento gravava `currentPerson || item.author`, e autor e responsável guardam
+identificador — inclusive de **equipe**, porque classificar um artigo preenche o
+autor a partir da categoria. O resultado era `team-suporte-estruturas` listado
+como pessoa que criou artigos. Sem sessão a resposta certa é vazia, e a tela diz
+"não registrado": afirmar que alguém fez algo que não fez é pior que não saber.
+
 **A equipe é sugerida, nunca derivada.** Cada equipe declara em Configurações
 por quais categorias do portal responde, e classificar um artigo preenche o
 autor a partir disso. Sem sobrescrever quem já foi escolhido, e dizendo na
@@ -1680,7 +1725,7 @@ transversal, transições de artigo e de plano, métricas por projeto e por
 período, o tempo do ciclo com as ressalvas dele e a planilha da página, parsing da resposta da IA, a escolha do provedor com a classificação
 das falhas dele, a leitura da sugestão de seção, a leitura do preenchimento de
 formulário com a seleção do que aplicar e a classificação do arquivo
-anexado, o recorte na URL, a central de avisos, o levantamento, índice do artigo, critérios de publicação,
+anexado, o recorte na URL, a central de avisos, o catálogo de ações guardadas e a auditoria do histórico, o levantamento, índice do artigo, critérios de publicação,
 fronteira de armazenamento com a divisão em lotes da
 gravação compartilhada e o plano da releitura incremental, a leitura de arquivo delimitado com o mapeamento de
 colunas e os planos de importação de artigo e de atendimento, a recuperação de texto não salvo, o cadastro

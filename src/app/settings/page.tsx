@@ -8,6 +8,8 @@ import { BrandThemeSwitcher } from "@/components/common/BrandThemeSwitcher";
 import { AppearanceToggle } from "@/components/common/AppearanceToggle";
 import { PageHeader } from "@/components/common/page/PageHeader";
 import { PageSection } from "@/components/common/page/PageSection";
+import { AuditLog } from "@/features/activities/components/AuditLog";
+import { PermissionsManager } from "@/features/auth/components/PermissionsManager";
 import { TrashManager } from "@/features/projects/components/TrashManager";
 import { PeopleManager } from "@/features/people/components/PeopleManager";
 import { TaxonomyManager } from "@/features/taxonomy/components/TaxonomyManager";
@@ -23,11 +25,21 @@ export default function SettingsPage() {
         <PageHeader
           overline="AltoQi"
           title="Configurações"
-          description="Produto ativo no workspace e quem conduz o trabalho."
+          description="Quem conduz o trabalho, o que cada um pode fazer, e o registro do que já foi feito."
           icon={<Paintbrush className="h-6 w-6" />}
         />
 
         <PeopleManager />
+
+        {/*
+          Permissões logo abaixo das pessoas: quem promove alguém a
+          administrador acabou de ver, na linha de cima, o que isso passa a
+          permitir. A auditoria vem em seguida, porque é a outra metade da mesma
+          pergunta — quem pode, e o que cada um fez.
+        */}
+        <PermissionsManager />
+
+        <AuditLog />
 
         <TaxonomyManager />
 

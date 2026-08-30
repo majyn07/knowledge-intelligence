@@ -9,6 +9,7 @@ import { PanelsProvider } from "@/features/metrics/panels/PanelsProvider";
 import { FollowsProvider } from "@/features/people/providers/FollowsProvider";
 import { SavedViewsProvider } from "@/features/library/providers/SavedViewsProvider";
 import { LibraryProvider } from "@/features/library/providers/LibraryProvider";
+import { PermissionsProvider } from "@/features/auth/providers/PermissionsProvider";
 import { PeopleProvider } from "@/features/people/providers/PeopleProvider";
 import { ActivityProvider } from "@/features/activities/providers/ActivityProvider";
 import { KnowledgeLifecycleProvider } from "@/features/analysis/providers/KnowledgeLifecycleProvider";
@@ -110,6 +111,12 @@ export default function RootLayout({
           <TaxonomyProvider>
           <WorkspaceBootstrap>
           <PeopleProvider>
+          {/*
+            Permissões logo abaixo de quem sabe se você administra, e acima de
+            todo domínio: quase toda tela pergunta se pode oferecer um botão, e
+            cada uma buscando por conta própria seriam seis idas por abertura.
+          */}
+          <PermissionsProvider>
           <ActivityProvider>
           <ProjectProvider>
             <TicketsProvider>
@@ -150,6 +157,7 @@ export default function RootLayout({
 
           </ProjectProvider>
           </ActivityProvider>
+          </PermissionsProvider>
           </PeopleProvider>
           </WorkspaceBootstrap>
           </TaxonomyProvider>
