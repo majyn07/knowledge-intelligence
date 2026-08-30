@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import type { KnowledgeArticle } from "@/models/KnowledgeArticle";
+import type { SupportConversation } from "@/models/SupportConversation";
 import type { Ticket } from "@/models/Ticket";
 import { emptyClassification } from "@/models/TicketClassification";
 
@@ -17,6 +18,26 @@ const atendimento = (extra: Partial<Ticket> = {}): Ticket => ({
   ...emptyClassification(),
   date: "2026-08-01",
   ...extra,
+});
+
+/**
+ * Uma conversa com a fala do cliente, que é o texto que a triagem ouve.
+ *
+ * A resposta do suporte não entra: ela é um modelo, e agrupar por ela punha
+ * metade do acervo num grupo só, colado pelo rodapé do e-mail.
+ */
+const conversaDe = (ticketId: string, falaDoCliente: string): SupportConversation => ({
+  id: `conv-${ticketId}`,
+  ticketId,
+  messages: [
+    {
+      id: `${ticketId}-1`,
+      author: "Cliente",
+      role: "cliente",
+      body: falaDoCliente,
+      createdAt: "2026-08-01T10:00:00.000Z",
+    },
+  ],
 });
 
 const artigo = (extra: Partial<KnowledgeArticle> = {}): KnowledgeArticle => ({
@@ -187,6 +208,25 @@ describe("triageTickets", () => {
 
   /* Palavra que só um disse não descreve o grupo. */
   it("o vocabulário do grupo é o que se repete entre eles", () => {
+    const primeiro = atendimento({ title: FLECHA_A });
+    const segundo = atendimento({ title: FLECHA_B });
+
+    const { groups } = triageTickets([primeiro, segundo], [], new Set(), [
+      conversaDe(primeiro.id, "A inércia fissurada da viga não bate com o esperado."),
+      conversaDe(segundo.id, "Conferi a inércia fissurada e a flecha continua alta."),
+    ]);
+
+    expect(groups[0].terms).toContain("fissurada");
+    expect(groups[0].terms).not.toContain("questiona");
+  });
+
+  /*
+    Sem fala do cliente sobra o título, e só ele. Voltar para a solução traria o
+    e-mail do suporte de volta: o grupo com título "Estou ciente e desejo
+    continuar" reapareceu colado por "balão, canto, direito", que é a instrução
+    do widget de chat.
+  */
+  it("sem conversa, a solução não entra no vocabulário", () => {
     const { groups } = triageTickets(
       [
         atendimento({ title: FLECHA_A, solution: "Ajustada a inércia fissurada." }),
@@ -196,8 +236,7 @@ describe("triageTickets", () => {
       new Set()
     );
 
-    expect(groups[0].terms).toContain("fissurada");
-    expect(groups[0].terms).not.toContain("questiona");
+    for (const grupo of groups) expect(grupo.terms).not.toContain("fissurada");
   });
 
   it("devolve fila vazia sem atendimento nenhum", () => {

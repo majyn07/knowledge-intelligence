@@ -45,7 +45,12 @@ const artigo = (over: Partial<KnowledgeArticle>): KnowledgeArticle => ({
 const atendimento = (over: Partial<Ticket>): Ticket => ({
   id: "t1",
   projectId: "p1",
-  title: "Erro ao exportar",
+  /*
+    Título com substância, porque é dele que sai o vocabulário quando não há
+    conversa: a solução deixou de entrar na conta, e "Erro ao exportar" sozinho
+    dá dois termos, abaixo do mínimo para comparar com outro atendimento.
+  */
+  title: "Erro ao exportar o modelo deslocado na revisão",
   solution: "Resolvido reinstalando.",
   company: "",
   ...emptyClassification(),
@@ -204,6 +209,17 @@ describe("envelhecido", () => {
 });
 
 describe("atendimento sem artigo", () => {
+  /*
+    Sem conversa, o vocabulário sai do título — e título fino não dá para
+    agrupar. "Atendimento AltoQi" e "Pagamentos" existem no acervo real, e
+    apontá-los como achado seria mandar alguém ler o que não descreve nada.
+  */
+  it("título curto demais não vira achado", () => {
+    expect(
+      kinds(survey([artigo({})], [atendimento({ title: "Atendimento AltoQi" })]))
+    ).not.toContain("atendimento-sem-cobertura");
+  });
+
   it("atendimento resolvido que não virou conteúdo é achado alto", () => {
     // É o sinal que originou o produto.
     const achados = survey([artigo({})], [atendimento({})]);

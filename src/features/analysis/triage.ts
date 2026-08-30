@@ -4,7 +4,7 @@ import type { KnowledgeArticle } from "@/models/KnowledgeArticle";
 import type { SupportConversation } from "@/models/SupportConversation";
 import type { Ticket } from "@/models/Ticket";
 
-import { falaDoCliente, falasDeBotao } from "./clientVoice";
+import { falaDoCliente, trechosRepetidos } from "./clientVoice";
 
 /**
  * Quais atendimentos valem uma análise.
@@ -99,19 +99,24 @@ interface TicketComTermos {
  * frequência não separava os dois: no e-mail, a faixa de 8% a 30% é rodapé
  * quase inteira, e "builder" e "eberick" estão dentro dela.
  *
- * Sem conversa, volta para título e solução, que é pouco mas é do atendimento —
- * são 119 dos 1.025, os que vieram por arquivo ou à mão.
+ * **Sem fala do cliente, sobra o título — e só ele.** Voltar para `solução`
+ * traria o e-mail do suporte de volta, que é justamente o modelo que este
+ * caminho existe para evitar: o grupo com título "Estou ciente e desejo
+ * continuar" reapareceu colado por "balão, canto, direito", que é a instrução
+ * do widget de chat. O título é curto e às vezes é do robô, mas é do
+ * atendimento; quando ele não dá três termos, o atendimento fica de fora do
+ * agrupamento em vez de entrar por um texto que não é dele.
  */
 function corpusDo(
   ticket: Ticket,
   conversa: SupportConversation | undefined,
-  botoes: ReadonlySet<string>
+  repetidos: ReadonlySet<string>
 ): string {
-  const fala = falaDoCliente(conversa, botoes);
+  const fala = falaDoCliente(conversa, repetidos);
 
   if (fala !== "") return semCorrespondencia(fala);
 
-  return semCorrespondencia(`${ticket.title} ${ticket.solution}`);
+  return semCorrespondencia(ticket.title);
 }
 
 /**
@@ -123,9 +128,9 @@ function corpusDo(
 export function ticketTerms(
   ticket: Ticket,
   conversa?: SupportConversation,
-  botoes: ReadonlySet<string> = new Set()
+  repetidos: ReadonlySet<string> = new Set()
 ): string[] {
-  return termsOf(corpusDo(ticket, conversa, botoes));
+  return termsOf(corpusDo(ticket, conversa, repetidos));
 }
 
 /**
@@ -174,7 +179,7 @@ export function triageTickets(
   conversas: readonly SupportConversation[] = [],
   limiar = LIMIAR_DE_GRUPO
 ): TriageResult {
-  const botoes = falasDeBotao(conversas);
+  const repetidos = trechosRepetidos(conversas);
 
   const conversaDe = new Map(conversas.map((conversa) => [conversa.ticketId, conversa]));
   const ignorados = {
@@ -215,7 +220,7 @@ export function triageTickets(
       continue;
     }
 
-    const termos = new Set(ticketTerms(ticket, conversaDe.get(ticket.id), botoes));
+    const termos = new Set(ticketTerms(ticket, conversaDe.get(ticket.id), repetidos));
 
     if (termos.size < TERMOS_MINIMOS) {
       ignorados.semTextoSuficiente += 1;
@@ -226,6 +231,25 @@ export function triageTickets(
   }
 
   const acervo = vocabularioPublicado(articles);
+
+  /*
+    Em quantos atendimentos cada termo aparece, para desempatar a explicação.
+
+    Sem isto, os termos de um grupo saíam **em ordem alfabética**: quase todos
+    empatam na contagem dentro do grupo, e o desempate era o `localeCompare`.
+    A tela dizia "usam as mesmas palavras (abrir, absoluta, anexos, antes)",
+    que é um trecho de dicionário e não uma explicação.
+
+    O que descreve um grupo é o que ele tem e os outros não. Uma passada sobre
+    os candidatos, que já estão em memória.
+  */
+  const emQuantosAtendimentos = new Map<string, number>();
+
+  for (const candidato of candidatos) {
+    for (const termo of candidato.termos) {
+      emQuantosAtendimentos.set(termo, (emQuantosAtendimentos.get(termo) ?? 0) + 1);
+    }
+  }
   const grupos: TicketComTermos[][] = [];
   const usados = new Set<string>();
 
@@ -266,7 +290,11 @@ export function triageTickets(
         : new Set([...contagem].filter(([, n]) => n > 1).map(([palavra]) => palavra));
 
     const termos = [...doGrupo].sort(
-      (a, b) => (contagem.get(b) ?? 0) - (contagem.get(a) ?? 0) || a.localeCompare(b)
+      (a, b) =>
+        (contagem.get(b) ?? 0) - (contagem.get(a) ?? 0) ||
+        /* Empatou dentro do grupo: vence quem aparece em menos atendimentos fora dele. */
+        (emQuantosAtendimentos.get(a) ?? 0) - (emQuantosAtendimentos.get(b) ?? 0) ||
+        a.localeCompare(b)
     );
 
     const ordenados = [...grupo].sort((a, b) => a.ticket.date.localeCompare(b.ticket.date));

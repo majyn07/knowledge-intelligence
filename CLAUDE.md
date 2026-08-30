@@ -1332,11 +1332,32 @@ O que separa é **de quem é a fala**: 5.843 termos distintos na resposta do
 suporte contra 11.799 na fala do cliente, nos mesmos atendimentos. Sem conversa,
 volta para título e solução — são 119 dos 1.025.
 
-**Clique não é descrição, e quem diz isso é o corpus.** Das 5.318 falas
-distintas do cliente, 5.148 aparecem numa conversa só; passando de 2%, sobram
-**dezoito**, e as dezoito são botão ou saudação: "Estou ciente e desejo
-continuar" (44%), "Setup e Suporte ao Produto" (30%), "ok", "oi", "1", "2". A
-regra sai do acervo, então acompanha o bot quando o suporte mudar o menu.
+**Enfeite não é descrição, e quem diz isso é o corpus.** A unidade é o
+**parágrafo**: são 9.005 distintos na fala do cliente, e 8.717 aparecem numa
+conversa só. Passando de 2%, sobram **vinte e nove**, e os vinte e nove são
+enfeite — o clique de menu ("Estou ciente e desejo continuar", 44%), o rodapé de
+descadastro, o endereço da empresa, "Technical Support Analyst", e as três
+linhas do aviso de segurança que o servidor de e-mail injeta.
+
+O parágrafo, e não a mensagem inteira, porque **o aviso de segurança vem
+antes** do texto da pessoa: marcador estrutural corta para baixo e não o
+alcança, e descartar a mensagem jogaria fora a descrição junto. Ele colava
+"pagamento de boleto" com "exportar do Builder para o Revit".
+
+**E a assinatura sai por dois caminhos, que se somam.** `corpoEscrito` corta o
+que é estrutural e raro — o `--` da convenção de e-mail, o aviso jurídico, a
+citação "…escreveu:" — e a contagem por parágrafo pega o que é comum e não tem
+forma. Um sozinho não bastava: a assinatura de quem escreveu uma vez só não se
+repete, e o banner do gateway não tem delimitador.
+
+Em acervo raso a fração sozinha tem um buraco: com duas conversas, 2% dá 0,04 e
+**qualquer** trecho passa, e a descrição inteira viraria enfeite. Daí o piso de
+três conversas.
+
+**Entidade numérica também é lixo de HTML.** `&#xa0;` chegou em 115 mensagens e
+virou a palavra "xa0", exibida como um dos termos que descrevem um grupo de
+treze atendimentos. A lista de entidades nomeadas não a cobria: a mesma coisa
+tem duas escritas.
 
 **E atendimento sozinho vira um achado só.** É a lição de "artigo sem seção" de
 novo, e aqui ficou aritmética: são 679 grupos e só 80 têm mais de um
@@ -1344,11 +1365,25 @@ atendimento. Os outros 599 diriam, um a um, "foi resolvido e não virou artigo" 
 verdade sobre quase todo atendimento, e inútil para escolher qual. Um punhado
 ainda cabe individualmente; acima disso o caminho é a fila de triagem.
 
-Medido de ponta a ponta: **290 achados com um grupo de 156** viraram **85 com o
-maior em 17**.
+**A explicação do grupo desempata por raridade, não pelo alfabeto.** Quase todos
+os termos empatam na contagem dentro do grupo, e o desempate era
+`localeCompare`: a tela dizia "usam as mesmas palavras (abrir, absoluta,
+anexos, antes)", que é um trecho de dicionário. O que descreve um grupo é o que
+ele tem e os outros não.
 
-**Ainda não está resolvido**: o maior grupo agora cola pela assinatura do
-**cliente** ("andressa, bancarios, centro"), e não pelo assunto.
+**Sem fala do cliente sobra o título, e só ele.** Voltar para a solução traria o
+e-mail do suporte de volta — o grupo com título "Estou ciente e desejo
+continuar" reapareceu colado por "balão, canto, direito". São 876 atendimentos
+pela fala, 104 só pelo título, e 45 que ficam de fora por não darem três
+termos: "teste 2", "Pagamentos", "Atendimento AltoQi", que não descrevem nada.
+
+**A barra de tamanho mínimo foi medida e não mexeu.** Baixar de 5 para 4 ou 3
+mudava 61 grupos para 62, então ficou como está: medir e não mexer também é
+resultado.
+
+Medido de ponta a ponta na tela: **290 achados, com um grupo de 156 colado pelo
+rodapé**, viraram **73, com o maior em 13 e os termos descrevendo o assunto**
+("formalizacao, contrato, cancelamento"; "b2g, qionboarding, municipio").
 
 ### O e-mail do suporte não é vocabulário
 

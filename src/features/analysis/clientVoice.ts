@@ -1,3 +1,4 @@
+import { corpoEscrito } from "@/lib/emailBody";
 import type { SupportConversation } from "@/models/SupportConversation";
 
 /**
@@ -19,23 +20,66 @@ import type { SupportConversation } from "@/models/SupportConversation";
  * O que separa é **de quem é a fala**. A resposta do suporte é um modelo; a
  * descrição do cliente é dele. Medido: 5.843 termos distintos no e-mail do
  * suporte contra 11.799 na fala do cliente, nos mesmos 1.025 atendimentos.
+ *
+ * **E a fala do cliente também vem com rodapé.** Trocar a assinatura do suporte
+ * pela do cliente não seria conserto: o maior grupo passou a colar por
+ * "andressa, bancarios, centro, commercial", que é o bloco de contato de quem
+ * enviou. Quem corta isso é `corpoEscrito`, por marcador estrutural — medido,
+ * 527 falas cortadas e 32% menos texto, e os grupos com mais de um atendimento
+ * caíram de 80 para 64, que é o ruído saindo.
  */
 
 /**
- * A fração de conversas acima da qual uma fala idêntica deixa de ser descrição.
+ * A fração de conversas acima da qual um trecho idêntico deixa de ser descrição.
  *
- * Medido nas 974: são 5.318 falas distintas do cliente, e **5.148 aparecem numa
- * conversa só**. Passando de 2%, sobram **dezoito** — e as dezoito são clique de
- * menu ou saudação: "Estou ciente e desejo continuar" (44%), "Setup e Suporte ao
- * Produto" (30%), "ok", "oi", "1", "2".
+ * Medido nas 973 conversas: são **9.005 parágrafos distintos** na fala do
+ * cliente, e **8.717 aparecem numa conversa só**. Passando de 2%, sobram
+ * **vinte e nove** — e os vinte e nove são enfeite: o clique de menu ("Estou
+ * ciente e desejo continuar", 44%), o rodapé de descadastro, o endereço da
+ * empresa, "Technical Support Analyst", e as três linhas do aviso de segurança
+ * que o servidor de e-mail injeta.
  *
- * A regra sai do corpus e não de uma lista escrita à mão, então ela acompanha o
- * bot quando o suporte mudar o menu — que é a diferença entre uma decisão que
- * envelhece sozinha e uma que alguém precisa lembrar de revisar.
+ * **O parágrafo é a unidade certa, e não a mensagem inteira.** O aviso de
+ * segurança vem **antes** do texto da pessoa: cortar por marcador estrutural,
+ * que corta para baixo, não o alcança, e descartar a mensagem inteira jogaria
+ * fora a descrição junto. Ele colava "pagamento de boleto" com "exportar do
+ * Builder para o Revit" — a mesma falha do rodapé, num lugar novo.
+ *
+ * A regra sai do corpus e não de uma lista escrita à mão, então acompanha o bot
+ * quando o suporte mudar o menu, e o gateway quando a TI mudar o aviso.
  */
-const REPETICAO_DE_BOTAO = 0.02;
+const REPETICAO_DE_ENFEITE = 0.02;
+
+/**
+ * E nunca menos que isto, por mais raso que seja o acervo.
+ *
+ * A fração sozinha tem um buraco em acervo pequeno: com duas conversas, 2%
+ * dá 0,04, e **qualquer** fala passa do limiar — a descrição do cliente
+ * inteira seria descartada como botão, e a triagem cairia no título sem
+ * ninguém entender por quê. O defeito apareceu num teste de duas conversas, e
+ * ele vale igual para uma equipe que está começando.
+ *
+ * Três porque menos que isso não é repetição: duas pessoas escreverem "bom
+ * dia" não faz de "bom dia" um enfeite.
+ */
+const MINIMO_DE_CONVERSAS = 3;
 
 const cache = new WeakMap<readonly SupportConversation[], Set<string>>();
+
+/**
+ * Os parágrafos de uma mensagem, já sem o que vem pendurado embaixo.
+ *
+ * `corpoEscrito` corta assinatura, aviso jurídico e citação — o que é
+ * estrutural e não se repete o bastante para ser pego pela contagem, como a
+ * assinatura de um cliente que escreveu uma vez só. Os dois se somam: um pega o
+ * que é raro e tem forma, o outro pega o que é comum e não tem.
+ */
+function paragrafos(corpo: string): string[] {
+  return corpoEscrito(corpo)
+    .split(/\n\s*\n/)
+    .map((trecho) => trecho.trim())
+    .filter((trecho) => trecho !== "");
+}
 
 /** Comparação insensível a caixa e espaço, que é como o mesmo botão chega. */
 function chave(texto: string): string {
@@ -43,12 +87,12 @@ function chave(texto: string): string {
 }
 
 /**
- * As falas que são botão, apuradas do próprio acervo.
+ * Os trechos que são enfeite, apurados do próprio acervo.
  *
  * Uma passada por coleção, guardada num `WeakMap` como os outros índices:
  * quando as conversas mudam, a chave muda junto e a medição se refaz.
  */
-export function falasDeBotao(conversas: readonly SupportConversation[]): Set<string> {
+export function trechosRepetidos(conversas: readonly SupportConversation[]): Set<string> {
   const guardado = cache.get(conversas);
 
   if (guardado) return guardado;
@@ -57,32 +101,34 @@ export function falasDeBotao(conversas: readonly SupportConversation[]): Set<str
 
   for (const conversa of conversas) {
     /*
-      Por conversa, e não por mensagem: quem clica duas vezes no mesmo botão
-      não torna aquilo mais parecido com botão do que já é.
+      Por conversa, e não por ocorrência: quem clica duas vezes no mesmo botão,
+      ou responde três e-mails com a mesma assinatura, não torna aquilo mais
+      repetido do que já é.
     */
     const distintas = new Set(
       conversa.messages
         .filter((mensagem) => mensagem.role === "cliente")
-        .map((mensagem) => chave(mensagem.body))
-        .filter((texto) => texto !== "")
+        .flatMap((mensagem) => paragrafos(mensagem.body))
+        .map(chave)
     );
 
     for (const texto of distintas) emQuantas.set(texto, (emQuantas.get(texto) ?? 0) + 1);
   }
 
-  const teto = conversas.length * REPETICAO_DE_BOTAO;
+  const teto = Math.max(MINIMO_DE_CONVERSAS, conversas.length * REPETICAO_DE_ENFEITE);
 
-  const botoes = new Set(
-    [...emQuantas].filter(([, quantas]) => quantas > teto).map(([texto]) => texto)
+  const repetidos = new Set(
+    [...emQuantas].filter(([, quantas]) => quantas > teto).map(([trecho]) => trecho)
   );
 
-  cache.set(conversas, botoes);
+  cache.set(conversas, repetidos);
 
-  return botoes;
+  return repetidos;
 }
 
 /**
- * O que o cliente descreveu, sem o que ele apenas clicou.
+ * O que o cliente descreveu, sem o que ele apenas clicou nem o que a
+ * ferramenta carimbou.
  *
  * Vazio quando a conversa não existe ou só tem cliques — e vazio é resposta:
  * quem chama decide o que fazer com isso, e no caso da triagem é voltar para o
@@ -90,13 +136,14 @@ export function falasDeBotao(conversas: readonly SupportConversation[]): Set<str
  */
 export function falaDoCliente(
   conversa: SupportConversation | undefined,
-  botoes: ReadonlySet<string>
+  repetidos: ReadonlySet<string>
 ): string {
   if (!conversa) return "";
 
   return conversa.messages
-    .filter((mensagem) => mensagem.role === "cliente" && !botoes.has(chave(mensagem.body)))
-    .map((mensagem) => mensagem.body)
+    .filter((mensagem) => mensagem.role === "cliente")
+    .flatMap((mensagem) => paragrafos(mensagem.body))
+    .filter((trecho) => !repetidos.has(chave(trecho)))
     .join(" ")
     .trim();
 }
