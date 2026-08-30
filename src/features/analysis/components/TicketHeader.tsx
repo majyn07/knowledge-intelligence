@@ -68,13 +68,31 @@ export function TicketHeader({
       </div>
 
       <div className="flex shrink-0 flex-wrap gap-2">
-        <Button disabled={isAnalyzing || analysisStatus === "in_review"} onClick={onAnalyze}>
+        {/*
+          O rótulo diz o estado, e não sempre a mesma coisa.
+
+          Com a análise esperando revisão o botão se desabilitava e continuava
+          escrito "Analisar com IA", em estilo primário: clique que não faz
+          nada, sem dizer por quê. Quem clica conclui que a IA quebrou.
+        */}
+        <Button
+          disabled={isAnalyzing || analysisStatus === "in_review"}
+          variant={analysisStatus === "in_review" ? "outline" : "default"}
+          title={
+            analysisStatus === "in_review"
+              ? "A análise anterior está esperando revisão. Aprove ou descarte as oportunidades abaixo para analisar de novo."
+              : undefined
+          }
+          onClick={onAnalyze}
+        >
           <Brain className="mr-2 h-4 w-4" />
           {isAnalyzing
             ? "Analisando..."
-            : analysisStatus === "completed"
-              ? "Executar nova análise"
-              : "Analisar com IA"}
+            : analysisStatus === "in_review"
+              ? "Aguardando sua revisão"
+              : analysisStatus === "completed"
+                ? "Executar nova análise"
+                : "Analisar com IA"}
         </Button>
 
         <Button variant="ghost" size="icon" aria-label="Excluir atendimento" onClick={onDelete}>

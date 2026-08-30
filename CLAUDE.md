@@ -877,6 +877,38 @@ A tela de Integrações lê do **mesmo catálogo** que o servidor usa para
 escolher. Duas listas do mesmo vocabulário divergem, e a divergência apareceria
 como a tela dizendo "conectado" sobre um provedor que a análise não usa.
 
+**O contrato restringe a geração, e não é só instrução no prompt.** Pedir JSON
+por texto não bastava: a mesma análise voltava JSON numa vez e prosa na outra, e
+a tela mandava "peça de novo" sobre algo que podia falhar igual. Com
+`responseSchema` o modelo não tem como sair da forma — medido contra a API real,
+1 de 2 antes e **4 de 4** depois.
+
+O Gemini lê um subconjunto do OpenAPI, não JSON Schema inteiro: chave que ele
+não conhece derruba o pedido antes de sair, e o que o Zod gera tem várias
+(`additionalProperties`, que vem de `.strict()`, `minLength`, `minimum`). O
+schema é **reduzido** por lista de permissão, e não de bloqueio: chave nova numa
+versão futura do Zod passaria despercebida por uma lista de bloqueio e
+derrubaria a análise em produção. As regras que ficam de fora continuam valendo
+aqui, onde sempre valeram — a resposta passa pelo Zod na volta de qualquer jeito.
+
+**A conversa vai limpa e dentro de um teto.** Ia inteira: rodapé, assinatura,
+aviso de segurança do servidor, clique de menu e histórico citado. Medido no
+acervo, **38% do texto** que ia ao modelo era isso — 6,19 milhões de caracteres
+virando 3,81, e 4.075 mensagens que eram só enfeite saindo por completo. Não é
+só custo: o modelo lê "Atenciosamente," em 67% das conversas competindo com a
+descrição do problema.
+
+O teto é 40.000 caracteres, e ele não existia: a maior conversa do acervo são
+cerca de **cem mil tokens num pedido só**, e um deles estourou o prazo em 51 s
+contra a API real. Só 8 das 974 batem no teto. Corta pelo **fim**, porque o
+problema é descrito no começo e o fim é confirmação e despedida — cortar a
+cabeça deixaria o modelo com a resposta e sem a pergunta. A ressalva vai ao
+modelo **antes** do transcrito, e à tela, como no artigo longo.
+
+**Botão que não pode ser clicado diz por quê.** "Analisar com IA" se
+desabilitava com a análise em revisão e continuava escrito a mesma coisa, em
+estilo primário: clique que não faz nada, e quem clica conclui que a IA quebrou.
+
 **Falha de provedor tem tipo.** Chave recusada, cota estourada, modelo
 sobrecarregado e pedido que passou do prazo eram a mesma frase ("tente
 novamente"), inclusive quando tentar de novo não mudava nada. `classifyProvider‑
@@ -1885,7 +1917,7 @@ do que a correspondência traz junto e a medição do que o acervo repete, a rec
 para na página vazia, o mapeamento de mensagens do provedor, a consulta da IA
 sobre o artigo, o rótulo da iniciativa, motor de busca e busca
 transversal, transições de artigo e de plano, métricas por projeto e por
-período, o tempo do ciclo com as ressalvas dele e a planilha da página, parsing da resposta da IA, a escolha do provedor com a classificação
+período, o tempo do ciclo com as ressalvas dele e a planilha da página, parsing da resposta da IA com a redução do contrato ao que o provedor lê e o preparo do transcrito, a escolha do provedor com a classificação
 das falhas dele, a leitura da sugestão de seção, a leitura do preenchimento de
 formulário com a seleção do que aplicar e a classificação do arquivo
 anexado, o recorte na URL, a central de avisos, o catálogo de ações guardadas e a auditoria do histórico, o levantamento, índice do artigo, critérios de publicação,

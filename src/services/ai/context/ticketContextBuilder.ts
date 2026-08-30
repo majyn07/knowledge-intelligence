@@ -20,8 +20,17 @@ Nenhum registro de conversa disponível para este atendimento.
     )
     .join("\n\n");
 
+  /*
+    A ressalva vai **antes** do transcrito, e não depois: o modelo lê em ordem,
+    e um aviso no fim chega quando ele já formou a resposta sobre o que leu.
+  */
+  const ressalva = context.conversationTruncated
+    ? "\n\nATENÇÃO: a conversa é longa e foi enviada em parte. Se a resposta " +
+      "depender do que pode estar na parte que faltou, diga isso.\n"
+    : "";
+
   return `
-## Registro do atendimento
+## Registro do atendimento${ressalva}
 
 ${transcript}
 `.trim();

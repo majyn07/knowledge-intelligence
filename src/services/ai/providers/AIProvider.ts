@@ -66,7 +66,23 @@ export interface AIProvider {
    */
   complete(
     messages: AIChatMessage[],
-    options?: { json?: boolean; files?: AIAttachment[]; reasoning?: AIReasoning }
+    options?: {
+      json?: boolean;
+      /**
+       * O contrato de saída, para o provedor **restringir** a geração.
+       *
+       * Instrução no prompt não garante forma: a mesma análise voltava JSON
+       * numa vez e prosa na outra. Quem sabe traduzir isto para o formato do
+       * provedor é o provedor; aqui vai o JSON Schema, e nada acima desta
+       * fronteira conhece o dialeto de ninguém.
+       *
+       * Provedor que não souber restringir simplesmente ignora, e a validação
+       * na volta continua sendo a que vale.
+       */
+      schema?: unknown;
+      files?: AIAttachment[];
+      reasoning?: AIReasoning;
+    }
   ): Promise<string>;
 }
 

@@ -10,6 +10,8 @@ import type { AIChatRequest } from "@/models/AIChatRequest";
 
 import { AIConfigurationError, AIProviderError } from "../analysis/analysisErrors";
 import { buildAnalysisPrompt } from "../prompts/analysisPromptBuilder";
+import { getAnalysisResponseJsonSchema } from "../prompts/analysisResponseSchema";
+import { paraGemini } from "./geminiSchema";
 import { buildStructuredAnalysisPrompt } from "../prompts/structuredAnalysisPromptBuilder";
 import { AI_TIMEOUT_MS, type AIProvider, type AIReasoning } from "../providers/AIProvider";
 import { classifyProviderFailure } from "../providers/providerFailure";
@@ -50,7 +52,12 @@ function getClient(): GoogleGenAI {
  */
 async function complete(
   messages: AIChatMessage[],
-  options: { json?: boolean; files?: AIAttachment[]; reasoning?: AIReasoning } = {}
+  options: {
+    json?: boolean;
+    schema?: unknown;
+    files?: AIAttachment[];
+    reasoning?: AIReasoning;
+  } = {}
 ): Promise<string> {
   const client = getClient();
 
@@ -84,6 +91,18 @@ async function complete(
         abortSignal: AbortSignal.timeout(AI_TIMEOUT_MS),
         ...(systemInstruction ? { systemInstruction } : {}),
         ...(options.json ? { responseMimeType: "application/json" } : {}),
+        /*
+          O contrato **restringe a geração**, em vez de ser só instrução.
+
+          Pedir JSON por prompt não bastava: a mesma análise voltava JSON numa
+          vez e prosa na outra, e a tela mandava "peça de novo" sobre algo que
+          podia falhar igual. Com `responseSchema` o modelo não tem como sair
+          da forma.
+
+          Reduzido ao subconjunto que o Gemini lê: chave que ele não conhece
+          derruba o pedido antes de sair.
+        */
+        ...(options.schema ? { responseSchema: paraGemini(options.schema) } : {}),
         /*
           `thinkingBudget: 0` desliga o raciocínio estendido, que neste modelo
           vem ligado. Só para quem pediu `minimo`: a análise do atendimento
@@ -146,6 +165,9 @@ export const geminiService: AIProvider = {
   },
 
   analyze(request: AIChatRequest) {
-    return complete(buildStructuredAnalysisPrompt(request), { json: true });
+    return complete(buildStructuredAnalysisPrompt(request), {
+      json: true,
+      schema: getAnalysisResponseJsonSchema(),
+    });
   },
 };
