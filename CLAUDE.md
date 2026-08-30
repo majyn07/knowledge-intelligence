@@ -835,6 +835,33 @@ avaliação achou três artigos de verdade e distinguiu **"não se aplica ao
 Eberick"** num que é do Builder — que é justamente o que a busca por vocabulário
 não faz.
 
+**A IA lê os dois artigos com quem decide se eles viram um só.** A tela de
+comparação mostrava o vocabulário em comum e dizia, corretamente, que aquilo
+**não é veredito** — e então mandava abrir um dos dois e perguntar à IA de lá.
+Mandar alguém para outra tela no meio da decisão é o que faz ninguém perguntar.
+
+**"Complementares" é o veredito que precisa existir**, e é o mais comum: dois
+artigos sobre o mesmo tema por ângulos diferentes, onde unir perderia conteúdo e
+deixar como está faz quem procura achar só um dos dois. Com duas opções o modelo
+é empurrado para "unir" toda vez que os textos se parecem, e artigo apagado não
+volta.
+
+O que a resposta tem de mais útil é **o que se perderia**: qual dos dois fica, e
+a lista do que precisa ser levado do outro. Verificado contra dois artigos reais
+de sprinklers, com 25% de vocabulário em comum: ela distinguiu o que trata da
+modelagem geométrica do que trata dos critérios de dimensionamento hidráulico, e
+listou seis procedimentos que sumiriam numa união descuidada.
+
+Ela não une nada, e a tela não oferece botão para o contrário.
+
+**A varredura de sugestão de seção foi de 25 para 10 por lote.** Vinte e cinco
+ficava na borda do prazo: varrendo os 56 sem seção do acervo real, o primeiro
+lote voltou e o segundo estourou os 90 segundos. Na borda a falha não é
+excepcional — é questão de qual lote calha de ser mais pesado, e quem paga é a
+varredura inteira, que para no meio. Com dez, os seis lotes passaram e 52 dos 56
+receberam sugestão; os outros quatro o modelo se recusou a chutar, que é o
+comportamento desenhado.
+
 **A IA acompanha a tela, e responde do que ela mediu.** A pergunta nasce
 olhando a lista — "existe conteúdo repetido aqui?", "por qual atendimento eu
 começo?" — e mandar alguém para outra página para fazê-la é o que faz ninguém
@@ -2053,7 +2080,8 @@ para na página vazia, o mapeamento de mensagens do provedor, a consulta da IA
 sobre o artigo, o rótulo da iniciativa, motor de busca e busca
 transversal, transições de artigo e de plano, métricas por projeto e por
 período, o tempo do ciclo com as ressalvas dele e a planilha da página, parsing da resposta da IA com a redução do contrato ao que o provedor lê e o preparo do transcrito, a escolha do provedor com a classificação
-das falhas dele, a leitura da sugestão de seção, a avaliação de cobertura do acervo, o retrato que a
+das falhas dele, a leitura da sugestão de seção, a avaliação de cobertura do acervo, a leitura de dois artigos que se
+sobrepõem, o retrato que a
 tela dá ao assistente com o encaixe do painel na janela, a leitura do preenchimento de
 formulário com a seleção do que aplicar e a classificação do arquivo
 anexado, o recorte na URL, a central de avisos, o catálogo de ações guardadas e a auditoria do histórico, o levantamento, índice do artigo, critérios de publicação,

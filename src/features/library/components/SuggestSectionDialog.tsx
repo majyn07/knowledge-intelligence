@@ -13,8 +13,18 @@ import type { KnowledgeArticle } from "@/models/KnowledgeArticle";
 import { useLibrary } from "../providers/LibraryProvider";
 import { LibraryDialog } from "./LibraryDialog";
 
-/** Quantos vão por pedido. O teto também está no schema do servidor. */
-const LOTE = 25;
+/**
+ * Quantos vão por pedido. O teto também está no schema do servidor.
+ *
+ * Era 25, e 25 fica **na borda do prazo**: varrendo os 56 sem seção do acervo
+ * real, o primeiro lote de 25 voltou e o segundo estourou os 90 segundos. Na
+ * borda a falha não é excepcional, é uma questão de qual lote calha de ser mais
+ * pesado — e quem paga é a varredura inteira, que para no meio.
+ *
+ * Dez custa mais pedidos e dá margem: cada um gera menos texto, e o lote que
+ * falha leva dez pela frente em vez de vinte e cinco.
+ */
+const LOTE = 10;
 
 interface Sugestao {
   articleId: string;
@@ -192,7 +202,11 @@ export function SuggestSectionDialog({
     >
       <div className="flex flex-col gap-4">
         <p className="text-sm text-muted-foreground">
-          {articles.length} artigo(s) sem seção no acervo
+          {/*
+            Concorda em número, como o diálogo de exclusão: frase escrita para
+            um caso e usada noutro faz quem lê rápido desconfiar da tela inteira.
+          */}
+          {articles.length} {articles.length === 1 ? "artigo" : "artigos"} sem seção no acervo
           {lotes > 1 && `, em ${lotes} lotes de até ${LOTE}`}.
         </p>
 
@@ -292,7 +306,7 @@ export function SuggestSectionDialog({
             </Button>
           ) : (
             <Button onClick={aplicar} disabled={aceitas.size === 0}>
-              Aplicar {aceitas.size} sugestão(ões)
+              Aplicar {aceitas.size} {aceitas.size === 1 ? "sugestão" : "sugestões"}
             </Button>
           )}
         </div>
