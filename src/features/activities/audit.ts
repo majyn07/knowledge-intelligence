@@ -52,17 +52,63 @@ export function auditDay(event: ActivityEvent): string {
   return Number.isNaN(data.getTime()) ? "" : dayOf(data);
 }
 
-/** Quem aparece no histórico, para o filtro sair do dado e não de um cadastro. */
-export function auditActors(events: readonly ActivityEvent[]): string[] {
-  const nomes = new Set<string>();
+export interface AuditActor {
+  /** O que o filtro guarda: identificador quando há, rótulo quando não há. */
+  value: string;
+  /** O que a pessoa lê. */
+  label: string;
+  /** Quantos rótulos diferentes esta pessoa já teve. Mais de um vira ressalva. */
+  rotulos: string[];
+}
+
+/**
+ * Quem aparece no histórico, uma linha por pessoa.
+ *
+ * O filtro sai do dado e não de um cadastro: quem já não está na equipe
+ * continua tendo o que fez, e some da lista de pessoas mas não do histórico.
+ *
+ * **Agrupa por identificador quando ele existe**, e foi a auditoria que
+ * mostrou por quê: uma conta criada como "raoni.silva" e renomeada para "Raoni
+ * Teste" aparecia como duas pessoas, com 21 eventos numa e 22 na outra. Quem
+ * procurava o que ela fez escolhia uma e perdia metade.
+ *
+ * O rótulo exibido é o **mais recente**, porque é como a pessoa se chama hoje;
+ * os antigos continuam guardados, para a tela poder dizer que houve renome. O
+ * evento anterior ao identificador não tem como ser agrupado, e ali o rótulo é
+ * tudo que há.
+ */
+export function auditActors(events: readonly ActivityEvent[]): AuditActor[] {
+  const porChave = new Map<string, { label: string; at: string; rotulos: Set<string> }>();
 
   for (const event of events) {
-    const nome = event.actor.trim();
+    const rotulo = event.actor.trim();
 
-    if (nome !== "") nomes.add(nome);
+    if (rotulo === "" && !event.actorId) continue;
+
+    const chave = event.actorId ?? rotulo;
+    const atual = porChave.get(chave);
+
+    if (!atual) {
+      porChave.set(chave, { label: rotulo, at: event.at, rotulos: new Set([rotulo]) });
+      continue;
+    }
+
+    if (rotulo !== "") atual.rotulos.add(rotulo);
+
+    /* O rótulo de hoje é o do evento mais recente. */
+    if (rotulo !== "" && event.at > atual.at) {
+      atual.label = rotulo;
+      atual.at = event.at;
+    }
   }
 
-  return [...nomes].sort((a, b) => a.localeCompare(b, "pt-BR"));
+  return [...porChave.entries()]
+    .map(([value, dados]) => ({
+      value,
+      label: dados.label,
+      rotulos: [...dados.rotulos].filter((nome) => nome !== ""),
+    }))
+    .sort((a, b) => a.label.localeCompare(b.label, "pt-BR"));
 }
 
 function normalizar(texto: string): string {
@@ -79,7 +125,14 @@ export function filterAudit(
   const busca = normalizar(filters.busca.trim());
 
   const passou = events.filter((event) => {
-    if (filters.actor !== "all" && event.actor.trim() !== filters.actor) return false;
+    /*
+      Casa pelo identificador quando o evento tem um, e pelo rótulo quando não
+      tem. É o que faz o filtro alcançar tanto o que a pessoa fez depois de
+      renomear quanto o que fez antes de existir identificador.
+    */
+    if (filters.actor !== "all" && (event.actorId ?? event.actor.trim()) !== filters.actor) {
+      return false;
+    }
     if (filters.type !== "all" && event.type !== filters.type) return false;
 
     const dia = auditDay(event);

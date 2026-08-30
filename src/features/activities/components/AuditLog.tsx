@@ -89,8 +89,19 @@ export function AuditLog() {
                 <option value="all">Todas as pessoas</option>
 
                 {pessoas.map((pessoa) => (
-                  <option key={pessoa} value={pessoa}>
-                    {pessoa}
+                  <option key={pessoa.value} value={pessoa.value}>
+                    {/*
+                      Um nome por pessoa, com os anteriores ao lado quando ela
+                      foi renomeada: o histórico guarda o rótulo da época, e
+                      quem audita precisa saber que "raoni.silva" e "Raoni
+                      Teste" são a mesma pessoa antes de concluir qualquer
+                      coisa sobre volume de trabalho.
+                    */}
+                    {pessoa.rotulos.length > 1
+                      ? `${pessoa.label} (antes: ${pessoa.rotulos
+                          .filter((nome) => nome !== pessoa.label)
+                          .join(", ")})`
+                      : pessoa.label}
                   </option>
                 ))}
               </select>

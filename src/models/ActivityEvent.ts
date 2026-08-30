@@ -74,8 +74,31 @@ export interface ActivityEvent {
   at: string;
   type: ActivityType;
   projectId: string;
-  /** Quem realizou. Vazio enquanto não existir autenticação. */
+  /**
+   * Quem realizou, **como rótulo**.
+   *
+   * O rótulo é o que sobra quando a conta some, e por isso ele fica: o evento
+   * registra o que aconteceu, e "excluído por Ana" continua legível depois de
+   * a Ana sair. Vazio quando não há sessão.
+   */
   actor: string;
+
+  /**
+   * Quem realizou, **como identificador**.
+   *
+   * O rótulo sozinho não bastou, e a auditoria mostrou por quê: uma conta
+   * criada como "raoni.silva" e renomeada para "Raoni Teste" produz duas
+   * pessoas no filtro, e quem procura o que ela fez escolhe uma e perde
+   * metade. É a mesma lição que a atribuição e a menção já tinham aprendido.
+   *
+   * Os dois convivem de propósito. O identificador responde "foi a mesma
+   * pessoa?"; o rótulo responde "como ela se chamava quando isto aconteceu?",
+   * e essa segunda resposta não se reescreve.
+   *
+   * Ausente nos eventos gravados antes disto existir, e ali o rótulo é tudo
+   * que há.
+   */
+  actorId?: string;
   subject: ActivitySubject;
   detail: string;
 

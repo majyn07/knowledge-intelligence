@@ -146,8 +146,9 @@ BrandTheme → Taxonomy → People → Activity → Project
 mundo depende dela: a Biblioteca precisa do vocabulário para migrar o que leu
 do armazenamento, e os filtros de artigo e de projeto leem as opções dali.
 
-`Activity` fica acima dos domínios porque todos registram eventos nele e ele não
-depende de ninguém. `Tickets` fica acima de `KnowledgeLifecycle` porque a análise
+`Activity` fica acima dos domínios porque todos registram eventos nele. Depende
+só de `People`, e por um motivo: o evento carimba **quem** age, e perguntar num
+lugar só é o que impede vinte e dois chamadores de divergirem. `Tickets` fica acima de `KnowledgeLifecycle` porque a análise
 parte do atendimento. `Panels` fica por último pelo motivo inverso: não depende
 de ninguém, e quem lê os painéis precisa de todos os domínios acima para contar.
 
@@ -375,6 +376,28 @@ evento das 21h de 27 de agosto no Brasil cairia em 28, e quem procura "o dia 27"
 não acharia o que fez à noite. Evento com data ilegível fica **fora** de janela,
 e continua na lista sem janela: esconder porque a data não se lê seria perder o
 registro de que ele existiu.
+
+**Quem fez guarda identificador, além do rótulo.** O evento sempre guardou
+`actor` em texto, e isso continua: o rótulo é o que sobra quando a conta some, e
+"excluído por Ana" segue legível depois de a Ana sair. Só que ele não responde
+"foi a mesma pessoa?", e a auditoria mostrou o custo: uma conta criada como
+`raoni.silva` e renomeada para `Raoni Teste` aparecia como **duas** pessoas, com
+21 eventos numa e 22 na outra, e quem procurava o que ela fez escolhia uma e
+perdia metade. É a mesma lição que a atribuição e a menção já tinham aprendido.
+
+Os dois convivem: o identificador responde "foi a mesma pessoa?", o rótulo
+responde "como ela se chamava quando isto aconteceu?", e a segunda resposta não
+se reescreve. A lista de pessoas do filtro mostra o nome de hoje com os
+anteriores ao lado.
+
+O carimbo é **no funil**, dentro de `record`, e não nos vinte e dois chamadores:
+foi por espalhar que o `actor` divergiu. Isso torna `Activity` dependente de
+`People` — ela já ficava abaixo na ordem, então nada se moveu; o que muda é o
+motivo.
+
+**Evento anterior à coluna não é preenchido.** Casar pelo nome seria inventar
+vínculo, e `raoni.silva` parecer o prefixo de um e-mail é coincidência, não
+prova. Ali o rótulo é tudo que há, e a tela mostra assim.
 
 **Quem fez não é quem responde**, e a auditoria expôs a confusão no dado real.
 O evento gravava `currentPerson || item.author`, e autor e responsável guardam

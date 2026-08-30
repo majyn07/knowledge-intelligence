@@ -141,13 +141,75 @@ describe("auditDay", () => {
 
 describe("auditActors", () => {
   it("sai do dado, e não de um cadastro", () => {
-    expect(
-      auditActors([evento({ actor: "Bruno" }), evento({ actor: "Ana" }), evento({ actor: "Ana" })])
-    ).toEqual(["Ana", "Bruno"]);
+    const pessoas = auditActors([
+      evento({ actor: "Bruno" }),
+      evento({ actor: "Ana" }),
+      evento({ actor: "Ana" }),
+    ]);
+
+    expect(pessoas.map((pessoa) => pessoa.label)).toEqual(["Ana", "Bruno"]);
+    expect(pessoas.map((pessoa) => pessoa.value)).toEqual(["Ana", "Bruno"]);
   });
 
   it("evento sem autor não vira opção vazia", () => {
     expect(auditActors([evento({ actor: "  " })])).toEqual([]);
+  });
+
+  /*
+    Uma conta criada como "raoni.silva" e renomeada para "Raoni Teste" aparecia
+    como duas pessoas, com 21 eventos numa e 22 na outra. Quem procurava o que
+    ela fez escolhia uma e perdia metade.
+  */
+  it("renome não cria uma segunda pessoa", () => {
+    const pessoas = auditActors([
+      evento({ actor: "raoni.silva", actorId: "p1", at: "2026-08-24T10:00:00.000Z" }),
+      evento({ actor: "Raoni Teste", actorId: "p1", at: "2026-08-29T10:00:00.000Z" }),
+    ]);
+
+    expect(pessoas).toHaveLength(1);
+    expect(pessoas[0].value).toBe("p1");
+  });
+
+  /* O rótulo de hoje é o do evento mais recente; os anteriores ficam à vista. */
+  it("mostra o nome de agora e guarda os anteriores", () => {
+    const pessoas = auditActors([
+      evento({ actor: "Raoni Teste", actorId: "p1", at: "2026-08-29T10:00:00.000Z" }),
+      evento({ actor: "raoni.silva", actorId: "p1", at: "2026-08-24T10:00:00.000Z" }),
+    ]);
+
+    expect(pessoas[0].label).toBe("Raoni Teste");
+    expect(pessoas[0].rotulos.sort()).toEqual(["Raoni Teste", "raoni.silva"]);
+  });
+
+  /*
+    Evento anterior ao identificador não tem como ser agrupado, e ali o rótulo é
+    tudo que há. Ele não some da lista: some do agrupamento.
+  */
+  it("evento sem identificador continua aparecendo pelo rótulo", () => {
+    const pessoas = auditActors([
+      evento({ actor: "Ana", actorId: "p2" }),
+      evento({ actor: "Antigo" }),
+    ]);
+
+    expect(pessoas.map((pessoa) => pessoa.value).sort()).toEqual(["Antigo", "p2"]);
+  });
+});
+
+describe("filterAudit por pessoa", () => {
+  it("o identificador alcança os dois nomes", () => {
+    const eventos = [
+      evento({ actor: "raoni.silva", actorId: "p1" }),
+      evento({ actor: "Raoni Teste", actorId: "p1" }),
+      evento({ actor: "Ana", actorId: "p2" }),
+    ];
+
+    expect(filterAudit(eventos, filtros({ actor: "p1" }))).toHaveLength(2);
+  });
+
+  it("sem identificador, ainda casa pelo rótulo", () => {
+    const eventos = [evento({ actor: "Antigo" }), evento({ actor: "Ana", actorId: "p2" })];
+
+    expect(filterAudit(eventos, filtros({ actor: "Antigo" }))).toHaveLength(1);
   });
 });
 

@@ -24,6 +24,7 @@ export function normalizeEvent(raw: unknown): ActivityEvent {
     type: oneOf(value.type, ACTIVITY_TYPES, "project_updated"),
     projectId: text(value.projectId),
     actor: text(value.actor),
+    ...(text(value.actorId) ? { actorId: text(value.actorId) } : {}),
     subject: {
       kind: oneOf(subject.kind, ACTIVITY_SUBJECT_KINDS, "project"),
       id: text(subject.id),
