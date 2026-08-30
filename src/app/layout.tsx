@@ -26,6 +26,7 @@ import { WorkspaceBootstrap } from "@/features/auth/components/WorkspaceBootstra
 
 import "./globals.css";
 import { AutoSync } from "@/features/analysis/components/AutoSync";
+import { AssistantDock } from "@/features/assistant/components/AssistantDock";
 
 /**
  * Poppins é a fonte da identidade AltoQi e vem do kit de marca, servida daqui
@@ -147,6 +148,21 @@ export default function RootLayout({
                         <AutoSync />
 
                         {children}
+
+                        {/*
+                          O assistente acompanha a sessão, e não a rota.
+
+                          A pergunta nasce enquanto se olha a tela, e mandar
+                          alguém para outra página para fazê-la é o que faz
+                          ninguém fazê-la. Aqui embaixo porque ele lê os
+                          providers acima: acervo, fila, taxonomia e análises.
+
+                          E o contexto vem da rota, e não de cada tela: se cada
+                          página tivesse de declarar o que a IA vê, a página
+                          nova esqueceria, e o painel responderia sobre outra
+                          coisa sem ninguém saber.
+                        */}
+                        <AssistantDock />
                       </SavedViewsProvider>
                     </FollowsProvider>
                   </PanelsProvider>

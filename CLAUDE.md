@@ -835,6 +835,45 @@ avaliação achou três artigos de verdade e distinguiu **"não se aplica ao
 Eberick"** num que é do Builder — que é justamente o que a busca por vocabulário
 não faz.
 
+**A IA acompanha a tela, e responde do que ela mediu.** A pergunta nasce
+olhando a lista — "existe conteúdo repetido aqui?", "por qual atendimento eu
+começo?" — e mandar alguém para outra página para fazê-la é o que faz ninguém
+fazê-la. O painel é móvel porque cobre justamente o conteúdo sobre o qual se
+pergunta, e a posição fica no navegador, como o tema.
+
+**Ele recebe um retrato, não o acervo.** São 1.822 artigos e 22 MB: não cabem
+num pedido, e não precisam. As perguntas que motivaram o painel o Levantamento
+já responde por medição, e um modelo recontando devolveria um número diferente
+do que a tela mostra, sem ninguém saber qual está certo. Então vão as contagens
+derivadas, os achados apurados e uma amostra pequena — rotulada como amostra,
+senão doze títulos viram o acervo inteiro e a resposta afirma coisas sobre mil
+e oitocentos a partir de doze.
+
+O trabalho do modelo é o que a lista de números não faz: explicar, priorizar,
+ligar as pontas. Perguntado por onde começar na fila, ele cruzou volume com
+cobertura — 8 atendimentos de cancelamento com 33% de cobertura antes de 24 com
+95% —, que é a leitura que ninguém extrai olhando duas colunas.
+
+**A consequência é assumida:** pergunta que exigiria ler o acervo não tem
+resposta ali, e o prompt manda dizer isso. Para ler um artigo existe o painel
+dentro dele.
+
+**O contexto vem da rota, e não de cada tela.** Se cada página declarasse o que
+a IA vê, a página nova esqueceria, e o painel responderia sobre outra coisa sem
+ninguém saber. Trocar de tela recomeça a conversa: continuar o fio faria a IA
+responder sobre a Biblioteca com os números dos Atendimentos ainda em mãos.
+
+**E o retrato é calculado no envio, nunca a cada render.** O Levantamento
+compara artigos aos pares dentro da seção; rodá-lo o tempo todo, em toda tela,
+para uma pergunta que talvez ninguém faça, é custo sem contrapartida.
+
+**O que ela viu fica conferível**, e é a mesma disciplina do resto: a resposta
+vem de um modelo sobre números que o produto calculou, e quem lê "56 sem seção"
+precisa poder ver que aquilo veio medido. A conferência já cobrou seu preço —
+"Sem seção" aparecia duas vezes, com 56 e 55, uma como contagem do acervo e
+outra como se fosse uma seção. Números diferentes sob o mesmo rótulo leem como
+contradição.
+
 **A IA lê o artigo com quem avalia.** Com o portal importado, avaliar o acervo é
 o trabalho, e fazê-lo sozinho significa reler mil e oitocentos textos. O painel
 fica ao lado do artigo, porque a pergunta nasce enquanto se lê.
@@ -2014,7 +2053,8 @@ para na página vazia, o mapeamento de mensagens do provedor, a consulta da IA
 sobre o artigo, o rótulo da iniciativa, motor de busca e busca
 transversal, transições de artigo e de plano, métricas por projeto e por
 período, o tempo do ciclo com as ressalvas dele e a planilha da página, parsing da resposta da IA com a redução do contrato ao que o provedor lê e o preparo do transcrito, a escolha do provedor com a classificação
-das falhas dele, a leitura da sugestão de seção, a avaliação de cobertura do acervo, a leitura do preenchimento de
+das falhas dele, a leitura da sugestão de seção, a avaliação de cobertura do acervo, o retrato que a
+tela dá ao assistente com o encaixe do painel na janela, a leitura do preenchimento de
 formulário com a seleção do que aplicar e a classificação do arquivo
 anexado, o recorte na URL, a central de avisos, o catálogo de ações guardadas e a auditoria do histórico, o levantamento, índice do artigo, critérios de publicação,
 fronteira de armazenamento com a divisão em lotes da

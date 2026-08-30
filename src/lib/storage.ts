@@ -106,6 +106,11 @@ export const STORAGE_KEYS = {
   */
   noticesSeenAt: "visus-notices-seen-at",
   brandTheme: "visus-brand-theme",
+  /*
+    Onde o painel da IA ficou na tela. Preferência de máquina, como o tema e a
+    forma da lista: quem arrastou para o canto esquerdo o fez neste monitor.
+  */
+  assistantDock: "visus-assistant-dock",
 } as const;
 
 /** Tudo que a recuperação de falha apaga para voltar à semente. */
