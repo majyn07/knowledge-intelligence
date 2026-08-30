@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { formatDay } from "@/lib/dates";
 
 import type { TriageResult } from "../triage";
+import { concordar, contar } from "@/lib/plural";
 
 /**
  * Por onde começar, quando há mais atendimento do que dia.
@@ -88,7 +89,7 @@ export function TriageQueue({
           {foraDaFila > 0 && (
             <>
               {" "}
-              {foraDaFila} atendimento(s) ficaram fora da fila: {resumoDosIgnorados(ignorados)}.
+              {contar(foraDaFila, "atendimento")} {concordar(foraDaFila, "ficou", "ficaram")} fora da fila: {resumoDosIgnorados(ignorados)}.
             </>
           )}
         </div>

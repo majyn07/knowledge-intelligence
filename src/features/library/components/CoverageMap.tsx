@@ -11,6 +11,7 @@ import { useTaxonomy } from "@/features/taxonomy/providers/TaxonomyProvider";
 
 import { useLibrary } from "../providers/LibraryProvider";
 import { buildCoverage, coverageSummary, unclassifiedCount } from "../sectionCoverage";
+import { contar } from "@/lib/plural";
 
 /**
  * O mapa de lacunas.
@@ -55,7 +56,7 @@ export function CoverageMap() {
           {orphans > 0 && (
             <p className="mt-3 text-xs text-muted-foreground">
               <Link href="/library" className="underline underline-offset-2">
-                {orphans} artigo(s) sem seção
+                {contar(orphans, "artigo")} sem seção
               </Link>{" "}
               não cobrem nada até serem classificados.
             </p>
@@ -135,7 +136,7 @@ export function CoverageMap() {
                             </span>
 
                             <span className="shrink-0 text-xs text-muted-foreground">
-                              {published > 0 && `${published} publicado(s)`}
+                              {published > 0 && `${contar(published, "publicado")}`}
                               {published > 0 && inProgress > 0 && " · "}
                               {inProgress > 0 && `${inProgress} em andamento`}
                               {published === 0 && inProgress === 0 && "sem artigo"}

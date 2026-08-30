@@ -1714,6 +1714,18 @@ O desfazer devolve **os que foram levados naquele clique**, e não tudo que
 está na lixeira: restaurar por engano o que alguém excluiu ontem seria o
 desfazer criando o problema que veio consertar.
 
+**O texto concorda em número, e num lugar só.** A regra já estava escrita para
+o diálogo de exclusão, e mesmo assim havia **89 lugares** escrevendo "artigo(s)"
+e "sugestão(ões)" — inclusive no diálogo que aplica a sugestão de seção, que
+dizia "52 sugestão(ões)". `lib/plural` resolve porque a alternativa é um
+ternário em cada frase, e ternário repetido oitenta e nove vezes é onde alguém
+erra o plural de "visível".
+
+O plural irregular vai **explícito** (`seção`/`seções`, `mensagem`/`mensagens`,
+`visível`/`visíveis`): acrescentar `s` erraria os três em silêncio. E o verbo
+concorda junto — "1 linha ficam de fora" é a mesma frase quebrada, só que sem
+parênteses para denunciar.
+
 O diálogo de confirmação concorda em número. "3 artigo(s) vai para a lixeira e
 pode ser restaurado" é uma frase escrita para um caso e usada noutro, e quem
 lê rápido uma frase que não concorda desconfia da tela inteira.
@@ -2085,7 +2097,7 @@ sobrepõem, o retrato que a
 tela dá ao assistente com o encaixe do painel na janela, a leitura do preenchimento de
 formulário com a seleção do que aplicar e a classificação do arquivo
 anexado, o recorte na URL, a central de avisos, o catálogo de ações guardadas e a auditoria do histórico, o levantamento, índice do artigo, critérios de publicação,
-fronteira de armazenamento com a divisão em lotes da
+o texto que concorda em número, fronteira de armazenamento com a divisão em lotes da
 gravação compartilhada e o plano da releitura incremental, a leitura de arquivo delimitado com o mapeamento de
 colunas e os planos de importação de artigo e de atendimento, a recuperação de texto não salvo, o cadastro
 de taxonomia com a migração da

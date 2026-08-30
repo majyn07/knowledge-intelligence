@@ -3,6 +3,7 @@
 import { Info } from "lucide-react";
 
 import type { Orphans } from "@/models/Trash";
+import { contar } from "@/lib/plural";
 
 /**
  * O que fica apontando para o vazio.
@@ -16,9 +17,9 @@ export function OrphanWarning({ orphans }: { orphans: Orphans }) {
   if (orphans.total === 0) return null;
 
   const partes = [
-    orphans.analyses > 0 && `${orphans.analyses} análise(s)`,
-    orphans.plans > 0 && `${orphans.plans} plano(s)`,
-    orphans.articles > 0 && `${orphans.articles} artigo(s)`,
+    orphans.analyses > 0 && `${contar(orphans.analyses, "análise")}`,
+    orphans.plans > 0 && `${contar(orphans.plans, "plano")}`,
+    orphans.articles > 0 && `${contar(orphans.articles, "artigo")}`,
   ].filter(Boolean) as string[];
 
   return (

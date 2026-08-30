@@ -38,6 +38,7 @@ import {
   TICKET_STAGE_FILTERS,
   ticketStageFilterLabel,
 } from "../ticketUrlState";
+import { contar } from "@/lib/plural";
 
 interface TicketListProps {
   recorte: TicketRecorteResult;
@@ -103,7 +104,7 @@ export function TicketList({
             <p className="mt-1 text-xs text-muted-foreground">
               {recorte.temRecorte
                 ? `${recorte.total} no recorte`
-                : `${recorte.total} atendimento(s)`}
+                : `${contar(recorte.total, "atendimento")}`}
             </p>
           </div>
 

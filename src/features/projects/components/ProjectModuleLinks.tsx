@@ -3,6 +3,7 @@ import { ArrowUpRight, BarChart3, BookOpen, FileSearch, Sparkles } from "lucide-
 
 import { PageSection } from "@/components/common/page/PageSection";
 import type { ProjectMetrics } from "@/features/metrics/projectMetrics";
+import { concordar, contar } from "@/lib/plural";
 
 interface ProjectModuleLinksProps {
   metrics: ProjectMetrics;
@@ -16,7 +17,7 @@ export function ProjectModuleLinks({ metrics, onNavigate }: ProjectModuleLinksPr
       title: "Análises",
       href: "/analysis",
       summary: metrics.analysis.total > 0
-        ? `${metrics.analysis.total} análise(s) registrada(s)`
+        ? `${contar(metrics.analysis.total, "análise")} ${concordar(metrics.analysis.total, "registrada")}`
         : "Este projeto ainda não possui análises.",
     },
     {
@@ -24,7 +25,7 @@ export function ProjectModuleLinks({ metrics, onNavigate }: ProjectModuleLinksPr
       title: "Planos de melhoria",
       href: "/improvement-plan",
       summary: metrics.plan.total > 0
-        ? `${metrics.plan.total} plano(s), ${metrics.plan.active} ativo(s)`
+        ? `${contar(metrics.plan.total, "plano")}, ${contar(metrics.plan.active, "ativo")}`
         : "Este projeto ainda não possui planos de melhoria.",
     },
     {
@@ -32,7 +33,7 @@ export function ProjectModuleLinks({ metrics, onNavigate }: ProjectModuleLinksPr
       title: "Biblioteca",
       href: "/library",
       summary: metrics.article.total > 0
-        ? `${metrics.article.total} conteúdo(s) neste projeto`
+        ? `${contar(metrics.article.total, "conteúdo")} neste projeto`
         : "Este projeto ainda não possui conteúdo na Biblioteca.",
     },
     {

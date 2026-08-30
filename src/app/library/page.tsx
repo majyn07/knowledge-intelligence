@@ -47,6 +47,7 @@ import { useLibraryFilters } from "@/features/library/hooks/useLibraryFilters";
 import { articleService } from "@/features/library/services/articleService";
 
 import { useProject } from "@/providers/ProjectProvider";
+import { concordar, contar } from "@/lib/plural";
 
 export default function LibraryPage() {
   const [importOpen, setImportOpen] = useState(false);
@@ -250,7 +251,7 @@ export default function LibraryPage() {
 
             {filteredItems.length > 0 && (
               <p className="text-sm text-muted-foreground">
-                {filteredItems.length} artigo(s) · {publishedCount} publicado(s) e visível(is) para a análise.
+                {contar(filteredItems.length, "artigo")} · {contar(publishedCount, "publicado")} e {concordar(publishedCount, "visível", "visíveis")} para a análise.
               </p>
             )}
 
@@ -304,7 +305,7 @@ export default function LibraryPage() {
             {table.page.pages > 1 && (
               <div className="flex items-center justify-between gap-3 text-sm">
                 <span className="text-muted-foreground">
-                  Página {table.page.page} de {table.page.pages} · {table.page.total} artigo(s)
+                  Página {table.page.page} de {table.page.pages} · {contar(table.page.total, "artigo")}
                 </span>
 
                 <span className="flex gap-1.5">

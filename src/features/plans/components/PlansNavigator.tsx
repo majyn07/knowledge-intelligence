@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 
 import { planStatusLabel, type PlanStatus, type PlanWorkspaceItem } from "../types/PlanWorkspace";
 import { AssigneeName, useAssigneeName } from "@/features/people/components/AssigneeName";
+import { contar } from "@/lib/plural";
 
 interface PlansNavigatorProps {
   plans: PlanWorkspaceItem[];
@@ -117,7 +118,7 @@ export function PlansNavigator({
 
               <p className="mt-3 text-xs tabular-nums text-muted-foreground">
                 {plan.tasks.length > 0
-                  ? `${completed}/${plan.tasks.length} atividade(s)`
+                  ? `${completed}/${contar(plan.tasks.length, "atividade")}`
                   : "Sem atividades"}
                 {" · atualizado "}
                 <RelativeDate value={plan.updatedAt} />

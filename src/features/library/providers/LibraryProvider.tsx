@@ -25,6 +25,7 @@ import { articleService } from "@/features/library/services/articleService";
 import { discardDraft, draftChanges, draftFieldLabel, publishDraft } from "@/features/library/draft";
 import { parseArticles } from "@/features/library/normalizeArticle";
 import { STORAGE_KEYS } from "@/lib/storage";
+import { concordar, contar } from "@/lib/plural";
 
 const STORAGE_KEY = STORAGE_KEYS.articles;
 
@@ -257,7 +258,7 @@ export function LibraryProvider({ children }: { children: ReactNode }) {
       const fora = alvos.length - podem.length;
 
       toast.success(
-        `${podem.length} artigo(s) movido(s) para "${articleStatusLabel[status]}".`,
+        `${contar(podem.length, "artigo")} ${concordar(podem.length, "movido")} para "${articleStatusLabel[status]}".`,
         fora > 0
           ? {
               description: `${fora} ficou(ram) de fora: o estágio atual não permite essa transição.`,
@@ -279,7 +280,7 @@ export function LibraryProvider({ children }: { children: ReactNode }) {
         )
       );
 
-      toast.success(`${ids.length} artigo(s) reatribuído(s).`);
+      toast.success(`${contar(ids.length, "artigo")} ${concordar(ids.length, "reatribuído")}.`);
     },
     [setItems]
   );
@@ -322,7 +323,7 @@ export function LibraryProvider({ children }: { children: ReactNode }) {
         detail: "Seção aplicada a partir de sugestão revisada.",
       });
 
-      toast.success(`${atribuicoes.length} artigo(s) classificado(s).`);
+      toast.success(`${contar(atribuicoes.length, "artigo")} ${concordar(atribuicoes.length, "classificado")}.`);
     },
     [currentPerson, items, record, setItems]
   );
@@ -350,8 +351,8 @@ export function LibraryProvider({ children }: { children: ReactNode }) {
       ]);
 
       const partes = [
-        create.length > 0 ? `${create.length} novo(s)` : "",
-        update.length > 0 ? `${update.length} atualizado(s)` : "",
+        create.length > 0 ? `${contar(create.length, "novo")}` : "",
+        update.length > 0 ? `${contar(update.length, "atualizado")}` : "",
       ].filter(Boolean);
 
       record({

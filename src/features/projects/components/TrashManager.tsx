@@ -18,6 +18,7 @@ import { usePermissions } from "@/features/auth/providers/PermissionsProvider";
 import { useTickets } from "@/features/analysis/providers/TicketsProvider";
 import { useLibrary } from "@/features/library/providers/LibraryProvider";
 import { useProject } from "@/providers/ProjectProvider";
+import { contar } from "@/lib/plural";
 
 interface Item {
   kind: "project" | "ticket" | "article";
@@ -203,7 +204,7 @@ export function TrashManager() {
             <DialogTitle>Esvaziar a lixeira?</DialogTitle>
 
             <DialogDescription>
-              {items.length} registro(s) saem do banco e não voltam.
+              {contar(items.length, "registro")} saem do banco e não voltam.
             </DialogDescription>
           </DialogHeader>
 

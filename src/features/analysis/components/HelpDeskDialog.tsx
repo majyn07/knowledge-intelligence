@@ -29,6 +29,7 @@ import { useTickets } from "../providers/TicketsProvider";
 import { usePeople } from "@/features/people/providers/PeopleProvider";
 import { renovarTranca, soltarTranca, tomarTranca } from "../autoSyncRepository";
 import { caixasDoSuporte, lerConversas, listarConversas } from "../helpDeskScan";
+import { concordar, contar } from "@/lib/plural";
 
 /**
  * Buscar os atendimentos na caixa do suporte.
@@ -458,7 +459,10 @@ export function HelpDeskDialog({
                   {Math.min(teto ?? plano.visitar.length, plano.visitar.length).toLocaleString(
                     "pt-BR"
                   )}{" "}
-                  atendimento(s)
+                  {concordar(
+                    Math.min(teto ?? plano.visitar.length, plano.visitar.length),
+                    "atendimento"
+                  )}
                 </Button>
               </>
             )}
@@ -490,15 +494,18 @@ export function HelpDeskDialog({
         {etapa === "fim" && (
           <div className="space-y-3">
             <p className="text-sm">
-              {progresso.trazidos.toLocaleString("pt-BR")} atendimento(s) trazidos, com a conversa
-              junto.
+              {progresso.trazidos.toLocaleString("pt-BR")}{" "}
+              {concordar(progresso.trazidos, "atendimento")}{" "}
+              {concordar(progresso.trazidos, "trazido")}, com a conversa junto.
             </p>
 
             <MotivoDoDescarte descartados={progresso.descartados} />
 
             {progresso.falhas > 0 && (
               <p className="text-xs text-muted-foreground">
-                {progresso.falhas} conversa(s) falharam e ficaram para trás. Rodar de novo tenta só
+                {contar(progresso.falhas, "conversa")} {concordar(progresso.falhas, "falhou", "falharam")} e
+                {" "}
+                {concordar(progresso.falhas, "ficou", "ficaram")} para trás. Rodar de novo tenta só
                 eles.
               </p>
             )}
@@ -573,7 +580,7 @@ function MotivoDoDescarte({
 
   return (
     <p className="rounded-lg border border-border/70 bg-muted/25 px-3 py-2 text-xs leading-5 text-muted-foreground">
-      {total} conversa(s) ficaram de fora: {partes.join(", ")}. Não é falha: atendimento entra com
+      {contar(total, "conversa")} {concordar(total, "ficou", "ficaram")} de fora: {partes.join(", ")}. Não é falha: atendimento entra com
       número de chamado e resposta de gente, senão o fluxo de robô afogaria os que têm.
     </p>
   );

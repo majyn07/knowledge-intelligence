@@ -20,6 +20,7 @@ import { dayOf, toIsoDate } from "@/lib/dates";
 import type { FieldSpec } from "@/services/ai/fill/fieldFill";
 
 import type { TicketFormData, TicketMessageFormData } from "../types/TicketFormData";
+import { concordar, contar } from "@/lib/plural";
 
 interface TicketFormProps {
   projects: { id: string; name: string }[];
@@ -315,7 +316,7 @@ export function TicketForm({
         setAvisoDaConversa(
           novas.length === 0
             ? "A conversa já estava registrada aqui: nada novo veio."
-            : `${novas.length} mensagem(ns) trazida(s) da HubSpot. Revise antes de salvar.`
+            : `${contar(novas.length, "mensagem", "mensagens")} ${concordar(novas.length, "trazida")} da HubSpot. Revise antes de salvar.`
         );
 
         return { ...previous, messages: [...previous.messages, ...novas] };

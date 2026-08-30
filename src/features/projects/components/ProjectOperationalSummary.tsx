@@ -1,6 +1,7 @@
 import { MetricCard } from "@/components/common/cards/MetricCard";
 import { PageSection } from "@/components/common/page/PageSection";
 import type { ProjectMetrics } from "@/features/metrics/projectMetrics";
+import { concordar, contar } from "@/lib/plural";
 
 interface ProjectOperationalSummaryProps {
   metrics: ProjectMetrics;
@@ -20,7 +21,7 @@ export function ProjectOperationalSummary({ metrics }: ProjectOperationalSummary
           description={
             metrics.ticket.total === 0
               ? "Nenhum disponível"
-              : `${metrics.ticket.analyzed} já analisado(s)`
+              : `${metrics.ticket.analyzed} já ${concordar(metrics.ticket.analyzed, "analisado")}`
           }
         />
 
@@ -30,7 +31,7 @@ export function ProjectOperationalSummary({ metrics }: ProjectOperationalSummary
           description={
             metrics.analysis.total === 0
               ? "Nenhuma realizada"
-              : `${metrics.analysis.completed} concluída(s)`
+              : `${contar(metrics.analysis.completed, "concluída")}`
           }
         />
 
@@ -40,7 +41,7 @@ export function ProjectOperationalSummary({ metrics }: ProjectOperationalSummary
           description={
             metrics.opportunity.total === 0
               ? "Nenhuma identificada"
-              : `${metrics.opportunity.approved} aprovada(s)`
+              : `${contar(metrics.opportunity.approved, "aprovada")}`
           }
         />
 
@@ -50,7 +51,7 @@ export function ProjectOperationalSummary({ metrics }: ProjectOperationalSummary
           description={
             metrics.plan.total === 0
               ? "Nenhum criado"
-              : `${metrics.plan.active} ativo(s)`
+              : `${contar(metrics.plan.active, "ativo")}`
           }
         />
 
@@ -60,7 +61,7 @@ export function ProjectOperationalSummary({ metrics }: ProjectOperationalSummary
           description={
             metrics.article.total === 0
               ? "Nenhum na Biblioteca"
-              : `${metrics.article.published} publicado(s)`
+              : `${contar(metrics.article.published, "publicado")}`
           }
         />
       </div>

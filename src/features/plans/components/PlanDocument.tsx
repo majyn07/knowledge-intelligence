@@ -14,6 +14,7 @@ import { usePlans } from "../providers/PlansProvider";
 import { PlanDocumentEditor } from "./PlanDocumentEditor";
 import { AssigneeName } from "@/features/people/components/AssigneeName";
 import type { PlanWorkspaceItem } from "../types/PlanWorkspace";
+import { concordar, contar } from "@/lib/plural";
 
 interface PlanDocumentProps {
   plan: PlanWorkspaceItem;
@@ -133,7 +134,7 @@ export function PlanDocument({ plan, onCreateKnowledgeContent }: PlanDocumentPro
 
         <PageSection
           title="Plano de execução"
-          description={`${completedTasks} de ${plan.tasks.length} atividade(s) concluída(s).`}
+          description={`${completedTasks} de ${contar(plan.tasks.length, "atividade")} ${concordar(plan.tasks.length, "concluída")}.`}
           actions={<ListTodo className="h-5 w-5 text-primary" />}
         >
           <div className="space-y-2">

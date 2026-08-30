@@ -38,6 +38,7 @@ import {
   type PlanPriority,
   type PlanWorkspaceItem,
 } from "../types/PlanWorkspace";
+import { contar } from "@/lib/plural";
 
 interface PlanContextPanelProps {
   plan: PlanWorkspaceItem;
@@ -182,7 +183,7 @@ export function PlanContextPanel({ plan }: PlanContextPanelProps) {
             <div>
               <dt className="text-xs text-muted-foreground">Atividades</dt>
               <dd className="mt-1 font-medium tabular-nums">
-                {completedTasks} de {plan.tasks.length} concluída(s)
+                {completedTasks} de {contar(plan.tasks.length, "concluída")}
               </dd>
             </div>
           </dl>

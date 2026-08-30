@@ -7,6 +7,7 @@ import type { SupportConversation, SupportConversationMessage } from "@/models/S
 import type { Ticket } from "@/models/Ticket";
 
 import { TicketAttachments } from "./TicketAttachments";
+import { contar } from "@/lib/plural";
 
 /**
  * A conversa do atendimento, que é o centro da tela.
@@ -36,7 +37,7 @@ export function TicketConversation({
         <p className="mt-0.5 text-xs text-muted-foreground">
           {messages.length === 0
             ? "Sem registro"
-            : `${messages.length} mensagem(ns), do começo ao fim`}
+            : `${contar(messages.length, "mensagem", "mensagens")}, do começo ao fim`}
         </p>
       </header>
 

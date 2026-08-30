@@ -22,6 +22,7 @@ import { OpportunityEditorDialog } from "./OpportunityEditorDialog";
 import { RecommendationCard } from "./RecommendationCard";
 import { RelatedArticlesPanel } from "./RelatedArticlesPanel";
 import { AnalysisConversation } from "./chat/AnalysisConversation";
+import { contar } from "@/lib/plural";
 
 interface AnalysisPanelProps {
   analysisRecord?: AnalysisRecord;
@@ -139,9 +140,9 @@ export function AnalysisPanel({
       >
         <div className="flex flex-col gap-5 rounded-xl border border-border/70 bg-muted/20 p-5 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex flex-wrap gap-2">
-            <StatusBadge variant="success">{approved} aprovada(s)</StatusBadge>
-            <StatusBadge variant="danger">{discarded} descartada(s)</StatusBadge>
-            <StatusBadge variant="default">{deferred} adiada(s)</StatusBadge>
+            <StatusBadge variant="success">{contar(approved, "aprovada")}</StatusBadge>
+            <StatusBadge variant="danger">{contar(discarded, "descartada")}</StatusBadge>
+            <StatusBadge variant="default">{contar(deferred, "adiada")}</StatusBadge>
           </div>
           {analysisRecord.status === "completed" ? (
             <Button

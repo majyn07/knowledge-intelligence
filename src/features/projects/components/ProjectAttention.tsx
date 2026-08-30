@@ -4,6 +4,7 @@ import { ArrowRight, CheckCircle2, ClipboardCheck, FileWarning, ListTodo, ScanSe
 import { PageSection } from "@/components/common/page/PageSection";
 import { Button } from "@/components/ui/button";
 import type { ProjectMetrics } from "@/features/metrics/projectMetrics";
+import { concordar, contar } from "@/lib/plural";
 
 interface ProjectAttentionProps {
   metrics: ProjectMetrics;
@@ -29,7 +30,7 @@ function buildItems(metrics: ProjectMetrics): AttentionItem[] {
   if (pendingAnalyses > 0) {
     items.push({
       icon: ClipboardCheck,
-      label: `${pendingAnalyses} análise(s) aguardando revisão humana`,
+      label: `${contar(pendingAnalyses, "análise")} aguardando revisão humana`,
       detail: "As oportunidades propostas ainda não receberam decisão.",
       href: "/analysis",
       action: "Revisar",
@@ -39,7 +40,7 @@ function buildItems(metrics: ProjectMetrics): AttentionItem[] {
   if (metrics.opportunity.approvedWithoutPlan > 0) {
     items.push({
       icon: ListTodo,
-      label: `${metrics.opportunity.approvedWithoutPlan} oportunidade(s) aprovada(s) sem plano`,
+      label: `${contar(metrics.opportunity.approvedWithoutPlan, "oportunidade")} ${concordar(metrics.opportunity.approvedWithoutPlan, "aprovada")} sem plano`,
       detail: "Foram aprovadas na revisão, mas ainda não viraram execução.",
       href: "/improvement-plan",
       action: "Ver planos",
@@ -50,7 +51,7 @@ function buildItems(metrics: ProjectMetrics): AttentionItem[] {
   if (unfinishedArticles > 0) {
     items.push({
       icon: FileWarning,
-      label: `${unfinishedArticles} conteúdo(s) sem publicação`,
+      label: `${contar(unfinishedArticles, "conteúdo")} sem publicação`,
       detail: `${metrics.article.draft} em rascunho e ${metrics.article.review} em revisão.`,
       href: "/library",
       action: "Abrir Biblioteca",
@@ -61,7 +62,7 @@ function buildItems(metrics: ProjectMetrics): AttentionItem[] {
   if (unanalyzedTickets > 0) {
     items.push({
       icon: ScanSearch,
-      label: `${unanalyzedTickets} atendimento(s) ainda não analisado(s)`,
+      label: `${contar(unanalyzedTickets, "atendimento")} ainda não ${concordar(unanalyzedTickets, "analisado")}`,
       detail: "Podem conter lacunas de documentação não identificadas.",
       href: "/analysis",
       action: "Analisar",

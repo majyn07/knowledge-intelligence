@@ -25,6 +25,7 @@ import { STORAGE_KEYS } from "@/lib/storage";
 
 import { DOCK_INICIAL, encaixar, lerPosicao, type DockPosition } from "../dockPosition";
 import { pageFacts, type PageFacts } from "../pageFacts";
+import { contar } from "@/lib/plural";
 
 /**
  * Falar com a IA de onde se está.
@@ -383,7 +384,7 @@ export function AssistantDock() {
 
                 {visto.achados.length > 0 && (
                   <p className="pt-1">
-                    E {visto.achados.length} achado(s) do Levantamento, todos calculados dos dados.
+                    E {contar(visto.achados.length, "achado")} do Levantamento, todos calculados dos dados.
                   </p>
                 )}
               </dl>

@@ -35,6 +35,7 @@ import {
   type TicketImportPlan,
   type TicketMapping,
 } from "../import/ticketImport";
+import { concordar, contar } from "@/lib/plural";
 
 const NAO_IMPORTAR = "__nenhuma__";
 
@@ -162,7 +163,7 @@ export function TicketImportDialog({
 
               {table && (
                 <span className="text-xs text-muted-foreground">
-                  {fileName} · {table.rows.length} linha(s)
+                  {fileName} · {contar(table.rows.length, "linha")}
                 </span>
               )}
             </div>
@@ -235,13 +236,15 @@ export function TicketImportDialog({
 
               <ul className="mt-2 flex flex-col gap-1 text-sm text-muted-foreground">
                 <li>
-                  <strong className="text-foreground">{plan.create.length}</strong> atendimento(s)
-                  novo(s)
+                  <strong className="text-foreground">{plan.create.length}</strong>{" "}
+                  {concordar(plan.create.length, "atendimento")}{" "}
+                  {concordar(plan.create.length, "novo")}
                   {activeProject ? ` em ${activeProject.name}` : " sem iniciativa"}.
                 </li>
 
                 <li>
-                  <strong className="text-foreground">{plan.update.length}</strong> atualizado(s),
+                  <strong className="text-foreground">{plan.update.length}</strong>{" "}
+                  {concordar(plan.update.length, "atualizado")},
                   casados pelo identificador da HubSpot.
                 </li>
               </ul>
@@ -270,12 +273,15 @@ export function TicketImportDialog({
                     )}
 
                     {plan.skippedNoTitle > 0 && (
-                      <li>{plan.skippedNoTitle} linha(s) sem assunto ficam de fora.</li>
+                      <li>
+                        {contar(plan.skippedNoTitle, "linha")} sem assunto{" "}
+                        {concordar(plan.skippedNoTitle, "fica", "ficam")} de fora.
+                      </li>
                     )}
 
                     {plan.duplicatedInFile > 0 && (
                       <li>
-                        {plan.duplicatedInFile} repetida(s) no arquivo. Vale a última ocorrência.
+                        {contar(plan.duplicatedInFile, "repetida")} no arquivo. Vale a última ocorrência.
                       </li>
                     )}
 
@@ -333,7 +339,7 @@ export function TicketImportDialog({
               disabled={!plan || total === 0}
             >
               <Upload className="mr-1.5 h-4 w-4" />
-              {total > 0 ? `Importar ${total} atendimento(s)` : "Importar"}
+              {total > 0 ? `Importar ${contar(total, "atendimento")}` : "Importar"}
             </Button>
           </div>
         </div>

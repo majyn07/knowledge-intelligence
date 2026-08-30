@@ -24,6 +24,7 @@ import { parseConversations, parseTickets } from "../normalizeSupport";
 import { ticketRepository } from "../repositories/ticketRepository";
 import { ticketService } from "../services/ticketService";
 import type { TicketFormData } from "../types/TicketFormData";
+import { concordar, contar } from "@/lib/plural";
 
 const TICKETS_KEY = STORAGE_KEYS.tickets;
 const CONVERSATIONS_KEY = STORAGE_KEYS.conversations;
@@ -147,8 +148,8 @@ export function TicketsProvider({ children }: { children: ReactNode }) {
       const atualizados = novos.length - criados;
 
       const partes = [
-        criados > 0 ? criados + " novo(s)" : "",
-        atualizados > 0 ? atualizados + " atualizado(s)" : "",
+        criados > 0 ? `${criados} ${concordar(criados, "novo")}` : "",
+        atualizados > 0 ? `${atualizados} ${concordar(atualizados, "atualizado")}` : "",
       ].filter(Boolean);
 
       record({
@@ -193,8 +194,8 @@ export function TicketsProvider({ children }: { children: ReactNode }) {
       ]);
 
       const partes = [
-        create.length > 0 ? create.length + " novo(s)" : "",
-        update.length > 0 ? update.length + " atualizado(s)" : "",
+        create.length > 0 ? `${create.length} ${concordar(create.length, "novo")}` : "",
+        update.length > 0 ? `${update.length} ${concordar(update.length, "atualizado")}` : "",
       ].filter(Boolean);
 
       record({
@@ -226,7 +227,7 @@ export function TicketsProvider({ children }: { children: ReactNode }) {
         projectId: ticket.projectId,
         actor: currentPerson,
         subject: { kind: "ticket", id: ticket.id, label: ticket.title },
-        detail: `Atendimento registrado com ${conversation.messages.length} mensagem(ns) de evidência.`,
+        detail: `Atendimento registrado com ${contar(conversation.messages.length, "mensagem", "mensagens")} de evidência.`,
       });
 
       toast.success(`Atendimento #${ticket.id} criado.`);
