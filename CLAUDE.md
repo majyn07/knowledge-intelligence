@@ -826,7 +826,14 @@ modelos no pedido, o rascunho volta com as mesmas seções deles.
 **Identificador é conferido na volta**, como na sugestão de seção: artigo que o
 modelo inventou vira ausência, não referência. E veredito de cobertura sem artigo
 que o sustente cai para "ausente" — um rascunho a mais custa menos que um artigo
-que não foi escrito.
+que não foi escrito. O id também **não entra na prosa**: contra o acervo real o
+motivo voltou com um `uuid` no meio da frase, e é a mesma regra da trilha de
+navegação.
+
+Verificado contra os 1.822 do acervo: escrevendo sobre o modelo IFC deslocado, a
+avaliação achou três artigos de verdade e distinguiu **"não se aplica ao
+Eberick"** num que é do Builder — que é justamente o que a busca por vocabulário
+não faz.
 
 **A IA lê o artigo com quem avalia.** Com o portal importado, avaliar o acervo é
 o trabalho, e fazê-lo sozinho significa reler mil e oitocentos textos. O painel

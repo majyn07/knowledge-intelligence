@@ -15,6 +15,12 @@ import type { CoverageRequest } from "../library/coverage";
  * procura acha um dos dois e não sabe do outro. Por isso "parcial" tem de
  * apontar o que falta no artigo existente, e não virar desculpa para um novo.
  *
+ * **O identificador não entra na prosa.** Contra o acervo real, o motivo voltou
+ * com "O artigo e50f9eb3-52b9-40f1-869b-84cfa16c4057 já aborda…" — um `uuid` no
+ * meio da frase que a pessoa lê. O id tem campo próprio e a tela resolve o
+ * título; é a mesma regra da trilha de navegação, onde `uuid` é pior que trilha
+ * curta.
+ *
  * Os modelos entram como **forma, não como conteúdo**. Sem eles o rascunho sai
  * num formato que não se parece com os outros — outra estrutura, outro tom,
  * outra ordem — e quem revisa gasta o tempo reformatando em vez de conferindo.
@@ -37,6 +43,8 @@ const SYSTEM = [
   "",
   "Regras:",
   "- Cite **apenas** os identificadores de artigo que foram fornecidos. Não invente.",
+  "- No texto que a pessoa lê, refira-se ao artigo pelo **título**, nunca pelo",
+  "  identificador. O identificador vai no campo próprio, e a tela mostra o título.",
   "- Prefira atualizar a criar. Com 'parcial', diga com precisão o que falta no artigo",
   "  existente — é isso que decide entre editar aquele e escrever outro.",
   "- Semelhança de palavras não é cobertura. Dois textos podem citar 'licença' e",

@@ -5,15 +5,12 @@ import Link from "next/link";
 import { BookOpenCheck, CircleAlert, CircleCheck, CirclePlus, Wand2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import { articleText } from "@/features/library/content/articleText";
-import { findSimilarArticles } from "@/features/library/search/findSimilarArticles";
-import type { KnowledgeArticle } from "@/models/KnowledgeArticle";
 import {
-  CANDIDATOS_NO_PEDIDO,
-  MODELOS_NO_PEDIDO,
-  type CoverageResult,
-  type NivelDeCobertura,
-} from "@/services/ai/library/coverage";
+  MATERIAL_MINIMO,
+  montarPedidoDeCobertura,
+} from "@/features/library/search/coverageRequest";
+import type { KnowledgeArticle } from "@/models/KnowledgeArticle";
+import type { CoverageResult, NivelDeCobertura } from "@/services/ai/library/coverage";
 
 /**
  * "O acervo já responde isto?", antes de escrever.
@@ -32,9 +29,6 @@ import {
  * Nada é aplicado sozinho: aplicar é um clique separado, e a comparação com o
  * que já está no formulário fica visível antes.
  */
-
-/** Quanto do artigo vai como amostra. O inteiro não cabe, e não precisa. */
-const TRECHO = 1_200;
 
 const APARENCIA: Record<
   NivelDeCobertura,
@@ -79,58 +73,20 @@ export function CoveragePanel({
   const [avaliando, setAvaliando] = useState(false);
   const [erro, setErro] = useState("");
 
-  const publicados = articles.filter((artigo) => artigo.status === "published");
-  const podeAvaliar = material.trim().length >= 40;
+  const podeAvaliar = material.trim().length >= MATERIAL_MINIMO;
 
   async function avaliar() {
     setAvaliando(true);
     setErro("");
     setResultado(null);
 
-    /*
-      Os candidatos saem da busca léxica que já roda aqui: ela é barata e
-      estreita o acervo de 1.822 para os poucos que valem uma leitura. O modelo
-      julga; a busca só escolhe o que ele lê.
-    */
-    const candidatos = findSimilarArticles({
-      articles: publicados,
-      text: material,
-      excludeId,
-      limit: CANDIDATOS_NO_PEDIDO,
-    })
-      /*
-        A busca devolve uma referência leve, sem o conteúdo. O trecho tem de
-        sair do artigo inteiro, então ele é reencontrado aqui — sem isto o
-        modelo julgaria cobertura lendo só título e resumo, que é o mesmo que a
-        busca léxica já fazia.
-      */
-      .map(({ article }) => publicados.find((artigo) => artigo.id === article.id))
-      .filter((artigo): artigo is KnowledgeArticle => artigo !== undefined)
-      .map((artigo) => ({
-        id: artigo.id,
-        title: artigo.title,
-        summary: artigo.summary,
-        excerpt: articleText(artigo).slice(0, TRECHO),
-      }));
-
-    /*
-      Os modelos são os artigos publicados da mesma seção. Sem seção escolhida
-      não há modelo, e o prompt diz isso em vez de fingir que há.
-    */
-    const modelos = publicados
-      .filter((artigo) => artigo.sectionId === sectionId && artigo.id !== excludeId)
-      .slice(0, MODELOS_NO_PEDIDO)
-      .map((artigo) => ({
-        title: artigo.title,
-        summary: artigo.summary,
-        excerpt: articleText(artigo).slice(0, TRECHO),
-      }));
+    const pedido = montarPedidoDeCobertura({ articles, material, sectionId, excludeId });
 
     try {
       const resposta = await fetch("/api/library/coverage", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ material: material.slice(0, 60_000), candidatos, modelos }),
+        body: JSON.stringify(pedido),
       });
 
       const corpo: unknown = await resposta.json().catch(() => null);

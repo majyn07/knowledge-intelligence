@@ -87,9 +87,15 @@ export const coverageResponseSchema = z
     /**
      * O que cada artigo já responde e o que falta nele.
      *
-     * Vazio quando a cobertura é `ausente`. Com `parcial`, é aqui que está a
-     * decisão de verdade: atualizar um destes costuma valer mais que escrever
-     * um novo, e o produto inteiro prefere atualizar.
+     * Com `parcial`, é aqui que está a decisão de verdade: atualizar um destes
+     * costuma valer mais que escrever um novo, e o produto inteiro prefere
+     * atualizar.
+     *
+     * **Com `ausente` também vem preenchido**, e isso é útil em vez de
+     * contraditório: contra o modelo real, um material sobre erro de licença no
+     * Windows 11 foi julgado ausente e ainda assim apontou o artigo de
+     * instalação, dizendo o que ele não cobre. É o vizinho mais próximo, e quem
+     * escreve quer saber dele.
      */
     artigos: z.array(
       z
