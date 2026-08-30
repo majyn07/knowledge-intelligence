@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+import { jsonDoModelo } from "../parsers/jsonDoModelo";
+
 /**
  * Sugestão de seção do portal para artigo que entrou sem classificação.
  *
@@ -75,7 +77,7 @@ export function parseSectionSuggestions(
   const secoes = new Set(request.sections.map((section) => section.id));
   const artigos = new Set(request.articles.map((article) => article.id));
 
-  const bruto = typeof raw === "string" ? safeJson(raw) : raw;
+  const bruto = typeof raw === "string" ? jsonDoModelo(raw) : raw;
   const lista = extractList(bruto);
 
   const vistos = new Set<string>();
@@ -114,19 +116,6 @@ function text(value: unknown): string {
   return typeof value === "string" ? value.trim() : "";
 }
 
-function safeJson(raw: string): unknown {
-  /*
-    O modelo às vezes devolve o JSON cercado de crase, apesar de pedirmos que
-    não. Recusar por causa da cerca desperdiçaria uma resposta correta.
-  */
-  const limpo = raw.trim().replace(/^```(?:json)?/i, "").replace(/```$/, "").trim();
-
-  try {
-    return JSON.parse(limpo);
-  } catch {
-    return null;
-  }
-}
 
 function extractList(value: unknown): unknown[] {
   if (Array.isArray(value)) return value;

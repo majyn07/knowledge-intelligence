@@ -891,6 +891,14 @@ versão futura do Zod passaria despercebida por uma lista de bloqueio e
 derrubaria a análise em produção. As regras que ficam de fora continuam valendo
 aqui, onde sempre valeram — a resposta passa pelo Zod na volta de qualquer jeito.
 
+**Havia três parsers de JSON e só dois toleravam a cerca de crase.** A sugestão
+de seção e o preenchimento de formulário limpavam o ```` ```json ```` que o
+modelo às vezes acrescenta; a análise chamava `JSON.parse` direto e morria com
+"a resposta não é um JSON". É a mesma divergência que o cadastro de rotas e as
+chaves de armazenamento já tinham produzido. Hoje é um leitor só, e ele é a
+defesa de trás: o `responseSchema` impede a cerca de aparecer, e o provedor que
+não souber restringir continua atendido.
+
 **A conversa vai limpa e dentro de um teto.** Ia inteira: rodapé, assinatura,
 aviso de segurança do servidor, clique de menu e histórico citado. Medido no
 acervo, **38% do texto** que ia ao modelo era isso — 6,19 milhões de caracteres

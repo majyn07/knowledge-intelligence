@@ -2,13 +2,20 @@ import type { KnowledgeAnalysisResult } from "@/features/analysis/types/Knowledg
 
 import { InvalidAnalysisResponseError } from "../analysis/analysisErrors";
 import { analysisResponseSchema } from "../prompts/analysisResponseSchema";
+import { jsonDoModelo } from "./jsonDoModelo";
 
 export function parseAnalysisResponse(response: string): KnowledgeAnalysisResult {
-  let parsedResponse: unknown;
+  /*
+    O mesmo leitor dos outros dois parsers.
 
-  try {
-    parsedResponse = JSON.parse(response.trim());
-  } catch {
+    Este chamava `JSON.parse` direto e morria com a cerca de crase que o modelo
+    às vezes acrescenta — enquanto a sugestão de seção e o preenchimento de
+    formulário já a toleravam. Contra a API real isso foi uma análise perdida em
+    duas.
+  */
+  const parsedResponse = jsonDoModelo(response);
+
+  if (parsedResponse === null) {
     /*
       O começo do que veio vai para o registro do servidor, e não para a tela.
 
