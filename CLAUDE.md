@@ -1105,9 +1105,28 @@ imagem quebrada. Aqui é print de tela de cliente, com nome de projeto e caminho
 de arquivo dentro. Quem exibe pede uma URL assinada de uma hora, gerada para
 quem já entrou.
 
-A porta é `requireHubSpotRead`, e ela **não** exige administrador: a varredura é
-de quem administra porque gera milhares de requisições, e abrir um anexo gera
-duas. O freio, esse, vale para as duas.
+A porta **não** exige administrador: a varredura é de quem administra porque
+gera milhares de requisições, e abrir um anexo gera uma. O atendimento que
+entrou pela caixa guarda `raw.threadId`, e com ele a consulta por
+`associatedTicketId` some — ela só servia para descobrir um identificador já
+gravado aqui.
+
+**O freio é conferido depois do balde, e não na entrada.** Conferido em cima, o
+anexo já copiado também era recusado — e servi-lo não fala com a HubSpot.
+Ligar o freio esconderia da equipe evidência que ela já tem em casa, e não é
+para isso que ele existe. Verificado com ele ligado: o copiado abre, o que ainda
+não foi copiado responde 423.
+
+**Medido de ponta a ponta**, contra um chamado real de nove anexos: a primeira
+busca leva 13 s e diz "hubspot"; a segunda leva 705 ms, diz "cópia" e não sai
+uma requisição. Atendimento sem anexo nenhum responde em 147 ms na segunda vez,
+por causa da marca.
+
+**O nome do arquivo é codificado na chave, não sanitizado.** A primeira versão
+trocava espaço e acento por hífen, e o efeito só aparecia na **segunda**
+leitura: "erro eberick.png" voltava "erro-eberick.png", então o mesmo anexo
+tinha nome diferente antes e depois da cópia. A ordem também é fixada, porque a
+lista do balde e a da HubSpot não coincidem.
 
 ### O chamado é associado depois, e isso muda a janela
 

@@ -126,4 +126,20 @@ export const hubspotConversationService = {
 
     return attachmentsOf(brutas);
   },
+
+  /**
+   * Os anexos de um fio conhecido, em **uma** requisição.
+   *
+   * O atendimento que entrou pela caixa guarda `raw.threadId`, e com ele a
+   * consulta por `associatedTicketId` deixa de ser necessária: são duas idas
+   * contra o servidor de suporte, e uma delas só serve para descobrir um
+   * identificador que já está gravado aqui.
+   *
+   * O preço é o atendimento com mais de um fio, onde só o fio de origem é
+   * lido. Quem não tem `threadId` gravado cai no caminho de cima, que continua
+   * cobrindo todos.
+   */
+  async anexosDoFio(threadId: string): Promise<HubSpotAttachment[]> {
+    return attachmentsOf(await mensagensDaConversa(threadId));
+  },
 };

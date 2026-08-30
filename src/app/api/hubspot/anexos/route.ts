@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-import { requireHubSpotRead } from "@/features/auth/requireAdmin";
+import { requireHubSpotRead, requireMember } from "@/features/auth/requireAdmin";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { isSharedWorkspace } from "@/lib/supabase/mode";
 import { hubspotConversationService } from "@/services/hubspot/conversationService";
@@ -52,10 +52,18 @@ export interface AnexoServido {
 }
 
 export async function POST(request: Request) {
-  const autorizado = await requireHubSpotRead();
+  /*
+    Sessão na entrada; o freio só antes de falar com a HubSpot.
 
-  if (!autorizado.ok) {
-    return NextResponse.json({ message: autorizado.message }, { status: autorizado.status });
+    Conferir o freio aqui em cima recusaria também o anexo **já copiado**, que é
+    servido do nosso balde e não gasta requisição nenhuma. Ligar o freio
+    esconderia da equipe evidência que ela já tem em casa, e não é para isso que
+    ele existe.
+  */
+  const membro = await requireMember();
+
+  if (!membro.ok) {
+    return NextResponse.json({ message: membro.message }, { status: membro.status });
   }
 
   let corpo: unknown;
@@ -93,8 +101,26 @@ export async function POST(request: Request) {
 
   if (guardados) return NextResponse.json({ anexos: guardados, origem: "cópia" });
 
+  /* Daqui para baixo se fala com a HubSpot, e é aqui que o freio vale. */
+  const liberado = await requireHubSpotRead();
+
+  if (!liberado.ok) {
+    return NextResponse.json({ message: liberado.message }, { status: liberado.status });
+  }
+
+  /*
+    O fio, quando o atendimento já sabe qual é.
+
+    Quem entrou pela caixa guarda `raw.threadId`, e com ele a consulta por
+    `associatedTicketId` deixa de ser necessária: uma requisição em vez de duas,
+    e a que sai só servia para descobrir um identificador já gravado aqui.
+  */
+  const threadId = String((corpo as { threadId?: unknown })?.threadId ?? "").trim();
+
   try {
-    const daHubSpot = await hubspotConversationService.anexosDoAtendimento(externalId);
+    const daHubSpot = /^\d+$/.test(threadId)
+      ? await hubspotConversationService.anexosDoFio(threadId)
+      : await hubspotConversationService.anexosDoAtendimento(externalId);
 
     if (daHubSpot.length === 0) {
       await marcarVazio(supabase, externalId);
@@ -104,7 +130,10 @@ export async function POST(request: Request) {
 
     const copiados = await copiar(supabase, externalId, daHubSpot);
 
-    return NextResponse.json({ anexos: copiados, origem: "hubspot" });
+    return NextResponse.json({
+      anexos: copiados.sort((a, b) => a.name.localeCompare(b.name, "pt-BR")),
+      origem: "hubspot",
+    });
   } catch (error) {
     if (error instanceof HubSpotFailure) {
       return NextResponse.json(
@@ -153,7 +182,12 @@ async function lerDoBalde(supabase: Cliente, externalId: string): Promise<AnexoS
     });
   }
 
-  return anexos;
+  /*
+    Ordem estável, porque a lista do balde e a da HubSpot não coincidem: sem
+    isto os mesmos anexos apareceriam em ordem diferente antes e depois da
+    cópia, e quem olhasse duas vezes acharia que mudou alguma coisa.
+  */
+  return anexos.sort((a, b) => a.name.localeCompare(b.name, "pt-BR"));
 }
 
 async function marcarVazio(supabase: Cliente, externalId: string) {
@@ -188,7 +222,7 @@ async function copiar(
       if (!resposta.ok) continue;
 
       const conteudo = await resposta.blob();
-      const caminho = `${externalId}/${anexo.fileId}__${sanitizar(anexo.name)}`;
+      const caminho = `${externalId}/${anexo.fileId}__${paraChave(anexo.name)}`;
 
       const { error } = await supabase.storage.from(BALDE).upload(caminho, conteudo, {
         contentType: resposta.headers.get("content-type") ?? "application/octet-stream",
@@ -216,22 +250,31 @@ async function copiar(
 }
 
 /**
- * Nome de arquivo que o balde aceita.
+ * O nome do cliente, guardado sem perder nada.
  *
- * A chave do objeto não é texto livre: acento e espaço quebram o caminho, e o
- * nome original vem de um cliente escrevendo o que quis. O nome de verdade
- * volta na exibição, a partir do que ficou guardado.
+ * A chave do objeto não é texto livre — espaço e acento não atravessam — e a
+ * primeira versão trocava tudo por hífen. O efeito aparecia só na **segunda**
+ * leitura: "erro eberick.png" voltava como "erro-eberick.png", então o mesmo
+ * anexo tinha nome diferente antes e depois da cópia, e quem procurasse o
+ * arquivo que o cliente citou não acharia.
+ *
+ * Codificado, ele atravessa inteiro e volta idêntico.
  */
-function sanitizar(nome: string): string {
-  return nome
-    .normalize("NFD")
-    .replace(/[̀-ͯ]/g, "")
-    .replace(/[^a-zA-Z0-9._-]/g, "-")
-    .slice(0, 80);
+function paraChave(nome: string): string {
+  return encodeURIComponent(nome).slice(0, 200);
 }
 
 function nomeOriginal(guardado: string): string {
   const separador = guardado.indexOf("__");
+  const codificado = separador === -1 ? guardado : guardado.slice(separador + 2);
 
-  return separador === -1 ? guardado : guardado.slice(separador + 2);
+  /*
+    Decodificar pode falhar se algo além da nossa gravação puser arquivo aqui.
+    Nome estranho é melhor que tela quebrada.
+  */
+  try {
+    return decodeURIComponent(codificado);
+  } catch {
+    return codificado;
+  }
 }

@@ -30,6 +30,9 @@ interface Anexo {
 
 export function TicketAttachments({ ticket }: { ticket: Ticket }) {
   const externalId = String(ticket.raw?.hubspotTicketId ?? "");
+
+  /* Quando o atendimento sabe de qual fio veio, a busca custa uma ida em vez de duas. */
+  const threadId = String(ticket.raw?.threadId ?? "");
   const [anexos, setAnexos] = useState<Anexo[] | null>(null);
   const [buscando, setBuscando] = useState(false);
   const [erro, setErro] = useState("");
@@ -49,7 +52,7 @@ export function TicketAttachments({ ticket }: { ticket: Ticket }) {
       const resposta = await fetch("/api/hubspot/anexos", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ externalId }),
+        body: JSON.stringify({ externalId, threadId }),
       });
 
       const corpo: unknown = await resposta.json().catch(() => null);

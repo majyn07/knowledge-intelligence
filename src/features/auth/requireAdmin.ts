@@ -113,19 +113,15 @@ export async function requireAdmin(): Promise<Autorizacao> {
 }
 
 /**
- * Ler um atendimento na HubSpot: exige sessão e respeita o freio, e mais nada.
+ * Entrou? É só isso que esta pergunta responde.
  *
- * Não é a mesma porta da varredura, de propósito. A varredura é de quem
- * administra porque **gera milhares de requisições**; abrir o anexo de um
- * chamado gera duas, e quem está lendo aquele chamado é quem precisa ver o
- * print que o cliente mandou. Exigir administrador ali faria a evidência
- * depender de alguém estar disponível.
- *
- * O freio continua valendo, e é o ponto: ele existe para impedir que alguém
- * sobrecarregue o servidor de suporte, e uma porta que o ignora é um buraco na
- * outra.
+ * Separada do freio de propósito. O freio existe para impedir que alguém
+ * sobrecarregue o servidor de suporte, e servir um anexo **já copiado** para o
+ * nosso balde não fala com a HubSpot: recusar ali faria ligar o freio esconder
+ * da equipe evidência que ela já tem em casa, que não é o que ele foi feito
+ * para fazer.
  */
-export async function requireHubSpotRead(): Promise<Autorizacao> {
+export async function requireMember(): Promise<Autorizacao> {
   if (!isSharedWorkspace()) return { ok: true };
 
   const supabase = await createSupabaseServerClient();
@@ -139,7 +135,30 @@ export async function requireHubSpotRead(): Promise<Autorizacao> {
   } = await supabase.auth.getUser();
 
   if (!user) {
-    return { ok: false, status: 401, message: "Entre para ver o anexo." };
+    return { ok: false, status: 401, message: "Entre para ver isto." };
+  }
+
+  return { ok: true };
+}
+
+/**
+ * O freio, sozinho, para quem já conferiu a sessão.
+ *
+ * Conferido **imediatamente antes de falar com a HubSpot**, e não na entrada da
+ * rota: é o que faz o interruptor parar o que gasta requisição sem parar o que
+ * já está guardado aqui.
+ *
+ * Não exige administrador. A varredura é de quem administra porque gera
+ * milhares de requisições; abrir o anexo de um chamado gera uma, e quem está
+ * lendo aquele chamado é quem precisa ver o print que o cliente mandou.
+ */
+export async function requireHubSpotRead(): Promise<Autorizacao> {
+  if (!isSharedWorkspace()) return { ok: true };
+
+  const supabase = await createSupabaseServerClient();
+
+  if (!supabase) {
+    return { ok: false, status: 503, message: "O espaço compartilhado não está configurado." };
   }
 
   const { data: config } = await supabase
@@ -155,7 +174,7 @@ export async function requireHubSpotRead(): Promise<Autorizacao> {
       ok: false,
       status: 423,
       message:
-        "As chamadas à HubSpot estão bloqueadas. Quem administra desbloqueia na tela de Atendimentos.",
+        "As chamadas à HubSpot estão bloqueadas, então o que ainda não foi copiado não pode ser buscado. Quem administra desbloqueia na tela de Atendimentos.",
     };
   }
 
