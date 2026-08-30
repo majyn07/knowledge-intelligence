@@ -80,19 +80,43 @@ O bot de atendimento pergunta ao cliente antes de abrir o chamado, e a resposta
 **Causa raiz não tem substituto**: é o diagnóstico do atendente, preenchido no
 formulário do ticket, e não passa pela conversa.
 
-### Um segundo assunto, menor
+### Imagem do atendimento: **não precisa de escopo nenhum**
 
-Não há **nenhum** escopo de arquivos entre os 41 — nem `files`, nem
-`files.ui_hidden.read`. Sem ele não dá para trazer anexo nenhum de atendimento.
+Isto começou como um segundo pedido e virou o contrário, depois de medir direito.
 
-Medido antes de pedir: em 139 mensagens de 20 conversas não há **nenhuma**
-imagem no corpo, e os `attachments` que aparecem são metadado de widget
-(`QUICK_REPLIES`, `WHATSAPP_TEMPLATE_METADATA`), não arquivo. A caixa medida é
-chat e WhatsApp; canal de e-mail, que é por onde print de tela costuma viajar,
-não apareceu na amostra.
+A primeira medição disse "zero imagens" e estava **errada**: a amostra era de
+chat e WhatsApp, e o bot não recebe arquivo. Nas conversas de **e-mail** há
+imagem, e bastante: 27 anexos `FILE` e 14 `<img>` em 209 mensagens de dez fios.
 
-Ou seja: **o escopo de arquivos não é urgente**, e só vale pedir se alguém
-souber de anexo chegando por um canal que não foi medido.
+O anexo já vem com tudo o que é preciso, na resposta que `conversations.read`
+devolve:
+
+```json
+{
+  "type": "FILE",
+  "fileId": "2204996…",
+  "name": "image-Aug-27-2026-07-00-31-4560-PM.png",
+  "fileUsageType": "IMAGE",
+  "url": "https://44552714.cdnp1.hubspotusercontent-na1.net/hubfs/…?Expires=…&Signature=…"
+}
+```
+
+Medido: essa URL responde **200, `image/png`, 107 KB, sem autenticação
+nenhuma**. Não é preciso pedir `files`, e de fato `files/v3/files/{id}` devolve
+403 com este token — mas o caminho por ali não é necessário.
+
+**A assinatura expira**, e depressa: a que foi medida valia por cerca de um dia.
+Guardar a URL não serve; ou se busca o fio de novo na hora de exibir, ou se
+copia o arquivo para um balde nosso.
+
+**E copiar tem uma decisão de privacidade junto**, que não é técnica. O balde de
+imagens do produto é público na leitura, e a razão está registrada: ele guarda
+figura de artigo, e o acervo espelha um portal público. Print de tela de cliente
+não é material público. Ou o arquivo vai para um balde privado com URL assinada,
+ou não se copia nada e a imagem é buscada na hora.
+
+Nada disso está implementado: hoje a importação **descarta** o campo
+`attachments` das mensagens. É trabalho nosso, não pedido a ninguém.
 
 ---
 
