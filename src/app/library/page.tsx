@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import type { LibraryFormData } from "@/features/library/types/LibraryFormData";
 
@@ -166,7 +166,20 @@ export default function LibraryPage() {
     writeParams(atual);
   }, [filters, table.sort, table.page.page, params, writeParams]);
 
-  const guard = useUnsavedGuard(closeDialog);
+  /*
+    Fechar descarta a entrega, e nao so o que estava no armazenamento.
+
+    A chave do armazenamento some na leitura, mas o rascunho ficava em memoria
+    pelo resto da sessao: quem recebia a entrega, salvava, e depois clicava em
+    "Novo artigo" reabria o formulario com o rascunho anterior dentro — o mesmo
+    defeito que a chave efemera existia para impedir, sobrevivendo noutro lugar.
+  */
+  const fecharFormulario = useCallback(() => {
+    setEntregue(null);
+    closeDialog();
+  }, [closeDialog]);
+
+  const guard = useUnsavedGuard(fecharFormulario);
 
   /*
     Exporta o recorte que está na tela (filtros, ordenação e colunas), e não

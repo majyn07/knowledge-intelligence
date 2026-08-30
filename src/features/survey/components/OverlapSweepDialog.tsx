@@ -101,6 +101,18 @@ export function OverlapSweepDialog({
 
   const aVarrer = useMemo(() => pares.slice(0, teto), [pares, teto]);
 
+  /*
+    Fechar para a varredura.
+
+    Sem isso ela seguia em segundo plano, gastando um pedido por par contra o
+    provedor depois de a pessoa ter saído da tela — e sem nada dizendo que ainda
+    estava acontecendo. O que já foi avaliado continua guardado, e reabrir mostra.
+  */
+  function fechar() {
+    parar.current = true;
+    aoFechar();
+  }
+
   /** Um par pelo servidor. O erro sobe para quem chamou decidir se continua. */
   async function avaliarPar(par: OverlapPair): Promise<MergeAdvice> {
     const resposta = await fetch("/api/library/compare", {
@@ -144,6 +156,14 @@ export function OverlapSweepDialog({
       setEsperando(true);
       await esperar(ESPERA_DO_LIMITE_MS);
       setEsperando(false);
+
+      /*
+        Conferido de novo **depois** da espera. São quarenta e cinco segundos, e
+        quem clicou em parar durante eles clicou justamente porque a varredura
+        estava demorando: sair da espera e disparar mais um pedido é o botão de
+        parar não parando.
+      */
+      if (parar.current) throw falha;
 
       return avaliarPar(par);
     }
@@ -220,7 +240,7 @@ export function OverlapSweepDialog({
   }, [avaliados]);
 
   return (
-    <Dialog open={aberto} onOpenChange={(estado) => !estado && aoFechar()}>
+    <Dialog open={aberto} onOpenChange={(estado) => !estado && fechar()}>
       <DialogContent className="max-h-[85vh] max-w-3xl overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Avaliar os artigos que se sobrepõem</DialogTitle>
@@ -339,7 +359,7 @@ export function OverlapSweepDialog({
             </Button>
           ) : (
             <>
-              <Button variant="outline" onClick={aoFechar}>
+              <Button variant="outline" onClick={fechar}>
                 Fechar
               </Button>
               <Button onClick={varrer} disabled={aVarrer.length === 0}>
