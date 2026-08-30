@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import type { KnowledgeArticle } from "@/models/KnowledgeArticle";
 import type { Ticket } from "@/models/Ticket";
+import { emptyClassification } from "@/models/TicketClassification";
 
 import { MAXIMO_DE_ATENDIMENTOS, ticketTerms, triageTickets } from "./triage";
 
@@ -13,8 +14,7 @@ const atendimento = (extra: Partial<Ticket> = {}): Ticket => ({
   title: "Atendimento",
   solution: "Resolvido.",
   company: "Construtora",
-  causa: "",
-  motivoDeContato: "",
+  ...emptyClassification(),
   date: "2026-08-01",
   ...extra,
 });

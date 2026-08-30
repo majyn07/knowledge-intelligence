@@ -1,5 +1,10 @@
 import type { Ticket } from "@/models/Ticket";
 import { toIsoDate } from "@/lib/dates";
+import {
+  TICKET_CLASSIFICATION_FIELDS,
+  TICKET_CLASSIFICATIONS,
+  type TicketClassificationField,
+} from "@/models/TicketClassification";
 import type { DelimitedTable } from "@/lib/delimited";
 
 /**
@@ -19,8 +24,7 @@ export const TICKET_FIELDS = [
   "solution",
   "company",
   "date",
-  "causa",
-  "motivoDeContato",
+  ...TICKET_CLASSIFICATION_FIELDS,
   "externalId",
 ] as const;
 
@@ -33,10 +37,9 @@ export const ticketFieldLabel: Record<TicketField, string> = {
   solution: "Solução",
   company: "Empresa",
   date: "Data do atendimento",
-  causa: "Causa",
-  motivoDeContato: "Motivo de contato",
   externalId: "Identificador na HubSpot",
-};
+  ...Object.fromEntries(TICKET_CLASSIFICATIONS.map((item) => [item.key, item.label])),
+} as Record<TicketField, string>;
 
 /** Sem assunto a linha não identifica atendimento nenhum. */
 export const TICKET_REQUIRED: TicketField[] = ["title"];
@@ -65,35 +68,15 @@ const KNOWN: Record<TicketField, string[]> = {
     "created at",
   ],
   /*
-    Os nomes vieram do ticket real, e são os rótulos que a exportação escreve no
-    cabeçalho — inclusive o prefixo do pipeline e a pergunta inteira. Cada
-    pipeline tem o seu vocabulário: o de Setup pergunta a causa raiz e chama o
-    motivo de "sintoma"; o de Suporte só tem a categoria.
-
-    Correspondência exata, como no resto: "motivo" sozinho não entra em nenhum
-    dos dois, porque escolher um seria adivinhar qual, em mil linhas de uma vez.
-    Cabeçalho que não for reconhecido aparece na tela de mapeamento com um valor
-    de exemplo ao lado, para alguém apontar.
+    Os cabeçalhos da classificação saem do registro em `TicketClassification`,
+    e não de uma segunda cópia aqui: a importação, a contagem e a tela precisam
+    concordar sobre quais campos existem. Duas listas do mesmo vocabulário
+    divergem, e a divergência apareceria como a tela oferecendo uma lista que a
+    importação nunca preenche.
   */
-  causa: [
-    "[setup] causa | qual a causa raiz que gerou o problema?",
-    "[setup] causa",
-    "causa",
-    "causa raiz",
-    "cause",
-    "root cause",
-  ],
-  motivoDeContato: [
-    "[setup] sintoma | motivo detalhado do contato",
-    "[support] categoria | motivo principal do contato",
-    "[setup] sintoma",
-    "[support] categoria",
-    "motivo de contato",
-    "motivo do contato",
-    "motivo detalhado do contato",
-    "motivo principal do contato",
-    "contact reason",
-  ],
+  ...(Object.fromEntries(
+    TICKET_CLASSIFICATIONS.map((item) => [item.key, item.headers])
+  ) as Record<TicketClassificationField, string[]>),
   externalId: ["id", "ticket id", "record id", "id do ticket", "identificador"],
 };
 
@@ -241,12 +224,12 @@ export function buildTicketImportPlan(
       title,
       solution: trazido("solution", solution, existente?.solution ?? ""),
       company: trazido("company", cell(row, mapping, "company"), existente?.company ?? ""),
-      causa: trazido("causa", cell(row, mapping, "causa"), existente?.causa ?? ""),
-      motivoDeContato: trazido(
-        "motivoDeContato",
-        cell(row, mapping, "motivoDeContato"),
-        existente?.motivoDeContato ?? ""
-      ),
+      ...(Object.fromEntries(
+        TICKET_CLASSIFICATION_FIELDS.map((campo) => [
+          campo,
+          trazido(campo, cell(row, mapping, campo), existente?.[campo] ?? ""),
+        ])
+      ) as Record<TicketClassificationField, string>),
       date: trazido("date", date, existente?.date ?? ""),
       ...(externalId
         ? { source: { provider: "hubspot" as const, externalId, importedAt } }

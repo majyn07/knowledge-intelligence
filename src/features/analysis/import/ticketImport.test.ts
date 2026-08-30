@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import type { Ticket } from "@/models/Ticket";
+import { emptyClassification } from "@/models/TicketClassification";
 import { parseDelimited } from "@/lib/delimited";
 
 import {
@@ -104,8 +105,7 @@ describe("buildTicketImportPlan", () => {
       title: "Assunto antigo",
       solution: "",
       company: "",
-      causa: "",
-      motivoDeContato: "",
+      ...emptyClassification(),
       date: "2026-01-01",
       source: { provider: "hubspot", externalId: "45812", importedAt: "2026-01-01T00:00:00.000Z" },
     };
@@ -128,8 +128,7 @@ describe("buildTicketImportPlan", () => {
       projectId: "p9",
       title: "Antigo",
       solution: "",
-      causa: "",
-      motivoDeContato: "",
+      ...emptyClassification(),
       company: "",
       date: "",
       source: { provider: "hubspot", externalId: "45812", importedAt: "2026-01-01T00:00:00.000Z" },
@@ -152,8 +151,7 @@ describe("buildTicketImportPlan", () => {
       projectId: "p9",
       title: "Antigo",
       solution: "Resposta que o relatório não traz",
-      causa: "",
-      motivoDeContato: "",
+      ...emptyClassification(),
       company: "Alpha",
       date: "2026-07-15",
       raw: { contato: { nome: "Fulano" }, hubspotTicketId: "45812" },
@@ -161,14 +159,14 @@ describe("buildTicketImportPlan", () => {
     };
 
     const atualizado = plan(
-      "Ticket ID,Assunto,Causa,Motivo de contato" +
+      "Ticket ID,Assunto,[Setup] Causa,[Setup] Sintoma" +
         "\n45812,Antigo,Erro de instalação,Dúvida de uso",
       undefined,
       [existente]
     ).update[0];
 
     expect(atualizado.causa).toBe("Erro de instalação");
-    expect(atualizado.motivoDeContato).toBe("Dúvida de uso");
+    expect(atualizado.sintoma).toBe("Dúvida de uso");
     expect(atualizado.raw).toEqual(existente.raw);
     expect(atualizado.solution).toBe("Resposta que o relatório não traz");
     expect(atualizado.company).toBe("Alpha");
@@ -185,8 +183,9 @@ describe("buildTicketImportPlan", () => {
       projectId: "p1",
       title: "Antigo",
       solution: "",
+      ...emptyClassification(),
       causa: "Erro de instalação",
-      motivoDeContato: "Dúvida de uso",
+      sintoma: "Dúvida de uso",
       company: "",
       date: "",
       source: { provider: "hubspot", externalId: "45812", importedAt: "2026-01-01T00:00:00.000Z" },
@@ -196,7 +195,7 @@ describe("buildTicketImportPlan", () => {
       .update[0];
 
     expect(atualizado.causa).toBe("");
-    expect(atualizado.motivoDeContato).toBe("Dúvida de uso");
+    expect(atualizado.sintoma).toBe("Dúvida de uso");
   });
 
   /*
@@ -208,7 +207,7 @@ describe("buildTicketImportPlan", () => {
     const resultado = plan("Ticket ID,Assunto,Motivo do contato\n45812,O assunto,Dúvida de uso");
 
     expect(resultado.create[0].title).toBe("O assunto");
-    expect(resultado.create[0].motivoDeContato).toBe("Dúvida de uso");
+    expect(resultado.create[0].categoria).toBe("Dúvida de uso");
   });
 
   /*
@@ -226,13 +225,13 @@ describe("buildTicketImportPlan", () => {
     ]);
 
     expect(doSetup.causa).toBe(2);
-    expect(doSetup.motivoDeContato).toBe(3);
+    expect(doSetup.sintoma).toBe(3);
 
     const doSuporte = guessTicketMapping([
       "[Support] Categoria | Motivo principal do contato",
     ]);
 
-    expect(doSuporte.motivoDeContato).toBe(0);
+    expect(doSuporte.categoria).toBe(0);
   });
 
   it("o mesmo atendimento duas vezes no arquivo vira um registro só", () => {

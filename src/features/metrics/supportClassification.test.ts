@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import type { Ticket } from "@/models/Ticket";
+import { emptyClassification } from "@/models/TicketClassification";
 
 import { tallyClassification } from "./supportClassification";
 
@@ -10,8 +11,7 @@ const atendimento = (extra: Partial<Ticket> = {}): Ticket => ({
   title: "Assunto",
   solution: "",
   company: "",
-  causa: "",
-  motivoDeContato: "",
+  ...emptyClassification(),
   date: "2026-08-01",
   ...extra,
 });
@@ -38,10 +38,10 @@ describe("tallyClassification", () => {
     uma pelo campo da outra produziria um ranking sobre outra coisa.
   */
   it("cada campo responde por si", () => {
-    const tickets = [atendimento({ causa: "Defeito", motivoDeContato: "Dúvida de uso" })];
+    const tickets = [atendimento({ causa: "Defeito", sintoma: "Dúvida de uso" })];
 
     expect(tallyClassification(tickets, "causa").itens[0].label).toBe("Defeito");
-    expect(tallyClassification(tickets, "motivoDeContato").itens[0].label).toBe("Dúvida de uso");
+    expect(tallyClassification(tickets, "sintoma").itens[0].label).toBe("Dúvida de uso");
   });
 
   /*

@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import type { Ticket } from "@/models/Ticket";
+import { emptyClassification } from "@/models/TicketClassification";
 
 import { ticketsToCsv } from "./ticketCsv";
 import type { TicketCycle } from "./ticketTableView";
@@ -11,8 +12,7 @@ const atendimento = (extra: Partial<Ticket> = {}): Ticket => ({
   title: "Flecha em viga",
   solution: "Ajustada a inércia.",
   company: "Construtora Alfa",
-  causa: "",
-  motivoDeContato: "",
+  ...emptyClassification(),
   date: "2026-08-14",
   ...extra,
 });

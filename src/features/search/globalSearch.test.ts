@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 
+import { emptyClassification } from "@/models/TicketClassification";
+
 import { buildPortalTaxonomy } from "@/features/taxonomy/mock/portalTaxonomy";
 
 import type { GlobalSearchInput } from "./globalSearch";
@@ -22,7 +24,7 @@ const base: GlobalSearchInput = {
     },
   ],
   tickets: [
-    { id: "45812", projectId: "p1", title: "Erro ao autenticar", solution: "Workflow", company: "Alpha", causa: "", motivoDeContato: "", date: "" },
+    { id: "45812", projectId: "p1", title: "Erro ao autenticar", solution: "Workflow", company: "Alpha", ...emptyClassification(), date: "" },
   ],
   analyses: [],
   plans: [],

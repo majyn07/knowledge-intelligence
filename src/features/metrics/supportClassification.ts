@@ -1,4 +1,5 @@
 import type { Ticket } from "@/models/Ticket";
+import type { TicketClassificationField } from "@/models/TicketClassification";
 
 /**
  * O que mais chega, pelo vocabulário de quem atendeu.
@@ -10,14 +11,12 @@ import type { Ticket } from "@/models/Ticket";
  * entre levar para uma reunião um número que alguém decidiu e um que saiu de
  * uma medida de semelhança.
  *
- * São **duas** perguntas e ficam separadas, que foi o pedido: causa é "por que
- * aconteceu", motivo de contato é "por que ele nos procurou". Um defeito de
- * instalação chega como dúvida de uso, e somar as duas numa lista só produziria
- * um ranking em que ninguém confia, porque metade das linhas responde outra
- * coisa.
+ * Cada campo tem a sua lista, e os campos não se fundem: são dois pipelines
+ * com vocabulários próprios, e um chamado passa por um dos dois. Somar Sintoma
+ * (Setup) com Categoria (Suporte) num ranking só misturaria dois vocabulários
+ * sem que quem lê tivesse como saber. Quais campos existem é assunto de
+ * `TicketClassification`, num lugar só.
  */
-
-export type ClassificationField = "causa" | "motivoDeContato";
 
 export interface ClassificationCount {
   label: string;
@@ -51,7 +50,7 @@ export interface ClassificationTally {
  */
 export function tallyClassification(
   tickets: readonly Ticket[],
-  campo: ClassificationField,
+  campo: TicketClassificationField,
   limite = 5
 ): ClassificationTally {
   const contagem = new Map<string, { label: string; quantos: number }>();

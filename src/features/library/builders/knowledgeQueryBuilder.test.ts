@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import type { SupportConversation } from "@/models/SupportConversation";
 import type { Ticket } from "@/models/Ticket";
+import { emptyClassification } from "@/models/TicketClassification";
 
 import { buildKnowledgeQuery } from "./knowledgeQueryBuilder";
 
@@ -11,8 +12,7 @@ const atendimento = (extra: Partial<Ticket> = {}): Ticket => ({
   title: "Importar IFC no Eberick",
   solution: "Orientado a usar atualização completa do 3D.",
   company: "Construtora",
-  causa: "",
-  motivoDeContato: "",
+  ...emptyClassification(),
   date: "2026-08-01",
   ...extra,
 });

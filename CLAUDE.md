@@ -1476,17 +1476,37 @@ parecer atraso de meses. O que não fecha o ciclo fica fora, com ressalva por
 motivo: sem atendimento de origem, sem data que dê para situar no tempo, ou
 publicado antes da data do atendimento.
 
-**Causa e motivo de contato são duas perguntas, e ficam separadas.** O suporte
-já classifica cada chamado na HubSpot, com o caso em mãos, e classificação
-declarada vence agrupamento calculado: "por que aconteceu" e "por que ele nos
-procurou" têm respostas diferentes, e um defeito de instalação chega como
-dúvida de uso. Somá-las num ranking só faria metade das linhas responder outra
-coisa.
+**São dois pipelines com vocabulários próprios, e os campos não se fundem.** O
+de Setup pergunta a causa raiz e chama o motivo de "sintoma"; o de Suporte tem
+só a categoria, e não tem causa nenhuma. Um chamado passa por um dos dois, então
+cada lista cobre uma parte do acervo — somar Sintoma com Categoria num ranking
+só misturaria dois vocabulários sem que quem lê tivesse como saber.
+
+São sete campos, e os nomes saíram do ticket real: `[Setup] Causa | Qual a causa
+raiz que gerou o problema?`, `[Setup] Sintoma | Motivo detalhado do contato`,
+`[Setup] Tipo de Problema`, `[Support] Categoria | Motivo principal do contato`,
+`Fechamento | Qual o motivo do encerramento do ticket?`, `Quem abriu?` e
+`Proteção tecnológica`.
+
+**O vocabulário vive num lugar só**, `models/TicketClassification`: a importação
+reconhece o cabeçalho, a contagem agrupa e a tela desenha, e as três precisam
+concordar sobre quais campos existem. Escritas em separado divergem — já
+aconteceu com o cadastro de rotas e com as chaves de armazenamento — e aqui a
+divergência apareceria como a tela oferecendo uma lista que a importação nunca
+preenche. Cabeçalho repetido entre dois campos é recusado por teste: o
+mapeamento escolhe a primeira coluna que casa, e a coluna cairia num campo por
+acidente.
+
+**A classificação é escolhida pelo cliente, no chatbot.** As duas perguntas e as
+respostas são mensagens da conversa, que já temos: medido nas 974, 410 trazem o
+motivo do contato e 314 o tipo da solicitação, 433 alguma das duas. Não é
+dedução, é a opção que o cliente clicou. Não está implementado, e é a alternativa
+ao relatório enquanto ele não chega.
 
 Elas entram **pelo relatório exportado**, não pela API: o escopo `tickets` não
-está na credencial, e as propriedades vivem no ticket. Vazio é o estado de
-todos os 1.025 que entraram pela conversa, e a tela diz isso com o caminho
-junto, em vez de mostrar lista vazia.
+está na credencial, e as propriedades vivem no ticket. Vazio é o estado de todos
+os 1.025 que entraram pela conversa, e a tela diz isso **uma vez**, com o caminho
+junto — sete caixas idênticas seriam sete vezes a mesma frase.
 
 A fatia é sobre os **classificados**, não sobre o total: dividir pelo total
 misturaria "isto é raro" com "isto não foi classificado", e as duas pedem
@@ -1649,7 +1669,7 @@ fronteira de armazenamento com a divisão em lotes da
 gravação compartilhada e o plano da releitura incremental, a leitura de arquivo delimitado com o mapeamento de
 colunas e os planos de importação de artigo e de atendimento, a recuperação de texto não salvo, o cadastro
 de taxonomia com a migração da
-classificação antiga, a contagem por causa e por motivo de contato, os normalizadores de artigo, plano e atendimento, o motor
+classificação antiga, a contagem da classificação do suporte com o vocabulário dos dois pipelines, os normalizadores de artigo, plano e atendimento, o motor
 e o desenho dos painéis, a trilha de navegação, o recorte por equipe, as
 menções, o que se acompanha, a lixeira, a tabela com suas visões salvas, o rascunho do artigo e a tradução
 do erro de acesso.

@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import type { KnowledgeArticle } from "@/models/KnowledgeArticle";
 import type { Ticket } from "@/models/Ticket";
+import { emptyClassification } from "@/models/TicketClassification";
 import type { Taxonomy } from "@/models/Taxonomy";
 
 import { buildSurvey, surveySummary, type Finding } from "./survey";
@@ -47,8 +48,7 @@ const atendimento = (over: Partial<Ticket>): Ticket => ({
   title: "Erro ao exportar",
   solution: "Resolvido reinstalando.",
   company: "",
-  causa: "",
-  motivoDeContato: "",
+  ...emptyClassification(),
   date: "2026-08-01",
   ...over,
 });

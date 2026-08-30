@@ -1,5 +1,6 @@
 import type { SupportConversation, SupportConversationMessage } from "@/models/SupportConversation";
 import type { Ticket } from "@/models/Ticket";
+import { classificationOf, emptyClassification } from "@/models/TicketClassification";
 
 import type { TicketFormData } from "../types/TicketFormData";
 
@@ -60,8 +61,7 @@ export const ticketService = {
       solution: data.solution.trim(),
       company: data.company.trim(),
       /* Cadastro à mão não classifica: quem classifica é o suporte, na HubSpot. */
-      causa: "",
-      motivoDeContato: "",
+      ...emptyClassification(),
       date: data.date.trim(),
       ...externalSource(data.externalId, now),
     };
@@ -113,8 +113,7 @@ export const ticketService = {
         suporte não é nossa para reescrever — corrigir a data de um atendimento
         apagaria os três.
       */
-      causa: ticket.causa,
-      motivoDeContato: ticket.motivoDeContato,
+      ...classificationOf(ticket),
       ...(ticket.raw ? { raw: ticket.raw } : {}),
       ...(ticket.deletedAt ? { deletedAt: ticket.deletedAt } : {}),
       ...procedencia,

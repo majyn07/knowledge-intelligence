@@ -1,6 +1,7 @@
 "use client";
 
 import type { SupportConversation } from "@/models/SupportConversation";
+import { emptyClassification } from "@/models/TicketClassification";
 import type { Ticket } from "@/models/Ticket";
 import type { ConversaListada } from "@/services/hubspot/helpDeskSchedule";
 
@@ -175,13 +176,12 @@ export async function lerConversas({
           */
           company: dados.contato?.empresa ?? "",
           /*
-            Vazias, e não é omissão: a causa e o motivo de contato vivem em
-            propriedades do ticket, e o escopo `tickets` não está na credencial.
-            Elas entram pelo relatório exportado do suporte, que é a mesma porta
-            por onde o atendimento já entra por arquivo.
+            Vazia, e não é omissão: a classificação vive em propriedades do
+            ticket, e o escopo `tickets` não está na credencial. Ela entra pelo
+            relatório exportado do suporte, que é a mesma porta por onde o
+            atendimento já entra por arquivo.
           */
-          causa: "",
-          motivoDeContato: "",
+          ...emptyClassification(),
           date: dados.ticket.date,
           source: {
             provider: "hubspot",
