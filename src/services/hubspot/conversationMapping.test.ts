@@ -7,6 +7,7 @@ import {
   parseActors,
   stripHtml,
   toConversationMessages,
+  visitanteDaConversa,
   type HubSpotActor,
 } from "./conversationMapping";
 
@@ -66,8 +67,20 @@ describe("authorLabel", () => {
     O nome do cliente não entra: trazer dado pessoal para o hub é decisão de
     produto, e o levantamento lê o problema, não quem relatou.
   */
-  it("rotula o visitante genericamente, sem usar o nome", () => {
-    expect(authorLabel(atores.get("V-2"))).toBe("Cliente");
+  /*
+    O nome de quem escreveu, e não "Cliente".
+
+    Era genérico de quando trazer dado pessoal de cliente ainda não estava
+    decidido. A decisão mudou pela metade sozinha: a lista já mostrava o nome
+    quando havia contato associado, e ficava vazia quando não havia — que é
+    quase todo e-mail.
+  */
+  it("usa o nome do visitante quando ele tem", () => {
+    expect(authorLabel(atores.get("V-2"))).toBe("Fulano Cliente");
+  });
+
+  it("visitante sem nome continua genérico", () => {
+    expect(authorLabel({ id: "V-9", name: "", type: "VISITOR" })).toBe("Cliente");
   });
 
   it("usa o nome de quem atendeu", () => {
@@ -130,7 +143,7 @@ describe("toConversationMessages", () => {
     );
 
     expect(primeira.body).toBe("Resolvido");
-    expect(primeira.author).toBe("Cliente");
+    expect(primeira.author).toBe("Fulano Cliente");
   });
 
   it("descarta mensagem que sobrou vazia depois da limpeza", () => {
@@ -181,5 +194,39 @@ describe("nextCursor", () => {
   it("trata resposta sem paginação", () => {
     expect(nextCursor({})).toBeNull();
     expect(nextCursor(null)).toBeNull();
+  });
+});
+
+describe("visitanteDaConversa", () => {
+  /*
+    Sem contato associado ao fio, o nome sai daqui: a associação nasce do chat,
+    e quase todo e-mail ficava sem cliente — 478 dos 1.025.
+  */
+  it("acha o visitante entre os atores", () => {
+    expect(
+      visitanteDaConversa(
+        new Map([
+          ["A-1", { id: "A-1", name: "Amanda Yasmin", type: "AGENT" }],
+          ["V-1", { id: "V-1", name: "Luana Soares", type: "VISITOR" }],
+        ])
+      )
+    ).toBe("Luana Soares");
+  });
+
+  /* `AGENT` é quem atendeu: confundir os dois poria o suporte na coluna do cliente. */
+  it("não confunde atendente com cliente", () => {
+    expect(
+      visitanteDaConversa(new Map([["A-1", { id: "A-1", name: "Amanda", type: "AGENT" }]]))
+    ).toBe("");
+  });
+
+  it("visitante sem nome não vira identificação", () => {
+    expect(
+      visitanteDaConversa(new Map([["V-9", { id: "V-9", name: "", type: "VISITOR" }]]))
+    ).toBe("");
+  });
+
+  it("sem ator nenhum devolve vazio", () => {
+    expect(visitanteDaConversa(new Map())).toBe("");
   });
 });

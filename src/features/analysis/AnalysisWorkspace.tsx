@@ -131,7 +131,12 @@ export function AnalysisWorkspace() {
   const selectedTicket =
     projectTickets.find((ticket) => ticket.id === selectedTicketId) ?? projectTickets[0];
   const selectedConversation = selectedTicket ? conversationOf(selectedTicket.id) : undefined;
-  const context = useAnalysisContext(articles, selectedTicket, selectedConversation);
+  const context = useAnalysisContext(
+    articles,
+    selectedTicket,
+    selectedConversation,
+    conversations
+  );
   const analysis =
     selectedTicket && activeProjectId ? getAnalysis(activeProjectId, selectedTicket.id) : undefined;
 

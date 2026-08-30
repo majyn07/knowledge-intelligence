@@ -50,6 +50,7 @@ const analysisContextSchema = z.object({
     date: z.string().min(1),
   }).strict(),
   conversation: conversationSchema.optional(),
+  conversationTruncated: z.boolean().optional(),
   relatedArticles: z.array(relatedArticleSchema).optional(),
   knowledgeBaseId: z.string().min(1).optional(),
   projectId: z.string().min(1).optional(),

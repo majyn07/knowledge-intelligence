@@ -93,7 +93,18 @@ export function AnalysisConversation({
   return (
     <PageSection
       title="Conversa com a IA"
-      description="Faça perguntas, solicite explicações ou peça novas análises sobre este atendimento."
+      description={
+        /*
+          O aviso de corte fica onde se pergunta, e não escondido.
+
+          É a mesma regra do artigo longo: resposta baseada em meia conversa
+          apresentada como se fosse sobre a inteira é erro que ninguém percebe.
+          O modelo também é avisado, e diz quando a falta pesar na resposta.
+        */
+        context.conversationTruncated
+          ? "Faça perguntas, solicite explicações ou peça novas análises sobre este atendimento. A conversa é longa e foi enviada em parte — a IA avisa quando isso pesar na resposta."
+          : "Faça perguntas, solicite explicações ou peça novas análises sobre este atendimento."
+      }
     >
       <div className="space-y-5">
         {messages.length === 0 && (

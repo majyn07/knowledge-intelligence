@@ -13,6 +13,7 @@ import type { KnowledgeArticle } from "@/models/KnowledgeArticle";
 import { sectionPath } from "@/models/Taxonomy";
 
 import { compareArticles, compareFields } from "./compare/articleCompare";
+import { MergeAdvicePanel } from "./components/MergeAdvicePanel";
 import { useLibrary } from "./providers/LibraryProvider";
 
 /**
@@ -202,13 +203,21 @@ export function ArticleCompareWorkspace() {
             ))}
           </div>
 
+          {/*
+            O aviso continua: a porcentagem acima é contagem de palavras, e
+            apresentá-la como veredito é o erro que o produto evita em todo
+            lugar onde calcula semelhança. O que mudou é o destino — a leitura
+            dos dois acontece logo abaixo, e não noutra tela.
+          */}
           <p className="mt-3 flex items-start gap-2 text-xs text-muted-foreground">
             <Sparkles className="mt-0.5 h-3.5 w-3.5 shrink-0 text-primary" />
-            Isto é contagem de palavras, não veredito. Para saber se dizem a mesma coisa, abra um
-            deles e pergunte à IA. Ela lê o texto e responde a partir dele.
+            Isto é contagem de palavras, não veredito. Para saber se dizem a mesma coisa, peça a
+            leitura da IA abaixo: ela lê os dois textos e responde a partir deles.
           </p>
         </div>
       )}
+
+      <MergeAdvicePanel a={a} b={b} />
 
       <div className="grid gap-6 lg:grid-cols-2">
         <Coluna article={a} exclusivos={comparacao?.onlyA ?? []} rotulo="Primeiro" />

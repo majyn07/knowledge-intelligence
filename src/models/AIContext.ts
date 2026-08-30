@@ -29,6 +29,15 @@ export interface AIContext {
   /** Conversa do atendimento, quando disponível no domínio. Preenchida no servidor. */
   conversation?: SupportConversation;
 
+  /**
+   * A conversa não coube inteira e foi enviada em parte.
+   *
+   * Vai ao modelo como ressalva, e à tela como aviso. Resposta baseada em meia
+   * conversa apresentada como se fosse sobre a inteira é erro que ninguém
+   * percebe — é a mesma regra que o artigo longo já segue.
+   */
+  conversationTruncated?: boolean;
+
   relatedArticles?: KnowledgeSearchResult[];
 
   knowledgeBaseId?: string;

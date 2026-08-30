@@ -397,12 +397,23 @@ function TicketRow({
             reconhece, e o número é o que ela cola na HubSpot.
           */}
           <div className="mt-3 space-y-1.5 text-xs text-muted-foreground">
-            {cliente !== "" && (
-              <div className="flex items-center gap-1.5">
-                <User className="h-3.5 w-3.5" />
+            {/*
+              "Não identificado" em vez de linha ausente.
+
+              A linha sumia quando não havia nome, e some igual para quem não
+              tem contato associado e para quem a busca do contato falhou. Quem
+              percorre a fila lia a ausência como "esta é a coluna vazia", e não
+              como "aqui não se sabe quem é".
+            */}
+            <div className="flex items-center gap-1.5">
+              <User className="h-3.5 w-3.5" />
+
+              {cliente !== "" ? (
                 <span className="truncate">{cliente}</span>
-              </div>
-            )}
+              ) : (
+                <span className="truncate italic opacity-70">Não identificado</span>
+              )}
+            </div>
 
             {ticket.company.trim() !== "" && (
               <div className="flex items-center gap-1.5">

@@ -10,6 +10,19 @@ import type { Ticket } from "@/models/Ticket";
 import { buildKnowledgeQuery } from "@/features/library/builders/knowledgeQueryBuilder";
 import { searchRelatedArticles } from "@/features/library/services/articleSearchService";
 
+import { enfeiteDaConversa, prepararTranscrito } from "../transcript";
+
+/**
+ * O padrão precisa ser **o mesmo array** a cada chamada.
+ *
+ * Um `[]` literal na assinatura é um objeto novo por chamada, e ele entra na
+ * lista de dependências do `useMemo`: quem omitir as conversas recalcularia o
+ * contexto inteiro a cada render, incluindo a busca por relacionados sobre os
+ * 1.822 artigos. É a mesma armadilha de identidade de array que custou 4,4 s
+ * por tecla na lista de atendimentos.
+ */
+const SEM_CONVERSAS: readonly SupportConversation[] = [];
+
 /**
  * O acervo vive no navegador, então a busca acontece aqui e segue junto com o
  * contexto. O servidor recebe a evidência já resolvida, em vez de tentar ler
@@ -18,12 +31,29 @@ import { searchRelatedArticles } from "@/features/library/services/articleSearch
 export function useAnalysisContext(
   articles: KnowledgeArticle[],
   ticket?: Ticket,
-  conversation?: SupportConversation
+  conversation?: SupportConversation,
+  /*
+    Todas as conversas, para o enfeite ser apurado do acervo e não adivinhado.
+
+    Opcional porque nem toda tela as tem em mãos; sem elas o transcrito vai como
+    sempre foi, e a ausência empobrece o pedido sem torná-lo errado.
+  */
+  conversations: readonly SupportConversation[] = SEM_CONVERSAS
 ): AIContext {
   return useMemo(() => {
     if (!ticket) return {};
 
     const query = buildKnowledgeQuery(ticket, conversation);
+
+    /*
+      A conversa vai limpa e dentro de um teto.
+
+      Ia inteira, e medido no acervo isso é 27% de enfeite — "Atenciosamente,"
+      em 67% das conversas, o menu do bot em 42%. Não é só custo: o modelo lê
+      aquilo competindo com a descrição do problema. E não havia teto: a maior
+      conversa são cerca de cem mil tokens num pedido só.
+    */
+    const transcrito = prepararTranscrito(conversation, enfeiteDaConversa(conversations));
 
     return {
       /*
@@ -54,11 +84,12 @@ export function useAnalysisContext(
       conversation: conversation && {
         id: conversation.id,
         ticketId: conversation.ticketId,
-        messages: conversation.messages,
+        messages: transcrito.messages,
         source: conversation.source,
       },
+      ...(transcrito.truncated ? { conversationTruncated: true } : {}),
       relatedArticles: searchRelatedArticles(articles, query),
       projectId: ticket.projectId,
     };
-  }, [articles, conversation, ticket]);
+  }, [articles, conversation, conversations, ticket]);
 }

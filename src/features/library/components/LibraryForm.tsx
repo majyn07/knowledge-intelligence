@@ -36,6 +36,7 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 
+import { CoveragePanel } from "./CoveragePanel";
 import { DuplicateWarning } from "./DuplicateWarning";
 import { RecoveryNotice } from "./RecoveryNotice";
 import { useDraftRecovery } from "../hooks/useDraftRecovery";
@@ -312,7 +313,31 @@ export function LibraryForm({
           />
         </div>
 
+        {/*
+          O aviso léxico fica: ele é instantâneo, roda a cada tecla e não custa
+          nada. A avaliação da IA é o passo seguinte, pedido por quem escreve —
+          ela lê os candidatos e responde se vale escrever, em vez de dizer que
+          cinco artigos têm palavras parecidas.
+        */}
         <DuplicateWarning results={similarArticles} />
+
+        <CoveragePanel
+          articles={articles}
+          /*
+            O material é tudo que a pessoa já pôs no formulário. Título sozinho
+            não sustenta um juízo de cobertura, e o painel só habilita quando há
+            texto suficiente.
+          */
+          material={[formData.title, formData.summary, formData.content]
+            .filter((parte) => parte.trim() !== "")
+            .join("\n\n")}
+          sectionId={formData.sectionId}
+          excludeId={editingId}
+          onApply={(rascunho) => {
+            onDirty?.();
+            setFormData((previous) => ({ ...previous, ...rascunho }));
+          }}
+        />
 
         <div className="space-y-2">
           <Label htmlFor="summary">Resumo</Label>

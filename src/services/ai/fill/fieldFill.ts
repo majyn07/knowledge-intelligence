@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+import { jsonDoModelo } from "../parsers/jsonDoModelo";
+
 import { ATTACHMENT_TYPES, MAX_ATTACHMENT_BYTES } from "@/models/AIAttachment";
 
 /**
@@ -165,7 +167,7 @@ export interface FieldFillResult {
 export function parseFieldFill(raw: unknown, request: FieldFillRequest): FieldFillResult {
   const porNome = new Map(request.fields.map((field) => [field.name, field]));
 
-  const bruto = typeof raw === "string" ? safeJson(raw) : raw;
+  const bruto = typeof raw === "string" ? jsonDoModelo(raw) : raw;
   const objeto = isRecord(bruto) ? bruto : {};
 
   const vistos = new Set<string>();
@@ -278,23 +280,4 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 
 function asList(value: unknown): unknown[] {
   return Array.isArray(value) ? value : [];
-}
-
-function safeJson(raw: string): unknown {
-  /*
-    O modelo às vezes devolve o JSON cercado de crase, apesar de pedirmos que
-    não. Recusar por causa da cerca desperdiçaria uma resposta correta. É a
-    mesma tolerância que a sugestão de seção já tem.
-  */
-  const limpo = raw
-    .trim()
-    .replace(/^```(?:json)?/i, "")
-    .replace(/```$/, "")
-    .trim();
-
-  try {
-    return JSON.parse(limpo);
-  } catch {
-    return null;
-  }
 }

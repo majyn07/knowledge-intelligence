@@ -797,6 +797,110 @@ seção que o modelo inventou vira ausência, não classificação. Artigo que n
 cabe em nenhuma seção é omitido de propósito; ficar de fora é resposta
 legítima, e melhor que palpite. Nada é aplicado sem alguém deixar marcado.
 
+**A IA responde "o acervo já cobre isto?" antes de alguém escrever.** É a
+pergunta que originou o produto, feita no momento em que ela importa. O
+formulário já avisava sobre duplicata, mas por **vocabulário**: "estes cinco têm
+palavras parecidas, 34% de proximidade". Palavra em comum não é a mesma dúvida —
+o produto diz isso em todo lugar onde calcula semelhança, e aqui a consequência é
+escrever de novo o que já existe, ou desistir por causa de um artigo que trata de
+outra coisa.
+
+Os dois convivem: o aviso léxico é instantâneo e roda a cada tecla; a avaliação é
+o passo seguinte, pedido por quem escreve. A busca escolhe os cinco que valem uma
+leitura, e o modelo julga.
+
+**Preferir atualizar é regra, e vai escrita no prompt.** Um acervo de 1.822 piora
+mais por dobrar assunto do que por ter um artigo a menos: quem procura acha um
+dos dois e não sabe do outro. Por isso "parcial" aponta **o que falta** no artigo
+existente, e "coberta" não vem com rascunho — propor artigo novo sobre algo já
+respondido é o oposto do que a tela serve para evitar.
+
+**E quando não existe, o rascunho sai na forma do acervo.** Os modelos são os
+artigos publicados da mesma seção: o mais próximo em assunto, saindo da taxonomia
+que já existe, sem inventar um cadastro de "artigos exemplares" que ninguém
+manteria. Eles entram como **forma, não como conteúdo** — escrever do zero produz
+um artigo com outra estrutura e outro tom, e quem revisa gasta o tempo
+reformatando em vez de conferindo. Verificado contra o modelo real: com os
+modelos no pedido, o rascunho volta com as mesmas seções deles.
+
+**Identificador é conferido na volta**, como na sugestão de seção: artigo que o
+modelo inventou vira ausência, não referência. E veredito de cobertura sem artigo
+que o sustente cai para "ausente" — um rascunho a mais custa menos que um artigo
+que não foi escrito. O id também **não entra na prosa**: contra o acervo real o
+motivo voltou com um `uuid` no meio da frase, e é a mesma regra da trilha de
+navegação.
+
+Verificado contra os 1.822 do acervo: escrevendo sobre o modelo IFC deslocado, a
+avaliação achou três artigos de verdade e distinguiu **"não se aplica ao
+Eberick"** num que é do Builder — que é justamente o que a busca por vocabulário
+não faz.
+
+**A IA lê os dois artigos com quem decide se eles viram um só.** A tela de
+comparação mostrava o vocabulário em comum e dizia, corretamente, que aquilo
+**não é veredito** — e então mandava abrir um dos dois e perguntar à IA de lá.
+Mandar alguém para outra tela no meio da decisão é o que faz ninguém perguntar.
+
+**"Complementares" é o veredito que precisa existir**, e é o mais comum: dois
+artigos sobre o mesmo tema por ângulos diferentes, onde unir perderia conteúdo e
+deixar como está faz quem procura achar só um dos dois. Com duas opções o modelo
+é empurrado para "unir" toda vez que os textos se parecem, e artigo apagado não
+volta.
+
+O que a resposta tem de mais útil é **o que se perderia**: qual dos dois fica, e
+a lista do que precisa ser levado do outro. Verificado contra dois artigos reais
+de sprinklers, com 25% de vocabulário em comum: ela distinguiu o que trata da
+modelagem geométrica do que trata dos critérios de dimensionamento hidráulico, e
+listou seis procedimentos que sumiriam numa união descuidada.
+
+Ela não une nada, e a tela não oferece botão para o contrário.
+
+**A varredura de sugestão de seção foi de 25 para 10 por lote.** Vinte e cinco
+ficava na borda do prazo: varrendo os 56 sem seção do acervo real, o primeiro
+lote voltou e o segundo estourou os 90 segundos. Na borda a falha não é
+excepcional — é questão de qual lote calha de ser mais pesado, e quem paga é a
+varredura inteira, que para no meio. Com dez, os seis lotes passaram e 52 dos 56
+receberam sugestão; os outros quatro o modelo se recusou a chutar, que é o
+comportamento desenhado.
+
+**A IA acompanha a tela, e responde do que ela mediu.** A pergunta nasce
+olhando a lista — "existe conteúdo repetido aqui?", "por qual atendimento eu
+começo?" — e mandar alguém para outra página para fazê-la é o que faz ninguém
+fazê-la. O painel é móvel porque cobre justamente o conteúdo sobre o qual se
+pergunta, e a posição fica no navegador, como o tema.
+
+**Ele recebe um retrato, não o acervo.** São 1.822 artigos e 22 MB: não cabem
+num pedido, e não precisam. As perguntas que motivaram o painel o Levantamento
+já responde por medição, e um modelo recontando devolveria um número diferente
+do que a tela mostra, sem ninguém saber qual está certo. Então vão as contagens
+derivadas, os achados apurados e uma amostra pequena — rotulada como amostra,
+senão doze títulos viram o acervo inteiro e a resposta afirma coisas sobre mil
+e oitocentos a partir de doze.
+
+O trabalho do modelo é o que a lista de números não faz: explicar, priorizar,
+ligar as pontas. Perguntado por onde começar na fila, ele cruzou volume com
+cobertura — 8 atendimentos de cancelamento com 33% de cobertura antes de 24 com
+95% —, que é a leitura que ninguém extrai olhando duas colunas.
+
+**A consequência é assumida:** pergunta que exigiria ler o acervo não tem
+resposta ali, e o prompt manda dizer isso. Para ler um artigo existe o painel
+dentro dele.
+
+**O contexto vem da rota, e não de cada tela.** Se cada página declarasse o que
+a IA vê, a página nova esqueceria, e o painel responderia sobre outra coisa sem
+ninguém saber. Trocar de tela recomeça a conversa: continuar o fio faria a IA
+responder sobre a Biblioteca com os números dos Atendimentos ainda em mãos.
+
+**E o retrato é calculado no envio, nunca a cada render.** O Levantamento
+compara artigos aos pares dentro da seção; rodá-lo o tempo todo, em toda tela,
+para uma pergunta que talvez ninguém faça, é custo sem contrapartida.
+
+**O que ela viu fica conferível**, e é a mesma disciplina do resto: a resposta
+vem de um modelo sobre números que o produto calculou, e quem lê "56 sem seção"
+precisa poder ver que aquilo veio medido. A conferência já cobrou seu preço —
+"Sem seção" aparecia duas vezes, com 56 e 55, uma como contagem do acervo e
+outra como se fosse uma seção. Números diferentes sob o mesmo rótulo leem como
+contradição.
+
 **A IA lê o artigo com quem avalia.** Com o portal importado, avaliar o acervo é
 o trabalho, e fazê-lo sozinho significa reler mil e oitocentos textos. O painel
 fica ao lado do artigo, porque a pergunta nasce enquanto se lê.
@@ -876,6 +980,53 @@ feita por outro modelo, sem ninguém saber.
 A tela de Integrações lê do **mesmo catálogo** que o servidor usa para
 escolher. Duas listas do mesmo vocabulário divergem, e a divergência apareceria
 como a tela dizendo "conectado" sobre um provedor que a análise não usa.
+
+**O contrato restringe a geração, e não é só instrução no prompt.** Pedir JSON
+por texto não bastava: a mesma análise voltava JSON numa vez e prosa na outra, e
+a tela mandava "peça de novo" sobre algo que podia falhar igual. Com
+`responseSchema` o modelo não tem como sair da forma — medido contra a API real,
+1 de 2 antes e **4 de 4** depois.
+
+O Gemini lê um subconjunto do OpenAPI, não JSON Schema inteiro: chave que ele
+não conhece derruba o pedido antes de sair, e o que o Zod gera tem várias
+(`additionalProperties`, que vem de `.strict()`, `minLength`, `minimum`). O
+schema é **reduzido** por lista de permissão, e não de bloqueio: chave nova numa
+versão futura do Zod passaria despercebida por uma lista de bloqueio e
+derrubaria a análise em produção. As regras que ficam de fora continuam valendo
+aqui, onde sempre valeram — a resposta passa pelo Zod na volta de qualquer jeito.
+
+**Havia três parsers de JSON e só dois toleravam a cerca de crase.** A sugestão
+de seção e o preenchimento de formulário limpavam o ```` ```json ```` que o
+modelo às vezes acrescenta; a análise chamava `JSON.parse` direto e morria com
+"a resposta não é um JSON". É a mesma divergência que o cadastro de rotas e as
+chaves de armazenamento já tinham produzido. Hoje é um leitor só, e ele é a
+defesa de trás: o `responseSchema` impede a cerca de aparecer, e o provedor que
+não souber restringir continua atendido.
+
+**O cliente vai sem nome para o provedor.** O rótulo do autor deixou de ser
+genérico para a **tela**, porque quem trabalha a fila precisa saber de quem é o
+chamado. O transcrito enviado ao provedor é outro destino, e a decisão não vem
+junto: nome de cliente ali sai do nosso domínio e entra no de terceiro, e nada
+no prompt melhora por saber que a pessoa se chama Ana. Quem atendeu continua
+nomeado — é gente da AltoQi, e o nome distingue quem respondeu o quê.
+
+**A conversa vai limpa e dentro de um teto.** Ia inteira: rodapé, assinatura,
+aviso de segurança do servidor, clique de menu e histórico citado. Medido no
+acervo, **38% do texto** que ia ao modelo era isso — 6,19 milhões de caracteres
+virando 3,81, e 4.075 mensagens que eram só enfeite saindo por completo. Não é
+só custo: o modelo lê "Atenciosamente," em 67% das conversas competindo com a
+descrição do problema.
+
+O teto é 40.000 caracteres, e ele não existia: a maior conversa do acervo são
+cerca de **cem mil tokens num pedido só**, e um deles estourou o prazo em 51 s
+contra a API real. Só 8 das 974 batem no teto. Corta pelo **fim**, porque o
+problema é descrito no começo e o fim é confirmação e despedida — cortar a
+cabeça deixaria o modelo com a resposta e sem a pergunta. A ressalva vai ao
+modelo **antes** do transcrito, e à tela, como no artigo longo.
+
+**Botão que não pode ser clicado diz por quê.** "Analisar com IA" se
+desabilitava com a análise em revisão e continuava escrito a mesma coisa, em
+estilo primário: clique que não faz nada, e quem clica conclui que a IA quebrou.
 
 **Falha de provedor tem tipo.** Chave recusada, cota estourada, modelo
 sobrecarregado e pedido que passou do prazo eram a mesma frase ("tente
@@ -1057,6 +1208,43 @@ credencial não alcança.
 A dedução é **uma só**, compartilhada com a tela de detalhe. Duas divergem, e a
 divergência apareceria como o filtro escondendo um atendimento que o detalhe
 marca como Builder.
+
+**Falha não é ausência, e as duas eram indistinguíveis.** A busca do contato e
+a do chamado devolviam `undefined` tanto quando não havia associação quanto
+quando a chamada tomou 429, 403 ou estourou o prazo. A do chamado é a que custa
+caro: sem número a conversa é descartada como "sem chamado", e conversa
+descartada volta a ser lida em **toda** varredura — um limite de taxa passageiro
+vira descarte permanente, e o custo se repete sem ninguém saber por quê.
+
+A varredura continua seguindo nas duas, porque derrubá-la por causa de uma
+associação sairia mais caro. O que muda é a falha ficar registrada com o fio,
+para quem administra poder ver que houve.
+
+### Quem abriu o chamado
+
+O nome vinha do **contato associado** ao fio, e essa associação nasce do chat:
+o bot pergunta "Como podemos te chamar?". No e-mail ela quase nunca existe, e a
+linha ficava sem cliente — 478 dos 1.025 tinham nome, e quem tinha era quase
+todo chat.
+
+**O nome do visitante já vem no pedido de atores** que a varredura faz de
+qualquer jeito, e era descartado: `authorLabel` transformava todo `VISITOR` em
+"Cliente". Isso era decisão de quando trazer dado pessoal de cliente para o hub
+ainda não estava resolvido — e ela já tinha mudado pela metade sozinha, porque
+a lista mostrava o nome quando havia contato. Agora o ator é o recurso quando a
+associação não existe, sem custar requisição nenhuma.
+
+Visitante sem nome continua "Cliente": campo vazio não é identificação. E a
+**empresa não tem recurso** — ela é propriedade do contato, e sem contato não há
+de onde tirar; são 100 dos 1.025.
+
+**Vale para quem entrar de agora em diante, e revarrer para preencher os 547
+antigos foi recusado**: custa requisição contra o servidor de suporte para
+preencher uma coluna, e o chamado antigo continua identificado pelo número.
+
+Quando não há nome, a linha diz **"Não identificado"** em vez de sumir. Sumindo,
+ela ficava igual para quem não tem contato associado e para quem a busca do
+contato falhou, e quem percorre a fila lia aquilo como coluna vazia.
 
 ### O freio das chamadas à HubSpot
 
@@ -1338,6 +1526,12 @@ conversa só. Passando de 2%, sobram **vinte e nove**, e os vinte e nove são
 enfeite — o clique de menu ("Estou ciente e desejo continuar", 44%), o rodapé de
 descadastro, o endereço da empresa, "Technical Support Analyst", e as três
 linhas do aviso de segurança que o servidor de e-mail injeta.
+
+A regra vive em `lib/repeatedText`, e o **alcance** é de quem chama: a triagem
+ouve só o cliente, porque ali a pergunta é o que ele pediu; o transcrito da IA
+ouve todos os papéis, porque o rodapé do suporte pesa tanto quanto o dele. Duas
+chamadas, e não duas cópias — limiar escrito em dois arquivos diverge no dia em
+que alguém medir de novo.
 
 O parágrafo, e não a mensagem inteira, porque **o aviso de segurança vem
 antes** do texto da pessoa: marcador estrutural corta para baixo e não o
@@ -1885,8 +2079,10 @@ do que a correspondência traz junto e a medição do que o acervo repete, a rec
 para na página vazia, o mapeamento de mensagens do provedor, a consulta da IA
 sobre o artigo, o rótulo da iniciativa, motor de busca e busca
 transversal, transições de artigo e de plano, métricas por projeto e por
-período, o tempo do ciclo com as ressalvas dele e a planilha da página, parsing da resposta da IA, a escolha do provedor com a classificação
-das falhas dele, a leitura da sugestão de seção, a leitura do preenchimento de
+período, o tempo do ciclo com as ressalvas dele e a planilha da página, parsing da resposta da IA com a redução do contrato ao que o provedor lê e o preparo do transcrito, a escolha do provedor com a classificação
+das falhas dele, a leitura da sugestão de seção, a avaliação de cobertura do acervo, a leitura de dois artigos que se
+sobrepõem, o retrato que a
+tela dá ao assistente com o encaixe do painel na janela, a leitura do preenchimento de
 formulário com a seleção do que aplicar e a classificação do arquivo
 anexado, o recorte na URL, a central de avisos, o catálogo de ações guardadas e a auditoria do histórico, o levantamento, índice do artigo, critérios de publicação,
 fronteira de armazenamento com a divisão em lotes da

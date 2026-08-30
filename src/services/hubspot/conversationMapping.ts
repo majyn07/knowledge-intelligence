@@ -103,8 +103,21 @@ export function authorLabel(actor: HubSpotActor | undefined): string {
   if (!actor) return "Desconhecido";
 
   switch (actor.type) {
+    /*
+      O nome de quem escreveu, e não "Cliente".
+
+      Era genérico de propósito, de quando trazer dado pessoal de cliente para
+      dentro do hub ainda não estava decidido. A decisão mudou pela metade
+      sozinha: a lista já mostra o nome quando existe contato associado ao
+      chamado, e ficava vazia quando não existia — o que acontece em quase todo
+      e-mail, porque a associação nasce do chat.
+
+      O nome vem no mesmo pedido de atores que a varredura já faz, então não
+      custa requisição nenhuma. Visitante sem nome continua "Cliente": campo
+      vazio não é identificação.
+    */
     case "VISITOR":
-      return "Cliente";
+      return actor.name || "Cliente";
     case "BOT":
       return "Automação";
     case "SYSTEM":
@@ -180,4 +193,23 @@ export function nextCursor(raw: unknown): string | null {
   const paging = record(record(raw).paging);
   const proximo = record(paging.next);
   return text(proximo.after) || null;
+}
+
+/**
+ * Quem abriu o chamado, pelo ator da conversa.
+ *
+ * Serve de recurso quando não há contato associado ao fio — o que é o caso de
+ * quase todo e-mail, porque a associação nasce do chat. O nome já vem no
+ * pedido de atores que a varredura faz de qualquer jeito, então não custa
+ * requisição a mais.
+ *
+ * Só `VISITOR`: `AGENT` é quem atendeu, e confundir os dois poria gente do
+ * suporte na coluna de cliente.
+ */
+export function visitanteDaConversa(actors: Map<string, HubSpotActor>): string {
+  for (const actor of actors.values()) {
+    if (actor.type === "VISITOR" && actor.name.trim() !== "") return actor.name.trim();
+  }
+
+  return "";
 }
