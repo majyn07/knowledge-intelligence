@@ -797,6 +797,37 @@ seção que o modelo inventou vira ausência, não classificação. Artigo que n
 cabe em nenhuma seção é omitido de propósito; ficar de fora é resposta
 legítima, e melhor que palpite. Nada é aplicado sem alguém deixar marcado.
 
+**A IA responde "o acervo já cobre isto?" antes de alguém escrever.** É a
+pergunta que originou o produto, feita no momento em que ela importa. O
+formulário já avisava sobre duplicata, mas por **vocabulário**: "estes cinco têm
+palavras parecidas, 34% de proximidade". Palavra em comum não é a mesma dúvida —
+o produto diz isso em todo lugar onde calcula semelhança, e aqui a consequência é
+escrever de novo o que já existe, ou desistir por causa de um artigo que trata de
+outra coisa.
+
+Os dois convivem: o aviso léxico é instantâneo e roda a cada tecla; a avaliação é
+o passo seguinte, pedido por quem escreve. A busca escolhe os cinco que valem uma
+leitura, e o modelo julga.
+
+**Preferir atualizar é regra, e vai escrita no prompt.** Um acervo de 1.822 piora
+mais por dobrar assunto do que por ter um artigo a menos: quem procura acha um
+dos dois e não sabe do outro. Por isso "parcial" aponta **o que falta** no artigo
+existente, e "coberta" não vem com rascunho — propor artigo novo sobre algo já
+respondido é o oposto do que a tela serve para evitar.
+
+**E quando não existe, o rascunho sai na forma do acervo.** Os modelos são os
+artigos publicados da mesma seção: o mais próximo em assunto, saindo da taxonomia
+que já existe, sem inventar um cadastro de "artigos exemplares" que ninguém
+manteria. Eles entram como **forma, não como conteúdo** — escrever do zero produz
+um artigo com outra estrutura e outro tom, e quem revisa gasta o tempo
+reformatando em vez de conferindo. Verificado contra o modelo real: com os
+modelos no pedido, o rascunho volta com as mesmas seções deles.
+
+**Identificador é conferido na volta**, como na sugestão de seção: artigo que o
+modelo inventou vira ausência, não referência. E veredito de cobertura sem artigo
+que o sustente cai para "ausente" — um rascunho a mais custa menos que um artigo
+que não foi escrito.
+
 **A IA lê o artigo com quem avalia.** Com o portal importado, avaliar o acervo é
 o trabalho, e fazê-lo sozinho significa reler mil e oitocentos textos. O painel
 fica ao lado do artigo, porque a pergunta nasce enquanto se lê.
@@ -1976,7 +2007,7 @@ para na página vazia, o mapeamento de mensagens do provedor, a consulta da IA
 sobre o artigo, o rótulo da iniciativa, motor de busca e busca
 transversal, transições de artigo e de plano, métricas por projeto e por
 período, o tempo do ciclo com as ressalvas dele e a planilha da página, parsing da resposta da IA com a redução do contrato ao que o provedor lê e o preparo do transcrito, a escolha do provedor com a classificação
-das falhas dele, a leitura da sugestão de seção, a leitura do preenchimento de
+das falhas dele, a leitura da sugestão de seção, a avaliação de cobertura do acervo, a leitura do preenchimento de
 formulário com a seleção do que aplicar e a classificação do arquivo
 anexado, o recorte na URL, a central de avisos, o catálogo de ações guardadas e a auditoria do histórico, o levantamento, índice do artigo, critérios de publicação,
 fronteira de armazenamento com a divisão em lotes da
