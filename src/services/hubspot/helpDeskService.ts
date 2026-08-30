@@ -4,7 +4,12 @@ import { record, text } from "@/lib/shape";
 import type { SupportConversationMessage } from "@/models/SupportConversation";
 
 import { attachmentsOf } from "./attachments";
-import { nextCursor, toConversationMessages, type HubSpotActor } from "./conversationMapping";
+import {
+  nextCursor,
+  toConversationMessages,
+  visitanteDaConversa,
+  type HubSpotActor,
+} from "./conversationMapping";
 import type { ConversaListada } from "./helpDeskSchedule";
 import { hubspot } from "./hubspotClient";
 import { toOwnerTeams, type OwnerTeams } from "./ownerTeams";
@@ -301,6 +306,18 @@ export async function lerLote(
         contatoDoFio(conversa.id),
       ]);
 
+      /*
+        Sem contato associado, o nome sai do ator da conversa.
+
+        A associação nasce do chat, então quase todo e-mail ficava sem cliente:
+        478 dos 1.025. A empresa não tem esse recurso — ela é propriedade do
+        contato, e sem contato não há de onde tirar.
+      */
+      const identificado =
+        contato ?? (visitanteDaConversa(atores) !== ""
+          ? { nome: visitanteDaConversa(atores), empresa: "" }
+          : undefined);
+
       const ticket = toThreadTicket({ id: conversa.id, createdAt: conversa.criadoEm }, brutas, atores);
 
       /*
@@ -329,7 +346,7 @@ export async function lerLote(
           ticket,
           messages: toConversationMessages(brutas, atores),
           ticketId,
-          ...(contato ? { contato } : {}),
+          ...(identificado ? { contato: identificado } : {}),
           /*
             O registro cru guarda o que o nosso modelo não tem onde pôr, e é o
             que a análise lê inteiro. Não é normalizado: conferir a forma seria
@@ -353,7 +370,7 @@ export async function lerLote(
             anexos: attachmentsOf(brutas).length,
             origemDoTitulo: ticket.titleOrigin,
             mensagens: ticket.messageCount,
-            ...(contato ? { contato } : {}),
+            ...(identificado ? { contato: identificado } : {}),
             /*
               Quais soluções da AltoQi o atendimento trata. "Solução" aqui é o
               produto, que é como a empresa fala, e não a resposta que o suporte

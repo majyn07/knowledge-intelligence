@@ -1098,6 +1098,28 @@ A dedução é **uma só**, compartilhada com a tela de detalhe. Duas divergem, 
 divergência apareceria como o filtro escondendo um atendimento que o detalhe
 marca como Builder.
 
+### Quem abriu o chamado
+
+O nome vinha do **contato associado** ao fio, e essa associação nasce do chat:
+o bot pergunta "Como podemos te chamar?". No e-mail ela quase nunca existe, e a
+linha ficava sem cliente — 478 dos 1.025 tinham nome, e quem tinha era quase
+todo chat.
+
+**O nome do visitante já vem no pedido de atores** que a varredura faz de
+qualquer jeito, e era descartado: `authorLabel` transformava todo `VISITOR` em
+"Cliente". Isso era decisão de quando trazer dado pessoal de cliente para o hub
+ainda não estava resolvido — e ela já tinha mudado pela metade sozinha, porque
+a lista mostrava o nome quando havia contato. Agora o ator é o recurso quando a
+associação não existe, sem custar requisição nenhuma.
+
+Visitante sem nome continua "Cliente": campo vazio não é identificação. E a
+**empresa não tem recurso** — ela é propriedade do contato, e sem contato não há
+de onde tirar; são 100 dos 1.025.
+
+**Vale para quem entrar de agora em diante.** Os 547 que já estão aqui só
+ganhariam nome numa revarredura, que custa requisição contra o servidor de
+suporte.
+
 ### O freio das chamadas à HubSpot
 
 São **três** controles, e eles respondem perguntas diferentes.
