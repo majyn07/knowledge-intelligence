@@ -211,6 +211,30 @@ describe("buildTicketImportPlan", () => {
     expect(resultado.create[0].motivoDeContato).toBe("Dúvida de uso");
   });
 
+  /*
+    Os cabeçalhos que a HubSpot escreve carregam o prefixo do pipeline e a
+    pergunta inteira. Cada pipeline tem o seu vocabulário: o de Setup pergunta a
+    causa raiz e chama o motivo de "sintoma", o de Suporte só tem a categoria.
+    Reconhecer só "causa" deixaria o mapeamento em branco no arquivo de verdade.
+  */
+  it("reconhece os cabeçalhos como a HubSpot os escreve", () => {
+    const doSetup = guessTicketMapping([
+      "Ticket ID",
+      "Assunto",
+      "[Setup] Causa | Qual a causa raiz que gerou o problema?",
+      "[Setup] Sintoma | Motivo detalhado do contato",
+    ]);
+
+    expect(doSetup.causa).toBe(2);
+    expect(doSetup.motivoDeContato).toBe(3);
+
+    const doSuporte = guessTicketMapping([
+      "[Support] Categoria | Motivo principal do contato",
+    ]);
+
+    expect(doSuporte.motivoDeContato).toBe(0);
+  });
+
   it("o mesmo atendimento duas vezes no arquivo vira um registro só", () => {
     const resultado = plan("Ticket ID,Assunto\n45812,Primeira\n45812,Segunda");
 

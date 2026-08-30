@@ -65,15 +65,33 @@ const KNOWN: Record<TicketField, string[]> = {
     "created at",
   ],
   /*
-    Duas perguntas parecidas e dois campos, então a correspondência tem de ser
-    exata: "motivo" sozinho não entra em nenhum dos dois, porque escolher um
-    seria adivinhar qual, em mil e vinte e cinco linhas de uma vez.
+    Os nomes vieram do ticket real, e são os rótulos que a exportação escreve no
+    cabeçalho — inclusive o prefixo do pipeline e a pergunta inteira. Cada
+    pipeline tem o seu vocabulário: o de Setup pergunta a causa raiz e chama o
+    motivo de "sintoma"; o de Suporte só tem a categoria.
+
+    Correspondência exata, como no resto: "motivo" sozinho não entra em nenhum
+    dos dois, porque escolher um seria adivinhar qual, em mil linhas de uma vez.
+    Cabeçalho que não for reconhecido aparece na tela de mapeamento com um valor
+    de exemplo ao lado, para alguém apontar.
   */
-  causa: ["causa", "cause", "causa do contato", "causa raiz", "root cause"],
+  causa: [
+    "[setup] causa | qual a causa raiz que gerou o problema?",
+    "[setup] causa",
+    "causa",
+    "causa raiz",
+    "cause",
+    "root cause",
+  ],
   motivoDeContato: [
+    "[setup] sintoma | motivo detalhado do contato",
+    "[support] categoria | motivo principal do contato",
+    "[setup] sintoma",
+    "[support] categoria",
     "motivo de contato",
     "motivo do contato",
-    "motivo de contato do ticket",
+    "motivo detalhado do contato",
+    "motivo principal do contato",
     "contact reason",
   ],
   externalId: ["id", "ticket id", "record id", "id do ticket", "identificador"],
