@@ -899,6 +899,13 @@ chaves de armazenamento já tinham produzido. Hoje é um leitor só, e ele é a
 defesa de trás: o `responseSchema` impede a cerca de aparecer, e o provedor que
 não souber restringir continua atendido.
 
+**O cliente vai sem nome para o provedor.** O rótulo do autor deixou de ser
+genérico para a **tela**, porque quem trabalha a fila precisa saber de quem é o
+chamado. O transcrito enviado ao provedor é outro destino, e a decisão não vem
+junto: nome de cliente ali sai do nosso domínio e entra no de terceiro, e nada
+no prompt melhora por saber que a pessoa se chama Ana. Quem atendeu continua
+nomeado — é gente da AltoQi, e o nome distingue quem respondeu o quê.
+
 **A conversa vai limpa e dentro de um teto.** Ia inteira: rodapé, assinatura,
 aviso de segurança do servidor, clique de menu e histórico citado. Medido no
 acervo, **38% do texto** que ia ao modelo era isso — 6,19 milhões de caracteres
@@ -1415,6 +1422,12 @@ conversa só. Passando de 2%, sobram **vinte e nove**, e os vinte e nove são
 enfeite — o clique de menu ("Estou ciente e desejo continuar", 44%), o rodapé de
 descadastro, o endereço da empresa, "Technical Support Analyst", e as três
 linhas do aviso de segurança que o servidor de e-mail injeta.
+
+A regra vive em `lib/repeatedText`, e o **alcance** é de quem chama: a triagem
+ouve só o cliente, porque ali a pergunta é o que ele pediu; o transcrito da IA
+ouve todos os papéis, porque o rodapé do suporte pesa tanto quanto o dele. Duas
+chamadas, e não duas cópias — limiar escrito em dois arquivos diverge no dia em
+que alguém medir de novo.
 
 O parágrafo, e não a mensagem inteira, porque **o aviso de segurança vem
 antes** do texto da pessoa: marcador estrutural corta para baixo e não o

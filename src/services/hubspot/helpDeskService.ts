@@ -337,10 +337,20 @@ export async function lerLote(
         478 dos 1.025. A empresa não tem esse recurso — ela é propriedade do
         contato, e sem contato não há de onde tirar.
       */
-      const identificado =
-        contato ?? (visitanteDaConversa(atores) !== ""
-          ? { nome: visitanteDaConversa(atores), empresa: "" }
-          : undefined);
+      /*
+        Nome e empresa se compõem, e não se escolhem.
+
+        A primeira versão só caía no ator quando o contato era `undefined` — e
+        `contatoDoFio` devolve objeto sempre que **a empresa** existe, mesmo com
+        o nome em branco. Um contato com "Construtora Alfa" e sem `firstname`
+        ficava com empresa preenchida e cliente vazio, tendo o nome do remetente
+        disponível de graça no ator.
+      */
+      const doAtor = visitanteDaConversa(atores);
+      const nome = contato?.nome?.trim() || doAtor;
+      const empresa = contato?.empresa?.trim() ?? "";
+
+      const identificado = nome !== "" || empresa !== "" ? { nome, empresa } : undefined;
 
       const ticket = toThreadTicket({ id: conversa.id, createdAt: conversa.criadoEm }, brutas, atores);
 

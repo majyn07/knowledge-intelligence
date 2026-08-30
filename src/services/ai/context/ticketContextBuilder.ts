@@ -1,4 +1,21 @@
 import type { AIContext } from "@/models/AIContext";
+import type { SupportConversationMessage } from "@/models/SupportConversation";
+
+/**
+ * Quem falou, para o provedor de IA — e o cliente vai sem nome.
+ *
+ * O rótulo do autor deixou de ser genérico para a **tela**: quem trabalha a
+ * fila precisa saber de quem é o chamado. O transcrito enviado ao provedor é
+ * outro destino, e a decisão não vem junto: nome de cliente ali sai do nosso
+ * domínio e entra no de terceiro, e nada no prompt melhora por saber que a
+ * pessoa se chama Ana.
+ *
+ * Quem atendeu continua nomeado: é gente da AltoQi, e o nome distingue quem
+ * respondeu o quê quando a conversa tem dois atendentes.
+ */
+function quem(message: SupportConversationMessage): string {
+  return message.role === "cliente" ? "Cliente" : message.author;
+}
 
 function buildConversationSection(
   context: AIContext
@@ -14,10 +31,7 @@ Nenhum registro de conversa disponível para este atendimento.
   }
 
   const transcript = messages
-    .map(
-      (message) =>
-        `${message.author} (${message.createdAt}):\n${message.body}`
-    )
+    .map((message) => `${quem(message)} (${message.createdAt}):\n${message.body}`)
     .join("\n\n");
 
   /*

@@ -1,4 +1,4 @@
-import { corpoEscrito } from "@/lib/emailBody";
+import { chaveDoTrecho, paragrafosDe, trechosRepetidosEm } from "@/lib/repeatedText";
 import type { SupportConversation, SupportConversationMessage } from "@/models/SupportConversation";
 
 /**
@@ -19,19 +19,6 @@ import type { SupportConversation, SupportConversationMessage } from "@/models/S
  */
 
 /**
- * A fração de conversas acima da qual um trecho é enfeite.
- *
- * Mesmo limiar da triagem, e pela mesma medição: sobre todas as mensagens são
- * 19.505 parágrafos distintos e **134** passam de 2% — "atenciosamente," (67%),
- * as duas perguntas do bot (42% e 30%), "me avise se precisar de mais alguma
- * coisa" (30%), o anúncio do chat ao vivo (24%).
- */
-const REPETICAO_DE_ENFEITE = 0.02;
-
-/** Piso para acervo raso, pelo motivo já registrado na triagem. */
-const MINIMO_DE_CONVERSAS = 3;
-
-/**
  * O teto do transcrito, em caracteres.
  *
  * Não havia teto, e a conversa não é curta: a maior do acervo tem 407.519
@@ -48,17 +35,6 @@ const MAXIMO_DE_CARACTERES = 40_000;
 
 const cache = new WeakMap<readonly SupportConversation[], Set<string>>();
 
-function chave(texto: string): string {
-  return texto.trim().toLocaleLowerCase("pt-BR").replace(/\s+/g, " ");
-}
-
-function paragrafos(corpo: string): string[] {
-  return corpoEscrito(corpo)
-    .split(/\n\s*\n/)
-    .map((trecho) => trecho.trim())
-    .filter((trecho) => trecho !== "");
-}
-
 /**
  * Os trechos que se repetem pela conversa toda, de qualquer papel.
  *
@@ -70,18 +46,9 @@ export function enfeiteDaConversa(conversas: readonly SupportConversation[]): Se
 
   if (guardado) return guardado;
 
-  const emQuantas = new Map<string, number>();
-
-  for (const conversa of conversas) {
-    const distintos = new Set(conversa.messages.flatMap((m) => paragrafos(m.body)).map(chave));
-
-    for (const trecho of distintos) emQuantas.set(trecho, (emQuantas.get(trecho) ?? 0) + 1);
-  }
-
-  const teto = Math.max(MINIMO_DE_CONVERSAS, conversas.length * REPETICAO_DE_ENFEITE);
-
-  const enfeite = new Set(
-    [...emQuantas].filter(([, quantas]) => quantas > teto).map(([trecho]) => trecho)
+  /* Todos os papéis: o rodapé do suporte pesa tanto quanto o do cliente. */
+  const enfeite = trechosRepetidosEm(conversas, (conversa) =>
+    conversa.messages.map((mensagem) => mensagem.body)
   );
 
   cache.set(conversas, enfeite);
@@ -91,9 +58,14 @@ export function enfeiteDaConversa(conversas: readonly SupportConversation[]): Se
 
 export interface TranscriptPreparado {
   messages: SupportConversationMessage[];
-  /** Quantas mensagens sumiram por serem só enfeite. */
-  descartadas: number;
-  /** A conversa não coube inteira, e o modelo é avisado disso. */
+  /**
+   * A conversa não coube inteira, e o modelo é avisado disso.
+   *
+   * Havia aqui também um `descartadas`, contando as mensagens que sumiram por
+   * serem só enfeite. Ninguém lia: um campo no contrato sugere um aviso na tela
+   * que não existe, e no acervo real são 4.075 mensagens. Se um dia virar aviso,
+   * ele volta com o consumidor junto.
+   */
   truncated: boolean;
 }
 
@@ -111,20 +83,17 @@ export function prepararTranscrito(
   conversa: SupportConversation | undefined,
   enfeite: ReadonlySet<string>
 ): TranscriptPreparado {
-  if (!conversa) return { messages: [], descartadas: 0, truncated: false };
+  if (!conversa) return { messages: [], truncated: false };
 
   const limpas: SupportConversationMessage[] = [];
-  let descartadas = 0;
 
   for (const mensagem of conversa.messages) {
-    const corpo = paragrafos(mensagem.body)
-      .filter((trecho) => !enfeite.has(chave(trecho)))
+    const corpo = paragrafosDe(mensagem.body)
+      .filter((trecho) => !enfeite.has(chaveDoTrecho(trecho)))
       .join("\n\n");
 
-    if (corpo === "") {
-      descartadas += 1;
-      continue;
-    }
+    /* Linha de autor sem corpo só ocupa espaço no pedido. */
+    if (corpo === "") continue;
 
     limpas.push({ ...mensagem, body: corpo });
   }
@@ -153,5 +122,5 @@ export function prepararTranscrito(
     truncated = true;
   }
 
-  return { messages: dentro, descartadas, truncated };
+  return { messages: dentro, truncated };
 }

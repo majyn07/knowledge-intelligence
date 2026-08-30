@@ -83,7 +83,7 @@ describe("prepararTranscrito", () => {
     const preparado = prepararTranscrito(alvo, new Set(["estou ciente e desejo continuar"]));
 
     expect(preparado.messages).toHaveLength(1);
-    expect(preparado.descartadas).toBe(1);
+    expect(preparado.messages[0].body).toBe("A licença não ativa.");
   });
 
   /*
@@ -137,16 +137,12 @@ describe("prepararTranscrito", () => {
   it("conversa curta atravessa inteira e sem ressalva", () => {
     const alvo = conversa("t1", [["cliente", "A viga some ao recalcular"]]);
 
-    expect(prepararTranscrito(alvo, new Set())).toMatchObject({
-      truncated: false,
-      descartadas: 0,
-    });
+    expect(prepararTranscrito(alvo, new Set())).toMatchObject({ truncated: false });
   });
 
   it("sem conversa devolve vazio", () => {
     expect(prepararTranscrito(undefined, new Set())).toEqual({
       messages: [],
-      descartadas: 0,
       truncated: false,
     });
   });
