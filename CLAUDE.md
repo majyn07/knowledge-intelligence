@@ -1098,6 +1098,17 @@ A dedução é **uma só**, compartilhada com a tela de detalhe. Duas divergem, 
 divergência apareceria como o filtro escondendo um atendimento que o detalhe
 marca como Builder.
 
+**Falha não é ausência, e as duas eram indistinguíveis.** A busca do contato e
+a do chamado devolviam `undefined` tanto quando não havia associação quanto
+quando a chamada tomou 429, 403 ou estourou o prazo. A do chamado é a que custa
+caro: sem número a conversa é descartada como "sem chamado", e conversa
+descartada volta a ser lida em **toda** varredura — um limite de taxa passageiro
+vira descarte permanente, e o custo se repete sem ninguém saber por quê.
+
+A varredura continua seguindo nas duas, porque derrubá-la por causa de uma
+associação sairia mais caro. O que muda é a falha ficar registrada com o fio,
+para quem administra poder ver que houve.
+
 ### Quem abriu o chamado
 
 O nome vinha do **contato associado** ao fio, e essa associação nasce do chat:

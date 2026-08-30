@@ -169,8 +169,15 @@ async function mensagensDaConversa(threadId: string): Promise<unknown[]> {
  *
  * A leitura do objeto de ticket é 403, mas a **associação** não: ela devolve o
  * identificador, e é o que permite o registro daqui carregar o número real do
- * chamado. Falha em silêncio de propósito: sem o número o atendimento continua
- * válido, e derrubar a varredura por causa disso sairia caro demais.
+ * **A falha aqui custa mais que a do contato, e por isso fica registrada.**
+ * Sem número a conversa é descartada como "sem chamado" — e conversa
+ * descartada volta a ser lida em **toda** varredura, porque nunca entra e
+ * portanto nunca fica em dia. Um 429 passageiro vira, na prática, um descarte
+ * permanente, e o custo se repete sem ninguém saber por quê.
+ *
+ * A varredura continua seguindo: derrubá-la por causa de uma associação sairia
+ * mais caro ainda. O que muda é que a falha deixa de ser indistinguível da
+ * ausência para quem lê o registro do servidor.
  */
 async function chamadoDaConversa(threadId: string): Promise<string | undefined> {
   try {
@@ -179,7 +186,13 @@ async function chamadoDaConversa(threadId: string): Promise<string | undefined> 
     );
 
     return chamadoDaAssociacao(resposta);
-  } catch {
+  } catch (erro) {
+    console.error(
+      "CHAMADO_DA_CONVERSA_FALHOU",
+      threadId,
+      erro instanceof Error ? erro.message : erro
+    );
+
     return undefined;
   }
 }
@@ -201,7 +214,16 @@ export interface ContatoDaConversa {
  * pedidos: eles não ajudam a reencontrar nada aqui, e dado que não serve não
  * entra.
  *
- * Falha em silêncio, como o chamado: sem contato o atendimento continua válido.
+ * **A falha não é a mesma coisa que a ausência.** Sem contato associado o
+ * atendimento continua válido e segue sem nome; mas um 429 por limite de taxa,
+ * um 403 ou um prazo estourado também devolviam `undefined`, e o registro
+ * ficava idêntico ao de quem não tinha contato nenhum. Não dava para saber
+ * quantos dos 547 sem cliente eram "não havia" e quantos eram "não consegui
+ * perguntar".
+ *
+ * A varredura continua seguindo — perder mil atendimentos porque um contato
+ * falhou seria pior. O que muda é que a falha fica registrada, com o fio, para
+ * quem administra poder ver que houve.
  */
 async function contatoDoFio(threadId: string): Promise<ContatoDaConversa | undefined> {
   try {
@@ -224,7 +246,9 @@ async function contatoDoFio(threadId: string): Promise<ContatoDaConversa | undef
     const empresa = text(props.company).trim();
 
     return nome === "" && empresa === "" ? undefined : { nome, empresa };
-  } catch {
+  } catch (erro) {
+    console.error("CONTATO_DO_FIO_FALHOU", threadId, erro instanceof Error ? erro.message : erro);
+
     return undefined;
   }
 }
