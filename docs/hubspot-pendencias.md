@@ -1,10 +1,12 @@
 # HubSpot: o que está bloqueado, e de quem é cada coisa
 
-> **Atualizado em 27/08, e o quadro melhorou.** O lado do **artigo** deixou de
-> depender da HubSpot: o acervo do portal entra pelo site público, e a
-> Biblioteca já está sendo carregada com os 1.822 artigos. Sobrou **um** pedido,
-> e é o do escopo `tickets`, sem ele metade do ciclo do produto continua sem
-> entrada. Ver a seção 4.
+> **Atualizado em 29/08.** Sobrou **um** pedido, e é o do escopo `tickets`:
+> sem ele o produto não lê a classificação que o suporte faz, e a exportação em
+> CSV — que seria a saída por arquivo — não está disponível para a equipe. O
+> pedido pronto para encaminhar está na seção 0.
+>
+> O lado do **artigo** não depende mais da HubSpot: o acervo entra pelo site
+> público, e a Biblioteca já tem os 1.822 artigos.
 
 Levantado em 26 e 27/08/2026 contra a API real, com o token de app privado
 `pat-na1-…` (hub `44552714`, app `50542060`, 41 escopos).
@@ -13,6 +15,84 @@ Tudo abaixo é leitura. Nenhuma chamada escreveu nada na HubSpot, e nenhum
 registro de lá foi alterado.
 
 Para reproduzir qualquer item: `npm run hubspot:conferir`.
+
+---
+
+## 0. O pedido, em uma página
+
+> **Escrito em 29/08/2026 para ser encaminhado a quem administra o app privado
+> `pat-na1-…` (hub `44552714`, app `50542060`).** As seções seguintes são a
+> apuração completa; esta é o resumo que se manda.
+
+### O que se pede
+
+Conceder ao app privado o escopo de leitura de tickets:
+
+```
+crm.objects.tickets.read
+```
+
+Só leitura. O produto **não escreve na HubSpot** — nenhuma chamada desta
+integração criou, alterou ou apagou nada lá, e publicar de volta no portal está
+adiado para uma sprint própria.
+
+Se for possível conceder junto, `crm.schemas.tickets.read` evita ter que
+descobrir o vocabulário de cada campo por tentativa.
+
+### O que isso destranca
+
+O suporte já classifica cada chamado, e essa classificação é o que o produto
+precisa para dizer o que mais chega. São propriedades do objeto ticket, e os
+nomes abaixo saíram de um chamado real (nº 47673917220):
+
+| Propriedade | Pipeline |
+| --- | --- |
+| `[Support] Categoria \| Motivo principal do contato` | Suporte |
+| `[Setup] Sintoma \| Motivo detalhado do contato` | Setup |
+| `[Setup] Causa \| Qual a causa raiz que gerou o problema?` | Setup |
+| `[Setup] Tipo de Problema` | Setup |
+| `Fechamento \| Qual o motivo do encerramento do ticket?` | Setup |
+| `Quem abriu?` | Setup |
+| `Proteção tecnológica` | Setup |
+
+Os sete campos **já existem no produto**, com coluna no banco, importação e
+tela. Estão vazios nos 1.025 atendimentos porque não há de onde lê-los.
+
+### Por que não há outro caminho
+
+Não é rota errada nem versão velha. O objeto `0-5` foi procurado por **sete
+endereços** e todos devolvem 403, enquanto `contacts`, `companies`, `owners` e
+`schemas` respondem 200 no mesmo token. A apuração está em 1.1.
+
+A saída óbvia seria exportar o relatório em CSV e importar por arquivo — o
+produto tem essa porta pronta, e ela casa pelo `Ticket ID`. **A exportação não
+está disponível para a equipe**, então essa porta também está fechada.
+
+### O que foi feito enquanto isso
+
+O bot de atendimento pergunta ao cliente antes de abrir o chamado, e a resposta
+é mensagem da conversa, que o escopo `conversations` alcança. Isso rende:
+
+- "melhor descreve o motivo do seu contato" → **409 de 974** conversas
+- "melhor representa o tipo da sua solicitação" → **314 de 974**
+
+É a escolha do cliente, não a classificação de quem atendeu, e a tela diz isso.
+**Causa raiz não tem substituto**: é o diagnóstico do atendente, preenchido no
+formulário do ticket, e não passa pela conversa.
+
+### Um segundo assunto, menor
+
+Não há **nenhum** escopo de arquivos entre os 41 — nem `files`, nem
+`files.ui_hidden.read`. Sem ele não dá para trazer anexo nenhum de atendimento.
+
+Medido antes de pedir: em 139 mensagens de 20 conversas não há **nenhuma**
+imagem no corpo, e os `attachments` que aparecem são metadado de widget
+(`QUICK_REPLIES`, `WHATSAPP_TEMPLATE_METADATA`), não arquivo. A caixa medida é
+chat e WhatsApp; canal de e-mail, que é por onde print de tela costuma viajar,
+não apareceu na amostra.
+
+Ou seja: **o escopo de arquivos não é urgente**, e só vale pedir se alguém
+souber de anexo chegando por um canal que não foi medido.
 
 ---
 
@@ -414,6 +494,9 @@ quando o número não muda, e apagando a procedência quando o número é apagad
 ---
 
 ## 4. O que decidir
+
+> O pedido pronto para encaminhar está na **seção 0**. Isto aqui é a decisão
+> que fica deste lado.
 
 1. **Os dois escopos do item 1**. Vale pedir, e a resposta muda o tamanho do
    que dá para entregar. Sem `tickets`, o atendimento precisa nascer da conversa, e
