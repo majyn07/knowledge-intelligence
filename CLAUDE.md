@@ -1116,9 +1116,13 @@ Visitante sem nome continua "Cliente": campo vazio não é identificação. E a
 **empresa não tem recurso** — ela é propriedade do contato, e sem contato não há
 de onde tirar; são 100 dos 1.025.
 
-**Vale para quem entrar de agora em diante.** Os 547 que já estão aqui só
-ganhariam nome numa revarredura, que custa requisição contra o servidor de
-suporte.
+**Vale para quem entrar de agora em diante, e revarrer para preencher os 547
+antigos foi recusado**: custa requisição contra o servidor de suporte para
+preencher uma coluna, e o chamado antigo continua identificado pelo número.
+
+Quando não há nome, a linha diz **"Não identificado"** em vez de sumir. Sumindo,
+ela ficava igual para quem não tem contato associado e para quem a busca do
+contato falhou, e quem percorre a fila lia aquilo como coluna vazia.
 
 ### O freio das chamadas à HubSpot
 
