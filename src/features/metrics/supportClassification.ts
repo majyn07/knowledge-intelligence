@@ -50,14 +50,25 @@ export interface ClassificationTally {
  */
 export function tallyClassification(
   tickets: readonly Ticket[],
-  campo: TicketClassificationField,
+  /*
+    De onde sai o valor, e não o nome do campo.
+
+    A classificação chega por duas portas: propriedade do ticket, que espera o
+    escopo da HubSpot, e a escolha que o cliente fez no bot, que já está na
+    conversa. As duas se contam igual, e escrever duas contagens faria as duas
+    divergirem na primeira mudança.
+  */
+  valorDe: (ticket: Ticket) => string,
   limite = 5
 ): ClassificationTally {
-  const contagem = new Map<string, { label: string; quantos: number }>();
+  const contagem = new Map<
+    string,
+    { label: string; quantos: number; grafias: Map<string, number> }
+  >();
   let semClassificacao = 0;
 
   for (const ticket of tickets) {
-    const valor = (ticket[campo] ?? "").trim();
+    const valor = (valorDe(ticket) ?? "").trim();
 
     if (valor === "") {
       semClassificacao += 1;
@@ -67,8 +78,21 @@ export function tallyClassification(
     const chave = valor.toLocaleLowerCase("pt-BR");
     const atual = contagem.get(chave);
 
-    if (atual) atual.quantos += 1;
-    else contagem.set(chave, { label: valor, quantos: 1 });
+    if (atual) {
+      atual.quantos += 1;
+
+      /*
+        A grafia mais frequente vence, e não a primeira encontrada: entre
+        "Erro de instalação" e "ERRO DE INSTALAÇÃO" a lista deve mostrar a que
+        a equipe realmente usa, não a que o acaso da ordenação trouxe antes.
+      */
+      const contadas = atual.grafias.get(valor) ?? 0;
+      atual.grafias.set(valor, contadas + 1);
+
+      if (contadas + 1 > (atual.grafias.get(atual.label) ?? 0)) atual.label = valor;
+    } else {
+      contagem.set(chave, { label: valor, quantos: 1, grafias: new Map([[valor, 1]]) });
+    }
   }
 
   const classificados = tickets.length - semClassificacao;
@@ -77,7 +101,8 @@ export function tallyClassification(
     .sort((a, b) => b.quantos - a.quantos || a.label.localeCompare(b.label, "pt-BR"))
     .slice(0, limite)
     .map((item) => ({
-      ...item,
+      label: item.label,
+      quantos: item.quantos,
       fatia: classificados === 0 ? 0 : item.quantos / classificados,
     }));
 
@@ -88,4 +113,13 @@ export function tallyClassification(
     semClassificacao,
     distintos: contagem.size,
   };
+}
+
+/** Atalho para o caso comum: a classificação guardada no próprio atendimento. */
+export function tallyField(
+  tickets: readonly Ticket[],
+  campo: TicketClassificationField,
+  limite = 5
+): ClassificationTally {
+  return tallyClassification(tickets, (ticket) => ticket[campo], limite);
 }

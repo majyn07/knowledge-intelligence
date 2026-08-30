@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import type { Ticket } from "@/models/Ticket";
 import { emptyClassification } from "@/models/TicketClassification";
 
-import { tallyClassification } from "./supportClassification";
+import { tallyClassification, tallyField } from "./supportClassification";
 
 const atendimento = (extra: Partial<Ticket> = {}): Ticket => ({
   id: crypto.randomUUID(),
@@ -18,7 +18,7 @@ const atendimento = (extra: Partial<Ticket> = {}): Ticket => ({
 
 describe("tallyClassification", () => {
   it("conta por valor, do mais frequente para o menos", () => {
-    const resultado = tallyClassification(
+    const resultado = tallyField(
       [
         atendimento({ causa: "Erro de instalação" }),
         atendimento({ causa: "Erro de instalação" }),
@@ -40,8 +40,8 @@ describe("tallyClassification", () => {
   it("cada campo responde por si", () => {
     const tickets = [atendimento({ causa: "Defeito", sintoma: "Dúvida de uso" })];
 
-    expect(tallyClassification(tickets, "causa").itens[0].label).toBe("Defeito");
-    expect(tallyClassification(tickets, "sintoma").itens[0].label).toBe("Dúvida de uso");
+    expect(tallyField(tickets, "causa").itens[0].label).toBe("Defeito");
+    expect(tallyField(tickets, "sintoma").itens[0].label).toBe("Dúvida de uso");
   });
 
   /*
@@ -50,7 +50,7 @@ describe("tallyClassification", () => {
     a primeira grafia, porque inventar uma terceira seria pior.
   */
   it("junta grafias que diferem só na caixa", () => {
-    const resultado = tallyClassification(
+    const resultado = tallyField(
       [
         atendimento({ causa: "Erro de instalação" }),
         atendimento({ causa: "ERRO DE INSTALAÇÃO" }),
@@ -63,7 +63,7 @@ describe("tallyClassification", () => {
   });
 
   it("espaço em volta não cria linha nova", () => {
-    const resultado = tallyClassification(
+    const resultado = tallyField(
       [atendimento({ causa: "  Defeito  " }), atendimento({ causa: "Defeito" })],
       "causa"
     );
@@ -78,7 +78,7 @@ describe("tallyClassification", () => {
     na credencial.
   */
   it("o não classificado fica de fora da lista e é contado à parte", () => {
-    const resultado = tallyClassification(
+    const resultado = tallyField(
       [atendimento({ causa: "Defeito" }), atendimento(), atendimento({ causa: "   " })],
       "causa"
     );
@@ -95,7 +95,7 @@ describe("tallyClassification", () => {
     diferentes.
   */
   it("a fatia é sobre os classificados", () => {
-    const resultado = tallyClassification(
+    const resultado = tallyField(
       [
         atendimento({ causa: "Defeito" }),
         atendimento({ causa: "Defeito" }),
@@ -112,14 +112,14 @@ describe("tallyClassification", () => {
   it("corta na lista e diz quantos valores existem", () => {
     const tickets = ["a", "b", "c", "d", "e", "f"].map((causa) => atendimento({ causa }));
 
-    const resultado = tallyClassification(tickets, "causa", 3);
+    const resultado = tallyField(tickets, "causa", 3);
 
     expect(resultado.itens).toHaveLength(3);
     expect(resultado.distintos).toBe(6);
   });
 
   it("sem nenhum classificado devolve lista vazia, e não divisão por zero", () => {
-    const resultado = tallyClassification([atendimento(), atendimento()], "causa");
+    const resultado = tallyField([atendimento(), atendimento()], "causa");
 
     expect(resultado.itens).toEqual([]);
     expect(resultado.classificados).toBe(0);
@@ -127,6 +127,44 @@ describe("tallyClassification", () => {
   });
 
   it("sem atendimento nenhum não quebra", () => {
-    expect(tallyClassification([], "causa")).toMatchObject({ total: 0, itens: [] });
+    expect(tallyField([], "causa")).toMatchObject({ total: 0, itens: [] });
+  });
+});
+
+describe("tallyClassification", () => {
+  /*
+    A classificação chega por duas portas — propriedade do ticket e escolha do
+    cliente no bot — e as duas se contam igual. Duas contagens escritas em
+    separado divergem na primeira mudança.
+  */
+  it("conta a partir de qualquer fonte, e não só do campo do registro", () => {
+    const escolha = new Map([["a", "Financeiro"], ["b", "Financeiro"], ["c", "Cursos"]]);
+
+    const resultado = tallyClassification(
+      [atendimento({ id: "a" }), atendimento({ id: "b" }), atendimento({ id: "c" })],
+      (ticket) => escolha.get(ticket.id) ?? ""
+    );
+
+    expect(resultado.itens.map((item) => [item.label, item.quantos])).toEqual([
+      ["Financeiro", 2],
+      ["Cursos", 1],
+    ]);
+  });
+
+  /*
+    Entre "Erro de instalação" e "ERRO DE INSTALAÇÃO" a lista mostra a que a
+    equipe usa, e não a que a ordenação trouxe primeiro.
+  */
+  it("o rótulo exibido é a grafia mais frequente", () => {
+    const resultado = tallyField(
+      [
+        atendimento({ causa: "ERRO DE INSTALAÇÃO" }),
+        atendimento({ causa: "Erro de instalação" }),
+        atendimento({ causa: "Erro de instalação" }),
+      ],
+      "causa"
+    );
+
+    expect(resultado.itens[0]).toMatchObject({ label: "Erro de instalação", quantos: 3 });
   });
 });

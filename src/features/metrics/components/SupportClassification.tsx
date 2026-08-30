@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useMemo } from "react";
 
 import { ListSkeleton } from "@/components/common/page/LoadingSkeleton";
+import { indexarRespostas } from "@/features/analysis/chatbotAnswers";
 import { useTickets } from "@/features/analysis/providers/TicketsProvider";
 import type { Ticket } from "@/models/Ticket";
 import {
@@ -11,15 +12,43 @@ import {
   type TicketClassificationSpec,
 } from "@/models/TicketClassification";
 
-import { tallyClassification, type ClassificationTally } from "../supportClassification";
+import {
+  tallyClassification,
+  tallyField,
+  type ClassificationTally,
+} from "../supportClassification";
 
 /** Quantas linhas por lista. Leitura de relance, não relatório. */
 const NA_LISTA = 5;
 
-const PIPELINE_LABEL: Record<TicketClassificationSpec["pipeline"], string> = {
+type Origem = TicketClassificationSpec["pipeline"] | "cliente";
+
+const ORIGEM_LABEL: Record<Origem, string> = {
+  cliente: "Escolhido pelo cliente no atendimento digital",
   suporte: "Pipeline de Suporte",
   setup: "Pipeline de Setup",
 };
+
+/**
+ * As duas perguntas que o bot faz antes de abrir o chamado.
+ *
+ * Ficam ao lado das propriedades do ticket e **rotuladas pelo que são**: a
+ * escolha do cliente, não a classificação que o suporte fez depois de ler o
+ * caso. As duas coisas se parecem e respondem perguntas diferentes, e quem lê
+ * um número numa reunião precisa saber qual está lendo.
+ */
+const DO_CLIENTE = [
+  {
+    key: "areaDoContato" as const,
+    label: "Área do contato",
+    pergunta: "O que o cliente disse procurar, ao abrir o chamado.",
+  },
+  {
+    key: "tipoDaSolicitacao" as const,
+    label: "Tipo da solicitação",
+    pergunta: "Como o cliente descreveu o próprio pedido.",
+  },
+];
 
 /**
  * O que mais chega, pelo vocabulário de quem atendeu.
@@ -34,16 +63,27 @@ const PIPELINE_LABEL: Record<TicketClassificationSpec["pipeline"], string> = {
  * **alguém decidiu** com o caso em mãos, aquele mede o que o acervo cobre.
  */
 export function SupportClassification({ tickets }: { tickets: Ticket[] }) {
-  const { isHydrated } = useTickets();
+  const { conversations, isHydrated } = useTickets();
 
-  const listas = useMemo(
-    () =>
-      TICKET_CLASSIFICATIONS.map((spec) => ({
-        spec,
-        tally: tallyClassification(tickets, spec.key, NA_LISTA),
-      })),
-    [tickets]
-  );
+  const listas = useMemo(() => {
+    const respostas = indexarRespostas(conversations);
+
+    const doCliente = DO_CLIENTE.map((item) => ({
+      spec: { ...item, pipeline: "cliente" as const },
+      tally: tallyClassification(
+        tickets,
+        (ticket) => respostas.get(ticket.id)?.[item.key] ?? "",
+        NA_LISTA
+      ),
+    }));
+
+    const doSuporte = TICKET_CLASSIFICATIONS.map((spec) => ({
+      spec,
+      tally: tallyField(tickets, spec.key, NA_LISTA),
+    }));
+
+    return [...doCliente, ...doSuporte];
+  }, [conversations, tickets]);
 
   const comDado = listas.filter((item) => item.tally.classificados > 0);
 
@@ -63,17 +103,18 @@ export function SupportClassification({ tickets }: { tickets: Ticket[] }) {
   if (comDado.length === 0) {
     return (
       <p className="rounded-xl border border-dashed px-5 py-8 text-center text-sm leading-6 text-muted-foreground">
-        Nenhum dos {tickets.length} atendimentos traz a classificação do suporte. Ela é preenchida
-        na HubSpot, nos pipelines de Suporte e de Setup, e entra por{" "}
+        Nenhum dos {tickets.length} atendimentos traz classificação. A do suporte é preenchida na
+        HubSpot e entra por{" "}
         <Link href="/analysis" className="underline underline-offset-2">
           importação do relatório
         </Link>
-        .
+        ; a do cliente sai da conversa, e só existe nos chamados que passaram pelo atendimento
+        digital.
       </p>
     );
   }
 
-  const porPipeline = (["suporte", "setup"] as const)
+  const porPipeline = (["cliente", "suporte", "setup"] as const)
     .map((pipeline) => ({
       pipeline,
       itens: comDado.filter((item) => item.spec.pipeline === pipeline),
@@ -85,7 +126,7 @@ export function SupportClassification({ tickets }: { tickets: Ticket[] }) {
       {porPipeline.map((grupo) => (
         <section key={grupo.pipeline}>
           <h4 className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
-            {PIPELINE_LABEL[grupo.pipeline]}
+            {ORIGEM_LABEL[grupo.pipeline]}
           </h4>
 
           <div className="grid gap-4 md:grid-cols-2">
@@ -119,7 +160,7 @@ function Lista({
   spec,
   tally,
 }: {
-  spec: TicketClassificationSpec;
+  spec: { label: string; pergunta: string };
   tally: ClassificationTally;
 }) {
   return (

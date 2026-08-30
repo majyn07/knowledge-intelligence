@@ -1497,16 +1497,32 @@ preenche. Cabeçalho repetido entre dois campos é recusado por teste: o
 mapeamento escolhe a primeira coluna que casa, e a coluna cairia num campo por
 acidente.
 
-**A classificação é escolhida pelo cliente, no chatbot.** As duas perguntas e as
-respostas são mensagens da conversa, que já temos: medido nas 974, 410 trazem o
-motivo do contato e 314 o tipo da solicitação, 433 alguma das duas. Não é
-dedução, é a opção que o cliente clicou. Não está implementado, e é a alternativa
-ao relatório enquanto ele não chega.
+**As sete estão vazias, e vão continuar.** Elas entram pelo relatório
+exportado, não pela API: o escopo `tickets` não está na credencial, e a
+exportação em CSV não está disponível para a equipe. Nenhuma das duas portas é
+decisão nossa.
 
-Elas entram **pelo relatório exportado**, não pela API: o escopo `tickets` não
-está na credencial, e as propriedades vivem no ticket. Vazio é o estado de todos
-os 1.025 que entraram pela conversa, e a tela diz isso **uma vez**, com o caminho
-junto — sete caixas idênticas seriam sete vezes a mesma frase.
+**O que sobrou é o próprio cliente.** O bot pergunta antes de abrir o chamado, e
+pergunta e resposta são mensagens da conversa, que já temos. Não é dedução: é a
+opção que a pessoa clicou, copiada literal. Medido nas 974 conversas: 409 trazem
+a área do contato e 314 o tipo da solicitação.
+
+Elas ficam **ao lado** das propriedades do ticket e rotuladas pelo que são — a
+escolha do cliente, não a classificação que o suporte fez depois de ler o caso.
+As duas se parecem e respondem perguntas diferentes, e quem leva um número a uma
+reunião precisa saber qual está lendo. Causa raiz não tem equivalente aqui: ela
+é o diagnóstico de quem atendeu, e não existe na conversa.
+
+**Escolha de menu não termina em ponto**, e isso precisou ser medido. O teto de
+tamanho sozinho deixou passar "Bom dia, voltou o acesso. Está funcionando
+normalmente." — cinquenta e cinco caracteres, dentro do limite, listada no
+ranking como se uma pessoa a tivesse escolhido. Nenhuma das dezesseis opções
+reais tem pontuação de fim. "Voltar ao menu anterior" também sai: é navegação, e
+quem voltou respondeu depois.
+
+Vazio é o estado de todos os 1.025 nas sete do suporte, e a tela diz isso **uma
+vez**, com o caminho junto — sete caixas idênticas seriam sete vezes a mesma
+frase.
 
 A fatia é sobre os **classificados**, não sobre o total: dividir pelo total
 misturaria "isto é raro" com "isto não foi classificado", e as duas pedem
@@ -1669,7 +1685,7 @@ fronteira de armazenamento com a divisão em lotes da
 gravação compartilhada e o plano da releitura incremental, a leitura de arquivo delimitado com o mapeamento de
 colunas e os planos de importação de artigo e de atendimento, a recuperação de texto não salvo, o cadastro
 de taxonomia com a migração da
-classificação antiga, a contagem da classificação do suporte com o vocabulário dos dois pipelines, os normalizadores de artigo, plano e atendimento, o motor
+classificação antiga, a contagem da classificação com o vocabulário dos dois pipelines e a leitura da escolha que o cliente fez no bot, os normalizadores de artigo, plano e atendimento, o motor
 e o desenho dos painéis, a trilha de navegação, o recorte por equipe, as
 menções, o que se acompanha, a lixeira, a tabela com suas visões salvas, o rascunho do artigo e a tradução
 do erro de acesso.
