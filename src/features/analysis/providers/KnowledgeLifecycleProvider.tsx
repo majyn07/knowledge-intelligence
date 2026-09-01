@@ -21,6 +21,7 @@ import type {
   OpportunityWorkflowStatus,
 } from "@/models/KnowledgeLifecycle";
 import { STORAGE_KEYS } from "@/lib/storage";
+import { concordar, contar } from "@/lib/plural";
 
 const STORAGE_KEY = STORAGE_KEYS.analyses;
 
@@ -77,7 +78,7 @@ export function KnowledgeLifecycleProvider({ children }: { children: ReactNode }
       projectId: analysis.projectId,
       actor: currentPerson,
       subject: { kind: "analysis", id: analysis.id, label: analysis.result.identification.title },
-      detail: `Atendimento #${analysis.ticketId} analisado, com ${analysis.result.opportunities.length} oportunidade(s) proposta(s).`,
+      detail: `Atendimento #${analysis.ticketId} analisado, com ${contar(analysis.result.opportunities.length, "oportunidade")} ${concordar(analysis.result.opportunities.length, "proposta")}.`,
     });
     return analysis;
   }, [currentPerson, record, setAnalyses]);
@@ -154,7 +155,7 @@ export function KnowledgeLifecycleProvider({ children }: { children: ReactNode }
       projectId: analysis.projectId,
       actor: currentPerson,
       subject: { kind: "analysis", id: analysis.id, label: analysis.result.identification.title },
-      detail: `Revisão finalizada com ${approved} oportunidade(s) aprovada(s).`,
+      detail: `Revisão finalizada com ${contar(approved, "oportunidade")} ${concordar(approved, "aprovada")}.`,
     });
   }, [analyses, currentPerson, record, setAnalyses]);
 

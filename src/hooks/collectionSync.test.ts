@@ -5,6 +5,7 @@ import {
   planejarReleitura,
   valeIncremental,
   type Carimbo,
+  mesclarLinhas,
 } from "./collectionSync";
 
 const carimbo = (id: string, syncedAt: string): Carimbo => ({ id, syncedAt });
@@ -145,5 +146,67 @@ describe("valeIncremental", () => {
 
   it("não vale sobre tabela vazia", () => {
     expect(valeIncremental({ buscar: [], remover: [], intactos: 0 }, 0)).toBe(false);
+  });
+});
+
+/*
+  O cache guarda linhas, e até aqui só a releitura inteira o reescrevia. Medido
+  depois de classificar 52 artigos: o cache ficou com as 52 linhas antigas e
+  toda abertura voltava a baixar as mesmas 52, para sempre.
+*/
+describe("mesclarLinhas", () => {
+  const linha = (id: string, secao: string) => ({ id, section_id: secao });
+
+  it("põe a linha nova no lugar da antiga", () => {
+    const mescladas = mesclarLinhas({
+      local: [linha("a", ""), linha("b", "sec-1")],
+      ordem: ["a", "b"],
+      buscadas: [linha("a", "sec-ifc")],
+    });
+
+    expect(mescladas).toEqual([linha("a", "sec-ifc"), linha("b", "sec-1")]);
+  });
+
+  it("aceita linha que ainda não estava no cache", () => {
+    const mescladas = mesclarLinhas({
+      local: [linha("a", "sec-1")],
+      ordem: ["a", "nova"],
+      buscadas: [linha("nova", "sec-2")],
+    });
+
+    expect(mescladas).toHaveLength(2);
+  });
+
+  /* Sem isto o registro apagado reapareceria na próxima abertura. */
+  it("quem saiu da ordem sai do cache", () => {
+    const mescladas = mesclarLinhas({
+      local: [linha("a", "sec-1"), linha("apagada", "sec-2")],
+      ordem: ["a"],
+      buscadas: [],
+    });
+
+    expect(mescladas).toEqual([linha("a", "sec-1")]);
+  });
+
+  /* A ordem é a do carimbo remoto, como em `aplicarReleitura`. */
+  it("segue a ordem que o banco devolveu", () => {
+    const mescladas = mesclarLinhas({
+      local: [linha("a", ""), linha("b", ""), linha("c", "")],
+      ordem: ["c", "a", "b"],
+      buscadas: [],
+    });
+
+    expect(mescladas.map((l) => (l as { id: string }).id)).toEqual(["c", "a", "b"]);
+  });
+
+  /* Guardar uma linha sem `id` seria guardar algo que ninguém acha depois. */
+  it("linha sem identificador legível não entra", () => {
+    const mescladas = mesclarLinhas({
+      local: [linha("a", "sec-1"), { semId: true }, null],
+      ordem: ["a"],
+      buscadas: [],
+    });
+
+    expect(mescladas).toEqual([linha("a", "sec-1")]);
   });
 });

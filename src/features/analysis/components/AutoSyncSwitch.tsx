@@ -18,6 +18,7 @@ import {
   type EstadoDaSincronizacao,
 } from "../autoSync";
 import { gravarEstado, lerEstado } from "../autoSyncRepository";
+import { contar } from "@/lib/plural";
 
 /**
  * As opções de atraso, em dias.
@@ -34,7 +35,7 @@ const ATRASOS = [
 ];
 
 function rotuloDoAtraso(dias: number): string {
-  return ATRASOS.find((opcao) => opcao.dias === dias)?.rotulo ?? `${dias} dia(s) atrás`;
+  return ATRASOS.find((opcao) => opcao.dias === dias)?.rotulo ?? `${contar(dias, "dia")} atrás`;
 }
 
 /**
@@ -93,7 +94,7 @@ export function AutoSyncSwitch() {
     toast.success(
       dias === 0
         ? "A busca automática passa a olhar até agora."
-        : `A busca automática passa a olhar até ${dias} dia(s) atrás.`
+        : `A busca automática passa a olhar até ${contar(dias, "dia")} atrás.`
     );
   }
 

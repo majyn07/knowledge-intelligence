@@ -13,6 +13,7 @@ import { buildPortalImportPlan, type PortalImportPlan } from "../import/portal/p
 import { planVisits } from "../import/portal/portalSchedule";
 import type { PortalUrl } from "../import/portal/portalSitemap";
 import { LibraryDialog } from "./LibraryDialog";
+import { concordar, contar } from "@/lib/plural";
 
 /**
  * Trazer o acervo publicado para dentro, direto do portal.
@@ -189,7 +190,7 @@ export function PortalImportDialog({
     importArticles(plan.create, plan.update);
 
     toast.success(
-      `${plan.create.length} artigo(s) criado(s) e ${plan.update.length} atualizado(s) a partir do portal.`
+      `${contar(plan.create.length, "artigo")} ${concordar(plan.create.length, "criado")} e ${contar(plan.update.length, "atualizado")} a partir do portal.`
     );
 
     onOpenChange(false);
@@ -258,7 +259,7 @@ export function PortalImportDialog({
 
             {visitas.undated > 0 && (
               <p className="text-xs text-muted-foreground">
-                O sitemap não datou {visitas.undated} página(s). Sem data não dá para afirmar que
+                O sitemap não datou {contar(visitas.undated, "página")}. Sem data não dá para afirmar que
                 estão em dia, então elas são visitadas. Pular no escuro deixaria uma alteração de
                 fora para sempre.
               </p>
@@ -270,7 +271,7 @@ export function PortalImportDialog({
               </p>
             ) : (
               <p className="text-sm">
-                Visitar {previstos} página(s) leva cerca de <strong>{minutos} minuto(s)</strong>,
+                Visitar {contar(previstos, "página")} leva cerca de <strong>{contar(minutos, "minuto")}</strong>,
                 em série e com pausa. Dá para parar no meio: o que já veio fica, e a próxima
                 passada não busca de novo o que ficou em dia.
               </p>
@@ -293,7 +294,7 @@ export function PortalImportDialog({
 
             <Button onClick={varrer} disabled={previstos === 0}>
               <CloudDownload className="mr-1.5 h-4 w-4" />
-              {previstos === 0 ? "Nada a visitar" : `Visitar ${previstos} página(s)`}
+              {previstos === 0 ? "Nada a visitar" : `Visitar ${contar(previstos, "página")}`}
             </Button>
           </div>
         )}
@@ -349,7 +350,9 @@ export function PortalImportDialog({
 
             {plan.keptExistingSection > 0 && (
               <p className="text-xs text-muted-foreground">
-                {plan.keptExistingSection} artigo(s) mantêm a seção que já tinham aqui: o portal
+                {contar(plan.keptExistingSection, "artigo")}{" "}
+                {concordar(plan.keptExistingSection, "mantém", "mantêm")} a seção que já{" "}
+                {concordar(plan.keptExistingSection, "tinha", "tinham")} aqui: o portal
                 não trouxe nenhuma, e apagar a classificação seria a importação desfazendo
                 revisão humana.
               </p>
@@ -357,7 +360,10 @@ export function PortalImportDialog({
 
             {falhas.length > 0 && (
               <p className="text-xs text-muted-foreground">
-                {falhas.length} página(s) não responderam. Elas não entram e podem ser trazidas
+                {contar(falhas.length, "página")} não{" "}
+                {concordar(falhas.length, "respondeu", "responderam")}.{" "}
+                {concordar(falhas.length, "Ela", "Elas")} não{" "}
+                {concordar(falhas.length, "entra", "entram")} e podem ser trazidas
                 numa próxima passada.
               </p>
             )}
@@ -376,7 +382,7 @@ export function PortalImportDialog({
 
           <Button onClick={aplicar} disabled={total === 0}>
             <Upload className="mr-1.5 h-4 w-4" />
-            {total > 0 ? `Importar ${total} artigo(s)` : "Importar"}
+            {total > 0 ? `Importar ${contar(total, "artigo")}` : "Importar"}
           </Button>
         </div>
       </div>

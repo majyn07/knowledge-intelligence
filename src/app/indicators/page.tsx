@@ -29,6 +29,7 @@ import { usePeople } from "@/features/people/providers/PeopleProvider";
 import { usePlans } from "@/features/plans/providers/PlansProvider";
 import { dayOf } from "@/lib/dates";
 import { useProject } from "@/providers/ProjectProvider";
+import { concordar, contar } from "@/lib/plural";
 
 const periods: { value: MetricPeriod; label: string }[] = [
   { value: 7, label: "7 dias" },
@@ -58,7 +59,7 @@ function ressalvaDoCiclo(ciclo: ReturnType<typeof cycleTime>): string {
 
 function coverageLabel(percentage: number | null, completed: number) {
   if (percentage === null) return "Nenhuma análise concluída no período";
-  return `${completed} análise(s) concluída(s)`;
+  return `${contar(completed, "análise")} ${concordar(completed, "concluída")}`;
 }
 
 export default function IndicatorsPage() {
@@ -130,14 +131,14 @@ export default function IndicatorsPage() {
         note: coverageLabel(coverageNow.percentage, coverageNow.completed),
       },
 
-      { group: "Estado atual", label: "Atendimentos", value: metrics.ticket.total, note: `${metrics.ticket.analyzed} já analisado(s)` },
+      { group: "Estado atual", label: "Atendimentos", value: metrics.ticket.total, note: `${metrics.ticket.analyzed} já ${concordar(metrics.ticket.analyzed, "analisado")}` },
       { group: "Estado atual", label: "Análises pendentes", value: metrics.analysis.open + metrics.analysis.inReview },
       { group: "Estado atual", label: "Cobertura acumulada", value: `${metrics.analysis.coverage}%` },
       { group: "Estado atual", label: "Aprovadas sem plano", value: metrics.opportunity.approvedWithoutPlan },
-      { group: "Estado atual", label: "Planos ativos", value: metrics.plan.active, note: `${metrics.plan.published} publicado(s)` },
+      { group: "Estado atual", label: "Planos ativos", value: metrics.plan.active, note: `${contar(metrics.plan.published, "publicado")}` },
       { group: "Estado atual", label: "Artigos em rascunho", value: metrics.article.draft },
       { group: "Estado atual", label: "Artigos em revisão", value: metrics.article.review },
-      { group: "Estado atual", label: "Artigos publicados", value: metrics.article.published, note: `${metrics.article.archived} arquivado(s)` },
+      { group: "Estado atual", label: "Artigos publicados", value: metrics.article.published, note: `${contar(metrics.article.archived, "arquivado")}` },
 
       {
         group: "Do atendimento ao artigo publicado",
@@ -280,14 +281,14 @@ export default function IndicatorsPage() {
             />
           ) : (
             <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-              <MetricCard label="Atendimentos" value={metrics.ticket.total} description={`${metrics.ticket.analyzed} já analisado(s)`} />
+              <MetricCard label="Atendimentos" value={metrics.ticket.total} description={`${metrics.ticket.analyzed} já ${concordar(metrics.ticket.analyzed, "analisado")}`} />
               <MetricCard label="Análises pendentes" value={metrics.analysis.open + metrics.analysis.inReview} description="Abertas ou em revisão" />
               <MetricCard label="Cobertura acumulada" value={`${metrics.analysis.coverage}%`} description="Sobre todas as análises concluídas" />
               <MetricCard label="Aprovadas sem plano" value={metrics.opportunity.approvedWithoutPlan} description="Decisões que ainda não viraram execução" />
-              <MetricCard label="Planos ativos" value={metrics.plan.active} description={`${metrics.plan.published} publicado(s)`} />
+              <MetricCard label="Planos ativos" value={metrics.plan.active} description={`${contar(metrics.plan.published, "publicado")}`} />
               <MetricCard label="Artigos em rascunho" value={metrics.article.draft} description="Aguardando envio para revisão" />
               <MetricCard label="Artigos em revisão" value={metrics.article.review} description="Aguardando publicação" />
-              <MetricCard label="Artigos publicados" value={metrics.article.published} description={`${metrics.article.archived} arquivado(s)`} />
+              <MetricCard label="Artigos publicados" value={metrics.article.published} description={`${contar(metrics.article.archived, "arquivado")}`} />
             </div>
           )}
           </div>

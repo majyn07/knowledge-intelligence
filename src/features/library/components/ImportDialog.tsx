@@ -29,6 +29,7 @@ import {
   type ImportField,
 } from "../import/mapping";
 import { LibraryDialog } from "./LibraryDialog";
+import { concordar, contar } from "@/lib/plural";
 
 const NAO_IMPORTAR = "__nenhuma__";
 
@@ -164,7 +165,7 @@ export function ImportDialog({
 
             {table && (
               <span className="text-xs text-muted-foreground">
-                {fileName} · {table.rows.length} linha(s) ·{" "}
+                {fileName} · {contar(table.rows.length, "linha")} ·{" "}
                 separador {table.delimiter === "\t" ? "tabulação" : `"${table.delimiter}"`}
               </span>
             )}
@@ -298,11 +299,14 @@ export function ImportDialog({
 
             <ul className="mt-2 flex flex-col gap-1 text-sm text-muted-foreground">
               <li>
-                <strong className="text-foreground">{plan.create.length}</strong> artigo(s) novo(s).
+                <strong className="text-foreground">{plan.create.length}</strong>{" "}
+                {concordar(plan.create.length, "artigo")}{" "}
+                {concordar(plan.create.length, "novo")}.
               </li>
 
               <li>
-                <strong className="text-foreground">{plan.update.length}</strong> atualizado(s),
+                <strong className="text-foreground">{plan.update.length}</strong>{" "}
+                {concordar(plan.update.length, "atualizado")},
                 casados pelo identificador do portal.
               </li>
             </ul>
@@ -325,12 +329,15 @@ export function ImportDialog({
                   )}
 
                   {plan.skippedNoTitle > 0 && (
-                    <li>{plan.skippedNoTitle} linha(s) sem título ficam de fora.</li>
+                    <li>
+                      {contar(plan.skippedNoTitle, "linha")} sem título{" "}
+                      {concordar(plan.skippedNoTitle, "fica", "ficam")} de fora.
+                    </li>
                   )}
 
                   {plan.duplicatedInFile > 0 && (
                     <li>
-                      {plan.duplicatedInFile} repetida(s) dentro do arquivo. Vale a última
+                      {contar(plan.duplicatedInFile, "repetida")} dentro do arquivo. Vale a última
                       ocorrência.
                     </li>
                   )}
@@ -409,7 +416,7 @@ export function ImportDialog({
 
           <Button onClick={confirm} disabled={!plan || total === 0}>
             <Upload className="mr-1.5 h-4 w-4" />
-            {total > 0 ? `Importar ${total} artigo(s)` : "Importar"}
+            {total > 0 ? `Importar ${contar(total, "artigo")}` : "Importar"}
           </Button>
         </div>
       </div>

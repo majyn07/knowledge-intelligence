@@ -16,6 +16,7 @@ import {
 
 import { useNotices } from "../hooks/useNotices";
 import { noticeReasonLabel } from "../notices";
+import { concordar } from "@/lib/plural";
 
 /**
  * A central de avisos.
@@ -48,7 +49,7 @@ export function NoticeBell() {
         variant="ghost"
         size="icon"
         className="relative"
-        aria-label={unread > 0 ? `Avisos, ${unread} não lido(s)` : "Avisos"}
+        aria-label={unread > 0 ? `Avisos, ${unread} não ${concordar(unread, "lido")}` : "Avisos"}
         onClick={() => abrir(true)}
       >
         <Bell className="h-4 w-4" />

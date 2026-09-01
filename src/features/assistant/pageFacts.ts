@@ -55,7 +55,12 @@ const NA_AMOSTRA = 12;
 /** Quantos achados vão. A lista é para priorizar, não para transcrever. */
 const ACHADOS_NO_PEDIDO = 15;
 
-function contar<T>(itens: T[], chave: (item: T) => string): Fato[] {
+/*
+  Contagem por chave, e o nome evita `contar`: `lib/plural` exporta um `contar`
+  que faz outra coisa — concordar em número. Dois nomes iguais com significados
+  diferentes é onde alguém importa o errado sem perceber.
+*/
+function agruparEContar<T>(itens: T[], chave: (item: T) => string): Fato[] {
   const contagem = new Map<string, number>();
 
   for (const item of itens) {
@@ -117,7 +122,7 @@ function doAcervo({ articles, taxonomy, achados }: EntradaDosFatos): PageFacts {
         seção" duas vezes com números diferentes (56 no acervo, 55 publicados),
         que lê como contradição — e as duas linhas colidiam na chave do React.
       */
-      ...contar(
+      ...agruparEContar(
         publicados.filter((artigo) => artigo.sectionId !== ""),
         (artigo) => `Seção ${nomeDaSecao.get(artigo.sectionId) ?? "desconhecida"}`
       ).slice(0, 10),
@@ -166,8 +171,8 @@ function doLevantamento({ achados }: EntradaDosFatos): PageFacts {
       "resolver junto. Todos foram calculados dos dados, nenhum veio de modelo.",
     fatos: [
       { rotulo: "Achados", valor: String(achados.length) },
-      ...contar(achados, (achado) => achado.severity),
-      ...contar(achados, (achado) => achado.kind).slice(0, 8),
+      ...agruparEContar(achados, (achado) => achado.severity),
+      ...agruparEContar(achados, (achado) => achado.kind).slice(0, 8),
     ],
     achados: resumirAchados(achados),
     amostra: [],
@@ -188,7 +193,7 @@ function dosIndicadores({ articles, tickets, achados }: EntradaDosFatos): PageFa
     fatos: [
       { rotulo: "Atendimentos", valor: String(tickets.length) },
       { rotulo: "Artigos publicados", valor: String(articles.filter((a) => a.status === "published").length) },
-      ...contar(articles, (artigo) => artigo.status),
+      ...agruparEContar(articles, (artigo) => artigo.status),
     ],
     achados: resumirAchados(achados),
     amostra: [],

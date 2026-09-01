@@ -6,6 +6,7 @@ import { sectionPath, type Taxonomy } from "@/models/Taxonomy";
 import { useTaxonomy } from "@/features/taxonomy/providers/TaxonomyProvider";
 import { BrandEmptyState } from "@/components/brand/BrandEmptyState";
 import { LibraryCard } from "./LibraryCard";
+import { contar } from "@/lib/plural";
 
 interface LibraryGridProps {
   items: KnowledgeArticle[];
@@ -58,7 +59,7 @@ export function LibraryGrid({
           <div className="flex items-baseline justify-between gap-4 border-b border-border/70 pb-2">
             <h2 className="text-sm font-semibold tracking-tight">{group}</h2>
             <span className="text-xs text-muted-foreground">
-              {groupItems.length} artigo(s)
+              {contar(groupItems.length, "artigo")}
             </span>
           </div>
 

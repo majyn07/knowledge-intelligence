@@ -38,6 +38,7 @@ import { useTickets } from "./providers/TicketsProvider";
 import { usePlans } from "../plans/providers/PlansProvider";
 import { useLibrary } from "../library/providers/LibraryProvider";
 import { useListaPorTeclado } from "./hooks/useListaPorTeclado";
+import { concordar, contar } from "@/lib/plural";
 
 const SIDEBAR_STORAGE_KEY = "visus-workspace-sidebar-collapsed";
 
@@ -204,7 +205,7 @@ export function AnalysisWorkspace() {
     setAnalysisStatus(analysis.id, "completed");
     toast.success(
       createdPlans.length > 0
-        ? `${createdPlans.length} plano(s) criado(s) a partir de oportunidade(s) aprovada(s).`
+        ? `${contar(createdPlans.length, "plano")} ${concordar(createdPlans.length, "criado")} a partir de ${concordar(createdPlans.length, "oportunidade")} ${concordar(createdPlans.length, "aprovada")}.`
         : "Revisão finalizada. Nenhuma nova oportunidade aprovada aguardava plano."
     );
   }
@@ -300,6 +301,7 @@ export function AnalysisWorkspace() {
           <TriageQueue
             triagem={triagem}
             acervoPronto={acervoPronto}
+            conversas={conversations}
             onSelectTicket={(ticketId) => {
               setSelectedTicketId(ticketId);
               setVista("atender");

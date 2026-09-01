@@ -25,6 +25,7 @@ import { STORAGE_KEYS } from "@/lib/storage";
 
 import { DOCK_INICIAL, encaixar, lerPosicao, type DockPosition } from "../dockPosition";
 import { pageFacts, type PageFacts } from "../pageFacts";
+import { contar } from "@/lib/plural";
 
 /**
  * Falar com a IA de onde se está.
@@ -73,7 +74,7 @@ export function AssistantDock() {
 
   const fimRef = useRef<HTMLDivElement>(null);
 
-  const [posicao, setPosicao] = usePersistedState<DockPosition>({
+  const [posicao, setPosicao, posicaoLida] = usePersistedState<DockPosition>({
     key: STORAGE_KEYS.assistantDock,
     fallback: DOCK_INICIAL,
     parse: lerPosicao,
@@ -104,10 +105,17 @@ export function AssistantDock() {
 
   /*
     Janela redimensionada põe o painel fora da tela, e ali ele fica sem alça
-    para arrastar de volta. O encaixe também roda na montagem, porque a posição
-    guardada pode ter vindo de outro monitor.
+    para arrastar de volta.
+
+    O encaixe espera a **leitura** do armazenamento, e é ela que ele existe para
+    consertar: a posição guardada pode ter vindo de um monitor maior. Rodando só
+    na montagem, ele encaixava o valor de partida — que já cabe sempre — e o
+    guardado entrava depois, sem passar por aqui. O painel abria fora da tela,
+    que é exatamente o defeito que o encaixe veio impedir.
   */
   useEffect(() => {
+    if (!posicaoLida) return;
+
     function reencaixar() {
       setPosicao((atual) =>
         encaixar(atual, { width: window.innerWidth, height: window.innerHeight }, TAMANHO)
@@ -117,7 +125,7 @@ export function AssistantDock() {
     reencaixar();
     window.addEventListener("resize", reencaixar);
     return () => window.removeEventListener("resize", reencaixar);
-  }, [setPosicao]);
+  }, [posicaoLida, setPosicao]);
 
   useEffect(() => {
     fimRef.current?.scrollIntoView({ block: "nearest", behavior: "smooth" });
@@ -177,6 +185,17 @@ export function AssistantDock() {
     setPergunta("");
     setPensando(true);
     setErro(null);
+
+    /*
+      Um respiro antes de calcular, e ele não é enfeite.
+
+      O retrato leva **1,287 s** medido contra o acervo real: o Levantamento
+      compara artigos aos pares dentro da seção. Calculando na sequência dos
+      `setState`, o React ainda não pintou — a pessoa clica, a tela congela por
+      mais de um segundo e nem a pergunta dela aparece. Cedendo um quadro, o
+      "Lendo..." pinta primeiro, e a espera passa a parecer o que é.
+    */
+    await new Promise((pinte) => setTimeout(pinte, 0));
 
     const retrato = montarRetrato();
     setVisto(retrato);
@@ -383,7 +402,7 @@ export function AssistantDock() {
 
                 {visto.achados.length > 0 && (
                   <p className="pt-1">
-                    E {visto.achados.length} achado(s) do Levantamento, todos calculados dos dados.
+                    E {contar(visto.achados.length, "achado")} do Levantamento, todos calculados dos dados.
                   </p>
                 )}
               </dl>

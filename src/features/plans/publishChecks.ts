@@ -1,6 +1,7 @@
 import type { PublishCheck } from "@/components/common/PublishConfirmDialog";
 import type { KnowledgeArticle } from "@/models/KnowledgeArticle";
 import type { PlanWorkspaceItem } from "./types/PlanWorkspace";
+import { concordar, contar } from "@/lib/plural";
 
 /** Mede o preparo do plano pelo próprio documento e pelo conteúdo que ele gerou. */
 export function planPublishChecks(
@@ -28,7 +29,7 @@ export function planPublishChecks(
       hint:
         plan.tasks.length === 0
           ? "Nenhuma atividade foi definida neste plano."
-          : `${pendingTasks} atividade(s) continuam abertas.`,
+          : `${contar(pendingTasks, "atividade")} ${concordar(pendingTasks, "continua", "continuam")} ${concordar(pendingTasks, "aberta")}.`,
     },
     {
       label: "Critérios de aceite definidos",

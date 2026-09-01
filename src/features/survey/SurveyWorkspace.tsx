@@ -2,11 +2,13 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import { ArrowRight, CheckCircle2, Filter } from "lucide-react";
+import { ArrowRight, CheckCircle2, Filter, Sparkles } from "lucide-react";
 
 import { PageHeader } from "@/components/common/page/PageHeader";
 import { ListSkeleton } from "@/components/common/page/LoadingSkeleton";
 import { StatusBadge } from "@/components/common/status/StatusBadge";
+import { Button } from "@/components/ui/button";
+import { contar } from "@/lib/plural";
 import { useNow } from "@/hooks/useNow";
 import { useLibrary } from "@/features/library/providers/LibraryProvider";
 import { useKnowledgeLifecycle } from "@/features/analysis/providers/KnowledgeLifecycleProvider";
@@ -21,6 +23,8 @@ import {
   type FindingKind,
   type FindingSeverity,
 } from "./survey";
+import { findOverlaps } from "./overlap";
+import { OverlapSweepDialog } from "./components/OverlapSweepDialog";
 
 const severityBadge: Record<FindingSeverity, "danger" | "warning" | "default"> = {
   alta: "danger",
@@ -54,6 +58,14 @@ export function SurveyWorkspace() {
   const now = useNow();
 
   const [kind, setKind] = useState<FindingKind | "todos">("todos");
+  const [varrendo, setVarrendo] = useState(false);
+
+  /*
+    Os pares saem do mesmo cálculo que o achado de sobreposição usa. Uma segunda
+    passada custava re-tokenizar os 1.822; hoje `articleVocabulary` guarda o
+    vocabulário por artigo, então ela é quase de graça.
+  */
+  const { pairs } = useMemo(() => findOverlaps(articles), [articles]);
 
   /*
     O relógio entra depois da montagem. Servidor e cliente têm horas
@@ -128,6 +140,19 @@ export function SurveyWorkspace() {
             </div>
 
             {/*
+              Apontar não resolve, e com 137 pares percorrer um a um é o
+              trabalho manual que este produto existe para deixar de ser manual.
+              Só aparece quando há par: botão que não faz nada é pior que botão
+              ausente.
+            */}
+            {pairs.length > 0 && (
+              <Button type="button" size="sm" variant="outline" onClick={() => setVarrendo(true)}>
+                <Sparkles className="mr-2 h-4 w-4" />
+                Avaliar {contar(pairs.length, "sobreposição", "sobreposições")}
+              </Button>
+            )}
+
+            {/*
               A procedência é dita no cabeçalho, e não só em cada linha: quem
               chega precisa saber, antes de ler a lista, que ela não é palpite
               de modelo.
@@ -169,6 +194,12 @@ export function SurveyWorkspace() {
               <FindingRow key={finding.id} finding={finding} />
             ))}
           </ul>
+
+          <OverlapSweepDialog
+            pares={pairs}
+            aberto={varrendo}
+            aoFechar={() => setVarrendo(false)}
+          />
         </>
       )}
     </div>

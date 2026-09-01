@@ -636,6 +636,22 @@ da limpeza teve de sair: o React desmonta e remonta, a limpeza marcava
 `alive = false` com a leitura no ar, a segunda execução saía pela guarda, e o
 resultado chegava para ser descartado. A tela ficava em esqueleto, sem erro.
 
+**E a releitura incremental reescreve o cache.** Ela não o reescrevia, com a
+justificativa de que o cache guarda linhas e reconverter registro em linha
+inventaria um segundo caminho de conversão. A recusa está certa; a conclusão não
+estava. **Não é preciso converter nada**: as linhas cruas que ela acabou de
+buscar são exatamente o que o cache quer guardar.
+
+Sem isso o cache não ficava "um pouco velho", ficava velho **para sempre**: nada
+o reescrevia, e toda abertura voltava a baixar as mesmas linhas. Medido depois de
+classificar 52 artigos — através de recarregamentos o cache continuou com as 52
+antigas, e a releitura pagava por elas de novo em cada abertura, para catorze
+pessoas várias vezes por dia. Depois do conserto, a abertura faz três pedidos e
+**nenhum deles traz linha**: só `id` e `synced_at`.
+
+Quem sai da ordem que o banco devolveu sai do cache. Sem isso o registro apagado
+reapareceria na abertura seguinte.
+
 **E o tempo real não pode reler durante a nossa própria escrita.** Cada lote
 gravado dispara um evento, a releitura devolve uma visão **parcial** do banco,
 e ela substitui o estado local no meio do caminho: a escrita competindo
@@ -854,6 +870,35 @@ listou seis procedimentos que sumiriam numa união descuidada.
 
 Ela não une nada, e a tela não oferece botão para o contrário.
 
+**E ela varre as sobreposições em lote.** O Levantamento aponta **137 pares** no
+acervo real, e ler um par por vez é o trabalho manual que este produto existe
+para deixar de ser manual — a mesma lição da sugestão de seção, que saiu de
+"abra e classifique" para "aqui está a lista".
+
+**Um pedido por par, e não há como agrupar:** cada par leva os dois textos
+inteiros, e dois pares num pedido só seriam quatro artigos com a resposta vindo
+cortada sem ninguém saber. É **o mesmo pedido** da tela de comparação, de
+propósito: um menor aqui responderia mais rápido e diria outra coisa, e quem
+abrisse o par depois de ver "complementares" na lista encontraria "mesmo
+assunto" na tela.
+
+**A pausa entre os pares não é educação, é necessidade.** Medido contra a conta
+real, sem ela a varredura parou no **segundo** par com 429: dois pedidos desse
+tamanho em sequência estouram o limite de taxa. Limite estourado ganha **uma**
+segunda chance depois de espera longa, e só ele — prazo e chave recusada não
+melhoram esperando. A espera é dita na tela: quarenta e cinco segundos de giro
+sem explicação leem como travado, e quem fecha perde o que já foi lido.
+
+O teto é de quem roda, e o preço vai antes do clique: 20 pares levam cerca de 11
+minutos. Os vereditos que pedem decisão vêm primeiro — "assuntos diferentes" é o
+mais comum e o que menos rende olhar, e no topo faria alguém desistir da lista
+antes de chegar ao que importa.
+
+**O vocabulário do artigo passou a ser guardado por artigo**, num `WeakMap` como
+o índice da busca. Ele limpa o HTML e tokeniza o corpo inteiro, e agora dois
+caminhos o pedem sobre o mesmo acervo: o achado de sobreposição e a varredura
+que o avalia. Sem isso, o segundo re-tokenizava os 1.822.
+
 **A varredura de sugestão de seção foi de 25 para 10 por lote.** Vinte e cinco
 ficava na borda do prazo: varrendo os 56 sem seção do acervo real, o primeiro
 lote voltou e o segundo estourou os 90 segundos. Na borda a falha não é
@@ -1010,6 +1055,40 @@ junto: nome de cliente ali sai do nosso domínio e entra no de terceiro, e nada
 no prompt melhora por saber que a pessoa se chama Ana. Quem atendeu continua
 nomeado — é gente da AltoQi, e o nome distingue quem respondeu o quê.
 
+**A fila vira artigo sem ninguem reler as conversas.** Era a ultima perna manual
+do ciclo: a triagem agrupava, a IA priorizava, e entre "estes 24 atendimentos" e
+um artigo escrito havia alguem relendo 24 conversas. O que faltava nao era
+inteligencia, era a ligacao — a avaliacao de cobertura ja sabia responder "o
+acervo ja cobre isto?" e escrever o rascunho, so nunca tinha sido apontada para
+a fila.
+
+**A primeira pergunta continua sendo se ja existe**, e ali ela vale mais que no
+formulario: um assunto que chegou 24 vezes parece novo justamente porque ninguem
+achou o artigo. "O acervo ja responde" significa que o problema e de busca, e
+nao de conteudo.
+
+**A pergunta e do cliente e a resposta e do suporte, e as duas vao.** So a
+pergunta produz um artigo que descreve o problema e nao o resolve; so a resposta
+produz um artigo que resolve algo que ninguem sabe procurar. Vai uma amostra dos
+mais recentes, dita como amostra: um assunto que chega ha dois anos mudou de
+forma no caminho, e o artigo tem de responder ao que chega hoje. O material fica
+visivel antes do clique, como o plano de importacao.
+
+O rascunho chega ao formulario por **entrega**, nao por estado: a chave some na
+leitura, senao abrir o formulario na semana seguinte traria de volta um rascunho
+que a pessoa ja decidiu nao usar. Fica no navegador pela mesma razao da
+recuperacao de texto nao salvo. E secao, genero e responsavel nascem **vazios**:
+eles guardam identificador e o modelo devolve texto.
+
+**A saudacao de abertura sai, e ela carrega o nome do cliente.** Os marcadores do
+e-mail cortavam para baixo, porque a convencao poe o rodape no fim; a saudacao
+escapava por estar antes de tudo. Medido nas 1.025 solucoes do acervo: 301 (29%)
+abrem com saudacao e **95 (9%) trazem um nome proprio nela** — "Boa tarde,
+Uesley!". Esse texto ia ao provedor, e e a mesma decisao que tirou o nome do
+cliente do transcrito, alcancando o lugar que aquela mudanca nao alcancava. So a
+primeira linha nao vazia, e so se ela for curta: um paragrafo que comeca com
+"Ola" e segue explicando e a resposta, nao o cumprimento.
+
 **A conversa vai limpa e dentro de um teto.** Ia inteira: rodapé, assinatura,
 aviso de segurança do servidor, clique de menu e histórico citado. Medido no
 acervo, **38% do texto** que ia ao modelo era isso — 6,19 milhões de caracteres
@@ -1027,6 +1106,14 @@ modelo **antes** do transcrito, e à tela, como no artigo longo.
 **Botão que não pode ser clicado diz por quê.** "Analisar com IA" se
 desabilitava com a análise em revisão e continuava escrito a mesma coisa, em
 estilo primário: clique que não faz nada, e quem clica conclui que a IA quebrou.
+
+**E a falha diz se vale tentar de novo**, num campo próprio (`retriable`), porque
+o código não separa: limite estourado e provedor mal configurado responderam o
+mesmo 503 contra a API real. Quem varre em lote precisa da diferença para
+escolher entre repetir e parar, e deduzi-la do texto amarraria o laço a uma frase
+escrita para quem lê a tela. Limite e sobrecarga valem uma segunda chance; chave
+recusada, prazo estourado e configuração ausente, não — esperar não conserta
+nenhum dos três.
 
 **Falha de provedor tem tipo.** Chave recusada, cota estourada, modelo
 sobrecarregado e pedido que passou do prazo eram a mesma frase ("tente
@@ -1714,6 +1801,18 @@ O desfazer devolve **os que foram levados naquele clique**, e não tudo que
 está na lixeira: restaurar por engano o que alguém excluiu ontem seria o
 desfazer criando o problema que veio consertar.
 
+**O texto concorda em número, e num lugar só.** A regra já estava escrita para
+o diálogo de exclusão, e mesmo assim havia **89 lugares** escrevendo "artigo(s)"
+e "sugestão(ões)" — inclusive no diálogo que aplica a sugestão de seção, que
+dizia "52 sugestão(ões)". `lib/plural` resolve porque a alternativa é um
+ternário em cada frase, e ternário repetido oitenta e nove vezes é onde alguém
+erra o plural de "visível".
+
+O plural irregular vai **explícito** (`seção`/`seções`, `mensagem`/`mensagens`,
+`visível`/`visíveis`): acrescentar `s` erraria os três em silêncio. E o verbo
+concorda junto — "1 linha ficam de fora" é a mesma frase quebrada, só que sem
+parênteses para denunciar.
+
 O diálogo de confirmação concorda em número. "3 artigo(s) vai para a lixeira e
 pode ser restaurado" é uma frase escrita para um caso e usada noutro, e quem
 lê rápido uma frase que não concorda desconfia da tela inteira.
@@ -2080,12 +2179,12 @@ para na página vazia, o mapeamento de mensagens do provedor, a consulta da IA
 sobre o artigo, o rótulo da iniciativa, motor de busca e busca
 transversal, transições de artigo e de plano, métricas por projeto e por
 período, o tempo do ciclo com as ressalvas dele e a planilha da página, parsing da resposta da IA com a redução do contrato ao que o provedor lê e o preparo do transcrito, a escolha do provedor com a classificação
-das falhas dele, a leitura da sugestão de seção, a avaliação de cobertura do acervo, a leitura de dois artigos que se
+das falhas dele e a decisão de tentar de novo, a leitura da sugestão de seção, a avaliação de cobertura do acervo, o material que um grupo da fila leva ao artigo com a entrega do rascunho, a leitura de dois artigos que se
 sobrepõem, o retrato que a
 tela dá ao assistente com o encaixe do painel na janela, a leitura do preenchimento de
 formulário com a seleção do que aplicar e a classificação do arquivo
 anexado, o recorte na URL, a central de avisos, o catálogo de ações guardadas e a auditoria do histórico, o levantamento, índice do artigo, critérios de publicação,
-fronteira de armazenamento com a divisão em lotes da
+o texto que concorda em número, fronteira de armazenamento com a divisão em lotes da
 gravação compartilhada e o plano da releitura incremental, a leitura de arquivo delimitado com o mapeamento de
 colunas e os planos de importação de artigo e de atendimento, a recuperação de texto não salvo, o cadastro
 de taxonomia com a migração da

@@ -6,6 +6,7 @@ import { findSection, sectionPath, type Taxonomy } from "@/models/Taxonomy";
 import { triageTickets } from "@/features/analysis/triage";
 
 import { findDuplicates, findOverlaps } from "./overlap";
+import { concordar, contar } from "@/lib/plural";
 
 /**
  * O levantamento: o trabalho que este produto existe para deixar de ser manual.
@@ -162,7 +163,7 @@ export function buildSurvey(input: SurveyInput): Finding[] {
       action:
         vazias.length === secoes.length
           ? "Cobrir esta categoria, nenhuma seção tem artigo"
-          : `Cobrir ${vazias.length} seção(ões) desta categoria`,
+          : `Cobrir ${contar(vazias.length, "seção", "seções")} desta categoria`,
       subject: category.name,
       why: `${vazias.length} de ${secoes.length} seções sem artigo publicado: ${vazias
         .slice(0, 3)
@@ -513,7 +514,7 @@ export function buildSurvey(input: SurveyInput): Finding[] {
       kind: "sobreposicao",
       origin: "calculado",
       severity: "baixa",
-      action: `Conferir à mão ${skippedSections.length} seção(ões) grande(s) demais para comparar`,
+      action: `Conferir à mão ${contar(skippedSections.length, "seção", "seções")} ${concordar(skippedSections.length, "grande")} demais para comparar`,
       subject: "Sobreposição não medida em parte do acervo",
       why:
         `A comparação é aos pares e cresce ao quadrado. Estas seções passam do teto ` +

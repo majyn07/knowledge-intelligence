@@ -1,13 +1,18 @@
 "use client";
 
-import { ArrowRight, ListChecks } from "lucide-react";
+import { useState } from "react";
+import { ArrowRight, ListChecks, Sparkles } from "lucide-react";
 
 import { PageSection } from "@/components/common/page/PageSection";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { formatDay } from "@/lib/dates";
 
-import type { TriageResult } from "../triage";
+import type { SupportConversation } from "@/models/SupportConversation";
+
+import type { TriageGroup, TriageResult } from "../triage";
+import { concordar, contar } from "@/lib/plural";
+import { GroupToArticleDialog } from "./GroupToArticleDialog";
 
 /**
  * Por onde começar, quando há mais atendimento do que dia.
@@ -28,14 +33,23 @@ import type { TriageResult } from "../triage";
 export function TriageQueue({
   triagem,
   acervoPronto,
+  conversas,
   onSelectTicket,
 }: {
   triagem: TriageResult;
   /** O acervo chegou. Sem ele a cobertura de todo grupo dá zero. */
   acervoPronto: boolean;
+  /** As conversas, para o material do artigo ouvir o cliente e não o modelo de e-mail. */
+  conversas: readonly SupportConversation[];
   onSelectTicket: (ticketId: string) => void;
 }) {
   const { groups, ignorados, excedeuTeto } = triagem;
+
+  /*
+    Qual grupo está virando artigo. Um por vez: a avaliação custa um pedido ao
+    provedor, e dois diálogos abertos seriam dois pedidos que ninguém pediu.
+  */
+  const [virandoArtigo, setVirandoArtigo] = useState<TriageGroup | null>(null);
 
   /*
     Enquanto a Biblioteca não chegou, a cobertura de todo grupo é zero, e zero
@@ -88,7 +102,7 @@ export function TriageQueue({
           {foraDaFila > 0 && (
             <>
               {" "}
-              {foraDaFila} atendimento(s) ficaram fora da fila: {resumoDosIgnorados(ignorados)}.
+              {contar(foraDaFila, "atendimento")} {concordar(foraDaFila, "ficou", "ficaram")} fora da fila: {resumoDosIgnorados(ignorados)}.
             </>
           )}
         </div>
@@ -134,15 +148,26 @@ export function TriageQueue({
                     )}
                   </div>
 
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="shrink-0"
-                    onClick={() => onSelectTicket(grupo.tickets[0].id)}
-                  >
-                    Ler o primeiro
-                    <ArrowRight className="ml-2 h-4 w-4" />
-                  </Button>
+                  {/*
+                    Duas saídas, e elas respondem perguntas diferentes: ler é
+                    para entender o caso, virar artigo é para resolvê-lo de uma
+                    vez para todos que perguntarem depois.
+                  */}
+                  <div className="flex shrink-0 flex-wrap gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => onSelectTicket(grupo.tickets[0].id)}
+                    >
+                      Ler o primeiro
+                      <ArrowRight className="ml-2 h-4 w-4" />
+                    </Button>
+
+                    <Button size="sm" onClick={() => setVirandoArtigo(grupo)}>
+                      <Sparkles className="mr-2 h-4 w-4" />
+                      Virar artigo
+                    </Button>
+                  </div>
                 </div>
 
                 {/*
@@ -184,6 +209,12 @@ export function TriageQueue({
           )}
         </>
       )}
+      <GroupToArticleDialog
+        grupo={virandoArtigo}
+        conversas={conversas}
+        aberto={virandoArtigo !== null}
+        aoFechar={() => setVirandoArtigo(null)}
+      />
     </PageSection>
   );
 }

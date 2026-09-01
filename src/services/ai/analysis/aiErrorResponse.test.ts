@@ -79,3 +79,32 @@ describe("aiErrorResponse", () => {
     expect(resposta.message).not.toContain("segredo");
   });
 });
+
+/*
+  Quem varre em lote precisa saber se vale tentar de novo, e o código não
+  responde: limite estourado e provedor mal configurado já responderam o mesmo
+  503 contra a API real.
+*/
+describe("retriable", () => {
+  it("limite e sobrecarga valem uma segunda chance", () => {
+    expect(
+      aiErrorResponse(falha("limite")).retriable
+    ).toBe(true);
+    expect(
+      aiErrorResponse(falha("indisponivel")).retriable
+    ).toBe(true);
+  });
+
+  /* Esperar não conserta chave errada, prazo estourado nem falta de configuração. */
+  it("o que não melhora esperando não é repetido", () => {
+    expect(
+      aiErrorResponse(falha("credencial")).retriable
+    ).toBe(false);
+    expect(aiErrorResponse(falha("prazo")).retriable).toBe(false);
+    expect(aiErrorResponse(new AIConfigurationError()).retriable).toBe(false);
+  });
+
+  it("falha desconhecida não é repetida", () => {
+    expect(aiErrorResponse(new Error("qualquer")).retriable).toBe(false);
+  });
+});

@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import type { Team } from "@/models/Assignment";
 
 import type { TeamScope } from "../teamScope";
+import { concordar } from "@/lib/plural";
 
 interface TeamFilterProps {
   teams: Team[];
@@ -60,7 +61,8 @@ export function TeamScopeNotice({ scope }: { scope: TeamScope }) {
         {scope.unassigned > 0 && (
           <>
             {" "}
-            <strong>{scope.unassigned}</strong> registro(s) estão sem responsável
+            <strong>{scope.unassigned}</strong> {concordar(scope.unassigned, "registro")}{" "}
+            {scope.unassigned === 1 ? "está" : "estão"} sem responsável
             e não entram em equipe nenhuma.
           </>
         )}
