@@ -1103,6 +1103,21 @@ problema é descrito no começo e o fim é confirmação e despedida — cortar 
 cabeça deixaria o modelo com a resposta e sem a pergunta. A ressalva vai ao
 modelo **antes** do transcrito, e à tela, como no artigo longo.
 
+**O resultado da análise leva a pessoa até ele.** A análise sai embaixo, em
+largura cheia, e essa escolha assumia uma página curta. Com mil atendimentos na
+lista ela passa de dez mil pixels: medido, o resultado nascia **seis mil pixels**
+abaixo do botão que o pediu, umas nove telas, e a página não se movia. Quem
+clicava esperava trinta segundos olhando um botão e concluía que a IA quebrou —
+enquanto a análise estava pronta, e a conversa com ela logo abaixo.
+
+A rolagem acontece depois da pintura: antes dela o painel ainda não existe no
+documento.
+
+**E a falha diz o que o servidor disse.** O cliente lançava "Erro ao iniciar a
+análise" e a tela mostrava "tente novamente", descartando as duas vezes a
+mensagem precisa que a rota já monta. Cota estourada, chave recusada e prazo
+viravam a mesma frase, e ela mandava repetir um pedido que ia falhar igual.
+
 **Botão que não pode ser clicado diz por quê.** "Analisar com IA" se
 desabilitava com a análise em revisão e continuava escrito a mesma coisa, em
 estilo primário: clique que não faz nada, e quem clica conclui que a IA quebrou.
