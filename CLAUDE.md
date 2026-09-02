@@ -1103,6 +1103,22 @@ problema é descrito no começo e o fim é confirmação e despedida — cortar 
 cabeça deixaria o modelo com a resposta e sem a pergunta. A ressalva vai ao
 modelo **antes** do transcrito, e à tela, como no artigo longo.
 
+**As três colunas têm a mesma altura, e cada uma rola por dentro.** Só a do meio
+tinha teto. As laterais eram `sticky` e cresciam com o conteúdo — medido numa
+tela de 1440×900, a lista de atendimentos ia a **4.030 pixels** —, e como a grade
+acompanha a coluna mais alta, a análise que vem embaixo nascia cinco telas abaixo
+do botão que a pediu. A promessa que esta tela faz, de que a conversa rola dentro
+da própria caixa e não arrasta a página, valia só para o meio.
+
+`TicketList` já era feita para isto: tem `xl:h-full`, `overflow-hidden` e uma
+área interna com `min-h-0 flex-1 overflow-y-auto`. Só nunca recebia um pai com
+altura, então a rolagem interna ficava ociosa e o cartão inteiro esticava.
+
+Medido depois: as três em 692 px, a página de 7.718 para 4.380, e a análise de
+y=4.826 para **y=1.489**. O preço é a lista mostrar três atendimentos por vez em
+vez de a página inteira — que é o que um help desk faz, e é o que torna a análise
+alcançável.
+
 **O resultado da análise leva a pessoa até ele.** A análise sai embaixo, em
 largura cheia, e essa escolha assumia uma página curta. Com mil atendimentos na
 lista ela passa de dez mil pixels: medido, o resultado nascia **seis mil pixels**

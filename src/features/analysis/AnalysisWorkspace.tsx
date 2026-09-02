@@ -362,7 +362,23 @@ export function AnalysisWorkspace() {
                 : "xl:grid-cols-[minmax(16rem,0.26fr)_minmax(0,1fr)_minmax(17rem,0.28fr)]"
             }`}
           >
-            <aside className="min-w-0 xl:sticky xl:top-6 xl:self-start">
+            {/*
+              A lateral tem o mesmo teto de altura da coluna do meio, e rola por
+              dentro.
+
+              Sem ele a lista crescia com o conteúdo — medido numa tela de
+              1440×900, **4.030 pixels** —, e como a grade acompanha a coluna
+              mais alta, a análise que vem embaixo nascia cinco telas abaixo do
+              botão que a pediu. A promessa de help desk que esta tela faz ("a
+              conversa rola dentro da própria caixa e não arrasta a página")
+              valia só para o meio.
+
+              `TicketList` já era feita para isto: ela tem `xl:h-full`,
+              `overflow-hidden` e uma área interna com `min-h-0 flex-1
+              overflow-y-auto`. Só nunca recebia um pai com altura, então a
+              rolagem interna ficava ociosa e o cartão inteiro esticava.
+            */}
+            <aside className="min-w-0 xl:sticky xl:top-6 xl:h-[calc(100vh-13rem)] xl:self-start">
               <TicketList
                 recorte={recorte}
                 ciclo={ciclo}
@@ -385,7 +401,12 @@ export function AnalysisWorkspace() {
               <TicketConversation conversation={selectedConversation} ticket={selectedTicket} />
             </main>
 
-            <aside className="min-w-0 xl:sticky xl:top-6 xl:self-start">
+            {/*
+              O contexto pelo mesmo motivo: ele é curto hoje, mas cresce com o
+              atendimento (anexos, classificação), e basta uma coluna sem teto
+              para a grade voltar a esticar.
+            */}
+            <aside className="min-w-0 xl:sticky xl:top-6 xl:h-[calc(100vh-13rem)] xl:self-start xl:overflow-y-auto">
               <TicketDetails
                 ticket={selectedTicket}
                 conversation={selectedConversation}
