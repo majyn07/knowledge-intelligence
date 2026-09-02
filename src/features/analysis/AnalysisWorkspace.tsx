@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useEffect, useState } from "react";
+import { useMemo, useEffect, useRef, useState } from "react";
 import { Sparkles } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -144,6 +144,17 @@ export function AnalysisWorkspace() {
   const deletingTicket = projectTickets.find((ticket) => ticket.id === deletingTicketId);
   const { taxonomy } = useTaxonomy();
 
+  /*
+    Para onde levar quem acabou de pedir a análise.
+
+    Ela sai embaixo, em largura cheia, e com mil atendimentos na lista a página
+    passa de dez mil pixels: medido, o resultado nasce **seis mil pixels** abaixo
+    do botão que o pediu, umas nove telas. Quem clica espera trinta segundos
+    olhando um botão e conclui que não aconteceu nada — enquanto a análise estava
+    pronta, e a conversa com a IA logo abaixo dela.
+  */
+  const analiseRef = useRef<HTMLDivElement>(null);
+
   async function handleAnalyze() {
     if (!selectedTicket || !activeProjectId) return;
     setIsAnalyzing(true);
@@ -178,9 +189,26 @@ export function AnalysisWorkspace() {
         messages: response.messages,
       });
       toast.success("Análise pronta para revisão humana.");
+
+      /* Depois da pintura: antes dela o painel ainda não existe no documento. */
+      requestAnimationFrame(() =>
+        analiseRef.current?.scrollIntoView({ behavior: "smooth", block: "start" })
+      );
     } catch (error) {
       console.error(error);
-      toast.error("Não foi possível concluir a análise. Tente novamente.");
+
+      /*
+        A mensagem do servidor, e não uma frase genérica.
+
+        Ele já distingue cota estourada de chave recusada e de prazo, e diz o
+        que fazer em cada caso. Trocar tudo por "tente novamente" manda repetir
+        um pedido que vai falhar igual, e apaga a única pista de quem administra.
+      */
+      toast.error(
+        error instanceof Error && error.message
+          ? error.message
+          : "Não foi possível concluir a análise."
+      );
     } finally {
       setIsAnalyzing(false);
     }
@@ -366,7 +394,7 @@ export function AnalysisWorkspace() {
             </aside>
           </div>
 
-          <div className="space-y-8">
+          <div ref={analiseRef} className="scroll-mt-6 space-y-8">
             <AnalysisPanel
               analysisRecord={analysis}
               context={context}
