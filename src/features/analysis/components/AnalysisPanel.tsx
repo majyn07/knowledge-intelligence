@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { CheckCircle2, FileText, Sparkles } from "lucide-react";
+import { CheckCircle2, FileText, Sparkles, MessagesSquare } from "lucide-react";
 
 import { MetricCard } from "@/components/common/cards/MetricCard";
 import { PageSection } from "@/components/common/page/PageSection";
@@ -83,6 +83,27 @@ export function AnalysisPanel({
       <PageSection
         title="Resultado da análise"
         description="A IA organizou os sinais do atendimento. Agora a decisão é sua."
+        actions={
+          /*
+            A conversa com a IA fica no fim, depois das decisões — a ordem está
+            certa, porque se pergunta sobre o que já se leu. O que faltava era
+            saber que ela existe: medida na tela, ela nasce três mil pixels
+            abaixo daqui, e quem não rola até lá conclui que não há onde
+            perguntar.
+          */
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() =>
+              document
+                .getElementById("conversa-da-analise")
+                ?.scrollIntoView({ behavior: "smooth", block: "start" })
+            }
+          >
+            <MessagesSquare className="mr-2 h-4 w-4" />
+            Perguntar à IA
+          </Button>
+        }
       >
         <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
           <MetricCard
@@ -161,11 +182,13 @@ export function AnalysisPanel({
           )}
         </div>
       </PageSection>
-      <AnalysisConversation
-        context={context}
-        messages={analysisRecord.messages}
-        setMessages={onMessagesChange}
-      />
+      <div id="conversa-da-analise" className="scroll-mt-6">
+        <AnalysisConversation
+          context={context}
+          messages={analysisRecord.messages}
+          setMessages={onMessagesChange}
+        />
+      </div>
       <OpportunityEditorDialog
         opportunity={editingOpportunity}
         onOpenChange={(open) => {
