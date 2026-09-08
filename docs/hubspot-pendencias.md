@@ -1,714 +1,1080 @@
-# HubSpot: o que está bloqueado, e de quem é cada coisa
+**# HubSpot: o que está bloqueado, e de quem é cada coisa**
 
-> **Atualizado em 29/08.** Sobrou **um** pedido, e é o do escopo `tickets`:
-> sem ele o produto não lê a classificação que o suporte faz, e a exportação em
-> CSV — que seria a saída por arquivo — não está disponível para a equipe. O
-> pedido pronto para encaminhar está na seção 0.
->
-> O lado do **artigo** não depende mais da HubSpot: o acervo entra pelo site
-> público, e a Biblioteca já tem os 1.822 artigos.
+\> **\*\*Atualizado em 29/08.\*\*** Sobrou **\*\*um\*\*** pedido, e é o do escopo \`tickets\`:
+
+\> sem ele o produto não lê a classificação que o suporte faz, e a exportação em
+
+\> CSV — que seria a saída por arquivo — não está disponível para a equipe. O
+
+\> pedido pronto para encaminhar está na seção 0.
+
+\>
+
+\> O lado do **\*\*artigo\*\*** não depende mais da HubSpot: o acervo entra pelo site
+
+\> público, e a Biblioteca já tem os 1.822 artigos.
 
 Levantado em 26 e 27/08/2026 contra a API real, com o token de app privado
-`pat-na1-…` (hub `44552714`, app `50542060`, 41 escopos).
+
+\`pat-na1-…\` (hub \`44552714\`, app \`50542060\`, 41 escopos).
 
 Tudo abaixo é leitura. Nenhuma chamada escreveu nada na HubSpot, e nenhum
+
 registro de lá foi alterado.
 
-Para reproduzir qualquer item: `npm run hubspot:conferir`.
+Para reproduzir qualquer item: \`npm run hubspot\:conferir\`.
 
----
+\---
 
-## 0. O pedido, em uma página
+**## 0. O pedido, em uma página
 
-> **Escrito em 29/08/2026 para ser encaminhado a quem administra o app privado
-> `pat-na1-…` (hub `44552714`, app `50542060`).** As seções seguintes são a
-> apuração completa; esta é o resumo que se manda.
+> **Versão curta, para encaminhar:** [hubspot-o-que-precisamos.md](hubspot-o-que-precisamos.md).
+> Uma página, com a lista de todas as chamadas que o produto faz e o que cada
+> uma traz. O que está abaixo é a apuração completa.**
 
-### O que se pede
+\> \*\*Escrito em 29/08/2026 para ser encaminhado a quem administra o app privado
+
+\> \`pat-na1-…\` (hub \`44552714\`, app \`50542060\`).\*\* As seções seguintes são a
+
+\> apuração completa; esta é o resumo que se manda.
+
+**### O que se pede**
 
 Conceder ao app privado o escopo de leitura de tickets:
 
-```
-crm.objects.tickets.read
-```
+\`\`\`
 
-Só leitura. O produto **não escreve na HubSpot** — nenhuma chamada desta
+crm.objects.tickets.read
+
+\`\`\`
+
+Só leitura. O produto **\*\*não escreve na HubSpot\*\*** — nenhuma chamada desta
+
 integração criou, alterou ou apagou nada lá, e publicar de volta no portal está
+
 adiado para uma sprint própria.
 
-Se for possível conceder junto, `crm.schemas.tickets.read` evita ter que
+Se for possível conceder junto, \`crm.schemas.tickets.read\` evita ter que
+
 descobrir o vocabulário de cada campo por tentativa.
 
-### O que isso destranca
+**### O que isso destranca**
 
 O suporte já classifica cada chamado, e essa classificação é o que o produto
+
 precisa para dizer o que mais chega. São propriedades do objeto ticket, e os
+
 nomes abaixo saíram de um chamado real (nº 47673917220):
 
-| Propriedade | Pipeline |
-| --- | --- |
-| `[Support] Categoria \| Motivo principal do contato` | Suporte |
-| `[Setup] Sintoma \| Motivo detalhado do contato` | Setup |
-| `[Setup] Causa \| Qual a causa raiz que gerou o problema?` | Setup |
-| `[Setup] Tipo de Problema` | Setup |
-| `Fechamento \| Qual o motivo do encerramento do ticket?` | Setup |
-| `Quem abriu?` | Setup |
-| `Proteção tecnológica` | Setup |
+\| Propriedade | Pipeline |
 
-Os sete campos **já existem no produto**, com coluna no banco, importação e
+\| --- | --- |
+
+\| \`[Support] Categoria \\| Motivo principal do contato\` | Suporte |
+
+\| \`[Setup] Sintoma \\| Motivo detalhado do contato\` | Setup |
+
+\| \`[Setup] Causa \\| Qual a causa raiz que gerou o problema?\` | Setup |
+
+\| \`[Setup] Tipo de Problema\` | Setup |
+
+\| \`Fechamento \\| Qual o motivo do encerramento do ticket?\` | Setup |
+
+\| \`Quem abriu?\` | Setup |
+
+\| \`Proteção tecnológica\` | Setup |
+
+Os sete campos **\*\*já existem no produto\*\***, com coluna no banco, importação e
+
 tela. Estão vazios nos 1.025 atendimentos porque não há de onde lê-los.
 
-### Por que não há outro caminho
+**### Por que não há outro caminho**
 
-Não é rota errada nem versão velha. O objeto `0-5` foi procurado por **sete
-endereços** e todos devolvem 403, enquanto `contacts`, `companies`, `owners` e
-`schemas` respondem 200 no mesmo token. A apuração está em 1.1.
+Não é rota errada nem versão velha. O objeto \`0-5\` foi procurado por \*\*sete
+
+endereços\*\* e todos devolvem 403, enquanto \`contacts\`, \`companies\`, \`owners\` e
+
+\`schemas\` respondem 200 no mesmo token. A apuração está em 1.1.
 
 A saída óbvia seria exportar o relatório em CSV e importar por arquivo — o
-produto tem essa porta pronta, e ela casa pelo `Ticket ID`. **A exportação não
-está disponível para a equipe**, então essa porta também está fechada.
 
-### O que foi feito enquanto isso
+produto tem essa porta pronta, e ela casa pelo \`Ticket ID\`. \*\*A exportação não
+
+está disponível para a equipe\*\*, então essa porta também está fechada.
+
+**### O que foi feito enquanto isso**
 
 O bot de atendimento pergunta ao cliente antes de abrir o chamado, e a resposta
-é mensagem da conversa, que o escopo `conversations` alcança. Isso rende:
 
-- "melhor descreve o motivo do seu contato" → **409 de 974** conversas
-- "melhor representa o tipo da sua solicitação" → **314 de 974**
+é mensagem da conversa, que o escopo \`conversations\` alcança. Isso rende:
+
+\- "melhor descreve o motivo do seu contato" → **\*\*409 de 974\*\*** conversas
+
+\- "melhor representa o tipo da sua solicitação" → **\*\*314 de 974\*\***
 
 É a escolha do cliente, não a classificação de quem atendeu, e a tela diz isso.
-**Causa raiz não tem substituto**: é o diagnóstico do atendente, preenchido no
+
+**\*\*Causa raiz não tem substituto\*\***: é o diagnóstico do atendente, preenchido no
+
 formulário do ticket, e não passa pela conversa.
 
-### Imagem do atendimento: **não precisa de escopo nenhum**
+**### Imagem do atendimento: \*\*não precisa de escopo nenhum\*\***
 
 Isto começou como um segundo pedido e virou o contrário, depois de medir direito.
 
-A primeira medição disse "zero imagens" e estava **errada**: a amostra era de
-chat e WhatsApp, e o bot não recebe arquivo. Nas conversas de **e-mail** há
-imagem, e bastante: 27 anexos `FILE` e 14 `<img>` em 209 mensagens de dez fios.
+A primeira medição disse "zero imagens" e estava **\*\*errada\*\***: a amostra era de
 
-O anexo já vem com tudo o que é preciso, na resposta que `conversations.read`
+chat e WhatsApp, e o bot não recebe arquivo. Nas conversas de **\*\*e-mail\*\*** há
+
+imagem, e bastante: 27 anexos \`FILE\` e 14 \`\<img>\` em 209 mensagens de dez fios.
+
+O anexo já vem com tudo o que é preciso, na resposta que \`conversations.read\`
+
 devolve:
 
-```json
-{
-  "type": "FILE",
-  "fileId": "2204996…",
-  "name": "image-Aug-27-2026-07-00-31-4560-PM.png",
-  "fileUsageType": "IMAGE",
-  "url": "https://44552714.cdnp1.hubspotusercontent-na1.net/hubfs/…?Expires=…&Signature=…"
-}
-```
+\`\`\`json
 
-Medido: essa URL responde **200, `image/png`, 107 KB, sem autenticação
-nenhuma**. Não é preciso pedir `files`, e de fato `files/v3/files/{id}` devolve
+{
+
+  "type": "FILE",
+
+  "fileId": "2204996…",
+
+  "name": "image-Aug-27-2026-07-00-31-4560-PM.png",
+
+  "fileUsageType": "IMAGE",
+
+  "url": "https\://44552714.cdnp1.hubspotusercontent-na1.net/hubfs/…?Expires=…&Signature=…"
+
+}
+
+\`\`\`
+
+Medido: essa URL responde \*\*200, \`image/png\`, 107 KB, sem autenticação
+
+nenhuma\*\*. Não é preciso pedir \`files\`, e de fato \`files/v3/files/{id}\` devolve
+
 403 com este token — mas o caminho por ali não é necessário.
 
-**A assinatura expira**, e depressa: a que foi medida valia por cerca de um dia.
+**\*\*A assinatura expira\*\***, e depressa: a que foi medida valia por cerca de um dia.
+
 Guardar a URL não serve; ou se busca o fio de novo na hora de exibir, ou se
+
 copia o arquivo para um balde nosso.
 
-**E copiar tem uma decisão de privacidade junto**, que não é técnica. O balde de
+**\*\*E copiar tem uma decisão de privacidade junto\*\***, que não é técnica. O balde de
+
 imagens do produto é público na leitura, e a razão está registrada: ele guarda
+
 figura de artigo, e o acervo espelha um portal público. Print de tela de cliente
+
 não é material público. Ou o arquivo vai para um balde privado com URL assinada,
+
 ou não se copia nada e a imagem é buscada na hora.
 
-Nada disso está implementado: hoje a importação **descarta** o campo
-`attachments` das mensagens. É trabalho nosso, não pedido a ninguém.
+Nada disso está implementado: hoje a importação **\*\*descarta\*\*** o campo
 
----
+\`attachments\` das mensagens. É trabalho nosso, não pedido a ninguém.
 
-## 1. Para quem emitiu a chave
+\---
 
-Dois escopos ausentes bloqueiam metade do que a integração precisa. **Não são
-erro de código nosso**: os endpoints estão certos e foram testados em mais de
+**## 1. Para quem emitiu a chave**
+
+Dois escopos ausentes bloqueiam metade do que a integração precisa. \*\*Não são
+
+erro de código nosso\*\*: os endpoints estão certos e foram testados em mais de
+
 uma forma.
 
-### 1.1 Falta o escopo `tickets`. Bloqueia ler o atendimento
+**### 1.1 Falta o escopo \`tickets\`. Bloqueia ler o atendimento**
 
-O atendimento foi procurado por **sete endereços**, para descartar que fosse
+O atendimento foi procurado por **\*\*sete endereços\*\***, para descartar que fosse
+
 questão de rota, de nomenclatura ou de versão da API:
 
-| Endpoint | Resposta |
-| --- | --- |
-| `GET /crm/v3/objects/tickets` | 403 |
-| `GET /crm/objects/2026-03/tickets` | 403 |
-| `GET /crm/v3/objects/tickets/{id}` | 403 |
-| `GET /crm/v3/objects/ticket` (singular) | 403 |
-| `GET /crm/v3/objects/0-5` (pelo objectTypeId) | 403 |
-| `GET /crm/v4/objects/0-5` | 403 |
-| `GET /crm/v3/objects/0-5/47673917220` (um registro) | 403 |
-| `GET /crm/v3/properties/tickets` (só o vocabulário) | 403, mas ver 1.4 |
+\| Endpoint | Resposta |
 
-Todos com a mesma mensagem: *"The scope needed for this API call isn't
-available for public use."*
+\| --- | --- |
 
-**O bloqueio é do objeto `0-5`, não de um caminho.** No mesmo token e na mesma
-sessão, `/crm/v3/schemas`, `/crm/v3/objects/contacts`, `/crm/v3/objects/companies`
-e `/crm/v3/owners` respondem **200** normalmente. Não é rota errada, não é nome
+\| \`GET /crm/v3/objects/tickets\` | 403 |
+
+\| \`GET /crm/objects/2026-03/tickets\` | 403 |
+
+\| \`GET /crm/v3/objects/tickets/{id}\` | 403 |
+
+\| \`GET /crm/v3/objects/ticket\` (singular) | 403 |
+
+\| \`GET /crm/v3/objects/0-5\` (pelo objectTypeId) | 403 |
+
+\| \`GET /crm/v4/objects/0-5\` | 403 |
+
+\| \`GET /crm/v3/objects/0-5/47673917220\` (um registro) | 403 |
+
+\| \`GET /crm/v3/properties/tickets\` (só o vocabulário) | 403, mas ver 1.4 |
+
+Todos com a mesma mensagem: \*"The scope needed for this API call isn't
+
+available for public use."\*
+
+**\*\*O bloqueio é do objeto \`0-5\`, não de um caminho.\*\*** No mesmo token e na mesma
+
+sessão, \`/crm/v3/schemas\`, \`/crm/v3/objects/contacts\`, \`/crm/v3/objects/companies\`
+
+e \`/crm/v3/owners\` respondem **\*\*200\*\*** normalmente. Não é rota errada, não é nome
+
 errado, não é versão velha.
 
-Também foi descartado que o chamado estivesse modelado como **objeto
-customizado**: o catálogo da conta tem seis, e todos são comerciais.
-`contratos`, `produtos`, `produtos_do_cliente`, `produtos_do_cliente_v2`,
-`data_setup`, `n_meros_de_s_rie_dos_produtos`. Nenhum de suporte. O chamado é o
+Também foi descartado que o chamado estivesse modelado como \*\*objeto
+
+customizado\*\*: o catálogo da conta tem seis, e todos são comerciais.
+
+\`contratos\`, \`produtos\`, \`produtos\_do\_cliente\`, \`produtos\_do\_cliente\_v2\`,
+
+\`data\_setup\`, \`n\_meros\_de\_s\_rie\_dos\_produtos\`. Nenhum de suporte. O chamado é o
+
 ticket nativo.
 
-Repare que a mensagem **não nomeia o escopo**, diferente do 403 do item 1.2.
+Repare que a mensagem **\*\*não nomeia o escopo\*\***, diferente do 403 do item 1.2.
+
 Pode ser escopo não marcado no app, mas pode também ser limitação do produto
+
 contratado na conta. Quem administra o app consegue distinguir; de fora não dá.
 
-**O que isso impede:** trazer assunto, empresa, data e solução do atendimento.
+**\*\*O que isso impede:\*\*** trazer assunto, empresa, data e solução do atendimento.
+
 Hoje o número do chamado é alcançável (ver 1.3), mas o registro dele não.
 
-**O pedido tem dois itens:**
+**\*\*O pedido tem dois itens:\*\***
 
-1. **O escopo `tickets` de leitura.** Tudo o mais que a integração precisa já
-   está alcançável, e isso foi medido no item 1.4.
-2. **Uma assinatura de webhook** para `conversation.creation`, apontando para o
-   endereço do produto. Não exige escopo do nosso lado, só configuração no app
-   privado, e vale três vezes menos requisição que a alternativa (ver 2.6).
+1\. **\*\*O escopo \`tickets\` de leitura.\*\*** Tudo o mais que a integração precisa já
 
-### 1.4 O que **funciona** em volta do ticket, medido em 28/08
+   está alcançável, e isso foi medido no item 1.4.
+
+2\. **\*\*Uma assinatura de webhook\*\*** para \`conversation.creation\`, apontando para o
+
+   endereço do produto. Não exige escopo do nosso lado, só configuração no app
+
+   privado, e vale três vezes menos requisição que a alternativa (ver 2.6).
+
+**### 1.4 O que \*\*funciona\*\* em volta do ticket, medido em 28/08**
 
 Esta seção existe porque a primeira leitura foi incompleta. Sete endereços de
+
 leitura do objeto foram testados e todos deram 403, e daí eu concluí cedo demais
+
 que nada em volta do atendimento era alcançável. Faltou testar busca, batch,
+
 pipelines, associações, exportação, GraphQL e esquemas. Testados agora:
 
-| Chamada | Resposta |
-| --- | --- |
-| `POST /crm/v3/objects/tickets/search` | 403 |
-| `POST /crm/v3/objects/tickets/batch/read` | 403 |
-| `GET /crm/v3/pipelines/tickets` | 403 |
-| `GET /crm/v3/objects/tickets?archived=true` | 403 |
-| `GET /crm/v4/objects/ticket/{id}/associations/contact` | 403 |
-| `POST /crm/v3/exports/export/async` | 403, escopo de exportação ausente |
-| `POST /collector/graphql` | 403, mesmo motivo |
-| **`GET /crm/v3/schemas/0-5`** | **200** |
-| **`GET /crm/v4/objects/conversation/{conversa}/associations/ticket`** | **200** |
-| **`GET /crm/v4/objects/conversation/{conversa}/associations/contact`** | **200** |
-| `GET /crm/v3/properties/0-11` | 200 |
-| `GET /crm/v3/objects/0-11/...` | 400, `CONVERSATION` não é suportado ali |
+\| Chamada | Resposta |
 
-**Duas coisas que eu havia dado como impossíveis e são possíveis:**
+\| --- | --- |
 
-**1. O vínculo conversa → atendimento existe.** A associação devolve o id do ticket,
+\| \`POST /crm/v3/objects/tickets/search\` | 403 |
+
+\| \`POST /crm/v3/objects/tickets/batch/read\` | 403 |
+
+\| \`GET /crm/v3/pipelines/tickets\` | 403 |
+
+\| \`GET /crm/v3/objects/tickets?archived=true\` | 403 |
+
+\| \`GET /crm/v4/objects/ticket/{id}/associations/contact\` | 403 |
+
+\| \`POST /crm/v3/exports/export/async\` | 403, escopo de exportação ausente |
+
+\| \`POST /collector/graphql\` | 403, mesmo motivo |
+
+\| **\*\*\`GET /crm/v3/schemas/0-5\`\*\*** | **\*\*200\*\*** |
+
+\| **\*\*\`GET /crm/v4/objects/conversation/{conversa}/associations/ticket\`\*\*** | **\*\*200\*\*** |
+
+\| **\*\*\`GET /crm/v4/objects/conversation/{conversa}/associations/contact\`\*\*** | **\*\*200\*\*** |
+
+\| \`GET /crm/v3/properties/0-11\` | 200 |
+
+\| \`GET /crm/v3/objects/0-11/...\` | 400, \`CONVERSATION\` não é suportado ali |
+
+**\*\*Duas coisas que eu havia dado como impossíveis e são possíveis:\*\***
+
+**\*\*1. O vínculo conversa → atendimento existe.\*\*** A associação devolve o id do ticket,
+
 então o registro criado aqui pode carregar o número real do chamado. É uma
+
 requisição por conversa, como a das mensagens.
 
-**2. O vocabulário do ticket é legível pelo esquema.** `/crm/v3/schemas/0-5`
-devolve as **795 propriedades**, com nome, tipo, rótulo e opções. Não é preciso
+**\*\*2. O vocabulário do ticket é legível pelo esquema.\*\*** \`/crm/v3/schemas/0-5\`
+
+devolve as **\*\*795 propriedades\*\***, com nome, tipo, rótulo e opções. Não é preciso
+
 pedir a lista a quem administra:
 
-| Propriedade | Rótulo | Serve para |
-| --- | --- | --- |
-| `subject` | Ticket name | o assunto |
-| `content` | Ticket description | a descrição |
-| `hs_resolution` | Resolution | 4 opções, entre elas *Sent knowledge document link* |
-| `hs_pipeline_stage` | Ticket status | o estágio |
-| `categoria___suporte_tecnico` | [Support] Categoria \| Motivo principal do contato | 11 opções |
-| `hs_ticket_category` | Categoria | 6 opções |
-| `ia_produto` | [IA] Produto | 7 opções: Builder, Eberick, Visus, Área do Cliente, Licenciamento, Produto anterior, Não se aplica |
-| `linha_do_produto` | [Support] Especialidade técnica | **23 opções**, a lista de disciplinas |
+\| Propriedade | Rótulo | Serve para |
 
-**`hs_resolution` tem uma opção chamada *Sent knowledge document link*.** Isso é
+\| --- | --- | --- |
+
+\| \`subject\` | Ticket name | o assunto |
+
+\| \`content\` | Ticket description | a descrição |
+
+\| \`hs\_resolution\` | Resolution | 4 opções, entre elas *\*Sent knowledge document link\** |
+
+\| \`hs\_pipeline\_stage\` | Ticket status | o estágio |
+
+\| \`categoria\_\_\_suporte\_tecnico\` | [Support] Categoria \\| Motivo principal do contato | 11 opções |
+
+\| \`hs\_ticket\_category\` | Categoria | 6 opções |
+
+\| \`ia\_produto\` | [IA] Produto | 7 opções: Builder, Eberick, Visus, Área do Cliente, Licenciamento, Produto anterior, Não se aplica |
+
+\| \`linha\_do\_produto\` | [Support] Especialidade técnica | **\*\*23 opções\*\***, a lista de disciplinas |
+
+**\*\*\`hs\_resolution\` tem uma opção chamada** *\*Sent knowledge document link\****.\*\*** Isso é
+
 o próprio suporte marcando, no CRM, que a dúvida foi respondida com um artigo do
+
 portal. É exatamente o sinal que este produto existe para medir, e ele está
+
 atrás do mesmo 403.
 
-**O que continua fechado é só o registro.** Nenhum caminho lê o valor das
+**\*\*O que continua fechado é só o registro.\*\*** Nenhum caminho lê o valor das
+
 propriedades de um ticket. O esquema diz o que existe; o dado não vem.
 
----
+\---
 
-### 1.5 A equipe do atendimento é alcançável, mas não dá o recorte por produto
+**### 1.5 A equipe do atendimento é alcançável, mas não dá o recorte por produto**
 
 O recorte que a equipe usa no dia a dia é por produto: Suporte Builder,
-Estruturas, Visus, Setup. Na HubSpot isso **não é caixa de entrada** e não é
-canal: as visualizações do help desk são 403 e a propriedade `ia_produto` mora
+
+Estruturas, Visus, Setup. Na HubSpot isso **\*\*não é caixa de entrada\*\*** e não é
+
+canal: as visualizações do help desk são 403 e a propriedade \`ia\_produto\` mora
+
 no ticket, que também é 403.
 
-Mas dá para chegar lá por outro caminho: **a conversa traz `assignedTo`, e o dono
-traz as equipes dele.** `GET /crm/v3/owners` responde 200 e cada dono vem com
-`teams`.
+Mas dá para chegar lá por outro caminho: \*\*a conversa traz \`assignedTo\`, e o dono
+
+traz as equipes dele.\*\* \`GET /crm/v3/owners\` responde 200 e cada dono vem com
+
+\`teams\`.
 
 São 197 donos em 58 equipes. As que interessam:
 
-| Id | Equipe | Pessoas |
-| --- | --- | --- |
-| 43759588 | Setup | 8 |
-| 65055100 | Suporte Builder | 18 |
-| 43825818 | Suporte Builder Elétrica | 18 |
-| 43825811 | Suporte Builder Hidráulica | 18 |
-| 43825790 | Suporte Estruturas | 18 |
-| 43825821 | Suporte Visus | 18 |
-| 43759498 | Suporte Técnico | 18 |
+\| Id | Equipe | Pessoas |
 
-**E a equipe NÃO dá o produto.** Eu escrevi que dava, e a conferência seguinte
-desmentiu: as seis equipes de Suporte têm **exatamente as mesmas 18 pessoas**.
+\| --- | --- | --- |
 
-| | Setup | Suporte (as seis) |
-| --- | --- | --- |
-| Setup | 8 | 6 |
-| Suporte Builder | 6 | 18 |
-| Suporte Builder Elétrica | 6 | 18 |
-| Suporte Builder Hidráulica | 6 | 18 |
-| Suporte Estruturas | 6 | 18 |
-| Suporte Técnico | 6 | 18 |
-| Suporte Visus | 6 | 18 |
+\| 43759588 | Setup | 8 |
+
+\| 65055100 | Suporte Builder | 18 |
+
+\| 43825818 | Suporte Builder Elétrica | 18 |
+
+\| 43825811 | Suporte Builder Hidráulica | 18 |
+
+\| 43825790 | Suporte Estruturas | 18 |
+
+\| 43825821 | Suporte Visus | 18 |
+
+\| 43759498 | Suporte Técnico | 18 |
+
+**\*\*E a equipe NÃO dá o produto.\*\*** Eu escrevi que dava, e a conferência seguinte
+
+desmentiu: as seis equipes de Suporte têm **\*\*exatamente as mesmas 18 pessoas\*\***.
+
+\| | Setup | Suporte (as seis) |
+
+\| --- | --- | --- |
+
+\| Setup | 8 | 6 |
+
+\| Suporte Builder | 6 | 18 |
+
+\| Suporte Builder Elétrica | 6 | 18 |
+
+\| Suporte Builder Hidráulica | 6 | 18 |
+
+\| Suporte Estruturas | 6 | 18 |
+
+\| Suporte Técnico | 6 | 18 |
+
+\| Suporte Visus | 6 | 18 |
 
 Sobreposição total. Quem atende Builder atende Eberick e Visus, e está nas seis
+
 equipes. Só duas pessoas estão em apenas uma equipe, e essa equipe é Setup.
 
-Então `assignedTo` → dono → equipe responde **em qual frente** o atendimento
+Então \`assignedTo\` → dono → equipe responde **\*\*em qual frente\*\*** o atendimento
+
 caiu, Setup ou Suporte, e não em qual produto. Recortar por produto continua
-dependendo de `ia_produto`, que está no ticket, que é 403.
+
+dependendo de \`ia\_produto\`, que está no ticket, que é 403.
 
 O que o caminho serve: distinguir Setup de Suporte, e saber quem atendeu. Fio
-sem `assignedTo` fica sem equipe, e isso é estado legítimo: o atendimento ainda
+
+sem \`assignedTo\` fica sem equipe, e isso é estado legítimo: o atendimento ainda
+
 não foi para ninguém.
 
-**São 20 pessoas hoje**, todas com e-mail `@altoqi.com.br`: 18 no Suporte e 8 no
+**\*\*São 20 pessoas hoje\*\***, todas com e-mail \`@altoqi.com.br\`: 18 no Suporte e 8 no
+
 Setup, com 6 em ambos. Isso importa para a sugestão de equipe do produto: o
+
 e-mail de quem entra aqui casa com o e-mail do dono na HubSpot, e dá para
+
 propor a equipe em vez de pedir que a pessoa escolha.
 
-**As caixas são duas**, e isso também foi medido: `Help Desk` (`474522581`,
-e-mail e chat) e `Caixa de Entrada | Setup` (`1566897190`, WhatsApp e chat). As
+**\*\*As caixas são duas\*\***, e isso também foi medido: \`Help Desk\` (\`474522581\`,
+
+e-mail e chat) e \`Caixa de Entrada | Setup\` (\`1566897190\`, WhatsApp e chat). As
+
 outras oito da conta são marketing, vendas, social e teste.
 
----
+\---
 
-### 1.2 Falta o escopo `site-search-read`. Bloqueia ler o portal
+**### 1.2 Falta o escopo \`site-search-read\`. Bloqueia ler o portal**
 
-`GET /cms/v3/site-search/search?type=KNOWLEDGE_ARTICLE` → **403**, com o escopo
-nomeado: *"requires any of [site-search-read]"*.
+\`GET /cms/v3/site-search/search?type=KNOWLEDGE\_ARTICLE\` → **\*\*403\*\***, com o escopo
 
-**O que isso impede:** a leitura do artigo **pela API da HubSpot**. Mas existe
+nomeado: *\*"requires any of [site-search-read]"\**.
+
+**\*\*O que isso impede:\*\*** a leitura do artigo **\*\*pela API da HubSpot\*\***. Mas existe
+
 caminho melhor, que não depende de escopo nenhum, ver a seção 6. Por isso este
-escopo **saiu** da lista de pedidos.
 
-### 1.3 O que a chave já alcança, e funciona
+escopo **\*\*saiu\*\*** da lista de pedidos.
 
-- `conversations.read`. Fios, mensagens e o número do atendimento associado
-- `crm.objects.owners.read`. Quem atendeu
-- `crm.objects.contacts.read` / `companies.read`: o cliente e a empresa dele
+**### 1.3 O que a chave já alcança, e funciona**
+
+\- \`conversations.read\`. Fios, mensagens e o número do atendimento associado
+
+\- \`crm.objects.owners.read\`. Quem atendeu
+
+\- \`crm.objects.contacts.read\` / \`companies.read\`: o cliente e a empresa dele
 
 Foi com isso que a leitura de conversa foi provada de ponta a ponta: o
-atendimento `47673917220` devolveu 1 conversa com 32 mensagens reais.
 
----
+atendimento \`47673917220\` devolveu 1 conversa com 32 mensagens reais.
 
-## 2. Limitações da própria HubSpot
+\---
+
+**## 2. Limitações da própria HubSpot**
 
 Não são falha de ninguém aqui, mas condicionam o que dá para prometer.
 
-### 2.1 Não existe API de Base de Conhecimento
+**### 2.1 Não existe API de Base de Conhecimento**
 
 Artigo de KB só é criado ou alterado pela interface da HubSpot. O único caminho
+
 de leitura é o site search do item 1.2.
 
-**E há uma armadilha:** o escopo `cms.knowledge_base.articles.read` **está
-concedido neste token e não tem API atrás dele**. A própria documentação da
+**\*\*E há uma armadilha:\*\*** o escopo \`cms.knowledge\_base.articles.read\` \*\*está
+
+concedido neste token e não tem API atrás dele\*\*. A própria documentação da
+
 HubSpot reconhece que ele aparece na tela de configuração sem endpoint
-correspondente. Seis caminhos candidatos foram testados e todos deram **404**
+
+correspondente. Seis caminhos candidatos foram testados e todos deram **\*\*404\*\***
+
 (inexistente), não 403.
 
-Ou seja: ver esse escopo marcado na lista **não** significa que dá para ler
+Ou seja: ver esse escopo marcado na lista **\*\*não\*\*** significa que dá para ler
+
 artigo. Vale dizer isso a quem for mexer nos escopos, para não fechar o assunto
+
 achando que já está liberado.
 
-### 2.2 Armadilhas da API de conversas
+**### 2.2 Armadilhas da API de conversas**
 
 Cada uma delas quebra uma integração escrita de forma óbvia. As quatro já estão
+
 tratadas do nosso lado.
 
-| O que acontece | Por que quebra |
-| --- | --- |
-| Página pode voltar **vazia com cursor presente** | Parar na página vazia grava conversa vazia. `limit=3` devolveu 0 registros e o cursor seguiu por mais 13 voltas, totalizando 38. O fim é a **ausência** de `paging.next.after`. |
-| Mensagens vêm em **ordem decrescente** | Sem inverter, a análise lê a resposta antes da pergunta. |
-| O campo `text` **contém HTML** | 3 de 13 mensagens traziam `<p>` dentro de `text`, que deveria ser texto puro. E é assimétrico: no que sai do suporte a tag está lá, no que entra do cliente não. |
-| O endpoint mistura **quatro tipos** | `MESSAGE`, `THREAD_STATUS_CHANGE`, `ASSIGNMENT`, `WELCOME_MESSAGE`. Só o primeiro é evidência; `WELCOME_MESSAGE` é saudação automática. |
+\| O que acontece | Por que quebra |
+
+\| --- | --- |
+
+\| Página pode voltar **\*\*vazia com cursor presente\*\*** | Parar na página vazia grava conversa vazia. \`limit=3\` devolveu 0 registros e o cursor seguiu por mais 13 voltas, totalizando 38. O fim é a **\*\*ausência\*\*** de \`paging.next.after\`. |
+
+\| Mensagens vêm em **\*\*ordem decrescente\*\*** | Sem inverter, a análise lê a resposta antes da pergunta. |
+
+\| O campo \`text\` **\*\*contém HTML\*\*** | 3 de 13 mensagens traziam \`\<p>\` dentro de \`text\`, que deveria ser texto puro. E é assimétrico: no que sai do suporte a tag está lá, no que entra do cliente não. |
+
+\| O endpoint mistura **\*\*quatro tipos\*\*** | \`MESSAGE\`, \`THREAD\_STATUS\_CHANGE\`, \`ASSIGNMENT\`, \`WELCOME\_MESSAGE\`. Só o primeiro é evidência; \`WELCOME\_MESSAGE\` é saudação automática. |
 
 Mais duas que custaram tentativa:
 
-- `sort=latestMessageTimestamp` **exige** `latestMessageTimestampAfter`, senão
-  400. `sort=-latestMessageTimestamp` não existe.
-- `/crm/v3/owners` pagina em 100. São 197 responsáveis: parar na primeira
-  página produz "não existe" para quem existe.
+\- \`sort=latestMessageTimestamp\` **\*\*exige\*\*** \`latestMessageTimestampAfter\`, senão
 
-### 2.3 Nem todo conversa tem atendimento
+  400. \`sort=-latestMessageTimestamp\` não existe.
 
-Em amostras de 50 conversas, entre **16% e 40%** traziam `associatedTicketId`,
+\- \`/crm/v3/owners\` pagina em 100. São 197 responsáveis: parar na primeira
+
+  página produz "não existe" para quem existe.
+
+**### 2.3 Nem todo conversa tem atendimento**
+
+Em amostras de 50 conversas, entre **\*\*16% e 40%\*\*** traziam \`associatedTicketId\`,
+
 variando por período. Fios de 2024 não traziam nenhum. Conversa sem associação é
+
 conversa que não virou atendimento. É esperado, não é erro.
 
-### 2.4 Dá para varrer as conversas sem o escopo `tickets`, medido em 28/08
+**### 2.4 Dá para varrer as conversas sem o escopo \`tickets\`, medido em 28/08**
 
 A pergunta era se o atendimento pode nascer da conversa em vez de vir por
+
 arquivo, já que o escopo do ticket está bloqueado. Dá, com limite.
 
-| Teste | Resposta |
-| --- | --- |
-| `GET /conversations/v3/conversations/threads` sem filtro | 200, paginado |
-| `GET .../threads?inboxId=474522581` (Help Desk) | 200, só daquela caixa |
-| `GET /conversations/v3/conversations/inboxes` | 200, **10 caixas** |
-| `GET /conversations/v3/conversations/channels` | 200, 8 canais |
-| `GET .../threads/{id}` | 200 |
-| `?sort=-createdAt` | 400, não é propriedade de ordenação válida |
+\| Teste | Resposta |
 
-**A caixa do suporte tem nome próprio e id próprio**, `Help Desk`
-(`474522581`), e filtrar por ela funciona. Sem o filtro, os primeiros cem conversas
-são todos de `Geração de Demanda & Sales`, chat ao vivo, de fevereiro de 2024:
+\| --- | --- |
+
+\| \`GET /conversations/v3/conversations/threads\` sem filtro | 200, paginado |
+
+\| \`GET .../threads?inboxId=474522581\` (Help Desk) | 200, só daquela caixa |
+
+\| \`GET /conversations/v3/conversations/inboxes\` | 200, **\*\*10 caixas\*\*** |
+
+\| \`GET /conversations/v3/conversations/channels\` | 200, 8 canais |
+
+\| \`GET .../threads/{id}\` | 200 |
+
+\| \`?sort=-createdAt\` | 400, não é propriedade de ordenação válida |
+
+**\*\*A caixa do suporte tem nome próprio e id próprio\*\***, \`Help Desk\`
+
+(\`474522581\`), e filtrar por ela funciona. Sem o filtro, os primeiros cem conversas
+
+são todos de \`Geração de Demanda & Sales\`, chat ao vivo, de fevereiro de 2024:
+
 a listagem vem em ordem de criação, do mais antigo.
 
-**O que a conversa não tem**, e é o que decide o desenho:
+**\*\*O que a conversa não tem\*\***, e é o que decide o desenho:
 
-| Campo nosso | No arquivo exportado | Na API de conversas |
-| --- | --- | --- |
-| assunto | vem pronto | **não existe**, nem na conversa nem na mensagem |
-| solução | vem pronto | **não existe**, teria de sair da última resposta do agente |
-| empresa | vem pronto | só `associatedContactId`; contato → empresa é dado pessoal |
-| data | vem pronto | `createdAt` e `closedAt` |
-| número do chamado | vem pronto | **não volta**: `associatedTicketId` é aceito como filtro e não é devolvido |
+\| Campo nosso | No arquivo exportado | Na API de conversas |
 
-O conversa devolve `id`, `createdAt`, `closedAt`, `status`, `assignedTo`,
-`associatedContactId`, `inboxId`, `originalChannelId`, `spam` e `archived`. Nada
-mais. A mensagem devolve `id`, `createdAt`, `createdBy`, `senders`,
-`recipients`, `type` e o texto, e também não tem assunto.
+\| --- | --- | --- |
 
-### 2.5 A caixa Help Desk é o atendimento, e o assunto existe nela
+\| assunto | vem pronto | **\*\*não existe\*\***, nem na conversa nem na mensagem |
 
-Confirmado com quem conduz o projeto em 28/08: **`Help Desk` (`474522581`) é a
-caixa dos atendimentos.** Isso muda a conclusão anterior, porque a amostra que
+\| solução | vem pronto | **\*\*não existe\*\***, teria de sair da última resposta do agente |
+
+\| empresa | vem pronto | só \`associatedContactId\`; contato → empresa é dado pessoal |
+
+\| data | vem pronto | \`createdAt\` e \`closedAt\` |
+
+\| número do chamado | vem pronto | **\*\*não volta\*\***: \`associatedTicketId\` é aceito como filtro e não é devolvido |
+
+O conversa devolve \`id\`, \`createdAt\`, \`closedAt\`, \`status\`, \`assignedTo\`,
+
+\`associatedContactId\`, \`inboxId\`, \`originalChannelId\`, \`spam\` e \`archived\`. Nada
+
+mais. A mensagem devolve \`id\`, \`createdAt\`, \`createdBy\`, \`senders\`,
+
+\`recipients\`, \`type\` e o texto, e também não tem assunto.
+
+**### 2.5 A caixa Help Desk é o atendimento, e o assunto existe nela**
+
+Confirmado com quem conduz o projeto em 28/08: \*\*\`Help Desk\` (\`474522581\`) é a
+
+caixa dos atendimentos.\*\* Isso muda a conclusão anterior, porque a amostra que
+
 a produziu era de chat de marketing.
 
-**É a caixa que gera o atendimento**, e os dois canais dela contam: chat ao vivo
+**\*\*É a caixa que gera o atendimento\*\***, e os dois canais dela contam: chat ao vivo
+
 e e-mail são atendimento igual. Daí decorre a diferença que o desenho precisa
+
 tratar.
 
-Os conversas vieram 62% por e-mail (canal `1002`) e 38% por chat (`1000`).
+Os conversas vieram 62% por e-mail (canal \`1002\`) e 38% por chat (\`1000\`).
 
-| | e-mail | chat |
-| --- | --- | --- |
-| assunto | `subject` na mensagem, **é dado** | não existe, tem de sair do texto |
-| corpo | `text` e `richText` | `text` |
-| quem falou | `direction` | `direction` |
+\| | e-mail | chat |
 
-A mensagem traz `direction` (`INCOMING` / `OUTGOING`) nos dois casos, que separa
+\| --- | --- | --- |
+
+\| assunto | \`subject\` na mensagem, **\*\*é dado\*\*** | não existe, tem de sair do texto |
+
+\| corpo | \`text\` e \`richText\` | \`text\` |
+
+\| quem falou | \`direction\` | \`direction\` |
+
+A mensagem traz \`direction\` (\`INCOMING\` / \`OUTGOING\`) nos dois casos, que separa
+
 o que o cliente escreveu do que o suporte respondeu.
 
-**Nenhum dos 100 primeiros conversas do Help Desk trazia `associatedTicketId`.** O
+**\*\*Nenhum dos 100 primeiros conversas do Help Desk trazia \`associatedTicketId\`.\*\*** O
+
 ticket existe, porque é a caixa que o gera, mas o vínculo não volta por aqui e
+
 o objeto em si continua fechado pelo 403 do item 1.1.
 
-#### A escala, medida
+**#### A escala, medida**
 
-| | |
-| --- | --- |
-| conversas varridos em 25 páginas seguidas | **2.500**, e havia mais |
-| período coberto por eles | 08/04/2024 a 17/05/2024 |
-| ritmo | ~64 conversas por dia |
-| estimativa até hoje | **algo em torno de 55 mil conversas** |
+\| | |
 
-**E não dá para chegar aos recentes direto.** `?sort=-createdAt` devolve 400, e
-`latestMessageTimestampAfter` é ignorado: a lista sai sempre do mais antigo.
+\| --- | --- |
+
+\| conversas varridos em 25 páginas seguidas | **\*\*2.500\*\***, e havia mais |
+
+\| período coberto por eles | 08/04/2024 a 17/05/2024 |
+
+\| ritmo | \~64 conversas por dia |
+
+\| estimativa até hoje | **\*\*algo em torno de 55 mil conversas\*\*** |
+
+**\*\*E não dá para chegar aos recentes direto.\*\*** \`?sort=-createdAt\` devolve 400, e
+
+\`latestMessageTimestampAfter\` é ignorado: a lista sai sempre do mais antigo.
+
 Alcançar os últimos meses exige percorrer a paginação desde abril de 2024, o que
+
 são umas 550 requisições de listagem. Isso é barato. O caro é o passo seguinte:
-**o assunto está na mensagem, não na conversa**, então cada conversa que se queira ler
+
+**\*\*o assunto está na mensagem, não na conversa\*\***, então cada conversa que se queira ler
+
 custa uma requisição própria.
 
-Varrer tudo seriam ~55 mil requisições contra o CRM de produção. Varrer uma
+Varrer tudo seriam \~55 mil requisições contra o CRM de produção. Varrer uma
+
 janela recente, que é o que a pergunta do produto pede, custa a lista inteira
+
 mais uma requisição por conversa da janela.
 
-**Conclusão:** o atendimento pode nascer da conversa, sem arquivo e sem o escopo
+**\*\*Conclusão:\*\*** o atendimento pode nascer da conversa, sem arquivo e sem o escopo
+
 bloqueado. O que ele traz pronto é assunto (no e-mail), diálogo, datas e quem
+
 falou o quê. O que ele não traz é a solução com campo próprio, que teria de sair
+
 das respostas do suporte, e a empresa, que depende da cadeia contato → empresa
+
 e é decisão de produto por ser dado pessoal de cliente.
 
----
+\---
 
-### 2.6 O custo de manter atualizado, medido em 28/08
+**### 2.6 O custo de manter atualizado, medido em 28/08**
 
 Decidido adiar para a fase de finalização. Os números ficam aqui para ninguém
+
 precisar medir de novo.
 
-**Cada atendimento custa cinco requisições:** mensagens, atores, associação do
+**\*\*Cada atendimento custa cinco requisições:\*\*** mensagens, atores, associação do
+
 chamado, associação do contato e leitura do contato. A listagem custa uma a
+
 cada cem conversas.
 
-Base: 10.978 conversas em três meses da caixa do suporte, ou seja ~122 por dia,
+Base: 10.978 conversas em três meses da caixa do suporte, ou seja \~122 por dia,
+
 e uma em cada três vira atendimento (as outras são fluxo de robô, marketing, ou
+
 não tiveram resposta de gente).
 
-| | de hora em hora | por webhook |
-| --- | --- | --- |
-| listar | 1 por hora | **zero** |
-| ler | 35 a 85 por hora útil | 5 por atendimento novo |
-| por dia | ~700 | ~200 |
-| **por mês** | **~21.000** | **~6.000** |
-| atraso até aparecer aqui | até uma hora | imediato |
+\| | de hora em hora | por webhook |
+
+\| --- | --- | --- |
+
+\| listar | 1 por hora | **\*\*zero\*\*** |
+
+\| ler | 35 a 85 por hora útil | 5 por atendimento novo |
+
+\| por dia | \~700 | \~200 |
+
+\| **\*\*por mês\*\*** | **\*\*\~21.000\*\*** | **\*\*\~6.000\*\*** |
+
+\| atraso até aparecer aqui | até uma hora | imediato |
 
 E a carga histórica completa, para referência: três meses são 10.969
-atendimentos, ~55 mil requisições, cerca de duas horas com a pausa de 120 ms.
 
-**O webhook é três vezes mais barato e imediato, e depende de quem administra.**
-`GET /webhooks/v3/{app}/subscriptions` é 403, mas isso é só a API que
-**gerencia** assinaturas: webhook configurado à mão no app privado funciona sem
+atendimentos, \~55 mil requisições, cerca de duas horas com a pausa de 120 ms.
+
+**\*\*O webhook é três vezes mais barato e imediato, e depende de quem administra.\*\***
+
+\`GET /webhooks/v3/{app}/subscriptions\` é 403, mas isso é só a API que
+
+**\*\*gerencia\*\*** assinaturas: webhook configurado à mão no app privado funciona sem
+
 escopo nenhum do nosso lado, porque quem chama é a HubSpot.
 
 O desenho pretendido é os dois: webhook como caminho normal, e uma varredura
+
 diária como rede para o que ele perder na reconexão. A rota que recebe o
+
 webhook é quase a mesma coisa que já existe, ela recebe o identificador da
+
 conversa e chama a leitura com um item só.
 
-#### O botão de ligar e desligar
+**#### O botão de ligar e desligar**
 
 Decidido em 28/08 que a sincronização automática tem um interruptor, e que
-**só quem administra mexe nele**. Sem isso, uma pessoa desliga a sincronização
+
+**\*\*só quem administra mexe nele\*\***. Sem isso, uma pessoa desliga a sincronização
+
 de catorze sem querer.
 
 É um sinalizador compartilhado no banco, lido pelos dois caminhos: desligado, o
+
 cron entra e sai sem fazer nada, e o webhook recebe a chamada da HubSpot e a
+
 ignora. Do lado deles nada muda; a assinatura continua ativa e quem decide se
+
 escuta somos nós.
 
 Três coisas valem mais que o botão em si:
 
-**Desligado precisa aparecer onde se trabalha.** É o risco de verdade: alguém
+**\*\*Desligado precisa aparecer onde se trabalha.\*\*** É o risco de verdade: alguém
+
 desliga, esquece, e três semanas depois ninguém percebeu que parou de chegar
+
 atendimento, porque a tela fica com a mesma cara de quando está tudo em dia. O
+
 aviso não pode morar só em Configurações: fica na tela de Atendimentos, dizendo
+
 desde quando e por quem, como o "última busca há 8 horas" que já existe.
 
-**Religar precisa trazer o intervalo perdido.** Enquanto esteve desligado, o
+**\*\*Religar precisa trazer o intervalo perdido.\*\*** Enquanto esteve desligado, o
+
 atendimento caiu na HubSpot e não veio. Ou o religar busca desde quando foi
+
 desligado, ou aquilo vira um buraco que ninguém sabe que existe. A janela já
+
 sabe fazer isso; o que muda é de onde vem a data.
 
-**Sem o intervalo perdido, é melhor não ter botão.** Um interruptor que cria
+**\*\*Sem o intervalo perdido, é melhor não ter botão.\*\*** Um interruptor que cria
+
 buraco silencioso é pior que nenhum: quem quiser parar pode revogar a
+
 credencial, que é ruidoso e ninguém esquece.
 
----
+\---
 
-## 3. Falha do nosso lado. Corrigida em 27/08
+**## 3. Falha do nosso lado. Corrigida em 27/08**
 
-O modelo `Ticket` sempre teve `source.externalId`, e o banco sempre teve a
-coluna. Mas **o campo só tinha um caminho de entrada**: a importação por CSV
-(`ticketImport.ts`). O formulário não tinha o campo, `TicketFormData` não tinha
-a propriedade, o `ticketService.create` não montava a procedência e o
+O modelo \`Ticket\` sempre teve \`source.externalId\`, e o banco sempre teve a
+
+coluna. Mas **\*\*o campo só tinha um caminho de entrada\*\***: a importação por CSV
+
+(\`ticketImport.ts\`). O formulário não tinha o campo, \`TicketFormData\` não tinha
+
+a propriedade, o \`ticketService.create\` não montava a procedência e o
+
 preenchimento por IA não declarava o campo.
 
 Consequência concreta: o único atendimento real do acervo se chama
-`Ticket AltoQi nº47673917220 - Instalação/Aces…`: a IA leu o número no
-documento e o único lugar onde ele coube foi o **título**.
+
+\`Ticket AltoQi nº47673917220 - Instalação/Aces…\`: a IA leu o número no
+
+documento e o único lugar onde ele coube foi o **\*\*título\*\***.
 
 Sem isso, a conversa que a API traz não tem a qual atendimento se ligar.
 
-**Corrigido:** o número virou campo do formulário, entrou no preenchimento por
+**\*\*Corrigido:\*\*** o número virou campo do formulário, entrou no preenchimento por
+
 IA, e o serviço passa a gravar a procedência. Preservando a data original
+
 quando o número não muda, e apagando a procedência quando o número é apagado.
 
----
+\---
 
-## 4. O que decidir
+**## 4. O que decidir**
 
-> O pedido pronto para encaminhar está na **seção 0**. Isto aqui é a decisão
-> que fica deste lado.
+\> O pedido pronto para encaminhar está na **\*\*seção 0\*\***. Isto aqui é a decisão
 
-1. **Os dois escopos do item 1**. Vale pedir, e a resposta muda o tamanho do
-   que dá para entregar. Sem `tickets`, o atendimento precisa nascer da conversa, e
-   assunto e solução não têm origem automática.
-2. **Dado pessoal de cliente.** A cadeia conversa → contato → empresa funciona. Como
-   está hoje, o visitante é gravado como "Cliente", sem nome nem e-mail. Trazer
-   a identificação do cliente para dentro do hub é decisão de produto, não
-   detalhe de implementação.
+\> que fica deste lado.
 
----
+1\. **\*\*Os dois escopos do item 1\*\***. Vale pedir, e a resposta muda o tamanho do
 
-## 5. Inventário: o que cada escopo entrega de fato
+   que dá para entregar. Sem \`tickets\`, o atendimento precisa nascer da conversa, e
 
-> **Honestidade sobre o método, antes da tabela.** São **41** escopos no token.
-> Testei **33 endpoints**, todos com `GET` e `limit=1`, em série. O que **não**
-> foi testado está dito na íntegra ao fim desta seção. Inclusive, e
-> principalmente, **nenhuma chamada de escrita**: a regra do projeto é não
-> alterar nada na HubSpot, e testar escrita arriscaria criar ou modificar
-> registro de vocês.
+   assunto e solução não têm origem automática.
 
-### Tabela por escopo
+2\. **\*\*Dado pessoal de cliente.\*\*** A cadeia conversa → contato → empresa funciona. Como
+
+   está hoje, o visitante é gravado como "Cliente", sem nome nem e-mail. Trazer
+
+   a identificação do cliente para dentro do hub é decisão de produto, não
+
+   detalhe de implementação.
+
+\---
+
+**## 5. Inventário: o que cada escopo entrega de fato**
+
+\> **\*\*Honestidade sobre o método, antes da tabela.\*\*** São **\*\*41\*\*** escopos no token.
+
+\> Testei **\*\*33 endpoints\*\***, todos com \`GET\` e \`limit=1\`, em série. O que **\*\*não\*\***
+
+\> foi testado está dito na íntegra ao fim desta seção. Inclusive, e
+
+\> principalmente, **\*\*nenhuma chamada de escrita\*\***: a regra do projeto é não
+
+\> alterar nada na HubSpot, e testar escrita arriscaria criar ou modificar
+
+\> registro de vocês.
+
+**### Tabela por escopo**
 
 Cada linha traz o endereço exato usado e o que voltou. Reproduzível com
-`npm run hubspot:conferir`.
 
-| Escopo | Endpoint testado | Resultado |
-| --- | --- | --- |
-| `oauth` | `POST /oauth/v2/private-apps/get/access-token-info` | 200. Hub, app e a lista de escopos |
-| `conversations.read` | `GET /conversations/v3/conversations/threads` | 200. Fios, mensagens, `associatedTicketId` |
-| `crm.objects.owners.read` | `GET /crm/v3/owners` | 200. 197 responsáveis, com nome, e-mail e equipes |
-| `crm.objects.contacts.read` | `GET /crm/v3/objects/contacts` | 200 |
-| `crm.objects.companies.read` | `GET /crm/v3/objects/companies` | 200 |
-| `crm.objects.deals.read` | `GET /crm/v3/objects/deals` | 200 |
-| `crm.objects.quotes.read` | `GET /crm/v3/objects/quotes` | 200 |
-| `crm.objects.courses.read` | `GET /crm/v3/objects/courses` | 200 |
-| `crm.objects.services.read` | `GET /crm/v3/objects/services` | 200 |
-| `crm.objects.users.read` | `GET /crm/v3/objects/users` | 200 |
-| `crm.objects.goals.read` | `GET /crm/v3/objects/goal_targets` | 200 |
-| `crm.objects.custom.read` | `GET /crm/v3/objects/2-25175098` | 200 |
-| `crm.lists.read` | `GET /crm/v3/lists` | 200 |
-| `crm.objects.carts.read` | `GET /crm/v3/objects/carts` | 200, **vazio na conta** |
-| `crm.objects.commercepayments.read` | `GET /crm/v3/objects/commerce_payments` | 200, vazio |
-| `crm.objects.appointments.read` | `GET /crm/v3/objects/appointments` | 200, vazio |
-| `crm.objects.contracts.read` | `GET /crm/v3/objects/contracts` | 200, vazio |
-| `crm.dealsplits.read_write` | `GET /crm/v3/objects/deal_split` | 200, vazio |
-| `crm.extensions_calling_transcripts.read` | `GET /crm/v3/objects/calls` | 200, **489.059** chamadas |
-| `crm.schemas.custom.read` | `GET /crm/v3/schemas` | 200. 6 objetos customizados, todos comerciais |
-| `crm.schemas.contacts.read` | `GET /crm/v3/schemas/contacts` | 200 |
-| `crm.schemas.companies.read` | `GET /crm/v3/schemas/companies` | 200 |
-| `crm.schemas.deals.read` | `GET /crm/v3/schemas/deals` | 200 |
-| `crm.schemas.line_items.read` | `GET /crm/v3/schemas/line_items` | 200 |
-| `crm.schemas.appointments.read` | `GET /crm/v3/schemas/appointments` | 200 |
-| `crm.schemas.services.read` | `GET /crm/v3/schemas/services` | 200 |
-| `crm.schemas.listings.read` | `GET /crm/v3/schemas/listings` | 200 |
-| `communication_preferences.read` | `GET /communication-preferences/v4/definitions` | 200, 15 definições |
-| `conversations.custom_channels.read` | `GET /conversations/v3/custom-channels` | **401**, exige OAuth 2.0; token de app privado não serve |
-| `cms.knowledge_base.articles.read` | `GET /cms/v3/knowledge-base/articles` | **404** |
-| `cms.knowledge_base.settings.read` | `GET /cms/v3/knowledge-base/settings` | **404** |
-| **ausente:** `tickets` | 7 endereços (ver seção 1.1) | **403** em todos |
-| **ausente:** `site-search-read` | `GET /cms/v3/site-search/search` | **403**, com o escopo nomeado |
+\`npm run hubspot\:conferir\`.
 
-### O que NÃO foi testado, e por quê
+\| Escopo | Endpoint testado | Resultado |
 
-**As oito variantes `*.sensitive.read.v2` e `*.highly_sensitive.read.v2`**
-(contacts, companies, deals, custom). Elas **não são endpoints próprios**:
+\| --- | --- | --- |
+
+\| \`oauth\` | \`POST /oauth/v2/private-apps/get/access-token-info\` | 200. Hub, app e a lista de escopos |
+
+\| \`conversations.read\` | \`GET /conversations/v3/conversations/threads\` | 200. Fios, mensagens, \`associatedTicketId\` |
+
+\| \`crm.objects.owners.read\` | \`GET /crm/v3/owners\` | 200. 197 responsáveis, com nome, e-mail e equipes |
+
+\| \`crm.objects.contacts.read\` | \`GET /crm/v3/objects/contacts\` | 200 |
+
+\| \`crm.objects.companies.read\` | \`GET /crm/v3/objects/companies\` | 200 |
+
+\| \`crm.objects.deals.read\` | \`GET /crm/v3/objects/deals\` | 200 |
+
+\| \`crm.objects.quotes.read\` | \`GET /crm/v3/objects/quotes\` | 200 |
+
+\| \`crm.objects.courses.read\` | \`GET /crm/v3/objects/courses\` | 200 |
+
+\| \`crm.objects.services.read\` | \`GET /crm/v3/objects/services\` | 200 |
+
+\| \`crm.objects.users.read\` | \`GET /crm/v3/objects/users\` | 200 |
+
+\| \`crm.objects.goals.read\` | \`GET /crm/v3/objects/goal\_targets\` | 200 |
+
+\| \`crm.objects.custom.read\` | \`GET /crm/v3/objects/2-25175098\` | 200 |
+
+\| \`crm.lists.read\` | \`GET /crm/v3/lists\` | 200 |
+
+\| \`crm.objects.carts.read\` | \`GET /crm/v3/objects/carts\` | 200, **\*\*vazio na conta\*\*** |
+
+\| \`crm.objects.commercepayments.read\` | \`GET /crm/v3/objects/commerce\_payments\` | 200, vazio |
+
+\| \`crm.objects.appointments.read\` | \`GET /crm/v3/objects/appointments\` | 200, vazio |
+
+\| \`crm.objects.contracts.read\` | \`GET /crm/v3/objects/contracts\` | 200, vazio |
+
+\| \`crm.dealsplits.read\_write\` | \`GET /crm/v3/objects/deal\_split\` | 200, vazio |
+
+\| \`crm.extensions\_calling\_transcripts.read\` | \`GET /crm/v3/objects/calls\` | 200, **\*\*489.059\*\*** chamadas |
+
+\| \`crm.schemas.custom.read\` | \`GET /crm/v3/schemas\` | 200. 6 objetos customizados, todos comerciais |
+
+\| \`crm.schemas.contacts.read\` | \`GET /crm/v3/schemas/contacts\` | 200 |
+
+\| \`crm.schemas.companies.read\` | \`GET /crm/v3/schemas/companies\` | 200 |
+
+\| \`crm.schemas.deals.read\` | \`GET /crm/v3/schemas/deals\` | 200 |
+
+\| \`crm.schemas.line\_items.read\` | \`GET /crm/v3/schemas/line\_items\` | 200 |
+
+\| \`crm.schemas.appointments.read\` | \`GET /crm/v3/schemas/appointments\` | 200 |
+
+\| \`crm.schemas.services.read\` | \`GET /crm/v3/schemas/services\` | 200 |
+
+\| \`crm.schemas.listings.read\` | \`GET /crm/v3/schemas/listings\` | 200 |
+
+\| \`communication\_preferences.read\` | \`GET /communication-preferences/v4/definitions\` | 200, 15 definições |
+
+\| \`conversations.custom\_channels.read\` | \`GET /conversations/v3/custom-channels\` | **\*\*401\*\***, exige OAuth 2.0; token de app privado não serve |
+
+\| \`cms.knowledge\_base.articles.read\` | \`GET /cms/v3/knowledge-base/articles\` | **\*\*404\*\*** |
+
+\| \`cms.knowledge\_base.settings.read\` | \`GET /cms/v3/knowledge-base/settings\` | **\*\*404\*\*** |
+
+\| **\*\*ausente:\*\*** \`tickets\` | 7 endereços (ver seção 1.1) | **\*\*403\*\*** em todos |
+
+\| **\*\*ausente:\*\*** \`site-search-read\` | \`GET /cms/v3/site-search/search\` | **\*\*403\*\***, com o escopo nomeado |
+
+**### O que NÃO foi testado, e por quê**
+
+**\*\*As oito variantes \`\*.sensitive.read.v2\` e \`\*.highly\_sensitive.read.v2\`\*\***
+
+(contacts, companies, deals, custom). Elas **\*\*não são endpoints próprios\*\***:
+
 liberam colunas adicionais nos mesmos endereços já testados. Para saber o que
+
 acrescentam seria preciso pedir campo por campo, e nenhum deles serve ao ciclo
+
 de conhecimento.
 
-**Nenhuma chamada de escrita, `POST`, `PATCH`, `PUT`, `DELETE`.** Esta é a
+**\*\*Nenhuma chamada de escrita, \`POST\`, \`PATCH\`, \`PUT\`, \`DELETE\`.\*\*** Esta é a
+
 lacuna que mais importa para a conversa com o dev, e é deliberada: a regra do
+
 projeto é não alterar nada na HubSpot, e sondar escrita arriscaria criar ou
+
 modificar registro real.
 
-**Consequência honesta:** quando este documento diz que *não existe API de Base
-de Conhecimento*, isso está apoiado em (a) seis endereços de **leitura**
+**\*\*Consequência honesta:\*\*** quando este documento diz que \*não existe API de Base
+
+de Conhecimento\*, isso está apoiado em (a) seis endereços de **\*\*leitura\*\***
+
 devolvendo 404 (inexistente, não proibido) e (b) a documentação pública da
+
 HubSpot, que afirma não haver API para o Knowledge Base e registra o pedido
-como "not currently planned". **Não está apoiado em teste de escrita.**
+
+como "not currently planned". **\*\*Não está apoiado em teste de escrita.\*\***
 
 Se o objetivo for publicar artigo de volta no portal, esta é a pergunta exata
+
 para o dev:
 
-> Existe algum endpoint (público, beta ou privado) que crie ou altere artigo
-> de Knowledge Base? O escopo `cms.knowledge_base.articles.read` aparece
-> concedido no app `50542060` e não responde em nenhum caminho que testamos.
+\> Existe algum endpoint (público, beta ou privado) que crie ou altere artigo
 
-### Volumes medidos, para dimensionar
+\> de Knowledge Base? O escopo \`cms.knowledge\_base.articles.read\` aparece
 
-| Objeto | Total na conta |
-| --- | --- |
-| `notes` | 3.369.334 |
-| `tasks` | 583.505 |
-| `calls` | 489.059 |
-| `meetings` | 30.534 |
-| `emails` |. **403**, escopo ausente |
+\> concedido no app \`50542060\` e não responde em nenhum caminho que testamos.
+
+**### Volumes medidos, para dimensionar**
+
+\| Objeto | Total na conta |
+
+\| --- | --- |
+
+\| \`notes\` | 3.369.334 |
+
+\| \`tasks\` | 583.505 |
+
+\| \`calls\` | 489.059 |
+
+\| \`meetings\` | 30.534 |
+
+\| \`emails\` |. **\*\*403\*\***, escopo ausente |
 
 
 
-Varredura de 27/08, um endpoint por escopo, em série, `limit=1`. Testado, não
+
+
+Varredura de 27/08, um endpoint por escopo, em série, \`limit=1\`. Testado, não
+
 deduzido.
 
-### Entrega e serve ao ciclo
+**### Entrega e serve ao ciclo**
 
-| Escopo | Entrega |
-| --- | --- |
-| `conversations.read` | conversas, mensagens e `associatedTicketId`, **provado ponta a ponta** |
-| `crm.objects.owners.read` | 197 responsáveis, com nome, e-mail e equipes |
-| `crm.objects.contacts.read` | contato da conversa; encadeia até a empresa |
-| `crm.objects.companies.read` | nome e domínio da empresa |
-| `oauth` | introspecção do próprio token |
+\| Escopo | Entrega |
 
-### Entrega, mas é CRM comercial
+\| --- | --- |
 
-`deals`, `quotes`, `courses`, `services`, `users`, `goals`, `lists`, os seis
+\| \`conversations.read\` | conversas, mensagens e \`associatedTicketId\`, **\*\*provado ponta a ponta\*\*** |
+
+\| \`crm.objects.owners.read\` | 197 responsáveis, com nome, e-mail e equipes |
+
+\| \`crm.objects.contacts.read\` | contato da conversa; encadeia até a empresa |
+
+\| \`crm.objects.companies.read\` | nome e domínio da empresa |
+
+\| \`oauth\` | introspecção do próprio token |
+
+**### Entrega, mas é CRM comercial**
+
+\`deals\`, \`quotes\`, \`courses\`, \`services\`, \`users\`, \`goals\`, \`lists\`, os seis
+
 objetos customizados (contratos, produtos, data setup, item do plano) e os sete
-`crm.schemas.*`. Todos 200. Nada disso descreve atendimento.
 
-Vazios na conta: `carts`, `commercepayments`, `appointments`, `contracts`,
-`dealsplits`.
+\`crm.schemas.\*\`. Todos 200. Nada disso descreve atendimento.
 
-### Engajamentos: abertos, volumosos, e sem ligação com o atendimento
+Vazios na conta: \`carts\`, \`commercepayments\`, \`appointments\`, \`contracts\`,
 
-| Objeto | Total na conta | Corpo legível? |
-| --- | --- | --- |
-| `notes` | 3.369.334 | sim (`hs_note_body`) |
-| `calls` | 489.059 | sim (`hs_call_title`, `hs_call_body`) |
-| `tasks` | 583.505 | sim |
-| `meetings` | 30.534 | sim |
-| `emails` | (| **403, escopo não concedido** |
+\`dealsplits\`.
+
+**### Engajamentos: abertos, volumosos, e sem ligação com o atendimento**
+
+\| Objeto | Total na conta | Corpo legível? |
+
+\| --- | --- | --- |
+
+\| \`notes\` | 3.369.334 | sim (\`hs\_note\_body\`) |
+
+\| \`calls\` | 489.059 | sim (\`hs\_call\_title\`, \`hs\_call\_body\`) |
+
+\| \`tasks\` | 583.505 | sim |
+
+\| \`meetings\` | 30.534 | sim |
+
+\| \`emails\` | (| **\*\*403, escopo não concedido\*\*** |
 
 Foi investigado se dariam um caminho alternativo ao atendimento, já que
-`/crm/v4/objects/notes/{id}/associations/tickets` responde **200 e não 403**)
+
+\`/crm/v4/objects/notes/{id}/associations/tickets\` responde **\*\*200 e não 403\*\***)
+
 a travessia até o ticket está aberta mesmo com o objeto ticket fechado.
 
-**Mas nenhuma amostra encontrou ligação:** busca de notas e de chamadas
-filtrando por `associations.ticket` do atendimento real `47673917220` devolveu
-**total 0** nas duas; e as 5 notas mais recentes da conta (todas do dia)
-devolveram **0 atendimentos associados** cada. O erro do lote é
-`NO_ASSOCIATIONS_FOUND`, não permissão.
+**\*\*Mas nenhuma amostra encontrou ligação:\*\*** busca de notas e de chamadas
 
-Não é prova sobre 3,3 milhões de registros. `HAS_PROPERTY` não é aceito nesse
+filtrando por \`associations.ticket\` do atendimento real \`47673917220\` devolveu
+
+**\*\*total 0\*\*** nas duas; e as 5 notas mais recentes da conta (todas do dia)
+
+devolveram **\*\*0 atendimentos associados\*\*** cada. O erro do lote é
+
+\`NO\_ASSOCIATIONS\_FOUND\`, não permissão.
+
+Não é prova sobre 3,3 milhões de registros. \`HAS\_PROPERTY\` não é aceito nesse
+
 campo, então não deu para contar o acervo inteiro. Mas toda evidência colhida
+
 aponta para o mesmo lado: os engajamentos existem para o uso comercial do CRM,
+
 não para o atendimento.
 
-### Concedidos e inutilizáveis
+**### Concedidos e inutilizáveis**
 
 Três escopos estão na lista e não entregam nada:
 
-| Escopo | O que acontece |
-| --- | --- |
-| `cms.knowledge_base.articles.read` | 404, não existe API (ver 2.1) |
-| `cms.knowledge_base.settings.read` | 404, idem |
-| `conversations.custom_channels.read` | **401**: o endpoint exige OAuth 2.0; token de app privado não serve |
+\| Escopo | O que acontece |
+
+\| --- | --- |
+
+\| \`cms.knowledge\_base.articles.read\` | 404, não existe API (ver 2.1) |
+
+\| \`cms.knowledge\_base.settings.read\` | 404, idem |
+
+\| \`conversations.custom\_channels.read\` | **\*\*401\*\***: o endpoint exige OAuth 2.0; token de app privado não serve |
 
 Vale registrar junto com o pedido de escopos: ver um escopo marcado na lista
-**não** significa que ele entrega alguma coisa.
 
-### O que vale pedir
+**\*\*não\*\*** significa que ele entrega alguma coisa.
 
-**Um escopo: `tickets`.**
+**### O que vale pedir**
+
+**\*\*Um escopo: \`tickets\`.\*\***
 
 Era para serem três. Os outros dois caíram:
 
-- `site-search-read`, desnecessário: o portal público entrega mais do que ele
-  daria (seção 6).
-- `emails`, só faria sentido junto do `tickets`, e pedir uma coisa tem mais
-  chance de resposta que pedir três. Fica para depois, se o atendimento entrar.
+\- \`site-search-read\`, desnecessário: o portal público entrega mais do que ele
 
-**A pergunta concreta para quem administra o app `50542060`:** na aba de
-escopos, `tickets` **aparece como opção para marcar**? Se aparece, era só
+  daria (seção 6).
+
+\- \`emails\`, só faria sentido junto do \`tickets\`, e pedir uma coisa tem mais
+
+  chance de resposta que pedir três. Fica para depois, se o atendimento entrar.
+
+**\*\*A pergunta concreta para quem administra o app \`50542060\`:\*\*** na aba de
+
+escopos, \`tickets\` **\*\*aparece como opção para marcar\*\***? Se aparece, era só
+
 configuração. Se não aparece, é limitação do produto contratado, e aí o
+
 atendimento não entra por API de jeito nenhum.
 
----
+\---
 
-## 6. O artigo não precisa da HubSpot, e isso já está funcionando
+**## 6. O artigo não precisa da HubSpot para importação, mas precisa para edição via API
 
-> **Resultado, 27/08:** o portal foi importado inteiro. 1.825 páginas
-> visitadas, 1.822 artigos, 133 sem seção, 3 páginas sem conteúdo. A varredura
-> é incremental pelo `lastmod`, então a próxima só busca o que mudou. Nenhuma
-> chamada à API da HubSpot foi feita nesse caminho, e nada foi escrito no
-> portal.
+> **Resultado, 27/08:** o portal foi importado inteiro. 1.825 páginas visitadas, 1.822 artigos, 133 sem seção, 3 páginas sem conteúdo. A varredura é incremental pelo `lastmod`, então a próxima busca só precisa verificar o que mudou. Nenhuma chamada à API da HubSpot foi feita nesse caminho, e nada foi escrito no portal.
 
-Descoberto em 27/08, depois que a API se mostrou fechada dos dois lados.
+Para **ler e importar os artigos**, não é necessário depender da API da HubSpot. O `suporte.altoqi.com.br` é público e fornece o conteúdo necessário para essa etapa.
 
-O `suporte.altoqi.com.br` é público, e entrega mais do que a API entregaria:
+Para **buscar, editar ou publicar artigos diretamente pela API da HubSpot**, a situação é diferente. Nesse caso, seria necessário que a HubSpot disponibilizasse uma API de Knowledge Base com os endpoints correspondentes. Nos testes realizados, os caminhos de leitura da Knowledge Base retornaram 404, e a documentação consultada informa que não há uma API disponível para esse recurso.
+
+O `site-search-read` também não resolve essa questão. Esse escopo permite consultar o índice do site, mas não fornece uma API para editar ou publicar artigos.
+
+O caminho atual para importação é o site público:
 
 | O que | De onde | Verificado |
 | --- | --- | --- |
@@ -719,23 +1085,27 @@ O `suporte.altoqi.com.br` é público, e entrega mais do que a API entregaria:
 | **Corpo** | dentro de `<article>`, no HTML servido | 8.620 caracteres de texto, sem depender de JS |
 | Categoria e seção | trilha de navegação | `AltoQi Builder > Geral`: o nosso vocabulário |
 
-Os 1.694 batem com os ~1.800 artigos que o produto sempre citou; os outros 140
-são páginas de categoria e seção.
+Os 1.694 batem com os ~1.800 artigos que o produto sempre citou; os outros 140 são páginas de categoria e seção.
 
-**Isso é melhor que o `site-search-read`**, que devolveria o índice sem o corpo.
+**Isso é suficiente para a importação, mas não substitui uma API de edição.** Se o produto precisar futuramente alterar ou publicar artigos diretamente na HubSpot, será necessário resolver essa parte com a própria plataforma.
 
-Ressalvas, para não prometer demais:
+Ressalvas:
 
-- **Uma página foi testada.** Antes de construir, conferir numa dezena: se a
-  trilha ou o `<article>` variarem por categoria, o extrator precisa saber
-  disso antes.
-- **É leitura de site, não API**, quebra se o portal mudar de template. A
-  defesa é a regra que a importação já usa: calcular o plano antes de gravar e
-  mostrar o número. Se nenhuma página der corpo, a tela diz isso em vez de
-  importar 1.694 artigos vazios.
-- **São 1.694 requisições ao servidor da AltoQi**, em série e com pausa. O
-  `lastmod` faz a segunda varredura custar quase nada.
-- **Nota de correção:** as URLs são `/hc/pt-br/articles/`, padrão do Zendesk.
-  Isso é herança de migração, não indício de plataforma: a página traz
-  marcador de HubSpot e os endpoints de Zendesk dão 404. O portal é HubSpot,
-  como o `CLAUDE.md` diz.
+- **Uma página foi testada.** Antes de construir, conferir numa dezena: se a trilha ou o `<article>` variarem por categoria, o extrator precisa tratar essas diferenças.
+- **É leitura do site, não API.** Se o portal mudar de template, o extrator pode quebrar. A defesa é a regra que a importação já usa: calcular o plano antes de gravar e mostrar o número. Se nenhuma página der corpo, a tela informa isso em vez de importar artigos vazios.
+- **São 1.694 requisições ao servidor da AltoQi**, em série e com pausa. O `lastmod` faz a segunda varredura custar quase nada.
+- **Nota de correção:** as URLs seguem o padrão `/hc/pt-br/articles/`. Isso é uma característica herdada da estrutura atual do portal; a página traz marcador de HubSpot. O portal é HubSpot, como o `CLAUDE.md` diz.
+
+## 7. Pendências — Agente integrado KI**
+
+  Limitações atuais do agente integrado KI:
+
+ Acesso ao conteúdo: o agente não lê o texto integral dos artigos ou dos atendimentos. Hoje, recebe apenas os dados apresentados na tela, como contagens, resultados calculados e uma pequena amostra de títulos.
+
+Busca no acervo: o agente não faz buscas diretas na base do nem no portal público (suporte.altoqi.com.br). Para consultar ou resumir um artigo específico, é necessário acessá-lo diretamente nesses canais.
+
+Cálculos e estimativas: o agente não recalcula, estima ou arredonda números. Os valores são apresentados exatamente como foram extraídos pelo produto.
+
+Ações no sistema: o agente não executa operações. Publicar, mover seções, fundir ou excluir conteúdos continua sendo uma decisão do usuário.
+
+ - Extraido do agente integrado.
