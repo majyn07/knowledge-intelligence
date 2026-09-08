@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { requireMember } from "@/features/auth/requireAdmin";
 
 import { articleUrls, parseSitemap } from "@/features/library/import/portal/portalSitemap";
 import { fetchSitemap } from "@/services/portal/portalClient";
@@ -11,6 +12,19 @@ import { fetchSitemap } from "@/services/portal/portalClient";
  * varredura custar quase nada.
  */
 export async function GET() {
+  /*
+    Entrou? Estas rotas gastam cota do provedor de IA ou fazem o servidor falar
+    com maquina de fora, e estavam abertas para qualquer um que soubesse o
+    endereco. A porta e o servidor, nao a tela: esconder o botao impede o clique
+    e nao impede quem conhece o caminho.
+  */
+  const sessao = await requireMember();
+
+  if (!sessao.ok) {
+    return NextResponse.json({ message: sessao.message }, { status: sessao.status });
+  }
+
+
   try {
     const xml = await fetchSitemap();
     const entradas = parseSitemap(xml);

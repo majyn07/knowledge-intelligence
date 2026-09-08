@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { requireMember } from "@/features/auth/requireAdmin";
 
 import { aiErrorResponse } from "@/services/ai/analysis/aiErrorResponse";
 import { articleChatRequestSchema } from "@/services/ai/library/articleChat";
@@ -14,6 +15,19 @@ import { invalidRequestMessage } from "@/services/ai/analysis/invalidRequest";
  * resolvida em vez de sair procurando.
  */
 export async function POST(request: Request) {
+  /*
+    Entrou? Estas rotas gastam cota do provedor de IA ou fazem o servidor falar
+    com maquina de fora, e estavam abertas para qualquer um que soubesse o
+    endereco. A porta e o servidor, nao a tela: esconder o botao impede o clique
+    e nao impede quem conhece o caminho.
+  */
+  const sessao = await requireMember();
+
+  if (!sessao.ok) {
+    return NextResponse.json({ message: sessao.message }, { status: sessao.status });
+  }
+
+
   let body: unknown;
 
   try {

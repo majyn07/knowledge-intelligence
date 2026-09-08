@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { requireMember } from "@/features/auth/requireAdmin";
 
 import {
   HubSpotFailure,
@@ -50,6 +51,19 @@ function responderFalha(error: unknown, contexto: string) {
 }
 
 export async function GET(request: Request) {
+  /*
+    Entrou? Estas rotas gastam cota do provedor de IA ou fazem o servidor falar
+    com maquina de fora, e estavam abertas para qualquer um que soubesse o
+    endereco. A porta e o servidor, nao a tela: esconder o botao impede o clique
+    e nao impede quem conhece o caminho.
+  */
+  const sessao = await requireMember();
+
+  if (!sessao.ok) {
+    return NextResponse.json({ message: sessao.message }, { status: sessao.status });
+  }
+
+
   if (!hubspotConfigured()) {
     return NextResponse.json({ configured: false, tickets: [], ilegiveis: 0 });
   }
