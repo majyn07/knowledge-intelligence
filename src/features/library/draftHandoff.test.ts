@@ -91,3 +91,38 @@ describe("normalizarRascunho", () => {
     });
   });
 });
+
+/*
+  A entrega que atualiza um artigo existente carrega o alvo, o formato e a lista
+  do que mudou. Sem o formato, gravar o HTML do portal como Markdown trocaria o
+  `contentFormat`, que é o defeito que aquele campo existe para impedir.
+*/
+describe("entrega de atualização", () => {
+  it("carrega o artigo alvo, o formato e o que mudou", () => {
+    expect(
+      normalizarRascunho({
+        title: "T",
+        summary: "S",
+        content: "<p>C</p>",
+        origem: "atualização",
+        articleId: "art-1",
+        contentFormat: "html",
+        mudancas: ["Acrescentado o passo 4", ""],
+      })
+    ).toEqual({
+      title: "T",
+      summary: "S",
+      content: "<p>C</p>",
+      origem: "atualização",
+      articleId: "art-1",
+      contentFormat: "html",
+      mudancas: ["Acrescentado o passo 4"],
+    });
+  });
+
+  it("formato desconhecido não entra", () => {
+    const r = normalizarRascunho({ title: "T", content: "C", contentFormat: "docx" });
+
+    expect(r?.contentFormat).toBeUndefined();
+  });
+});

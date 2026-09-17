@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { toast } from "sonner";
 
 import type { LibraryFormData } from "@/features/library/types/LibraryFormData";
 
@@ -143,8 +144,37 @@ export default function LibraryPage() {
     if (!chegou) return;
 
     setEntregue(chegou);
-    openCreateDialog();
+
+    /*
+      Atualização de artigo existente espera o acervo chegar: ela abre em
+      edição daquele artigo, e o efeito abaixo faz isso quando ele estiver em
+      memória. Artigo novo abre já.
+    */
+    if (!chegou.articleId) openCreateDialog();
   }, [openCreateDialog]);
+
+  /*
+    A entrega que atualiza um artigo existente abre em **edição** dele, com o
+    texto substituído pelo atualizado. Espera a hidratação: no primeiro render o
+    acervo ainda não chegou, e o artigo não estaria aqui para abrir.
+  */
+  const edicaoAberta = useRef(false);
+
+  useEffect(() => {
+    if (!entregue?.articleId || !isHydrated || edicaoAberta.current) return;
+
+    const alvo = items.find((item) => item.id === entregue.articleId);
+
+    edicaoAberta.current = true;
+
+    if (!alvo) {
+      toast.error("O artigo a atualizar não está mais no acervo.");
+      setEntregue(null);
+      return;
+    }
+
+    openEditDialog(alvo);
+  }, [entregue, isHydrated, items, openEditDialog]);
 
   useEffect(() => {
     if (!urlRead || urlApplied.current) return;
@@ -381,22 +411,48 @@ export default function LibraryPage() {
           onOpenChange={(open) => { if (!open) guard.requestClose(); }}
           title={selectedItem ? "Editar artigo" : "Novo artigo"}
           description={
-            selectedItem
-              ? "Atualize o conteúdo, a classificação e o estágio editorial."
-              : entregue && entregue.origem
+            selectedItem && entregue?.articleId === selectedItem.id
+              ? /*
+                  O que mudou vem antes do texto. Quem revisa um artigo de oito
+                  mil caracteres não vai comparar as duas versões inteiras para
+                  achar onde o modelo mexeu.
+                */
+                `Atualizado pela IA com o material. O que mudou: ${(entregue.mudancas ?? []).join(" · ")}. O publicado continua no ar até você salvar.`
+              : selectedItem
+                ? "Atualize o conteúdo, a classificação e o estágio editorial."
+                : entregue && entregue.origem
                 ? `Rascunho proposto pela IA a partir de ${entregue.origem}. Confira antes de salvar: nada foi publicado.`
                 : "Todo artigo novo nasce como rascunho e precisa passar por revisão antes de ser publicado."
           }
         >
           <LibraryForm
-            key={selectedItem?.id ?? (entregue ? "entregue" : "novo")}
+            key={
+              selectedItem
+                ? `${selectedItem.id}${entregue?.articleId === selectedItem.id ? ":atualizado" : ""}`
+                : entregue
+                  ? "entregue"
+                  : "novo"
+            }
             projects={projectOptions}
             articles={items}
             editingId={selectedItem?.id}
             initialData={
-              selectedItem
-                ? articleService.toFormData(selectedItem)
-                : entregue
+              selectedItem && entregue?.articleId === selectedItem.id
+                ? /*
+                    O artigo existente, com só o que a IA atualizou substituído.
+                    Seção, gênero, responsável e o resto ficam como estavam: são
+                    do artigo, e o material não fala deles.
+                  */
+                  {
+                    ...articleService.toFormData(selectedItem),
+                    title: entregue.title,
+                    summary: entregue.summary,
+                    content: entregue.content,
+                    contentFormat: entregue.contentFormat ?? selectedItem.contentFormat,
+                  }
+                : selectedItem
+                  ? articleService.toFormData(selectedItem)
+                  : entregue
                   ? {
                       title: entregue.title,
                       summary: entregue.summary,

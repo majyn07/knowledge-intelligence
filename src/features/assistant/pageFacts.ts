@@ -110,7 +110,8 @@ function doAcervo({ articles, taxonomy, achados }: EntradaDosFatos): PageFacts {
     tela: "Biblioteca — o acervo de artigos publicados no portal de suporte.",
     alcance:
       "Perguntas sobre o tamanho e a saúde do acervo, sobre o que está repetido ou " +
-      "sobreposto, e sobre o que falta cobrir. Os números vêm medidos do acervo.",
+      "sobreposto, sobre o que falta cobrir, e se um conteúdo já existe — a busca traz " +
+      "os artigos que casam com a pergunta. Os números vêm medidos do acervo.",
     fatos: [
       { rotulo: "Artigos no acervo", valor: String(articles.length) },
       { rotulo: "Publicados", valor: String(publicados.length) },
@@ -130,6 +131,7 @@ function doAcervo({ articles, taxonomy, achados }: EntradaDosFatos): PageFacts {
     achados: resumirAchados(achados),
     amostra: publicados.slice(0, NA_AMOSTRA).map((artigo) => artigo.title),
     sugestoes: [
+      "Já existe artigo sobre exportar IFC do Eberick?",
       "Existe conteúdo repetido ou artigos que poderiam virar um só?",
       "Onde o acervo está mais descoberto?",
       "Por onde eu começaria a arrumar a Biblioteca hoje?",

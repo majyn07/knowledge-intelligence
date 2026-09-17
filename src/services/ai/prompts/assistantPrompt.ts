@@ -74,6 +74,22 @@ export function buildAssistantPrompt(request: AssistantRequest): AIChatMessage[]
       "AMOSTRA (apenas exemplos, não é a lista completa)",
       context.amostra.map((item) => `- ${item}`).join("\n")
     ),
+    /*
+      Os encontrados vêm com trecho e separados da amostra: a amostra é
+      "exemplos do acervo", isto é "o que a busca achou sobre a sua pergunta".
+      Misturar os dois faria o modelo tratar doze títulos aleatórios como
+      resultado de busca.
+    */
+    bloco(
+      "ARTIGOS DO ACERVO QUE CASAM COM A PERGUNTA (achados pela busca)",
+      context.encontrados
+        .map((a) =>
+          [`## ${a.title}`, a.summary ? `Resumo: ${a.summary}` : "", a.excerpt]
+            .filter(Boolean)
+            .join("\n")
+        )
+        .join("\n\n")
+    ),
   ]
     .filter(Boolean)
     .join("\n\n");

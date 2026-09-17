@@ -23,6 +23,22 @@ export interface RascunhoEntregue {
   content: string;
   /** De onde ele veio, para a tela dizer, e para o histórico não inventar origem. */
   origem: string;
+  /**
+   * Qual artigo existente ele atualiza. Ausente quando é artigo novo.
+   *
+   * Com ele, o formulário abre em **edição** daquele artigo, com título, resumo e
+   * conteúdo já substituídos pelo atualizado. O publicado continua no ar até a
+   * pessoa salvar, como em toda edição.
+   */
+  articleId?: string;
+  /**
+   * O formato do conteúdo entregue. O modelo devolve no formato do artigo que
+   * atualizou — HTML para o acervo do portal — e gravar sem dizer qual trocaria
+   * o `contentFormat`, que é o defeito que aquele campo existe para impedir.
+   */
+  contentFormat?: "markdown" | "html";
+  /** O que mudou, item a item. Quem revisa lê isto antes do texto. */
+  mudancas?: string[];
 }
 
 export function guardarRascunho(rascunho: RascunhoEntregue): void {
@@ -47,7 +63,8 @@ export function retirarRascunho(): RascunhoEntregue | null {
 export function normalizarRascunho(bruto: unknown): RascunhoEntregue | null {
   if (typeof bruto !== "object" || bruto === null) return null;
 
-  const { title, summary, content, origem } = bruto as Record<string, unknown>;
+  const { title, summary, content, origem, articleId, contentFormat, mudancas } =
+    bruto as Record<string, unknown>;
 
   const texto = (valor: unknown) => (typeof valor === "string" ? valor : "");
 
@@ -62,5 +79,10 @@ export function normalizarRascunho(bruto: unknown): RascunhoEntregue | null {
     summary: texto(summary),
     content: texto(content),
     origem: texto(origem),
+    ...(texto(articleId) !== "" ? { articleId: texto(articleId) } : {}),
+    ...(contentFormat === "html" || contentFormat === "markdown" ? { contentFormat } : {}),
+    ...(Array.isArray(mudancas)
+      ? { mudancas: mudancas.filter((m): m is string => typeof m === "string" && m !== "") }
+      : {}),
   };
 }

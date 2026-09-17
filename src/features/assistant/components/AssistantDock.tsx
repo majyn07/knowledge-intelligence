@@ -25,6 +25,7 @@ import { STORAGE_KEYS } from "@/lib/storage";
 
 import { DOCK_INICIAL, encaixar, lerPosicao, type DockPosition } from "../dockPosition";
 import { pageFacts, type PageFacts } from "../pageFacts";
+import { encontrarNoAcervo } from "../searchForQuestion";
 import { contar } from "@/lib/plural";
 
 /**
@@ -212,6 +213,12 @@ export function AssistantDock() {
             fatos: retrato.fatos,
             achados: retrato.achados,
             amostra: retrato.amostra,
+            /*
+              O que o acervo tem sobre a pergunta. É o que faz "isto já existe?"
+              ter resposta: sem isso o assistente dizia que não alcançava os
+              1.824 artigos, que era verdade e era inútil.
+            */
+            encontrados: encontrarNoAcervo(articles, limpo),
           },
           /* A conversa inteira vai junto: o provedor não guarda estado. */
           messages: proxima.slice(-20),
@@ -320,9 +327,9 @@ export function AssistantDock() {
         {conversa.length === 0 && !pensando && (
           <div className="space-y-3">
             <p className="text-sm text-muted-foreground">
-              Ela responde a partir do que <strong>esta tela mediu</strong> — contagens e achados
-              apurados dos dados. Não lê o acervo inteiro, e diz quando a pergunta pede algo que
-              ela não tem.
+              Ela responde a partir do que <strong>esta tela mediu</strong> e do que{" "}
+              <strong>a busca acha no acervo</strong> sobre a sua pergunta. Pergunte se um
+              conteúdo já existe, o que está repetido, por onde começar.
             </p>
 
             <div className="flex flex-col gap-1.5">
