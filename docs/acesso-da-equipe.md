@@ -131,3 +131,35 @@ Custo: nenhum.
   desenvolvimento. Foi o defeito que fazia todo link cair em `localhost`.
 - A tela de acesso traduz os erros da Supabase, inclusive o do limite de envio
   e o do provedor desligado.
+
+## O token da HubSpot
+
+**Situação em 17/09/2026: o token se perdeu.** Ele vivia só no `.env.local` da
+máquina de desenvolvimento, e a pasta foi apagada. Nenhuma cópia compactada o
+tinha. Em produção ele **nunca existiu**: os 1.025 atendimentos entraram por
+varredura rodada da máquina local, contra o banco compartilhado.
+
+Consequência: "Buscar na HubSpot" responde "não há credencial neste ambiente",
+em produção e no local. O que já entrou (atendimentos, conversas, anexos
+copiados) continua funcionando. O que para é trazer atendimento novo.
+
+**Token de app privado não se recupera.** O caminho é pedir um novo a quem
+administra o app `50542060` (hub `44552714`), somente leitura, com os mesmos
+escopos — e aproveitar para pedir `crm.objects.tickets.read`, que é o que falta
+para a classificação do suporte (ver `hubspot-o-que-precisamos.md`).
+
+Quando chegar, ele vai em **dois** lugares, e quem coloca é uma pessoa, nunca
+um assistente:
+
+1. `.env.local` da máquina de desenvolvimento: `HUBSPOT_ACCESS_TOKEN=pat-na1-...`
+2. Vercel → Settings → Environment Variables → `HUBSPOT_ACCESS_TOKEN`,
+   ambiente **Production**, marcado **Sensitive** → depois **Redeploy** do
+   deployment mais recente. Variável nova só vale num deploy novo.
+
+Depois, `npm run hubspot:conferir` testa a credencial contra a API e diz o que
+ela alcança.
+
+**Cuidado que já custou este token:** `vercel link` reescreve o `.env.local`
+com o que puxa da Vercel. Como o token não estava na Vercel, o arquivo local
+ficou sem ele. Antes de `vercel link` ou `vercel env pull`, copie o `.env.local`.
+
