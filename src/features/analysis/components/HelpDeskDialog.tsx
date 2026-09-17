@@ -4,6 +4,7 @@ import { useCallback, useMemo, useRef, useState } from "react";
 import { Download, Loader2, Square } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Dialog,
   DialogContent,
@@ -28,7 +29,7 @@ import { RelativeDate } from "@/components/common/RelativeDate";
 import { useTickets } from "../providers/TicketsProvider";
 import { usePeople } from "@/features/people/providers/PeopleProvider";
 import { renovarTranca, soltarTranca, tomarTranca } from "../autoSyncRepository";
-import { caixasDoSuporte, lerConversas, listarConversas } from "../helpDeskScan";
+import { caixasDoSuporte, lerConversas, lerPorNumeros, listarConversas } from "../helpDeskScan";
 import { concordar, contar } from "@/lib/plural";
 
 /**
@@ -137,6 +138,52 @@ export function HelpDeskDialog({
     e dez páginas de listagem contra o servidor do suporte.
   */
   const [janela, setJanela] = useState<Janela>({ tipo: "atalho", id: ATALHO_PADRAO });
+
+  /*
+    Dois modos, ditos na tela: por período, que varre a caixa numa janela, e por
+    número do chamado, que traz só aqueles. Alguém com cinco casos de três meses
+    atrás precisa do segundo — pela janela seriam dezenas de milhares de
+    requisições para achar cinco.
+  */
+  const [modo, setModo] = useState<"periodo" | "numero">("periodo");
+  const [numeros, setNumeros] = useState("");
+  const [semConversa, setSemConversa] = useState<string[]>([]);
+
+  /* Aceita "46671834008" e "#46671834008", separados por vírgula, espaço ou linha. */
+  const numerosLidos = numeros
+    .split(/[\s,;]+/)
+    .map((n) => n.replace(/\D/g, ""))
+    .filter((n) => n !== "");
+
+  async function trazerPorNumero() {
+    if (numerosLidos.length === 0) return;
+
+    setErro(null);
+    setSemConversa([]);
+    setEtapa("lendo");
+    setProgresso({ ...VAZIO, conversas: numerosLidos.length });
+
+    try {
+      const { trazidos, falhas, semConversa: faltando } = await lerPorNumeros({
+        numeros: numerosLidos,
+        projectId: activeProjectId ?? "",
+      });
+
+      importFromHelpDesk(trazidos, `pelo número: ${numerosLidos.join(", ")}`);
+      setSemConversa(faltando);
+      setProgresso({
+        conversas: numerosLidos.length,
+        lidos: numerosLidos.length,
+        trazidos: trazidos.length,
+        falhas,
+        descartados: { semChamado: 0, semResposta: 0, semAssunto: 0 },
+      });
+      setEtapa("fim");
+    } catch (falha) {
+      setErro(falha instanceof Error ? falha.message : "A leitura foi interrompida.");
+      setEtapa("fim");
+    }
+  }
   const [de, setDe] = useState("");
   const [ate, setAte] = useState("");
 
@@ -321,6 +368,45 @@ export function HelpDeskDialog({
 
         {etapa === "inicio" && (
           <div className="space-y-4">
+            <div className="flex gap-1.5">
+              <Button
+                size="sm"
+                variant={modo === "periodo" ? "default" : "outline"}
+                onClick={() => setModo("periodo")}
+              >
+                Por período
+              </Button>
+              <Button
+                size="sm"
+                variant={modo === "numero" ? "default" : "outline"}
+                onClick={() => setModo("numero")}
+              >
+                Por número do chamado
+              </Button>
+            </div>
+
+            {modo === "numero" && (
+              <div className="space-y-2">
+                <p className="text-sm">Números dos chamados, um por linha ou separados por vírgula</p>
+
+                <Textarea
+                  value={numeros}
+                  onChange={(evento) => setNumeros(evento.target.value)}
+                  rows={4}
+                  placeholder={"46671834008\n#46671834008"}
+                  className="font-mono text-sm"
+                />
+
+                <p className="text-xs text-muted-foreground">
+                  {numerosLidos.length === 0
+                    ? "Aceita com ou sem #. Traz só esses, sem varrer a caixa: uma listagem por número mais a leitura de cada conversa."
+                    : `${contar(numerosLidos.length, "chamado")} para trazer. Sem varrer a caixa.`}
+                </p>
+              </div>
+            )}
+
+            {modo === "periodo" && (
+            <>
             <div className="space-y-2">
               <p className="text-sm">Trazer os últimos</p>
 
@@ -392,9 +478,23 @@ export function HelpDeskDialog({
               </p>
             )}
 
-            <Button onClick={listar} className="w-full">
-              Ver o que há nas caixas
-            </Button>
+            </>
+            )}
+
+            {modo === "periodo" ? (
+              <Button onClick={listar} className="w-full">
+                Ver o que há nas caixas
+              </Button>
+            ) : (
+              <Button
+                onClick={trazerPorNumero}
+                disabled={numerosLidos.length === 0}
+                className="w-full"
+              >
+                <Download className="mr-1.5 h-4 w-4" />
+                Trazer {contar(numerosLidos.length, "chamado")}
+              </Button>
+            )}
           </div>
         )}
 
@@ -493,6 +593,13 @@ export function HelpDeskDialog({
 
         {etapa === "fim" && (
           <div className="space-y-3">
+            {semConversa.length > 0 && (
+              <p className="rounded-lg border border-amber-500/40 bg-amber-500/10 p-3 text-sm">
+                {semConversa.length === 1
+                  ? `O chamado ${semConversa[0]} não tem conversa associada na HubSpot, ou o número não existe.`
+                  : `Estes números não têm conversa associada na HubSpot, ou não existem: ${semConversa.join(", ")}.`}
+              </p>
+            )}
             <p className="text-sm">
               {progresso.trazidos.toLocaleString("pt-BR")}{" "}
               {concordar(progresso.trazidos, "atendimento")}{" "}

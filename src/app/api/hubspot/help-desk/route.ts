@@ -4,11 +4,14 @@ import { requireAdmin } from "@/features/auth/requireAdmin";
 
 import {
   caixasConfiguradas,
+  conversasDoChamado,
   donosComEquipe,
   lerLote,
+  NUMEROS_POR_PEDIDO,
   POR_LOTE,
   umaPaginaDeFios,
 } from "@/services/hubspot/helpDeskService";
+import type { ConversaListada } from "@/services/hubspot/helpDeskSchedule";
 import {
   HubSpotFailure,
   hubspotConfigured,
@@ -139,6 +142,57 @@ export async function POST(request: Request) {
     body = await request.json();
   } catch {
     return NextResponse.json({ message: "Corpo inválido." }, { status: 400 });
+  }
+
+  /*
+    Pelo número do chamado, sem varrer.
+
+    Alguém do suporte tem cinco casos de três meses atrás e precisa deles aqui.
+    Varrer a caixa desde lá seriam dezenas de milhares de requisições; o filtro
+    da listagem responde cada número com uma. É o mesmo `lerLote` da varredura
+    depois: a conversa vira atendimento pelo mesmo caminho.
+  */
+  const numerosBrutos =
+    body && typeof body === "object" && "numeros" in body ? body.numeros : null;
+
+  if (Array.isArray(numerosBrutos)) {
+    const numeros = [...new Set(numerosBrutos.map((n) => String(n ?? "").replace(/\D/g, "")))].filter(
+      (n) => n !== ""
+    );
+
+    if (numeros.length === 0) {
+      return NextResponse.json({ message: "Informe os números dos chamados." }, { status: 400 });
+    }
+
+    if (numeros.length > NUMEROS_POR_PEDIDO) {
+      return NextResponse.json(
+        { message: `No máximo ${NUMEROS_POR_PEDIDO} números por vez.` },
+        { status: 400 }
+      );
+    }
+
+    try {
+      const listadas: ConversaListada[] = [];
+      const semConversa: string[] = [];
+
+      for (const numero of numeros) {
+        const conversas = await conversasDoChamado(numero);
+        if (conversas.length === 0) semConversa.push(numero);
+        listadas.push(...conversas);
+      }
+
+      const lote = listadas.length > 0 ? await lerLote(listadas) : null;
+
+      return NextResponse.json({
+        atendimentos: lote?.atendimentos ?? [],
+        falhas: lote?.falhas ?? 0,
+        descartados: lote?.descartados ?? { semChamado: 0, semResposta: 0, semAssunto: 0 },
+        /* Número que não achou conversa é dito, e não somado ao silêncio. */
+        semConversa,
+      });
+    } catch (error) {
+      return responderFalha(error);
+    }
   }
 
   const bruto = body && typeof body === "object" && "conversas" in body ? body.conversas : null;
