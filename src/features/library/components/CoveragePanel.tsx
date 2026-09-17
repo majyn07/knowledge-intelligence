@@ -2,15 +2,31 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { BookOpenCheck, CircleAlert, CircleCheck, CirclePlus, Wand2 } from "lucide-react";
+import { useRouter } from "next/navigation";
+import {
+  BookOpenCheck,
+  CircleAlert,
+  CircleCheck,
+  CirclePlus,
+  Loader2,
+  RefreshCw,
+  Wand2,
+} from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { articleText } from "@/features/library/content/articleText";
+import { guardarRascunho } from "@/features/library/draftHandoff";
 import {
   MATERIAL_MINIMO,
   montarPedidoDeCobertura,
 } from "@/features/library/search/coverageRequest";
 import type { KnowledgeArticle } from "@/models/KnowledgeArticle";
 import type { CoverageResult, NivelDeCobertura } from "@/services/ai/library/coverage";
+import {
+  ARTIGO_NO_PEDIDO,
+  MATERIAL_NO_PEDIDO,
+  type UpdatedArticle,
+} from "@/services/ai/library/updateArticle";
 
 /**
  * "O acervo já responde isto?", antes de escrever.
@@ -69,9 +85,69 @@ export function CoveragePanel({
   excludeId,
   onApply,
 }: CoveragePanelProps) {
+  const router = useRouter();
   const [resultado, setResultado] = useState<CoverageResult | null>(null);
   const [avaliando, setAvaliando] = useState(false);
   const [erro, setErro] = useState("");
+  /* Qual artigo está sendo atualizado agora. Um por vez: cada um é um pedido. */
+  const [atualizando, setAtualizando] = useState<string | null>(null);
+
+  /**
+   * Atualizar um artigo existente com o material.
+   *
+   * É a outra metade da avaliação. "Parcial" dizia o que falta no artigo e
+   * parava: o rascunho era de um artigo novo, e quem queria atualizar o
+   * existente ia lá e inseria à mão. Aqui o modelo devolve o artigo inteiro já
+   * atualizado, e ele abre no editor daquele artigo — a pessoa revisa a lista
+   * do que mudou e decide se salva. O publicado continua no ar até lá.
+   */
+  async function atualizar(alvo: KnowledgeArticle) {
+    setAtualizando(alvo.id);
+    setErro("");
+
+    const inteiro = alvo.contentFormat === "html" ? alvo.content : articleText(alvo);
+
+    try {
+      const resposta = await fetch("/api/library/update", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          article: {
+            id: alvo.id,
+            title: alvo.title,
+            summary: alvo.summary,
+            content: inteiro.slice(0, ARTIGO_NO_PEDIDO),
+            contentFormat: alvo.contentFormat,
+            truncated: inteiro.length > ARTIGO_NO_PEDIDO,
+          },
+          material: material.slice(0, MATERIAL_NO_PEDIDO),
+        }),
+      });
+
+      const dados: { updated?: UpdatedArticle; message?: string } = await resposta.json();
+
+      if (!resposta.ok || !dados.updated) {
+        setErro(dados.message ?? "Não foi possível atualizar o artigo.");
+        return;
+      }
+
+      guardarRascunho({
+        title: dados.updated.title,
+        summary: dados.updated.summary,
+        content: dados.updated.content,
+        origem: `atualização de "${alvo.title}"`,
+        articleId: alvo.id,
+        contentFormat: alvo.contentFormat,
+        mudancas: dados.updated.mudancas,
+      });
+
+      router.push("/library");
+    } catch {
+      setErro("Não foi possível falar com o servidor.");
+    } finally {
+      setAtualizando(null);
+    }
+  }
 
   const podeAvaliar = material.trim().length >= MATERIAL_MINIMO;
 
@@ -181,6 +257,28 @@ export function CoveragePanel({
                       <p className="mt-0.5 text-xs leading-5">
                         <span className="font-medium">Falta:</span> {artigo.falta}
                       </p>
+                    )}
+
+                    {/*
+                      Só para artigo que existe aqui e não é o que está sendo
+                      editado: atualizar um artigo consigo mesmo não faz sentido.
+                    */}
+                    {encontrado && encontrado.id !== excludeId && (
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="outline"
+                        className="mt-1.5 h-7 text-xs"
+                        disabled={atualizando !== null}
+                        onClick={() => atualizar(encontrado)}
+                      >
+                        {atualizando === encontrado.id ? (
+                          <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
+                        ) : (
+                          <RefreshCw className="mr-1.5 h-3.5 w-3.5" />
+                        )}
+                        Atualizar este artigo com o material
+                      </Button>
                     )}
                   </li>
                 );

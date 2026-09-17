@@ -24,6 +24,26 @@ export const assistantContextSchema = z
     fatos: z.array(fatoSchema).max(40),
     achados: z.array(achadoSchema).max(20),
     amostra: z.array(z.string()).max(30),
+    /**
+     * Os artigos do acervo que casam com a pergunta, escolhidos pela busca.
+     *
+     * É o que faz o assistente responder "isto já existe?" em vez de dizer que
+     * não alcança o acervo. Vem com trecho, porque julgar só por título é o
+     * mesmo que a busca léxica já fez.
+     */
+    encontrados: z
+      .array(
+        z
+          .object({
+            id: z.string().min(1),
+            title: z.string(),
+            summary: z.string(),
+            excerpt: z.string().max(1_000),
+          })
+          .strict()
+      )
+      .max(10)
+      .default([]),
   })
   .strict();
 
