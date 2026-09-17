@@ -9,6 +9,7 @@ import {
   PanelLeftOpen,
   Paperclip,
   Search,
+  Sparkles,
   User,
   X,
 } from "lucide-react";
@@ -45,6 +46,18 @@ interface TicketListProps {
   ciclo: TicketCycle;
   selectedTicketId: string;
   onSelectTicket: (id: string) => void;
+  /**
+   * Os marcados para avaliar juntos contra o acervo.
+   *
+   * Marcar é diferente de selecionar: selecionar abre um; marcar junta vários
+   * para a IA ler um a um e dizer o que criar ou atualizar. A marca sobrevive à
+   * busca e à página, senão procurar cinco números um a um desmarcaria os
+   * anteriores a cada digitação.
+   */
+  marcados: ReadonlySet<string>;
+  onToggleMarcado: (id: string) => void;
+  onLimparMarcados: () => void;
+  onAvaliarMarcados: () => void;
   isCollapsed?: boolean;
   onToggleCollapse?: () => void;
 }
@@ -65,6 +78,10 @@ export function TicketList({
   ciclo,
   selectedTicketId,
   onSelectTicket,
+  marcados,
+  onToggleMarcado,
+  onLimparMarcados,
+  onAvaliarMarcados,
   isCollapsed = false,
   onToggleCollapse,
 }: TicketListProps) {
@@ -254,6 +271,28 @@ export function TicketList({
         </div>
       </header>
 
+      {marcados.size > 0 && (
+        <div className="flex items-center justify-between gap-2 border-b border-border/70 bg-primary/8 px-4 py-2">
+          <span className="text-xs font-medium">{contar(marcados.size, "marcado")}</span>
+
+          <div className="flex gap-1.5">
+            <Button
+              type="button"
+              size="sm"
+              variant="ghost"
+              className="h-7 text-xs"
+              onClick={onLimparMarcados}
+            >
+              Limpar
+            </Button>
+            <Button type="button" size="sm" className="h-7 text-xs" onClick={onAvaliarMarcados}>
+              <Sparkles className="mr-1.5 h-3.5 w-3.5" />
+              Avaliar no acervo
+            </Button>
+          </div>
+        </div>
+      )}
+
       <div className="min-h-0 flex-1 overflow-y-auto">
         {recorte.pagina.map((ticket) => (
           <TicketRow
@@ -261,7 +300,9 @@ export function TicketList({
             ticket={ticket}
             ciclo={ciclo}
             selected={ticket.id === selectedTicketId}
+            marcado={marcados.has(ticket.id)}
             onSelect={onSelectTicket}
+            onToggleMarcado={onToggleMarcado}
           />
         ))}
 
@@ -344,12 +385,16 @@ function TicketRow({
   ticket,
   ciclo,
   selected,
+  marcado,
   onSelect,
+  onToggleMarcado,
 }: {
   ticket: Ticket;
   ciclo: TicketCycle;
   selected: boolean;
+  marcado: boolean;
   onSelect: (id: string) => void;
+  onToggleMarcado: (id: string) => void;
 }) {
   const etapa = ticketStage(ticket, ciclo);
   const cliente = clienteDo(ticket);
@@ -373,14 +418,29 @@ function TicketRow({
   }, [selected]);
 
   return (
+    <div
+      className={`flex items-start gap-2 border-b border-border/60 pl-3 transition-colors last:border-b-0 ${
+        selected ? "bg-primary/8" : "hover:bg-muted/45"
+      }`}
+    >
+      {/*
+        A caixa é irmã do botão, e não filha: interativo dentro de <button> é
+        HTML inválido, e o clique na caixa abriria o atendimento junto.
+      */}
+      <input
+        type="checkbox"
+        checked={marcado}
+        onChange={() => onToggleMarcado(ticket.id)}
+        aria-label={`Marcar ${ticket.title} para avaliar no acervo`}
+        className="mt-5 h-4 w-4 shrink-0 accent-primary"
+      />
+
     <button
       ref={item}
       onClick={() => onSelect(ticket.id)}
       /* O destaque é cor, e cor não chega a quem lê por leitor de tela. */
       aria-current={selected}
-      className={`w-full border-b border-border/60 px-4 py-4 text-left transition-colors last:border-b-0 ${
-        selected ? "bg-primary/8" : "hover:bg-muted/45"
-      }`}
+      className="min-w-0 flex-1 py-4 pr-4 text-left"
     >
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
@@ -464,5 +524,6 @@ function TicketRow({
         </div>
       </div>
     </button>
+    </div>
   );
 }

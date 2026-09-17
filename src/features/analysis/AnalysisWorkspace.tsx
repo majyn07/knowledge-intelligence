@@ -21,6 +21,7 @@ import { TicketConversation } from "./components/TicketConversation";
 import { TicketHeader } from "./components/TicketHeader";
 import { TicketDetails } from "./components/TicketDetails";
 import { TicketList } from "./components/TicketList";
+import { BatchCoverageDialog } from "./components/BatchCoverageDialog";
 import { TriageQueue } from "./components/TriageQueue";
 import { triageTickets } from "./triage";
 import { useTicketRecorte } from "./hooks/useTicketRecorte";
@@ -154,6 +155,27 @@ export function AnalysisWorkspace() {
     pronta, e a conversa com a IA logo abaixo dela.
   */
   const analiseRef = useRef<HTMLDivElement>(null);
+
+  /*
+    Os marcados para avaliar juntos contra o acervo. Vive aqui, e não na lista,
+    porque sobrevive à busca e à página: quem procura cinco números um a um
+    precisa que os quatro anteriores continuem marcados.
+  */
+  const [marcados, setMarcados] = useState<ReadonlySet<string>>(new Set());
+  const [avaliandoMarcados, setAvaliandoMarcados] = useState(false);
+
+  const alternarMarcado = (id: string) =>
+    setMarcados((atual) => {
+      const proximo = new Set(atual);
+      if (proximo.has(id)) proximo.delete(id);
+      else proximo.add(id);
+      return proximo;
+    });
+
+  const ticketsMarcados = useMemo(
+    () => projectTickets.filter((ticket) => marcados.has(ticket.id)),
+    [marcados, projectTickets]
+  );
 
   async function handleAnalyze() {
     if (!selectedTicket || !activeProjectId) return;
@@ -337,6 +359,13 @@ export function AnalysisWorkspace() {
           />
 
           {dialogs}
+
+          <BatchCoverageDialog
+            tickets={ticketsMarcados}
+            conversas={conversations}
+            aberto={avaliandoMarcados}
+            aoFechar={() => setAvaliandoMarcados(false)}
+          />
         </>
       ) : (
         <>
@@ -384,6 +413,10 @@ export function AnalysisWorkspace() {
                 ciclo={ciclo}
                 selectedTicketId={selectedTicketId}
                 onSelectTicket={setSelectedTicketId}
+                marcados={marcados}
+                onToggleMarcado={alternarMarcado}
+                onLimparMarcados={() => setMarcados(new Set())}
+                onAvaliarMarcados={() => setAvaliandoMarcados(true)}
                 isCollapsed={isSidebarCollapsed}
                 onToggleCollapse={() => setIsSidebarCollapsed((collapsed) => !collapsed)}
               />
