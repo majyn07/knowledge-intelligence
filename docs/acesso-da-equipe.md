@@ -143,10 +143,13 @@ Consequência: "Buscar na HubSpot" responde "não há credencial neste ambiente"
 em produção e no local. O que já entrou (atendimentos, conversas, anexos
 copiados) continua funcionando. O que para é trazer atendimento novo.
 
-**Token de app privado não se recupera.** O caminho é pedir um novo a quem
-administra o app `50542060` (hub `44552714`), somente leitura, com os mesmos
-escopos — e aproveitar para pedir `crm.objects.tickets.read`, que é o que falta
-para a classificação do suporte (ver `hubspot-o-que-precisamos.md`).
+**O token se copia de novo na própria HubSpot**, por quem tem acesso ao app:
+Configurações → Integrações → Aplicativos privados → app `50542060` → aba Auth →
+Mostrar token. Não é preciso pedir a ninguém nem gerar outro.
+
+Na mesma tela, a aba de escopos diz se `crm.objects.tickets.read` aparece como
+opção — é o que falta para a classificação do suporte (ver
+`hubspot-o-que-precisamos.md`). Se aparecer, marcar ali resolve.
 
 Quando chegar, ele vai em **dois** lugares, e quem coloca é uma pessoa, nunca
 um assistente:
