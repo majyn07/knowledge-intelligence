@@ -131,6 +131,29 @@ export async function umaPaginaDeFios(
  * atendimento; sem resposta é o consentimento do WhatsApp, que gera ticket e
  * ninguém respondeu; sem assunto é conversa que não dá nem para nomear.
  */
+/** Quantos números cabem num pedido. Cinco casos é o uso; vinte é o teto. */
+export const NUMEROS_POR_PEDIDO = 20;
+
+/**
+ * As conversas de um chamado, pelo número dele.
+ *
+ * A varredura lê a caixa por janela de tempo, e para um chamado de três meses
+ * atrás isso seria percorrer a listagem desde lá — dezenas de milhares de
+ * requisições contra o servidor de suporte para achar cinco. O filtro
+ * `associatedTicketId` da listagem responde direto: uma requisição por número,
+ * e a conversa vem com `createdAt`, que é o que `lerLote` precisa.
+ *
+ * O objeto ticket continua fechado (403); o que se lê aqui é a conversa, pelo
+ * lado que a credencial alcança.
+ */
+export async function conversasDoChamado(numero: string): Promise<ConversaListada[]> {
+  const query = new URLSearchParams({ associatedTicketId: numero, limit: "10" });
+
+  const pagina: unknown = await hubspot.get(`/conversations/v3/conversations/threads?${query}`);
+
+  return threadsDaPagina(pagina);
+}
+
 export interface Descartados {
   semChamado: number;
   semResposta: number;

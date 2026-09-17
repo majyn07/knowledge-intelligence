@@ -116,6 +116,148 @@ export interface ResultadoDaLeitura {
  * sucedidos, perder tudo por causa do vigésimo primeiro seria jogar fora
  * trabalho pronto. Quem chama recebe o que deu certo junto com o erro.
  */
+/**
+ * O que a rota devolve, no formato que a coleção grava.
+ *
+ * Extraído da varredura por janela para a leitura por número usar o mesmo: dois
+ * caminhos convertendo o mesmo atendimento divergem, e a divergência apareceria
+ * como um chamado trazido pelo número sem a conversa que o mesmo chamado tem
+ * quando vem pela janela.
+ */
+function trazidosDe(atendimentos: Record<string, never>[], projectId: string): Trazido[] {
+  const trazidos: Trazido[] = [];
+
+  for (const bruto of atendimentos) {
+
+      const dados = bruto as unknown as {
+
+        ticket: { externalId: string; title: string; solution: string; date: string };
+
+        messages: SupportConversation["messages"];
+
+        contato?: { nome: string; empresa: string };
+
+        raw: Record<string, unknown>;
+
+      };
+
+
+
+      const id = `hs-${dados.ticket.externalId}`;
+
+
+
+      trazidos.push({
+
+        ticket: {
+
+          id,
+
+          projectId,
+
+          title: dados.ticket.title,
+
+          solution: dados.ticket.solution,
+
+          /*
+
+            A empresa vem do contato associado. É dado pessoal, e entrou por
+
+            pedido explícito de quem conduz o projeto: sem ela não dá para
+
+            reencontrar o atendimento na HubSpot, que é o que a equipe faz.
+
+          */
+
+          company: dados.contato?.empresa ?? "",
+
+          /*
+
+            Vazia, e não é omissão: a classificação vive em propriedades do
+
+            ticket, e o escopo `tickets` não está na credencial. Ela entra pelo
+
+            relatório exportado do suporte, que é a mesma porta por onde o
+
+            atendimento já entra por arquivo.
+
+          */
+
+          ...emptyClassification(),
+
+          date: dados.ticket.date,
+
+          source: {
+
+            provider: "hubspot",
+
+            externalId: dados.ticket.externalId,
+
+            importedAt: new Date().toISOString(),
+
+          },
+
+          raw: dados.raw,
+
+        },
+
+        conversation: {
+
+          id: `conv-${dados.ticket.externalId}`,
+
+          ticketId: id,
+
+          messages: dados.messages,
+
+          source: {
+
+            provider: "hubspot",
+
+            externalId: dados.ticket.externalId,
+
+            importedAt: new Date().toISOString(),
+
+          },
+
+        },
+
+      });
+  }
+
+  return trazidos;
+}
+
+export interface ResultadoPorNumero {
+  trazidos: Trazido[];
+  falhas: number;
+  /** Números que não acharam conversa nenhuma. Ditos, e não somados ao silêncio. */
+  semConversa: string[];
+}
+
+/**
+ * Trazer chamados pelo número, sem varrer.
+ *
+ * Alguém do suporte tem cinco casos de três meses atrás. Pela janela seriam
+ * dezenas de milhares de requisições para achá-los; pelo número, uma listagem
+ * filtrada por chamado mais a leitura de cada conversa. Aceita "46671834008" e
+ * "#46671834008": quem copia da HubSpot copia com o cerquilha.
+ */
+export async function lerPorNumeros({
+  numeros,
+  projectId,
+}: {
+  numeros: string[];
+  projectId: string;
+}): Promise<ResultadoPorNumero> {
+  const resposta = await pedir("/api/hubspot/help-desk", { numeros });
+
+  return {
+    trazidos: trazidosDe((resposta.atendimentos as Record<string, never>[]) ?? [], projectId),
+    falhas: Number(resposta.falhas ?? 0),
+    semConversa: ((resposta.semConversa as string[]) ?? []).map(String),
+  };
+}
+
 export async function lerConversas({
   visitar,
   projectId,
@@ -153,55 +295,7 @@ export async function lerConversas({
     }
     lidos += lote.length;
 
-    for (const bruto of atendimentos) {
-      const dados = bruto as unknown as {
-        ticket: { externalId: string; title: string; solution: string; date: string };
-        messages: SupportConversation["messages"];
-        contato?: { nome: string; empresa: string };
-        raw: Record<string, unknown>;
-      };
-
-      const id = `hs-${dados.ticket.externalId}`;
-
-      trazidos.push({
-        ticket: {
-          id,
-          projectId,
-          title: dados.ticket.title,
-          solution: dados.ticket.solution,
-          /*
-            A empresa vem do contato associado. É dado pessoal, e entrou por
-            pedido explícito de quem conduz o projeto: sem ela não dá para
-            reencontrar o atendimento na HubSpot, que é o que a equipe faz.
-          */
-          company: dados.contato?.empresa ?? "",
-          /*
-            Vazia, e não é omissão: a classificação vive em propriedades do
-            ticket, e o escopo `tickets` não está na credencial. Ela entra pelo
-            relatório exportado do suporte, que é a mesma porta por onde o
-            atendimento já entra por arquivo.
-          */
-          ...emptyClassification(),
-          date: dados.ticket.date,
-          source: {
-            provider: "hubspot",
-            externalId: dados.ticket.externalId,
-            importedAt: new Date().toISOString(),
-          },
-          raw: dados.raw,
-        },
-        conversation: {
-          id: `conv-${dados.ticket.externalId}`,
-          ticketId: id,
-          messages: dados.messages,
-          source: {
-            provider: "hubspot",
-            externalId: dados.ticket.externalId,
-            importedAt: new Date().toISOString(),
-          },
-        },
-      });
-    }
+    trazidos.push(...trazidosDe(atendimentos, projectId));
 
     aoProgredir?.({ trazidos, lidos, falhas, descartados });
   }
