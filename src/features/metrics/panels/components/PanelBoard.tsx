@@ -116,7 +116,7 @@ export function PanelBoard() {
   return (
     <PageSection
       title="Painéis da equipe"
-      description="Montados aqui, sem passar pelo código. O painel guarda a pergunta; o número é recalculado a cada abertura."
+      description="Painéis montados aqui. O número é recalculado a cada abertura."
       actions={
         <div className="flex flex-wrap gap-2">
           {/* Descarta os painéis que a equipe montou, e eles são de todos. */}

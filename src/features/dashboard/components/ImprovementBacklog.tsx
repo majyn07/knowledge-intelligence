@@ -103,7 +103,7 @@ export function ImprovementBacklog({ analyses }: ImprovementBacklogProps) {
         <div className="rounded-xl border border-dashed border-border bg-muted/20 px-5 py-8 text-center sm:px-8">
           <BrandEmptyState
             title="A fila de trabalho está vazia"
-            description="Ainda não há oportunidades aprovadas para evolução. Conclua uma análise e revise suas recomendações para formar o próximo backlog."
+            description="Nenhuma oportunidade aprovada ainda."
           />
           <Button className="mt-6" variant="outline" render={<Link href="/analysis" />} nativeButton={false}>Abrir Workspace</Button>
         </div>

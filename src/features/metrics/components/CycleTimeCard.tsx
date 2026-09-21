@@ -34,7 +34,7 @@ export function CycleTimeCard({ tickets }: { tickets: Ticket[] }) {
   return (
     <PageSection
       title="Do atendimento ao artigo publicado"
-      description="Quanto tempo passa entre o cliente perguntar e a resposta ficar publicada. Conta só o que fechou o ciclo: incluir o que ainda não fechou diria que ele é mais rápido do que é."
+      description="Do cliente perguntar até a resposta ficar publicada. Só o que fechou o ciclo."
     >
       {!isHydrated ? (
         <div className="h-28 animate-pulse rounded-xl bg-muted/40" />

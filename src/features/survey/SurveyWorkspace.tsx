@@ -103,7 +103,7 @@ export function SurveyWorkspace() {
       <PageHeader
         overline="Hub"
         title="Levantamento"
-        description="O que o acervo está pedindo. Apurado sobre os dados de agora, e não sobre uma foto guardada. Cada linha diz o que fazer, por que, e leva para onde se faz."
+        description="O que o acervo está pedindo: o que fazer, por que, e onde."
       />
 
       {!isHydrated || !now ? (

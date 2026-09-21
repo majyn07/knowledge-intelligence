@@ -77,7 +77,7 @@ export function PlansWorkspace() {
     <PageHeader
       overline="Fase de execução"
       title="Plano de melhorias"
-      description="Transforme as decisões da revisão humana em conteúdo, atividades e critérios claros para publicação."
+      description="Decisões da revisão viram conteúdo, atividades e critérios de publicação."
       icon={<ListTodo className="h-6 w-6" />}
     />
   );

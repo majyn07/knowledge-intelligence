@@ -97,7 +97,7 @@ export function TicketDetails({ ticket, conversation, analysisStatus }: TicketDe
       {ticket.solution.trim() !== "" && (
         <PageSection
           title="Última resposta do suporte"
-          description="O que quem atendeu escreveu por último. É o mais próximo de uma resolução que a conversa oferece, e não um campo que alguém preencheu."
+          description="A última resposta do suporte."
         >
           {/*
             Bloco próprio, e não célula de grade. A solução vinda do suporte é um

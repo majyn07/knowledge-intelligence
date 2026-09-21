@@ -94,7 +94,7 @@ export function TriageQueue({
   return (
     <PageSection
       title="Fila de triagem"
-      description="Atendimentos resolvidos que ninguém leu ainda, agrupados por vocabulário em comum. Os de cima são os que mais gente perguntou e o acervo publicado menos responde."
+      description="Resolvidos e ainda não lidos, agrupados por assunto. No topo: mais perguntados, menos cobertos."
     >
       {groups.length === 0 ? (
         <div className="rounded-xl border border-dashed px-5 py-10 text-center text-sm leading-6 text-muted-foreground">

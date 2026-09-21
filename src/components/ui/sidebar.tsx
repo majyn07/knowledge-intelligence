@@ -391,7 +391,7 @@ function SidebarGroup({ className, ...props }: React.ComponentProps<"div">) {
       data-slot="sidebar-group"
       data-sidebar="group"
       className={cn(
-        "relative flex w-full min-w-0 flex-col px-3 py-3",
+        "relative flex w-full min-w-0 flex-col px-3 py-3 group-data-[collapsible=icon]:px-1",
         className
       )}
       {...props}
@@ -515,6 +515,8 @@ const sidebarMenuButtonVariants = cva(
 
   group-data-[collapsible=icon]:size-10!
   group-data-[collapsible=icon]:p-0!
+  group-data-[collapsible=icon]:justify-center
+  group-data-[collapsible=icon]:[&>span]:hidden
 
   hover:bg-sidebar-accent/60
   hover:text-sidebar-accent-foreground

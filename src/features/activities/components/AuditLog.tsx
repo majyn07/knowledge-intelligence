@@ -60,7 +60,7 @@ export function AuditLog() {
   return (
     <PageSection
       title="Auditoria"
-      description="Todo evento do produto, de todas as iniciativas, com quem fez e quando. É o mesmo histórico que alimenta a linha do tempo — aqui com as perguntas de quem administra."
+      description="Tudo que aconteceu, com quem fez e quando."
     >
       {!isHydrated ? (
         <TimelineSkeleton />

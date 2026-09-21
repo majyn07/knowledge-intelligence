@@ -355,7 +355,7 @@ export function TaxonomyManager() {
   return (
     <PageSection
       title="Classificação"
-      description="A estrutura do portal publicado. Categoria e seção classificam o artigo; as listas abaixo alimentam os formulários."
+      description="Categorias e seções do portal, e as listas dos formulários."
     >
       {/*
         Ler continua sendo de todos: quem classifica um artigo precisa saber

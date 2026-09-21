@@ -148,7 +148,7 @@ export function ImportDialog({
         onOpenChange(next);
       }}
       title="Importar artigos de um arquivo"
-      description="A exportação do portal, em CSV ou texto separado. Nada sai daqui e nada é enviado a lugar nenhum: o arquivo é lido no seu navegador. Para um artigo só, a partir de PDF, imagem ou texto, use “Novo artigo”, lá a IA lê o documento e propõe os campos."
+      description="Arquivo CSV ou texto separado, exportado do portal. Lido no seu navegador."
     >
       <div className="flex flex-col gap-5">
         <div>
