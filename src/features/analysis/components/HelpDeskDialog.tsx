@@ -29,7 +29,15 @@ import { RelativeDate } from "@/components/common/RelativeDate";
 import { useTickets } from "../providers/TicketsProvider";
 import { usePeople } from "@/features/people/providers/PeopleProvider";
 import { renovarTranca, soltarTranca, tomarTranca } from "../autoSyncRepository";
-import { caixasDoSuporte, lerConversas, lerPorNumeros, listarConversas } from "../helpDeskScan";
+import {
+  buscarClientes,
+  caixasDoSuporte,
+  lerConversas,
+  lerPorCliente,
+  lerPorNumeros,
+  listarConversas,
+  type ContatoEncontrado,
+} from "../helpDeskScan";
 import { concordar, contar } from "@/lib/plural";
 
 /**
@@ -145,7 +153,67 @@ export function HelpDeskDialog({
     atrás precisa do segundo — pela janela seriam dezenas de milhares de
     requisições para achar cinco.
   */
-  const [modo, setModo] = useState<"periodo" | "numero">("periodo");
+  const [modo, setModo] = useState<"periodo" | "numero" | "cliente">("periodo");
+
+  /*
+    Por cliente: busca, lista quem casou, a pessoa escolhe, e só então as
+    conversas são lidas. A escolha é a confirmação de conta que faltava — trazer
+    pelo primeiro que casasse importaria o cliente errado sem ninguém ver.
+  */
+  const [termoCliente, setTermoCliente] = useState("");
+  const [clientes, setClientes] = useState<ContatoEncontrado[] | null>(null);
+  const [clienteEscolhido, setClienteEscolhido] = useState<ContatoEncontrado | null>(null);
+  const [buscandoCliente, setBuscandoCliente] = useState(false);
+  const [conversasDoCliente, setConversasDoCliente] = useState<number | null>(null);
+
+  async function procurarCliente() {
+    if (termoCliente.trim().length < 3) return;
+
+    setBuscandoCliente(true);
+    setErro(null);
+    setClienteEscolhido(null);
+
+    try {
+      setClientes(await buscarClientes(termoCliente));
+    } catch (falha) {
+      setErro(falha instanceof Error ? falha.message : "Não foi possível buscar o cliente.");
+    } finally {
+      setBuscandoCliente(false);
+    }
+  }
+
+  async function trazerDoCliente() {
+    if (!clienteEscolhido) return;
+
+    setErro(null);
+    setConversasDoCliente(null);
+    setEtapa("lendo");
+    setProgresso({ ...VAZIO, conversas: 1 });
+
+    try {
+      const { trazidos, falhas, conversas } = await lerPorCliente({
+        contactId: clienteEscolhido.id,
+        projectId: activeProjectId ?? "",
+      });
+
+      importFromHelpDesk(
+        trazidos,
+        `do cliente ${clienteEscolhido.nome || clienteEscolhido.email || clienteEscolhido.id}`
+      );
+      setConversasDoCliente(conversas);
+      setProgresso({
+        conversas,
+        lidos: conversas,
+        trazidos: trazidos.length,
+        falhas,
+        descartados: { semChamado: 0, semResposta: 0, semAssunto: 0 },
+      });
+      setEtapa("fim");
+    } catch (falha) {
+      setErro(falha instanceof Error ? falha.message : "A leitura foi interrompida.");
+      setEtapa("fim");
+    }
+  }
   const [numeros, setNumeros] = useState("");
   const [semConversa, setSemConversa] = useState<string[]>([]);
 
@@ -383,7 +451,85 @@ export function HelpDeskDialog({
               >
                 Por número do chamado
               </Button>
+              <Button
+                size="sm"
+                variant={modo === "cliente" ? "default" : "outline"}
+                onClick={() => setModo("cliente")}
+              >
+                Por cliente
+              </Button>
             </div>
+
+            {modo === "cliente" && (
+              <div className="space-y-3">
+                <p className="text-sm">E-mail, nome, empresa, CPF ou CNPJ do cliente</p>
+
+                <div className="flex gap-2">
+                  <input
+                    value={termoCliente}
+                    onChange={(evento) => setTermoCliente(evento.target.value)}
+                    onKeyDown={(evento) => {
+                      if (evento.key === "Enter") {
+                        evento.preventDefault();
+                        void procurarCliente();
+                      }
+                    }}
+                    placeholder="maria@empresa.com.br"
+                    className="h-9 min-w-0 flex-1 rounded-lg border border-border/70 bg-background px-3 text-sm"
+                  />
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={procurarCliente}
+                    disabled={termoCliente.trim().length < 3 || buscandoCliente}
+                  >
+                    {buscandoCliente ? <Loader2 className="h-4 w-4 animate-spin" /> : "Buscar"}
+                  </Button>
+                </div>
+
+                {clientes && clientes.length === 0 && (
+                  <p className="text-sm text-muted-foreground">Nenhum contato casou com isso.</p>
+                )}
+
+                {clientes && clientes.length > 0 && (
+                  <div className="space-y-1.5">
+                    <p className="text-xs text-muted-foreground">
+                      Confirme a conta antes de trazer:
+                    </p>
+                    {clientes.map((c) => (
+                      <label
+                        key={c.id}
+                        className={`flex cursor-pointer items-start gap-2 rounded-lg border px-3 py-2 text-sm ${
+                          clienteEscolhido?.id === c.id
+                            ? "border-primary bg-primary/8"
+                            : "border-border/70 hover:bg-muted/40"
+                        }`}
+                      >
+                        <input
+                          type="radio"
+                          name="cliente"
+                          checked={clienteEscolhido?.id === c.id}
+                          onChange={() => setClienteEscolhido(c)}
+                          className="mt-1 accent-primary"
+                        />
+                        <span className="min-w-0">
+                          <span className="font-medium">{c.nome || "(sem nome)"}</span>
+                          {c.email && <span className="text-muted-foreground"> · {c.email}</span>}
+                          {c.empresa && (
+                            <span className="block text-xs text-muted-foreground">{c.empresa}</span>
+                          )}
+                        </span>
+                      </label>
+                    ))}
+                  </div>
+                )}
+
+                <p className="text-xs text-muted-foreground">
+                  Acha bem o que veio por chat. No e-mail a conversa raramente fica ligada ao
+                  contato — se faltar algo, use o número do chamado.
+                </p>
+              </div>
+            )}
 
             {modo === "numero" && (
               <div className="space-y-2">
@@ -484,6 +630,13 @@ export function HelpDeskDialog({
             {modo === "periodo" ? (
               <Button onClick={listar} className="w-full">
                 Ver o que há nas caixas
+              </Button>
+            ) : modo === "cliente" ? (
+              <Button onClick={trazerDoCliente} disabled={!clienteEscolhido} className="w-full">
+                <Download className="mr-1.5 h-4 w-4" />
+                {clienteEscolhido
+                  ? `Trazer as conversas de ${clienteEscolhido.nome || clienteEscolhido.email}`
+                  : "Escolha o cliente"}
               </Button>
             ) : (
               <Button
@@ -593,6 +746,12 @@ export function HelpDeskDialog({
 
         {etapa === "fim" && (
           <div className="space-y-3">
+            {conversasDoCliente === 0 && (
+              <p className="rounded-lg border border-amber-500/40 bg-amber-500/10 p-3 text-sm">
+                Este contato não tem conversa ligada a ele na HubSpot. Se o atendimento foi por
+                e-mail, tente pelo número do chamado.
+              </p>
+            )}
             {semConversa.length > 0 && (
               <p className="rounded-lg border border-amber-500/40 bg-amber-500/10 p-3 text-sm">
                 {semConversa.length === 1

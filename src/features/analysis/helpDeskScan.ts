@@ -227,6 +227,50 @@ function trazidosDe(atendimentos: Record<string, never>[], projectId: string): T
   return trazidos;
 }
 
+export interface ContatoEncontrado {
+  id: string;
+  nome: string;
+  email: string;
+  empresa: string;
+}
+
+/** Quem casa com o termo. A pessoa escolhe antes de trazer qualquer coisa. */
+export async function buscarClientes(termo: string): Promise<ContatoEncontrado[]> {
+  const query = new URLSearchParams({ contato: termo });
+  const resposta = await pedir(`/api/hubspot/help-desk?${query}`);
+
+  return ((resposta.contatos as ContatoEncontrado[]) ?? []).map((c) => ({
+    id: String(c.id ?? ""),
+    nome: String(c.nome ?? ""),
+    email: String(c.email ?? ""),
+    empresa: String(c.empresa ?? ""),
+  }));
+}
+
+export interface ResultadoPorCliente {
+  trazidos: Trazido[];
+  falhas: number;
+  /** Quantas conversas o contato tem na HubSpot, para a tela dizer o que ficou de fora. */
+  conversas: number;
+}
+
+/** As conversas do contato escolhido, convertidas pelo mesmo caminho da varredura. */
+export async function lerPorCliente({
+  contactId,
+  projectId,
+}: {
+  contactId: string;
+  projectId: string;
+}): Promise<ResultadoPorCliente> {
+  const resposta = await pedir("/api/hubspot/help-desk", { contactId });
+
+  return {
+    trazidos: trazidosDe((resposta.atendimentos as Record<string, never>[]) ?? [], projectId),
+    falhas: Number(resposta.falhas ?? 0),
+    conversas: Number(resposta.conversas ?? 0),
+  };
+}
+
 export interface ResultadoPorNumero {
   trazidos: Trazido[];
   falhas: number;

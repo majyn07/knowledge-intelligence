@@ -237,6 +237,8 @@ export function CoveragePanel({
                   <li key={artigo.id} className="text-sm">
                     <Link
                       href={`/library/${artigo.id}`}
+                      target="_blank"
+                      rel="noopener"
                       className="font-medium text-primary hover:underline"
                     >
                       {encontrado?.title ?? artigo.id}

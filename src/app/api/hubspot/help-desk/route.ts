@@ -3,8 +3,10 @@ import { NextResponse } from "next/server";
 import { requireAdmin } from "@/features/auth/requireAdmin";
 
 import {
+  buscarContatos,
   caixasConfiguradas,
   conversasDoChamado,
+  conversasDoContato,
   donosComEquipe,
   lerLote,
   NUMEROS_POR_PEDIDO,
@@ -80,6 +82,25 @@ export async function GET(request: Request) {
   const url = new URL(request.url);
   const caixas = caixasConfiguradas(process.env);
   const inbox = (url.searchParams.get("caixa") ?? "").trim();
+
+  /*
+    Buscar o cliente antes de trazer qualquer coisa. É a confirmação de conta
+    que a importação por cliente pede: a tela lista quem casou, a pessoa
+    escolhe, e só então as conversas são lidas.
+  */
+  const termo = (url.searchParams.get("contato") ?? "").trim();
+
+  if (termo !== "") {
+    if (termo.length < 3) {
+      return NextResponse.json({ message: "Digite pelo menos três caracteres." }, { status: 400 });
+    }
+
+    try {
+      return NextResponse.json({ configured: true, contatos: await buscarContatos(termo) });
+    } catch (error) {
+      return responderFalha(error);
+    }
+  }
 
   try {
     if (inbox === "") {
@@ -189,6 +210,28 @@ export async function POST(request: Request) {
         descartados: lote?.descartados ?? { semChamado: 0, semResposta: 0, semAssunto: 0 },
         /* Número que não achou conversa é dito, e não somado ao silêncio. */
         semConversa,
+      });
+    } catch (error) {
+      return responderFalha(error);
+    }
+  }
+
+  /* Por cliente: as conversas do contato escolhido, pelo mesmo lerLote. */
+  const contactId =
+    body && typeof body === "object" && "contactId" in body
+      ? String((body as { contactId: unknown }).contactId ?? "").trim()
+      : "";
+
+  if (contactId !== "") {
+    try {
+      const listadas = await conversasDoContato(contactId);
+      const lote = listadas.length > 0 ? await lerLote(listadas) : null;
+
+      return NextResponse.json({
+        atendimentos: lote?.atendimentos ?? [],
+        falhas: lote?.falhas ?? 0,
+        descartados: lote?.descartados ?? { semChamado: 0, semResposta: 0, semAssunto: 0 },
+        conversas: listadas.length,
       });
     } catch (error) {
       return responderFalha(error);
