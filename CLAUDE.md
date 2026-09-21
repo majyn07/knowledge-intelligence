@@ -519,6 +519,20 @@ ambiente**. Elas ignoram as políticas de acesso, e nenhuma operação do produt
 precisa disso. As `POSTGRES_*` ficam porque `npm run db:migrate` depende delas
 via `vercel env pull`, e nenhuma vai para o navegador.
 
+**O token da HubSpot vive na Vercel desde 17/09/2026, e antes não vivia em
+lugar nenhum de produção.** Ele estava só no `.env.local` da máquina de
+desenvolvimento, colado ali uma vez em 26/08 numa linha vazia que o assistente
+criou; todas as varreduras rodaram dessa máquina contra o banco compartilhado.
+Em produção o botão sempre respondeu "não há credencial", e ninguém notou porque
+ninguém buscou pela produção. A pasta foi apagada, o arquivo com ela, e nenhuma
+cópia compactada o tinha: a chave voltou pela própria HubSpot, onde o token de
+app privado se exibe de novo (Configurações → Integrações → Aplicativos privados
+→ Auth). É Secret em Production; variável nova só vale num deploy novo.
+
+**`vercel link` reescreve o `.env.local` com o que puxa da Vercel.** Foi assim
+que a cópia local ficou sem o token que a Vercel nunca teve. Antes de `link` ou
+`env pull`, copiar o arquivo.
+
 ### Configuração de acesso
 
 Vive em `supabase/config.toml`, versionada como as migrações: configuração de
@@ -831,6 +845,22 @@ dos dois e não sabe do outro. Por isso "parcial" aponta **o que falta** no arti
 existente, e "coberta" não vem com rascunho — propor artigo novo sobre algo já
 respondido é o oposto do que a tela serve para evitar.
 
+**E "parcial" devolve o artigo já atualizado, não um novo.** A avaliação dizia
+o que faltava no artigo existente e parava: o rascunho era de um artigo novo, e
+quem queria atualizar ia lá e inseria à mão. Para o caso mais comum do suporte —
+versão nova do software, conteúdo para acrescentar — era meio caminho. Agora
+cada artigo apontado tem "Atualizar este artigo com o material": o modelo
+recebe o artigo inteiro e o material, e devolve o artigo atualizado, no mesmo
+formato, com a lista do que mudou. Abre em edição daquele artigo; o publicado
+continua no ar até a pessoa salvar.
+
+A regra central do prompt é **não mexer no que o material não pede**. Um modelo
+com um artigo inteiro na mão tende a reescrevê-lo, e o artigo publicado já foi
+conferido: cada frase tocada sem motivo precisa ser conferida de novo. A lista
+de mudanças existe para expor exatamente isso. O formato vai e volta declarado —
+o acervo do portal é HTML e o modelo escreve Markdown por padrão; sem a
+instrução, a gravação trocaria o `contentFormat`.
+
 **E quando não existe, o rascunho sai na forma do acervo.** Os modelos são os
 artigos publicados da mesma seção: o mais próximo em assunto, saindo da taxonomia
 que já existe, sem inventar um cadastro de "artigos exemplares" que ninguém
@@ -913,22 +943,30 @@ começo?" — e mandar alguém para outra página para fazê-la é o que faz nin
 fazê-la. O painel é móvel porque cobre justamente o conteúdo sobre o qual se
 pergunta, e a posição fica no navegador, como o tema.
 
-**Ele recebe um retrato, não o acervo.** São 1.822 artigos e 22 MB: não cabem
-num pedido, e não precisam. As perguntas que motivaram o painel o Levantamento
-já responde por medição, e um modelo recontando devolveria um número diferente
-do que a tela mostra, sem ninguém saber qual está certo. Então vão as contagens
-derivadas, os achados apurados e uma amostra pequena — rotulada como amostra,
-senão doze títulos viram o acervo inteiro e a resposta afirma coisas sobre mil
-e oitocentos a partir de doze.
+**Ele recebe um retrato, e o que a busca acha sobre a pergunta.** São 1.822
+artigos e 22 MB: não cabem num pedido, e não precisam. As perguntas que
+motivaram o painel o Levantamento já responde por medição, e um modelo
+recontando devolveria um número diferente do que a tela mostra. Então vão as
+contagens derivadas, os achados apurados e uma amostra pequena — rotulada como
+amostra, senão doze títulos viram o acervo inteiro.
+
+**Só o retrato não bastava, e a primeira pergunta real mostrou.** "Preciso que
+você consulte se o conteúdo já existe" recebeu "não consigo pesquisar os 1.824
+artigos" — verdade, e inútil. A pergunta passa pela mesma busca léxica que a
+avaliação de cobertura usa, e os artigos que casam vão com trecho, separados da
+amostra: a amostra é "exemplos do acervo", isto é "o que a busca achou sobre a
+sua pergunta". Se a lista vem vazia, ele diz que a busca não achou — indício
+forte, não certeza.
 
 O trabalho do modelo é o que a lista de números não faz: explicar, priorizar,
 ligar as pontas. Perguntado por onde começar na fila, ele cruzou volume com
 cobertura — 8 atendimentos de cancelamento com 33% de cobertura antes de 24 com
 95% —, que é a leitura que ninguém extrai olhando duas colunas.
 
-**A consequência é assumida:** pergunta que exigiria ler o acervo não tem
-resposta ali, e o prompt manda dizer isso. Para ler um artigo existe o painel
-dentro dele.
+**O que continua fora:** pergunta que exigiria ler o acervo **inteiro** —
+"resuma todos os artigos de laje". Ele tem os que a busca achou, e o prompt
+manda dizer quando isso não basta. Para ler um artigo existe o painel dentro
+dele.
 
 **O contexto vem da rota, e não de cada tela.** Se cada página declarasse o que
 a IA vê, a página nova esqueceria, e o painel responderia sobre outra coisa sem
@@ -1378,6 +1416,15 @@ suporte da AltoQi, que é máquina que atende cliente.
 na HubSpot, sem sessão nenhuma. Esconder o botão é sobre não oferecer o que vai
 ser recusado, e é a mesma regra do entrar com a conta Google.
 
+**E doze rotas de IA e de rede estavam sem porta nenhuma.** O `matcher` do
+proxy é só `"/"`, e nunca cobriu `/api`. Confirmado em produção: `POST
+/api/analysis/start` com corpo inválido e sem cookie respondia 400 — o 400 é a
+prova de que executou. Não era vazamento de dado: a RLS está ligada com política
+nas 16 tabelas, e leitura anônima com a chave pública devolve vazio. Era abuso
+de recurso — oito rotas gastam cota do provedor de IA, quatro fazem o servidor
+falar com a HubSpot e com o portal. Todas passaram por `requireMember`; o GET
+que só diz se há provedor continua aberto, porque não custa nada.
+
 **O freio de mão para tudo, inclusive o que já está rodando.** Desligar a
 automática ainda deixa qualquer administrador varrer três meses à mão, e a
 pergunta que originou o campo é outra: como impedir que alguém sobrecarregue.
@@ -1385,6 +1432,16 @@ Por isso ele é conferido **por requisição**, e não no começo da varredura: 
 que faz o interruptor parar uma varredura em curso, que é justamente quando
 alguém quer parar. Responde `423`, e não `403`: o 403 diz "você não pode", e
 aqui a pessoa poderia — o que impede é um estado que alguém ligou.
+
+**Pelo número do chamado, sem varrer.** Um caso de dois meses atrás, fora da
+janela, custaria dezenas de milhares de requisições pela listagem — ela sai
+sempre do mais antigo. O filtro `associatedTicketId` da listagem responde
+direto: uma requisição por número, e a conversa vem com `createdAt`, que é o que
+`lerLote` precisa. Verificado contra a API real: o `46671834008`, de julho,
+respondeu em duas requisições com 95 mensagens. A conversão de resposta em
+atendimento saiu de dentro da varredura para uma função, e os dois caminhos a
+usam: dois convertendo o mesmo atendimento divergem. Aceita `46671834008` e
+`#46671834008` — quem copia da HubSpot copia com o cerquilha. Vinte por vez.
 
 **Uma varredura por vez, e a tranca é do banco.** Sem ela, dois administradores
 com a tela aberta disparam duas varreduras contra a mesma caixa e o servidor
@@ -1581,6 +1638,22 @@ triagem é "por qual começar". Com mil na fila a segunda deixa de ser opcional,
 ela existia só dentro do Levantamento, que é outra tela: mandar quem trabalha os
 atendimentos para outro lugar para descobrir por onde começar é o que faz
 ninguém descobrir.
+
+**Marcar vários e avaliar um a um.** Alguém do suporte tem cinco casos e
+precisa criar artigo a partir deles. A fila de triagem agrupa sozinha e não deixa
+escolher; o formulário avalia um texto colado. Faltava o meio: "estes cinco —
+o acervo já cobre? crio ou atualizo?". Marcar é diferente de selecionar (um
+abre, o outro junta), e a marca sobrevive à busca e à página: procurar cinco
+números um a um desmarcaria os anteriores a cada digitação. A caixa é irmã do
+botão da linha, não filha — interativo dentro de `<button>` é HTML inválido.
+
+**Um pedido por atendimento, e não os cinco juntos.** Cinco casos são cinco
+assuntos; num pedido só o modelo os avaliaria como um tema. Em série, com
+pausa. Cada linha do resultado tem o botão certo — criar com o rascunho, ou
+atualizar aquele artigo com o material — e o artigo abre em **aba nova**, para
+a lista continuar: com cinco, fechá-la a cada um seria refazer a seleção cinco
+vezes. Não passa pelo Plano de Melhorias, por decisão: o plano é para trabalho
+acompanhado ao longo do tempo, e aqui a pessoa precisa dos artigos agora.
 
 **A fila espera o acervo chegar.** A ordem sai de `score = quantos * (1 -
 cobertura)`, e sem a Biblioteca a cobertura de todo grupo é zero, que é a

@@ -101,11 +101,28 @@ o suporte resolveu), pergunta à IA se o acervo já cobre, e só escreve o rascu
 quando não cobre. O rascunho abre no formulário da Biblioteca para você conferir;
 nada é publicado.
 
+### Marcar vários e avaliar
+
+**Responde:** "destes cinco casos, o que vira artigo novo e o que atualiza um
+existente?"
+
+Cada linha da lista tem uma caixa. Marque os que quiser — a marca sobrevive à
+busca e à página, então dá para procurar cinco números um a um. Aparece "N
+marcados · Avaliar no acervo". A IA lê cada um em série e diz, por atendimento:
+já coberto, coberto em parte (e o que falta), ou não existe. Cada linha tem o
+botão certo: **criar artigo novo** com o rascunho, ou **atualizar aquele
+artigo** com o material. O artigo abre em aba nova, para a lista continuar.
+
 ### Trazer da HubSpot
 
 Busca conversas do help desk e transforma em atendimento. **É de quem
 administra** — não por causa do conteúdo, mas porque gasta requisições contra o
 servidor que atende cliente.
+
+Dois modos: **por período**, que varre a caixa numa janela, e **por número do
+chamado**, que traz só aqueles — cole `46671834008` ou `#46671834008`, vários
+por linha. Um caso de meses atrás custa duas requisições em vez de varrer a caixa
+desde lá.
 
 Há um interruptor que para tudo, inclusive uma varredura já em curso, e uma busca
 automática que roda **com o produto aberto** (não é um serviço de servidor).
@@ -158,7 +175,10 @@ varre o acervo e diz se o assunto já está coberto —
 - **ausente** — ninguém escreveu, e ela rascunha na forma dos artigos da seção.
 
 Preferir atualizar é regra: um acervo de 1.822 piora mais por dobrar assunto do
-que por ter um artigo a menos.
+que por ter um artigo a menos. Por isso, com **parcial**, cada artigo apontado
+tem **"Atualizar este artigo com o material"**: a IA devolve o artigo existente
+já com o conteúdo novo inserido — mesma estrutura, mesmo formato — e a lista do
+que mudou. Abre em edição; o publicado continua no ar até você salvar.
 
 **Consultar a IA sobre este artigo** lê o texto com você: resume, aponta lacuna,
 diz o que parece desatualizado. Ela responde **a partir do artigo** e avisa
@@ -303,10 +323,11 @@ começo?"*. Cada resposta traz **"O que a IA está vendo desta tela"**, que abre
 lista os números que foram no pedido — você lê "56 sem seção" e confere que
 aquilo veio medido.
 
-**Ela não lê o acervo inteiro**, e diz isso quando a pergunta pede. São 1.822
-artigos e 22 MB: não cabem num pedido, e as perguntas que motivaram o painel o
-Levantamento já responde por medição. O trabalho do modelo é o que a lista de
-números não faz — explicar, priorizar, ligar as pontas.
+**E busca no acervo pelo que você perguntou.** "Já existe artigo sobre exportar
+IFC?" — a busca traz os artigos que casam, e ela responde citando qual cobre,
+qual cobre em parte e o que falta. Se não achar nada, diz que não achou. O que
+ela não faz é ler o acervo inteiro de uma vez ("resuma todos os artigos de
+laje") — para isso existe o painel dentro do artigo.
 
 Trocar de tela recomeça a conversa, de propósito: continuar o fio faria a IA
 responder sobre a Biblioteca com os números dos Atendimentos ainda em mãos.

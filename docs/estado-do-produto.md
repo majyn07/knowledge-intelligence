@@ -1,7 +1,7 @@
 # Estado do produto
 
-Levantado em 02/09/2026, contra o banco e a aplicação em produção.
-Números medidos, não estimados.
+Levantado em 02/09/2026 e atualizado em 21/09/2026, contra o banco e a
+aplicação em produção. Números medidos, não estimados.
 
 **No ar:** <https://knowledge-intelligence.vercel.app>
 **Acesso:** e-mail `@altoqi.com.br`, entrada por link. Sem senha.
@@ -34,11 +34,19 @@ Tudo abaixo foi verificado contra os dados reais, não em ambiente de teste.
 - **Edição.** O artigo é editável dentro do KI, preservando o HTML original.
 - **Comparação.** Dois artigos lado a lado, e a IA diz se cobrem a mesma dúvida.
 - **Avaliar antes de escrever.** A IA varre o acervo e diz se o assunto já está
-  coberto. Quando não está, escreve o rascunho.
+  coberto. Quando não está, escreve o rascunho. Quando está em parte, devolve
+  **o artigo existente já atualizado**, com a lista do que mudou.
+- **Assistente em toda tela.** Responde do que a tela mediu e do que a busca
+  acha no acervo sobre a pergunta — "isto já existe?" tem resposta.
 
 ### Atendimentos
 
 - **Entrada pela HubSpot.** 1.025 atendimentos e 974 conversas vieram da API.
+  Dois modos: por período, ou **pelo número do chamado** — traz só aqueles, sem
+  varrer. Funciona em produção desde 17/09/2026.
+- **Marcar vários e avaliar.** Marca cinco atendimentos na lista, e a IA diz,
+  para cada um, se já existe artigo, se existe em parte ou se falta — com o
+  botão de criar ou de atualizar em cada linha.
 - **Busca e recortes** por cliente, empresa e produto.
 - **Fila de triagem.** Agrupa os resolvidos por assunto e ordena por volume
   contra cobertura do acervo.
@@ -121,8 +129,8 @@ Detalhamento em [hubspot-o-que-precisamos.md](hubspot-o-que-precisamos.md).
 
 | O quê | Situação |
 | --- | --- |
-| Duas funções de IA nunca rodaram contra o modelo | Fila→artigo e varredura de sobreposição. Construídas quando a cota do provedor acabou. Código testado, resposta do modelo não verificada |
-| Varredura das 137 sobreposições | Nunca terminou, mesmo motivo |
+| Quatro funções de IA sem verificação contra o modelo | Fila→artigo, varredura de sobreposição, atualizar artigo com material, avaliar atendimentos marcados. Código e contrato testados; resposta do modelo depende de teste com caso real |
+| Varredura das 137 sobreposições | Nunca terminou até o fim |
 | 4 artigos sem seção | O modelo se recusou a classificar, e a recusa está correta (política institucional, artigo que atravessa produtos). Podem ficar assim |
 | Entrar com conta Google | Depende da TI criar a credencial. Não bloqueia: o link por e-mail funciona |
 
