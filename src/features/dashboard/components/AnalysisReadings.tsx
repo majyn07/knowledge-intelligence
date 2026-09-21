@@ -22,7 +22,7 @@ export function AnalysisReadings({ metrics }: AnalysisReadingsProps) {
   if (!referenceAnalysis) {
     return (
       <PageSection title="Leitura das análises" description="Trechos gerados pela IA nas análises registradas neste projeto.">
-        <BrandEmptyState title="Ainda não há leituras de análise" description="Quando um atendimento for analisado, a causa identificada e a justificativa das oportunidades aparecerão aqui." />
+        <BrandEmptyState title="Ainda não há leituras de análise" description="A causa e as oportunidades aparecem aqui depois da análise." />
       </PageSection>
     );
   }

@@ -258,7 +258,7 @@ export default function LibraryPage() {
         <PageHeader
           overline="Base de Conhecimento"
           title="Biblioteca"
-          description="O acervo do hub: o espelho do portal publicado, um só para toda a equipe. Os artigos publicados são o que a análise consulta ao avaliar a cobertura documental."
+          description="Os artigos do portal, editáveis aqui."
           actions={
             <div className="flex flex-wrap gap-2">
               {semSecao.length > 0 && (

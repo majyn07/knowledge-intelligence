@@ -42,7 +42,7 @@ export function DashboardPage() {
       <PageHeader
         overline="Centro de Inteligência"
         title="Transforme cada atendimento em conhecimento que move a equipe."
-        description="Acompanhe o que foi descoberto, priorize o que precisa de revisão e mantenha a Base de Conhecimento em evolução contínua."
+        description="O que foi descoberto, o que precisa de revisão, o que está evoluindo."
         icon={<ProductGraphic product={theme} className="h-10 w-12" />}
         actions={<Button size="lg" render={<Link href="/analysis" />} nativeButton={false}><Sparkles className="mr-2 h-4 w-4" />Nova análise</Button>}
       />
@@ -71,7 +71,7 @@ export function DashboardPage() {
         activeProject === null ? (
           <BrandEmptyState
             title="O hub está vazio"
-            description="Comece trazendo o acervo do portal pela Biblioteca, ou registre o primeiro atendimento. O Levantamento passa a apontar o que fazer assim que houver o que ler."
+            description="Traga o acervo do portal pela Biblioteca ou registre o primeiro atendimento."
           />
         ) : (
           <BrandEmptyState

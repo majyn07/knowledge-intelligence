@@ -78,7 +78,7 @@ export function NextPriority({ analyses }: NextPriorityProps) {
         <div className="rounded-xl border border-dashed border-border bg-muted/20 px-5 py-8 text-center sm:px-8">
           <BrandEmptyState
             title="Nenhuma análise pendente"
-            description="A equipe concluiu as revisões em andamento. Inicie uma nova análise para identificar a próxima oportunidade de evolução."
+            description="Nenhuma revisão pendente."
           />
           <Button className="mt-6" render={<Link href="/analysis" />} nativeButton={false}>
             <Sparkles className="mr-2 h-4 w-4" />

@@ -102,7 +102,7 @@ export function TrashManager() {
   return (
     <PageSection
       title="Lixeira"
-      description="O que foi excluído continua aqui até alguém esvaziar. Não há prazo automático: apagar trabalho sozinho é o mesmo problema que excluir sem rede."
+      description="O que foi excluído fica aqui até alguém esvaziar."
       actions={
         items.length > 0 &&
         /*

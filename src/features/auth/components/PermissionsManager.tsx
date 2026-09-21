@@ -44,7 +44,7 @@ export function PermissionsManager() {
   return (
     <PageSection
       title="Permissões"
-      description="Quase tudo aqui é de todo mundo: a equipe é treinada e o histórico responde por quem fez o quê. Esta lista é a exceção — ações cujo erro de uma pessoa cai sobre as catorze."
+      description="Ações restritas a quem administra."
     >
       {!isHydrated ? (
         <ListSkeleton count={3} />

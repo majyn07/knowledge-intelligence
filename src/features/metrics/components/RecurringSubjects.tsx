@@ -55,7 +55,7 @@ export function RecurringSubjects({ tickets }: { tickets: Ticket[] }) {
   return (
     <PageSection
       title="Assuntos que mais chegam"
-      description="Duas leituras da mesma fila: a classificação que o suporte fez na HubSpot, e o agrupamento que o produto calcula para medir o que o acervo cobre."
+      description="A classificação do suporte na HubSpot e o agrupamento por assunto, lado a lado."
     >
       {/*
         A classificação declarada vem primeiro, e é deliberado: ela foi decidida

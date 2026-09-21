@@ -81,7 +81,7 @@ export default function ProjectsPage() {
         <PageHeader
           overline="Iniciativas de melhoria"
           title="Projetos"
-          description="Cada projeto é uma unidade de contexto: atendimentos, análises, planos e conhecimento pertencem a ele."
+          description="Iniciativas de melhoria, com os atendimentos que as alimentam."
           actions={
             <Button onClick={openCreateDialog}>
               Novo Projeto

@@ -205,7 +205,7 @@ export function PortalImportDialog({
       open={open}
       onOpenChange={onOpenChange}
       title="Importar do portal"
-      description="Traz os artigos publicados em suporte.altoqi.com.br, com título, conteúdo e a seção onde cada um mora."
+      description="Os artigos publicados em suporte.altoqi.com.br, com título, conteúdo e seção."
     >
       <div className="space-y-4">
         {erro && (

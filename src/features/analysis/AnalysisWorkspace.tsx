@@ -307,7 +307,7 @@ export function AnalysisWorkspace() {
         <PageHeader
           overline={`Projeto ativo${activeProject ? ` · ${activeProject.name}` : ""}`}
           title="Atendimentos"
-          description="O atendimento entra como veio do suporte e não se edita aqui. Esta tela é onde ele vira análise, e a decisão sobre cada oportunidade é de gente."
+          description="Leia o atendimento, analise com a IA e decida cada oportunidade."
           icon={<Sparkles className="h-6 w-6" />}
           actions={
             <div className="flex flex-wrap gap-2">
