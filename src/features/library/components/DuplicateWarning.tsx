@@ -27,7 +27,17 @@ export function DuplicateWarning({ results }: DuplicateWarningProps) {
       <ul className="mt-3 space-y-1.5">
         {results.map(({ article, score }) => (
           <li key={article.id} className="text-sm">
-            <Link href={`/library/${article.id}`} className="text-primary hover:underline">
+            {/*
+              Aba nova, porque este aviso vive dentro do formulário: abrir o
+              artigo na mesma aba levava embora o texto que estava sendo
+              escrito — foi assim que um teste perdeu o rascunho.
+            */}
+            <Link
+              href={`/library/${article.id}`}
+              target="_blank"
+              rel="noopener"
+              className="text-primary hover:underline"
+            >
               {article.title}
             </Link>
             <span className="ml-2 text-xs text-muted-foreground">

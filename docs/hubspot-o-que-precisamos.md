@@ -29,6 +29,8 @@ Estas são as chamadas reais, tiradas do código. Não há outras.
 | --- | --- | --- |
 | `GET /conversations/v3/conversations/threads` | Lista as conversas da caixa Help Desk | 1x a cada 100 conversas |
 | `GET /conversations/v3/conversations/threads?associatedTicketId={n}` | A conversa de um chamado, pelo número | 1x por número |
+| `POST /crm/v3/objects/contacts/search` | Contatos por e-mail, nome, empresa, CPF ou CNPJ (leitura em lote) | 1x por busca |
+| `GET /conversations/v3/conversations/threads?associatedContactId={id}` | As conversas de um contato | 1x por cliente |
 | `GET /conversations/v3/conversations/threads/{id}/messages` | As mensagens da conversa | 1x por conversa |
 | `POST /conversations/v3/conversations/actors/batch/read` | Nome de quem falou (cliente e atendente) | 1x por conversa |
 | `GET /crm/v4/objects/conversation/{id}/associations/ticket` | O número do chamado | 1x por conversa |

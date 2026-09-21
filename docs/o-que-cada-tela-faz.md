@@ -119,10 +119,12 @@ Busca conversas do help desk e transforma em atendimento. **É de quem
 administra** — não por causa do conteúdo, mas porque gasta requisições contra o
 servidor que atende cliente.
 
-Dois modos: **por período**, que varre a caixa numa janela, e **por número do
+Três modos: **por período**, que varre a caixa numa janela; **por número do
 chamado**, que traz só aqueles — cole `46671834008` ou `#46671834008`, vários
-por linha. Um caso de meses atrás custa duas requisições em vez de varrer a caixa
-desde lá.
+por linha; e **por cliente**, que busca o contato por e-mail, nome, empresa, CPF
+ou CNPJ, lista quem casou para você confirmar a conta, e traz as conversas dele.
+Por cliente acha bem o que veio por chat; no e-mail a conversa raramente fica
+ligada ao contato — aí é pelo número.
 
 Há um interruptor que para tudo, inclusive uma varredura já em curso, e uma busca
 automática que roda **com o produto aberto** (não é um serviço de servidor).

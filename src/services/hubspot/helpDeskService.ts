@@ -1,6 +1,6 @@
 import "server-only";
 
-import { record, text } from "@/lib/shape";
+import { items, record, text } from "@/lib/shape";
 import type { SupportConversationMessage } from "@/models/SupportConversation";
 
 import { attachmentsOf } from "./attachments";
@@ -148,6 +148,75 @@ export const NUMEROS_POR_PEDIDO = 20;
  */
 export async function conversasDoChamado(numero: string): Promise<ConversaListada[]> {
   const query = new URLSearchParams({ associatedTicketId: numero, limit: "10" });
+
+  const pagina: unknown = await hubspot.get(`/conversations/v3/conversations/threads?${query}`);
+
+  return threadsDaPagina(pagina);
+}
+
+/** Quantos contatos a busca devolve. Quem procura um cliente reconhece o certo em poucos. */
+const CONTATOS_NA_BUSCA = 10;
+
+export interface ContatoEncontrado {
+  id: string;
+  nome: string;
+  email: string;
+  empresa: string;
+}
+
+/**
+ * Contatos que casam com um termo: e-mail, nome, empresa, CPF ou CNPJ.
+ *
+ * É a confirmação que a importação por cliente pede — "é esta conta mesmo?" —
+ * antes de trazer conversa nenhuma. Cada campo é um grupo de filtro próprio,
+ * porque na busca da HubSpot grupos são OU e filtros dentro do grupo são E.
+ * CPF e CNPJ existem como propriedade do contato nesta conta (medido: `cpf` e
+ * `cnpj` entre as 862), e casam por igualdade, sem pontuação.
+ */
+export async function buscarContatos(termo: string): Promise<ContatoEncontrado[]> {
+  const limpo = termo.trim();
+  const digitos = limpo.replace(/\D/g, "");
+
+  const contem = (propertyName: string) => ({
+    filters: [{ propertyName, operator: "CONTAINS_TOKEN", value: `*${limpo}*` }],
+  });
+
+  const filterGroups: unknown[] = [contem("email"), contem("firstname"), contem("lastname"), contem("company")];
+
+  if (digitos.length >= 11) {
+    for (const propertyName of ["cpf", "cnpj"]) {
+      filterGroups.push({ filters: [{ propertyName, operator: "EQ", value: digitos }] });
+    }
+  }
+
+  const resposta: unknown = await hubspot.post("/crm/v3/objects/contacts/search", {
+    filterGroups,
+    properties: ["email", "firstname", "lastname", "company"],
+    limit: CONTATOS_NA_BUSCA,
+  });
+
+  return items(record(resposta).results).map((bruto) => {
+    const props = record(record(bruto).properties);
+
+    return {
+      id: text(record(bruto).id),
+      nome: `${text(props.firstname)} ${text(props.lastname)}`.trim(),
+      email: text(props.email),
+      empresa: text(props.company),
+    };
+  });
+}
+
+/**
+ * As conversas de um contato, pelo identificador dele.
+ *
+ * Mesmo desenho da busca por número. Limite conhecido: a associação
+ * conversa→contato nasce no chat, onde o bot pergunta o nome; no e-mail ela
+ * quase nunca existe. Por cliente acha bem o que veio por chat e deixa passar
+ * parte do e-mail — o número do chamado continua sendo o caminho que acha tudo.
+ */
+export async function conversasDoContato(contactId: string): Promise<ConversaListada[]> {
+  const query = new URLSearchParams({ associatedContactId: contactId, limit: "100" });
 
   const pagina: unknown = await hubspot.get(`/conversations/v3/conversations/threads?${query}`);
 
