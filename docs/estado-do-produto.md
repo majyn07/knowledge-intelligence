@@ -14,7 +14,7 @@ aplicação em produção. Números medidos, não estimados.
 | --- | --- |
 | Artigos do portal | **1.824** (1.823 publicados, 4 sem seção) |
 | Atendimentos | **1.025** (974 com conversa completa) |
-| Atendimentos com classificação do suporte | **0** — ver seção 4 |
+| Atendimentos com classificação do suporte | **0 no produto**; até 627 disponíveis na HubSpot desde 19/10 — ver 3.2 |
 | Análises feitas | 13 |
 | Planos de melhoria | 3 |
 | Pessoas com acesso | 5 |
@@ -90,41 +90,40 @@ tem endpoint atrás dele**. Ver o escopo marcado não significa que existe API.
 O KI prepara o artigo pronto. A última etapa é manual, e vai continuar sendo
 até a HubSpot oferecer a API.
 
-### 3.2 Classificação do atendimento
+### 3.2 Classificação do atendimento — **destravada em 19/10/2026**
 
-Os 1.025 atendimentos estão com os sete campos de classificação **vazios**.
+O escopo de leitura de tickets foi concedido. Medido só lendo, sem alterar nada
+na HubSpot: dos nossos 1.020 atendimentos com número, a HubSpot devolve
 
-O suporte classifica cada chamado na HubSpot (categoria, sintoma, causa raiz,
-tipo de problema, motivo do fechamento). O produto tem coluna no banco,
-importação e tela prontas para receber. Falta o dado.
+| Campo | Preenchidos |
+| --- | --- |
+| Quem abriu? | 627 |
+| Fechamento: motivo do encerramento | 610 |
+| [Support] Especialidade técnica | 464 |
+| [Support] Produto | 463 |
+| [Support] Categoria: motivo principal | 461 |
+| [Support] Sintoma: motivo detalhado | 379 |
+| [Setup] Sintoma e Tipo de Problema | 214 |
+| Proteção tecnológica | 215 |
+| [Support] Causa raiz | 196 |
+| [Setup] Causa raiz | 126 |
 
-**Motivo:** o escopo `crm.objects.tickets.read` não está concedido. Todas as
-tentativas de ler o objeto ticket devolvem 403 — sete endereços diferentes,
-enquanto contatos, empresas e responsáveis respondem 200 no mesmo token.
+**Ainda vazio no produto**: falta trazer. Os sete campos que o produto tem
+precisam ser revistos contra estes catorze, porque a HubSpot ganhou campos
+("[Support] Causa", "Especialidade técnica", "Produto") desde agosto.
 
-**Alternativa que também está fechada:** exportar o relatório em CSV e importar
-por arquivo. O produto tem essa porta pronta. A exportação não está disponível
-para a equipe.
+Também liberado: as **pesquisas de satisfação** (42.091, associáveis ao
+ticket). Continuam fechados: site search (403), webhooks do app (403) e a API
+de Base de Conhecimento (404, não existe).
 
-**O que temos no lugar:** o bot pergunta ao cliente antes de abrir o chamado, e
-a resposta é mensagem da conversa. Medido em 974 conversas: 409 trazem a área do
-contato e 314 o tipo da solicitação. É a escolha do cliente, não a classificação
-de quem atendeu — e a tela diz isso.
+O que o bot pergunta ao cliente continua valendo ao lado: é a escolha dele, e
+não a classificação de quem atendeu.
 
 ---
 
-## 4. O pedido, em uma linha
+## 4. O pedido
 
-Conceder ao app privado o escopo **`crm.objects.tickets.read`** (só leitura).
-
-**A pergunta objetiva:** na aba de escopos do app `50542060`, ele aparece como
-opção para marcar?
-
-- Aparece → era configuração.
-- Não aparece → é limitação do plano contratado. Nesse caso, a alternativa é
-  liberar a exportação em CSV do relatório de tickets.
-
-Detalhamento em [hubspot-o-que-precisamos.md](hubspot-o-que-precisamos.md).
+Atendido. O escopo de tickets foi concedido em 19/10/2026.
 
 ---
 

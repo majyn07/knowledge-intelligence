@@ -460,8 +460,23 @@ anterior de mediá-lo pela Claude. A fronteira vive em `services/hubspot`, com
 falha tipada em cinco causas. `credencial-recusada` tem nome próprio porque o
 token é de outra pessoa e pode ser rotacionado sem aviso.
 
-**O que a credencial alcança foi medido, e é pouco.** O escopo `tickets` não
-está nela: o objeto foi procurado por sete endereços (v3, versionado, singular,
+**Atualizado em 19/10/2026: o escopo de tickets foi concedido.** O token
+passou a carregar `crm.objects.tickets.read`, `crm.schemas.tickets.read` e
+`crm.objects.feedback_submissions.read`, entre 35 escopos, todos de leitura.
+Medido só lendo: lista, propriedades, pipelines e busca de tickets respondem
+200; dos nossos 1.020 atendimentos com número, a HubSpot devolve motivo do
+fechamento em 610, quem abriu em 627, categoria do suporte em 461, produto em
+463 e causa raiz em 196. As pesquisas de satisfação somam 42.091 e se associam
+ao ticket. Continuam fechados: `site-search` (403), webhooks do app (403) e a
+API de Base de Conhecimento (404, não existe). O que segue é a apuração de
+agosto, mantida porque explica o caminho pela conversa.
+
+**Regra que não muda com o escopo: a HubSpot é só leitura.** Nenhuma chamada do
+produto, nem de script, cria, altera ou apaga registro lá. Alterar qualquer
+coisa que envolva cliente é decisão humana, fora do produto.
+
+**O que a credencial alcançava foi medido, e era pouco.** O escopo `tickets` não
+estava nela: o objeto foi procurado por sete endereços (v3, versionado, singular,
 por `objectTypeId`, registro individual) e todos devolvem 403, enquanto
 `schemas`, `contacts`, `companies` e `owners` respondem 200 no mesmo token. Não
 é rota errada: é o objeto que está fechado.
