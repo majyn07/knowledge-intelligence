@@ -64,6 +64,12 @@ export function normalizeSavedView(raw: unknown, order = 0): SavedView {
       search: text(filters.search),
       status: oneOf(filters.status, [...ARTICLE_STATUSES, "all"] as const, "all"),
       categoryId: text(filters.categoryId) || "all",
+      /*
+        A visão não guarda a situação no portal. É fila de trabalho que esvazia
+        conforme se cola na HubSpot, e não recorte que alguém volta a consultar;
+        guardar exigiria coluna nova no banco para uma lista que muda sozinha.
+      */
+      portal: "all",
     },
     sort: {
       column: oneOf(sort.column, ARTICLE_COLUMNS, "updatedAt"),

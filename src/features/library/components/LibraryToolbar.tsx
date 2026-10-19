@@ -2,6 +2,7 @@
 
 import { Search } from "lucide-react";
 
+import { PORTAL_STATES, portalStateLabel, type PortalState } from "@/features/library/portalSync";
 import type { LibraryFilters } from "@/features/library/types/LibraryFilters";
 import { useTaxonomy } from "@/features/taxonomy/providers/TaxonomyProvider";
 import { articleStatusLabel, type ArticleStatus } from "@/models/KnowledgeArticle";
@@ -16,6 +17,8 @@ interface LibraryToolbarProps {
   onNewItem: () => void;
   /** Quantos artigos estão sem seção. Zero esconde o filtro. */
   unclassifiedCount: number;
+  /** Quantos em cada situação que pede alguém. Zero esconde a opção. */
+  portalCounts: Partial<Record<PortalState, number>>;
 }
 
 const statusFilters: (ArticleStatus | "all")[] = ["all", "draft", "review", "published", "archived"];
@@ -29,8 +32,11 @@ export function LibraryToolbar({
   onFiltersChange,
   onNewItem,
   unclassifiedCount,
+  portalCounts,
 }: LibraryToolbarProps) {
   const { taxonomy } = useTaxonomy();
+
+  const pendentesNoPortal = PORTAL_STATES.filter((estado) => (portalCounts[estado] ?? 0) > 0);
 
   return (
     <PageToolbar
@@ -101,6 +107,36 @@ export function LibraryToolbar({
               </Button>
             )}
           </div>
+
+          {/*
+            O que falta levar ao portal. Só aparece quando há: a HubSpot não tem
+            API para publicar, e esta é a lista de quem vai colar lá. Escolher de
+            novo a opção ativa desliga o filtro.
+          */}
+          {(pendentesNoPortal.length > 0 || filters.portal !== "all") && (
+            <>
+              <span className="hidden h-5 w-px bg-border sm:block" />
+
+              <div className="flex flex-wrap gap-1.5" role="group" aria-label="Filtrar pelo portal">
+                {pendentesNoPortal.map((estado) => (
+                  <Button
+                    key={estado}
+                    size="sm"
+                    variant={filters.portal === estado ? "default" : "outline"}
+                    aria-pressed={filters.portal === estado}
+                    onClick={() =>
+                      onFiltersChange({
+                        ...filters,
+                        portal: filters.portal === estado ? "all" : estado,
+                      })
+                    }
+                  >
+                    {portalStateLabel[estado]} ({portalCounts[estado]})
+                  </Button>
+                ))}
+              </div>
+            </>
+          )}
 
           <Button onClick={onNewItem}>Novo artigo</Button>
         </div>

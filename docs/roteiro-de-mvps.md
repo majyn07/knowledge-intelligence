@@ -17,8 +17,9 @@ de uma sprint parte da anterior, e o `main` só muda quando alguém integra.
 | # | Sprint | Branch | PR | Estado |
 | --- | --- | --- | --- | --- |
 | 1 | Higiene de engenharia | `sprint/higiene` | [#33](https://github.com/majyn07/knowledge-intelligence/pull/33) | Pronto, CI verde, aguardando integração |
-| 2 | Veredito de IA guardado | `sprint/veredito-guardado` | a abrir | Pronto. Migração `0029` **já aplicada** no banco compartilhado |
-| 3–10 | — | — | — | Por fazer |
+| 2 | Veredito de IA guardado | `sprint/veredito-guardado` | [#34](https://github.com/majyn07/knowledge-intelligence/pull/34) | Pronto. Migração `0029` **já aplicada** no banco compartilhado |
+| 3 | Fila "levar ao portal" | `sprint/levar-ao-portal` | a abrir | Pronto. Migração `0030` **já aplicada** |
+| 4–10 | — | — | — | Por fazer |
 | 11 | Segurança | — | — | Aguardando instruções |
 
 ---
@@ -155,6 +156,29 @@ não vê?" com um número e uma lista.
 **Discutir.** Precisa de um carimbo "gravado aqui em" separado de `updatedAt`
 (que é do portal) e de `synced_at` (que é do gatilho). Um terceiro carimbo é a
 saída honesta, mas é coluna nova: decidir o nome e o dono.
+
+### Feito (sprint 3)
+
+- **A decisão do "Discutir" mudou na prática:** carimbo de data não serve,
+  porque `updatedAt` também se move ao classificar e atribuir (e se move ao
+  publicar rascunho). O que ficou é uma **impressão do texto do portal**
+  (`portal_baseline`, migração `0030`), gravada pela importação. Diferente do
+  texto de hoje é "aguardando o portal"; reimportar fecha.
+- **Os 1.831 importados antes do campo:** decididos pelo histórico. Medido no
+  banco: só **2** têm edição registrada aqui e ficam "a conferir"; os outros
+  ficam "igual ao portal".
+- **Telas:** achado "Levar ao portal" no Levantamento (agrupado acima de cinco),
+  filtro "portal" na Biblioteca vindo da URL, aviso no artigo com **Copiar para
+  a HubSpot** e **Ver no portal**.
+- **Achado no caminho:** o artigo nascido aqui, depois de criado no portal,
+  entraria na importação seguinte como **duplicata**, porque a importação casa
+  por `portalArticleId`. O aviso agora pede o endereço da página criada, confere
+  o host e recusa a página que já é de outro artigo.
+- **Verificado** no modo navegador: achado, filtro pela URL, recusa e ligação
+  pelo endereço.
+- **Não verificado:** o sucesso da cópia, que pede o clique de uma pessoa (com
+  o painel escondido o navegador recusa, e a tela diz isso); e o fechamento da
+  pendência por uma reimportação real do portal.
 
 ---
 

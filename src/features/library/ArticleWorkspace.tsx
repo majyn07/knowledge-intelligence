@@ -33,6 +33,7 @@ import { ArticleTableOfContents } from "./components/ArticleTableOfContents";
 import { LibraryDialog } from "./components/LibraryDialog";
 import { LibraryForm } from "./components/LibraryForm";
 import { DraftPanel } from "./components/DraftPanel";
+import { PortalSyncNotice } from "./components/PortalSyncNotice";
 import { EditingNotice } from "./components/EditingNotice";
 import { acceptsDraft, editableContent } from "./draft";
 import { useEditingPresence } from "./useEditingPresence";
@@ -194,6 +195,8 @@ export function ArticleWorkspace({ articleId }: ArticleWorkspaceProps) {
         onDiscard={() => discardArticleDraft(article.id)}
         onEdit={() => setIsEditing(true)}
       />
+
+      <PortalSyncNotice article={article} />
 
       <section className="rounded-xl border border-border/70 bg-card p-5 sm:p-6">
         <div className="flex flex-wrap items-center gap-2">

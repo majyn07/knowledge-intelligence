@@ -74,6 +74,20 @@ export interface KnowledgeArticle extends Trashable {
    */
   portalArticleId?: string;
 
+  /**
+   * A impressão de título, resumo e conteúdo **como vieram do portal** na última
+   * importação.
+   *
+   * É o que responde "o que publicamos aqui que o cliente ainda não vê?". Não
+   * existe API para publicar de volta, e a última perna é colar à mão na
+   * HubSpot; sem guardar a versão do portal, nada aponta o que ficou para trás.
+   * `updatedAt` não serve: classificar ou atribuir também o move.
+   *
+   * Ausente nos importados antes deste campo. Ausente é desconhecido, não "em
+   * dia": quem decide nesse caso é o histórico (ver `portalSync`).
+   */
+  portalBaseline?: string;
+
   tags: string[];
   keywords: string[];
 

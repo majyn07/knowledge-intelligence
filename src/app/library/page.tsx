@@ -75,7 +75,8 @@ export default function LibraryPage() {
     AltoQi inteiro de quem trocasse de contexto. O mapa de cobertura já media
     todos: eram duas telas discordando sobre o que é o acervo.
   */
-  const { filters, setFilters, filteredItems, unclassifiedCount } = useLibraryFilters(items);
+  const { filters, setFilters, filteredItems, unclassifiedCount, portalCounts } =
+    useLibraryFilters(items);
 
   const [params, writeParams, urlRead] = useUrlState(LIBRARY_URL_DEFAULTS);
 
@@ -296,6 +297,7 @@ export default function LibraryPage() {
               onFiltersChange={setFilters}
               onNewItem={openCreateDialog}
               unclassifiedCount={unclassifiedCount}
+              portalCounts={portalCounts}
             />
 
             <LibraryViewBar
