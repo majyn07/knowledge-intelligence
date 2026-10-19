@@ -54,6 +54,8 @@ const connectionString = url.includes("uselibpqcompat")
 
 /** De folha para raiz. */
 const APAGAR = [
+  /* Fala sobre pares de artigos: sem os artigos, é veredito sobre nada. */
+  "ai_verdicts",
   "activity_events",
   "support_conversations",
   "analyses",

@@ -9,6 +9,20 @@ conta como pronto e o que precisa ser **discutido** antes de começar.
 
 ---
 
+## Andamento
+
+Atualizado a cada sprint. Cada uma tem branch e PR próprios, empilhados: o PR
+de uma sprint parte da anterior, e o `main` só muda quando alguém integra.
+
+| # | Sprint | Branch | PR | Estado |
+| --- | --- | --- | --- | --- |
+| 1 | Higiene de engenharia | `sprint/higiene` | [#33](https://github.com/majyn07/knowledge-intelligence/pull/33) | Pronto, CI verde, aguardando integração |
+| 2 | Veredito de IA guardado | `sprint/veredito-guardado` | a abrir | Pronto. Migração `0029` **já aplicada** no banco compartilhado |
+| 3–10 | — | — | — | Por fazer |
+| 11 | Segurança | — | — | Aguardando instruções |
+
+---
+
 ## Visão geral
 
 | # | MVP | Natureza | Tamanho |
@@ -89,6 +103,26 @@ repetir pedido, e o resultado aparece para a equipe inteira.
   rota própria, como o `CLAUDE.md` já prescreve, ou é hora de resolver o limite
   (ver MVP 10).
 - Rotular como **proposta**, nunca como achado calculado — regra do Levantamento.
+
+### Feito (sprint 2)
+
+- **Escopo:** começou pelas sobreposições, que são o caso caro (um pedido de
+  ~30 s por par, 137 pares). Cobertura dos marcados e sugestão de seção ficam
+  para depois, porque já ficam visíveis no próprio fluxo (a sugestão é aplicada,
+  a cobertura vira artigo).
+- **Validade:** decidida pela impressão do pedido (o texto cortado que foi ao
+  modelo), e não por prazo. Mudou o texto, o veredito vence, é dito na tela e o
+  par volta para a fila.
+- **Tabela:** `ai_verdicts` (migração `0029`), fora do mapa tipado, por
+  `/api/library/verdicts`. No modo navegador, `lib/storage`.
+- **Telas:** a varredura do Levantamento pula o que já foi avaliado e diz
+  quantos faltam; a comparação lado a lado mostra o veredito guardado sem novo
+  pedido, com "Avaliar de novo".
+- **Verificado** no modo navegador contra o Gemini real: avaliar, recarregar,
+  abrir a comparação sem novo `POST` e o veredito vencer ao mudar o texto.
+  Escrita anônima na tabela nova é recusada pela RLS.
+- **Não verificado:** o caminho do banco com uma sessão de verdade (exige
+  entrar na tela de login).
 
 ---
 
@@ -291,5 +325,6 @@ alterado nada**:
 | Rotas de IA sem teto por pessoa: qualquer membro pode consumir a cota diária do provedor num laço | `src/app/api/*` | Baixa–média |
 | `src/proxy.ts` só cobre `/` e não renova a sessão da Supabase como o padrão do `@supabase/ssr` sugere; hoje funciona porque o cliente do navegador renova o cookie | `src/proxy.ts` | Baixa — conferir |
 | Balde `article-images` público na leitura (decisão registrada) | `0023_imagens_do_artigo.sql` | Informativo |
+| O papel `anon` alcança tabelas novas (os privilégios padrão do `public` concedem), e só a RLS impede a leitura: `ai_verdicts` responde `200 []` sem sessão, como as outras. Escrita anônima é recusada. Vale decidir se tabela nova também revoga de `anon` | `0029_vereditos_da_ia.sql` | Baixa — observado na sprint 2 |
 
 Aguardo suas instruções para este bloco.

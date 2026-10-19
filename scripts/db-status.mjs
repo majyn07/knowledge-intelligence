@@ -94,6 +94,7 @@ const tabelas = [
   "dashboard_panels",
   "saved_views",
   "follows",
+  "ai_verdicts",
   "profiles",
   "teams",
   "taxonomy_categories",

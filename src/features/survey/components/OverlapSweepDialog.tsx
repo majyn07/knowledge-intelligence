@@ -4,6 +4,7 @@ import { useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { AlertTriangle, ArrowRight, Loader2, Sparkles } from "lucide-react";
 
+import { RelativeDate } from "@/components/common/RelativeDate";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -15,9 +16,16 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { montarPedidoDeComparacao } from "@/features/library/compare/mergeRequest";
+import {
+  chaveDoPar,
+  impressaoDoPedido,
+  type SavedVerdict,
+} from "@/features/library/compare/savedVerdict";
+import { useSavedVerdicts } from "@/features/library/compare/useSavedVerdicts";
+import { usePeople } from "@/features/people/providers/PeopleProvider";
 import type { OverlapPair } from "@/features/survey/overlap";
 import { contar } from "@/lib/plural";
-import type { MergeAdvice, Relacao } from "@/services/ai/library/mergeAdvice";
+import type { MergeAdvice, MergeRequest, Relacao } from "@/services/ai/library/mergeAdvice";
 
 /**
  * Avaliar as sobreposições em lote.
@@ -37,11 +45,22 @@ import type { MergeAdvice, Relacao } from "@/services/ai/library/mergeAdvice";
  * ver "complementares" na lista encontraria "mesmo assunto" na tela. Duas
  * respostas do mesmo vocabulário divergem, e a divergência é a que ninguém sabe
  * qual acreditar.
+ *
+ * **O que foi lido fica guardado para a equipe.** Antes, fechar a aba jogava
+ * fora a varredura, e os 137 pares nunca foram avaliados até o fim porque não
+ * cabiam numa sessão. Agora a varredura pula o que já tem veredito válido e
+ * retoma de onde parou, e o veredito vence sozinho quando o texto de um dos
+ * dois artigos muda.
  */
 
-interface Avaliado {
+interface Situacao {
   par: OverlapPair;
-  advice: MergeAdvice;
+  pedido: MergeRequest;
+  chave: string;
+  /** O guardado, se existe e ainda vale para o texto de hoje. */
+  valido: SavedVerdict | null;
+  /** Existe guardado, mas o texto mudou desde então. */
+  vencido: boolean;
 }
 
 /** Quantos pares por padrão. Os mais parecidos primeiro: a lista já vem ordenada. */
@@ -88,10 +107,12 @@ export function OverlapSweepDialog({
   aoFechar: () => void;
 }) {
   const [teto, setTeto] = useState(TETO_PADRAO);
-  const [avaliados, setAvaliados] = useState<Avaliado[]>([]);
   const [progresso, setProgresso] = useState<{ feitos: number; total: number } | null>(null);
   const [erro, setErro] = useState<string | null>(null);
+  const [naoGuardou, setNaoGuardou] = useState<string | null>(null);
   const [esperando, setEsperando] = useState(false);
+  const { vereditos, carregado, guardar } = useSavedVerdicts("sobreposicao");
+  const { currentPerson } = usePeople();
 
   /*
     Parar no meio precisa ser possível: são um pedido por par, e quem começou
@@ -99,14 +120,35 @@ export function OverlapSweepDialog({
   */
   const parar = useRef(false);
 
-  const aVarrer = useMemo(() => pares.slice(0, teto), [pares, teto]);
+  /*
+    Só com o diálogo aberto: montar o pedido limpa o HTML dos dois artigos de
+    cada par, e fazer isso com a tela fechada é custo para uma pergunta que
+    ninguém fez.
+  */
+  const situacoes = useMemo<Situacao[]>(() => {
+    if (!aberto) return [];
+
+    return pares.map((par) => {
+      const pedido = montarPedidoDeComparacao(par.a, par.b);
+      const chave = chaveDoPar(par.a.id, par.b.id);
+      const salvo = vereditos.get(chave) ?? null;
+      const vale = salvo !== null && salvo.fingerprint === impressaoDoPedido(pedido);
+
+      return { par, pedido, chave, valido: vale ? salvo : null, vencido: salvo !== null && !vale };
+    });
+  }, [aberto, pares, vereditos]);
+
+  const pendentes = useMemo(() => situacoes.filter((s) => !s.valido), [situacoes]);
+  const vencidos = useMemo(() => situacoes.filter((s) => s.vencido).length, [situacoes]);
+  const aVarrer = useMemo(() => pendentes.slice(0, teto), [pendentes, teto]);
 
   /*
     Fechar para a varredura.
 
     Sem isso ela seguia em segundo plano, gastando um pedido por par contra o
     provedor depois de a pessoa ter saído da tela — e sem nada dizendo que ainda
-    estava acontecendo. O que já foi avaliado continua guardado, e reabrir mostra.
+    estava acontecendo. O que já foi avaliado continua guardado, e reabrir mostra
+    — inclusive noutro dia e para outra pessoa.
   */
   function fechar() {
     parar.current = true;
@@ -114,11 +156,11 @@ export function OverlapSweepDialog({
   }
 
   /** Um par pelo servidor. O erro sobe para quem chamou decidir se continua. */
-  async function avaliarPar(par: OverlapPair): Promise<MergeAdvice> {
+  async function avaliarPar(pedido: MergeRequest): Promise<MergeAdvice> {
     const resposta = await fetch("/api/library/compare", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(montarPedidoDeComparacao(par.a, par.b)),
+      body: JSON.stringify(pedido),
     });
 
     const dados: { advice?: MergeAdvice; message?: string; retriable?: boolean } =
@@ -145,9 +187,9 @@ export function OverlapSweepDialog({
    * Não é laço: uma tentativa a mais. Prazo estourado e chave recusada não
    * melhoram esperando, e o servidor já os marca como não repetíveis.
    */
-  async function avaliarComSegundaChance(par: OverlapPair): Promise<MergeAdvice> {
+  async function avaliarComSegundaChance(pedido: MergeRequest): Promise<MergeAdvice> {
     try {
-      return await avaliarPar(par);
+      return await avaliarPar(pedido);
     } catch (falha) {
       if (!(falha instanceof Error) || falha.name !== "PodeTentarDeNovo" || parar.current) {
         throw falha;
@@ -165,19 +207,21 @@ export function OverlapSweepDialog({
       */
       if (parar.current) throw falha;
 
-      return avaliarPar(par);
+      return avaliarPar(pedido);
     }
   }
 
   async function varrer() {
     parar.current = false;
     setErro(null);
-    setAvaliados([]);
+    setNaoGuardou(null);
     setProgresso({ feitos: 0, total: aVarrer.length });
 
-    const acumulados: Avaliado[] = [];
+    /* Fixada no começo: a lista de pendentes encolhe a cada veredito guardado. */
+    const fila = [...aVarrer];
+    let lidos = 0;
 
-    for (let i = 0; i < aVarrer.length; i += 1) {
+    for (let i = 0; i < fila.length; i += 1) {
       if (parar.current) break;
 
       /*
@@ -187,35 +231,55 @@ export function OverlapSweepDialog({
       if (i > 0) await esperar(PAUSA_MS);
       if (parar.current) break;
 
+      const { pedido, chave } = fila[i];
+      let advice: MergeAdvice;
+
       try {
-        acumulados.push({ par: aVarrer[i], advice: await avaliarComSegundaChance(aVarrer[i]) });
+        advice = await avaliarComSegundaChance(pedido);
       } catch (falha) {
         /*
-          O que já veio não se perde. Depois de trinta pares avaliados, perder
-          tudo por causa do trigésimo primeiro seria jogar fora revisão pronta:
-          a tela guarda e diz onde parou.
+          O que já veio não se perde: cada veredito é guardado assim que chega,
+          e a próxima varredura começa do primeiro que ficou faltando.
         */
         setErro(
           `${falha instanceof Error ? falha.message : "Falha ao avaliar"}, parou no par ${
             i + 1
-          } de ${aVarrer.length}.${
+          } de ${fila.length}.${
             /*
               Nada avaliado não promete lista nenhuma: "os 0 pares já avaliados
               continuam abaixo" aponta para um vazio, e mandar alguém olhar o
               que não existe é o que faz desconfiar da tela.
             */
-            acumulados.length === 0
+            lidos === 0
               ? ""
-              : acumulados.length === 1
-                ? " O par já avaliado continua abaixo."
-                : ` Os ${acumulados.length} pares já avaliados continuam abaixo.`
+              : lidos === 1
+                ? " O par já avaliado ficou guardado e continua abaixo."
+                : ` Os ${lidos} pares já avaliados ficaram guardados e continuam abaixo.`
           }`
         );
         break;
       }
 
-      setAvaliados([...acumulados]);
-      setProgresso({ feitos: i + 1, total: aVarrer.length });
+      lidos += 1;
+
+      const falhaAoGuardar = await guardar({
+        kind: "sobreposicao",
+        subject: chave,
+        fingerprint: impressaoDoPedido(pedido),
+        advice,
+        actorId: "",
+        actorLabel: currentPerson,
+        at: new Date().toISOString(),
+      });
+
+      /*
+        Não guardar não para a varredura: o veredito está na tela de quem
+        pediu. Mas a tela diz, porque "fica guardado" é a promessa deste
+        diálogo, e quem fecha a aba achando que guardou perde o que leu.
+      */
+      if (falhaAoGuardar) setNaoGuardou(falhaAoGuardar);
+
+      setProgresso({ feitos: i + 1, total: fila.length });
     }
 
     setProgresso(null);
@@ -236,8 +300,12 @@ export function OverlapSweepDialog({
       "assuntos-diferentes": 2,
     };
 
-    return [...avaliados].sort((x, y) => peso[x.advice.relacao] - peso[y.advice.relacao]);
-  }, [avaliados]);
+    return situacoes
+      .filter((s): s is Situacao & { valido: SavedVerdict } => s.valido !== null)
+      .sort((x, y) => peso[x.valido.advice.relacao] - peso[y.valido.advice.relacao]);
+  }, [situacoes]);
+
+  const opcoesDeTeto = [10, 20, 50].filter((n) => n < pendentes.length);
 
   return (
     <Dialog open={aberto} onOpenChange={(estado) => !estado && fechar()}>
@@ -257,20 +325,43 @@ export function OverlapSweepDialog({
             para agrupar. Os mais parecidos vêm primeiro.
           </p>
 
-          {!rodando && avaliados.length === 0 && (
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="text-sm">Avaliar os</span>
+          {/*
+            O que já está guardado vem dito antes do teto: quem volta para
+            continuar a varredura precisa saber quanto falta, e não ver a
+            mesma escolha de "10, 20, 50" como se começasse do zero.
+          */}
+          {!carregado ? (
+            <p className="flex items-center gap-2 text-sm text-muted-foreground">
+              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              Procurando o que já foi avaliado...
+            </p>
+          ) : (
+            <p className="text-sm">
+              {ordenados.length === 0
+                ? "Nenhum par avaliado ainda."
+                : `${contar(ordenados.length, "par avaliado", "pares avaliados")} e ${
+                    pendentes.length === 0 ? "nenhum" : pendentes.length
+                  } por avaliar. O que foi lido fica guardado para a equipe.`}
+              {vencidos > 0 &&
+                ` ${contar(vencidos, "veredito venceu", "vereditos venceram")} porque o texto mudou depois, e ${
+                  vencidos === 1 ? "volta" : "voltam"
+                } para a fila.`}
+            </p>
+          )}
 
-              {[10, 20, 50, pares.length].map((opcao) => (
+          {carregado && !rodando && pendentes.length > 0 && (
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="text-sm">Avaliar os próximos</span>
+
+              {[...opcoesDeTeto, pendentes.length].map((opcao) => (
                 <Button
                   key={opcao}
                   type="button"
                   size="sm"
-                  variant={teto === opcao ? "default" : "outline"}
+                  variant={Math.min(teto, pendentes.length) === opcao ? "default" : "outline"}
                   onClick={() => setTeto(opcao)}
-                  disabled={opcao > pares.length}
                 >
-                  {opcao >= pares.length ? `todos os ${pares.length}` : opcao}
+                  {opcao === pendentes.length ? `todos os ${pendentes.length}` : opcao}
                 </Button>
               ))}
 
@@ -283,13 +374,13 @@ export function OverlapSweepDialog({
             portal. Um pedido por par mais a pausa entre eles: quem escolhe
             "todos os 137" precisa saber que são mais de uma hora.
           */}
-          {!rodando && avaliados.length === 0 && aVarrer.length > 0 && (
+          {carregado && !rodando && aVarrer.length > 0 && (
             <p className="text-sm text-muted-foreground">
               Leva cerca de{" "}
               <strong>
                 {contar(Math.max(1, Math.round((aVarrer.length * SEGUNDOS_POR_PAR) / 60)), "minuto")}
               </strong>
-              , em série. Dá para parar no meio, e o que já foi lido continua na tela.
+              , em série. Dá para parar no meio, e a próxima varredura continua de onde esta parou.
             </p>
           )}
 
@@ -314,10 +405,17 @@ export function OverlapSweepDialog({
             </p>
           )}
 
+          {naoGuardou && (
+            <p className="flex items-start gap-2 rounded-lg border border-amber-500/40 bg-amber-500/10 p-3 text-sm">
+              <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-600" />
+              {naoGuardou} O que está na tela foi lido, mas pode não estar aqui na próxima vez.
+            </p>
+          )}
+
           <div className="space-y-3">
-            {ordenados.map(({ par, advice }) => (
+            {ordenados.map(({ par, chave, valido: { advice, actorLabel, at } }) => (
               <div
-                key={`${par.a.id}-${par.b.id}`}
+                key={chave}
                 className={`rounded-lg border p-4 ${APARENCIA[advice.relacao].classe}`}
               >
                 <div className="flex flex-wrap items-center gap-2">
@@ -326,6 +424,14 @@ export function OverlapSweepDialog({
                   </Badge>
                   <span className="text-xs text-muted-foreground">
                     {Math.round(par.score * 100)}% do vocabulário
+                  </span>
+                  {/*
+                    Proposta, com quem pediu e quando: é o que separa um veredito
+                    guardado de um achado calculado.
+                  */}
+                  <span className="ml-auto text-xs text-muted-foreground">
+                    {actorLabel ? `${actorLabel}, ` : ""}
+                    {at ? <RelativeDate value={at} /> : "sem data"}
                   </span>
                 </div>
 

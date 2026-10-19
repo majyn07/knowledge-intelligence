@@ -1,14 +1,18 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { AlertTriangle, ArrowRight, Loader2, Sparkles } from "lucide-react";
 
+import { RelativeDate } from "@/components/common/RelativeDate";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { usePeople } from "@/features/people/providers/PeopleProvider";
 import type { KnowledgeArticle } from "@/models/KnowledgeArticle";
 import type { MergeAdvice, Relacao } from "@/services/ai/library/mergeAdvice";
 
 import { montarPedidoDeComparacao } from "../compare/mergeRequest";
+import { chaveDoPar, impressaoDoPedido } from "../compare/savedVerdict";
+import { useSavedVerdicts } from "../compare/useSavedVerdicts";
 
 /**
  * "Estes dois deveriam ser um só?"
@@ -21,6 +25,10 @@ import { montarPedidoDeComparacao } from "../compare/mergeRequest";
  * **Ela não funde nada.** Unir, arquivar ou deixar como está continua sendo
  * decisão de quem revisa, e a tela não oferece botão para o contrário: um
  * artigo apagado por engano não volta do jeito que veio.
+ *
+ * **O veredito é o mesmo da varredura do Levantamento, e fica guardado.** Quem
+ * abre um par que a varredura já leu vê a resposta sem pagar outro pedido; e o
+ * que se avalia aqui entra na varredura como já lido.
  */
 
 const APARENCIA: Record<Relacao, { rotulo: string; classe: string }> = {
@@ -43,6 +51,13 @@ export function MergeAdvicePanel({ a, b }: { a: KnowledgeArticle; b: KnowledgeAr
   const [advice, setAdvice] = useState<MergeAdvice | null>(null);
   const [lendo, setLendo] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
+  const [naoGuardou, setNaoGuardou] = useState<string | null>(null);
+  const { vereditos, guardar } = useSavedVerdicts("sobreposicao");
+  const { currentPerson } = usePeople();
+
+  const pedido = useMemo(() => montarPedidoDeComparacao(a, b), [a, b]);
+  const salvo = vereditos.get(chaveDoPar(a.id, b.id)) ?? null;
+  const salvoVale = salvo !== null && salvo.fingerprint === impressaoDoPedido(pedido);
 
   /*
     A tela pergunta se há provedor antes de oferecer o botão. Mesma regra do
@@ -70,6 +85,7 @@ export function MergeAdvicePanel({ a, b }: { a: KnowledgeArticle; b: KnowledgeAr
   useEffect(() => {
     setAdvice(null);
     setErro(null);
+    setNaoGuardou(null);
   }, [a.id, b.id]);
 
   async function avaliar() {
@@ -80,7 +96,7 @@ export function MergeAdvicePanel({ a, b }: { a: KnowledgeArticle; b: KnowledgeAr
       const resposta = await fetch("/api/library/compare", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(montarPedidoDeComparacao(a, b)),
+        body: JSON.stringify(pedido),
       });
 
       const dados: { advice?: MergeAdvice; message?: string } = await resposta.json();
@@ -91,6 +107,18 @@ export function MergeAdvicePanel({ a, b }: { a: KnowledgeArticle; b: KnowledgeAr
       }
 
       setAdvice(dados.advice);
+
+      setNaoGuardou(
+        await guardar({
+          kind: "sobreposicao",
+          subject: chaveDoPar(a.id, b.id),
+          fingerprint: impressaoDoPedido(pedido),
+          advice: dados.advice,
+          actorId: "",
+          actorLabel: currentPerson,
+          at: new Date().toISOString(),
+        })
+      );
     } catch {
       setErro("Não foi possível falar com o servidor.");
     } finally {
@@ -98,12 +126,18 @@ export function MergeAdvicePanel({ a, b }: { a: KnowledgeArticle; b: KnowledgeAr
     }
   }
 
-  if (disponivel !== true) return null;
+  /*
+    O guardado aparece mesmo sem provedor configurado: ler o que a equipe já
+    avaliou não custa pedido nenhum. Só avaliar de novo depende do provedor.
+  */
+  const exibido = advice ?? (salvoVale ? salvo.advice : null);
+  const deQuem = advice ? null : salvoVale ? salvo : null;
 
-  const pedido = montarPedidoDeComparacao(a, b);
+  if (disponivel !== true && !exibido) return null;
+
   const cortado = pedido.a.truncated || pedido.b.truncated;
 
-  const mantido = advice?.manter === a.id ? a : advice?.manter === b.id ? b : null;
+  const mantido = exibido?.manter === a.id ? a : exibido?.manter === b.id ? b : null;
   const outro = mantido === a ? b : mantido === b ? a : null;
 
   return (
@@ -114,7 +148,7 @@ export function MergeAdvicePanel({ a, b }: { a: KnowledgeArticle; b: KnowledgeAr
       </div>
 
       <div className="space-y-4 p-5">
-        {!advice && !lendo && (
+        {!exibido && !lendo && (
           <div className="space-y-3">
             <p className="text-sm text-muted-foreground">
               O que está acima é <strong>contagem de palavras</strong>. Aqui ela lê os dois textos
@@ -122,6 +156,18 @@ export function MergeAdvicePanel({ a, b }: { a: KnowledgeArticle; b: KnowledgeAr
               junto.
               {cortado && " Um dos artigos é longo e vai cortado, e ela avisa quando isso pesar."}
             </p>
+
+            {/*
+              Vencido é dito, e não escondido: "já foi avaliado, mas o texto
+              mudou" é informação, e esconder faria parecer que ninguém olhou.
+            */}
+            {salvo && !salvoVale && (
+              <p className="text-xs text-muted-foreground">
+                Este par já foi avaliado
+                {salvo.actorLabel ? ` por ${salvo.actorLabel}` : ""}, mas o texto de um dos dois
+                mudou desde então, e aquele veredito não vale mais.
+              </p>
+            )}
 
             <Button type="button" size="sm" onClick={avaliar}>
               <Sparkles className="mr-2 h-4 w-4" />
@@ -144,21 +190,54 @@ export function MergeAdvicePanel({ a, b }: { a: KnowledgeArticle; b: KnowledgeAr
           </p>
         )}
 
-        {advice && (
+        {naoGuardou && (
+          <p className="flex items-start gap-2 rounded-lg border border-amber-500/40 bg-amber-500/10 p-3 text-sm">
+            <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-600" />
+            {naoGuardou} A resposta abaixo foi lida, mas a equipe não vai encontrá-la guardada.
+          </p>
+        )}
+
+        {exibido && (
           <div className="space-y-4">
-            <div className={`rounded-lg border p-4 ${APARENCIA[advice.relacao].classe}`}>
+            <div className={`rounded-lg border p-4 ${APARENCIA[exibido.relacao].classe}`}>
               <div className="flex flex-wrap items-center gap-2">
                 <Badge variant="outline" className="font-medium">
-                  {APARENCIA[advice.relacao].rotulo}
+                  {APARENCIA[exibido.relacao].rotulo}
                 </Badge>
                 {/*
                   A procedência vai no achado, como em todo lugar: isto é
-                  proposta de modelo, e não medição do produto.
+                  proposta de modelo, e não medição do produto. Guardado, diz
+                  também quem pediu e quando.
                 */}
-                <span className="text-xs text-muted-foreground">Proposta da IA</span>
+                <span className="text-xs text-muted-foreground">
+                  Proposta da IA
+                  {deQuem && (
+                    <>
+                      {deQuem.actorLabel ? `, pedida por ${deQuem.actorLabel}` : ""}
+                      {deQuem.at && (
+                        <>
+                          {" "}
+                          <RelativeDate value={deQuem.at} />
+                        </>
+                      )}
+                    </>
+                  )}
+                </span>
+
+                {deQuem && disponivel === true && !lendo && (
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="ghost"
+                    className="ml-auto h-7 text-xs"
+                    onClick={avaliar}
+                  >
+                    Avaliar de novo
+                  </Button>
+                )}
               </div>
 
-              <p className="mt-2 text-sm leading-6">{advice.motivo}</p>
+              <p className="mt-2 text-sm leading-6">{exibido.motivo}</p>
             </div>
 
             {mantido && outro && (
@@ -171,7 +250,7 @@ export function MergeAdvicePanel({ a, b }: { a: KnowledgeArticle; b: KnowledgeAr
                   <span className="text-muted-foreground">fica</span>
                 </p>
 
-                {advice.levarJunto.length > 0 && (
+                {exibido.levarJunto.length > 0 && (
                   <>
                     <p className="mt-3 text-xs font-medium text-muted-foreground">
                       O que precisa ser levado de &ldquo;{outro.title}&rdquo;
@@ -183,7 +262,7 @@ export function MergeAdvicePanel({ a, b }: { a: KnowledgeArticle; b: KnowledgeAr
                       dois textos longos de relance.
                     */}
                     <ul className="mt-1.5 space-y-1 text-sm">
-                      {advice.levarJunto.map((item) => (
+                      {exibido.levarJunto.map((item) => (
                         <li key={item} className="flex gap-2">
                           <span className="text-muted-foreground">•</span>
                           {item}
@@ -196,7 +275,7 @@ export function MergeAdvicePanel({ a, b }: { a: KnowledgeArticle; b: KnowledgeAr
             )}
 
             <p className="text-sm">
-              <strong>Recomendação:</strong> {advice.recomendacao}
+              <strong>Recomendação:</strong> {exibido.recomendacao}
             </p>
 
             <p className="text-xs text-muted-foreground">
