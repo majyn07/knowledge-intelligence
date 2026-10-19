@@ -1,6 +1,10 @@
 import { describe, expect, it } from "vitest";
 
-import { produtosConhecidos, produtosNoTexto } from "./produtoDoAtendimento";
+import {
+  produtosConhecidos,
+  produtosDaClassificacao,
+  produtosNoTexto,
+} from "./produtoDoAtendimento";
 
 describe("produtosNoTexto", () => {
   /* Formato real do assunto que a HubSpot gera. */
@@ -75,5 +79,26 @@ describe("produtosConhecidos", () => {
     expect(nomes).toContain("AltoQi Builder");
     expect(nomes).toContain("AltoQi Visus");
     expect(new Set(nomes).size).toBe(nomes.length);
+  });
+});
+
+/* Rótulos lidos da conta em 19/10/2026. */
+describe("produtosDaClassificacao", () => {
+  it("tira o sufixo e chega ao mesmo nome que o filtro usa", () => {
+    expect(produtosDaClassificacao("AltoQi Builder | Assinatura e suporte 2026, 2025, 2024")).toEqual([
+      "AltoQi Builder",
+    ]);
+    expect(produtosConhecidos()).toContain(produtosDaClassificacao("AltoQi Eberick |  Assinatura")[0]);
+  });
+
+  it("o que não tem par aqui entra como veio", () => {
+    expect(produtosDaClassificacao("Produtos anteriores | Versões descontinuadas e suporte restrito")).toEqual([
+      "Produtos anteriores",
+    ]);
+  });
+
+  it("vazio é nenhum, e seleção múltipla vira lista", () => {
+    expect(produtosDaClassificacao("")).toEqual([]);
+    expect(produtosDaClassificacao("AltoQi Visus; Área do Cliente")).toEqual(["AltoQi Visus", "Área do Cliente"]);
   });
 });

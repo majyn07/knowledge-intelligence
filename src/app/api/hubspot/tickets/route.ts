@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { requireMember } from "@/features/auth/requireAdmin";
+import { requireAdmin } from "@/features/auth/requireAdmin";
 
 import {
   HubSpotFailure,
@@ -57,7 +57,13 @@ export async function GET(request: Request) {
     endereco. A porta e o servidor, nao a tela: esconder o botao impede o clique
     e nao impede quem conhece o caminho.
   */
-  const sessao = await requireMember();
+  /*
+    Administrador e freio, e não só sessão. Com o escopo de tickets concedido
+    em 19/10/2026 esta rota passou a funcionar, e listar quinhentos chamados por
+    chamada é leitura em volume contra o servidor do suporte: a mesma regra da
+    varredura. Com `requireMember` ela furava a porta e o interruptor.
+  */
+  const sessao = await requireAdmin();
 
   if (!sessao.ok) {
     return NextResponse.json({ message: sessao.message }, { status: sessao.status });

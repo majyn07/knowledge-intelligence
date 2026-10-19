@@ -11,6 +11,12 @@ import {
   type HubSpotTicket,
   type TicketPropertyMap,
 } from "./ticketMapping";
+import {
+  lerLoteDeClassificacao,
+  PROPRIEDADES_DA_CLASSIFICACAO,
+  vocabularioDe,
+  type ClassificacaoHubSpot,
+} from "./ticketClassification";
 
 /**
  * Os atendimentos, trazidos da HubSpot.
@@ -47,7 +53,44 @@ export type AlcanceDoAtendimento =
   | { alcanca: true }
   | { alcanca: false; motivo: string; configurado: boolean };
 
+/** O teto de `batch/read` na HubSpot. */
+export const CLASSIFICACOES_POR_PEDIDO = 100;
+
 export const hubspotTicketService = {
+  /**
+   * A classificação de até cem chamados, pelo número de cada um.
+   *
+   * Dois pedidos, os dois de leitura: o vocabulário das onze propriedades (para
+   * trocar valor interno por rótulo) e os chamados em lote. Pedir as 790
+   * propriedades da conta para usar onze seria trazer megabytes para nada.
+   */
+  async classificacoes(
+    ids: string[]
+  ): Promise<{ porId: Map<string, ClassificacaoHubSpot>; ausentes: string[] }> {
+    const pedidos = [...new Set(ids.map((id) => id.trim()).filter(Boolean))].slice(
+      0,
+      CLASSIFICACOES_POR_PEDIDO
+    );
+
+    if (pedidos.length === 0) return { porId: new Map(), ausentes: [] };
+
+    const vocabulario = vocabularioDe(
+      await hubspot.post("/crm/v3/properties/tickets/batch/read", {
+        inputs: PROPRIEDADES_DA_CLASSIFICACAO.map((name) => ({ name })),
+      })
+    );
+
+    const porId = lerLoteDeClassificacao(
+      await hubspot.post("/crm/v3/objects/tickets/batch/read", {
+        inputs: pedidos.map((id) => ({ id })),
+        properties: PROPRIEDADES_DA_CLASSIFICACAO,
+      }),
+      vocabulario
+    );
+
+    return { porId, ausentes: pedidos.filter((id) => !porId.has(id)) };
+  },
+
   /**
    * Pergunta à HubSpot em vez de afirmar.
    *
