@@ -120,6 +120,11 @@ export const STORAGE_KEYS = {
     texto não salvo.
   */
   articleHandoff: "visus-article-handoff",
+  /*
+    Os vereditos da IA, no modo navegador. No compartilhado eles vivem no banco,
+    porque o ponto de guardá-los é o colega não pagar o mesmo pedido de novo.
+  */
+  aiVerdicts: "visus-ai-verdicts",
 } as const;
 
 /** Tudo que a recuperação de falha apaga para voltar à semente. */
