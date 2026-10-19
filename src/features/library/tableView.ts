@@ -21,6 +21,7 @@ export const ARTICLE_COLUMNS = [
   "genre",
   "author",
   "updatedAt",
+  "citations",
 ] as const;
 
 export type ArticleColumn = (typeof ARTICLE_COLUMNS)[number];
@@ -32,6 +33,7 @@ export const columnLabel: Record<ArticleColumn, string> = {
   genre: "Gênero",
   author: "Responsável",
   updatedAt: "Atualizado",
+  citations: "Citado pelo suporte",
 };
 
 /**
@@ -61,6 +63,11 @@ export interface ColumnContext {
   taxonomy: Taxonomy;
   /** Resolve a atribuição para o nome de hoje. */
   nameOf: (ref: string) => string;
+  /**
+   * Em quantos atendimentos o suporte respondeu com o artigo. `null` enquanto as
+   * conversas não chegaram: vazio, e não zero, porque zero seria afirmação.
+   */
+  citacoesDe?: (articleId: string) => number | null;
 }
 
 /**
@@ -88,6 +95,10 @@ export function cellValue(
       return context.nameOf(article.author);
     case "updatedAt":
       return article.updatedAt instanceof Date ? article.updatedAt.toISOString() : "";
+    case "citations": {
+      const quantos = context.citacoesDe?.(article.id) ?? null;
+      return quantos === null ? "" : String(quantos);
+    }
   }
 }
 
@@ -116,6 +127,8 @@ export function sortArticles(
     if (left === "" && right === "") return 0;
     if (left === "") return 1;
     if (right === "") return -1;
+
+    if (sort.column === "citations") return factor * (Number(left) - Number(right));
 
     if (sort.column === "updatedAt") {
       return factor * (new Date(left).getTime() - new Date(right).getTime());
