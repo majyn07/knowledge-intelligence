@@ -3,10 +3,11 @@ import type { SupportConversation } from "@/models/SupportConversation";
 /**
  * O que o cliente escolheu no atendimento digital.
  *
- * A classificação do ticket vive em propriedade da HubSpot, atrás de um escopo
- * que a credencial não tem, e a exportação em CSV não está disponível. Mas o
- * bot **pergunta ao cliente** antes de abrir o chamado, e pergunta e resposta
- * são mensagens da conversa — que nós já temos.
+ * A classificação do ticket vive em propriedade da HubSpot, e desde 19/10/2026
+ * entra pela leitura dela (`ClassificationSyncButton`). Ela é de quem atendeu.
+ * Esta aqui é outra coisa: o bot **pergunta ao cliente** antes de abrir o
+ * chamado, e pergunta e resposta são mensagens da conversa. As duas convivem,
+ * rotuladas pelo que são.
  *
  * Não é dedução: é a opção que a pessoa clicou, copiada literal. Vale a mesma
  * regra do resto do produto — o que dá para derivar dos dados é derivado, e o

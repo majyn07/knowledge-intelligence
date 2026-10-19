@@ -17,9 +17,9 @@ import { hubspot } from "./hubspotClient";
  * A conversa de um atendimento, trazida da HubSpot.
  *
  * É a única coisa que a API entrega e o arquivo não: a exportação da HubSpot
- * traz o ticket, não o histórico de mensagens. O atendimento em si continua vindo
- * daqui: o escopo `tickets` não está na credencial, e isso está registrado em
- * `docs/hubspot-pendencias.md`.
+ * traz o ticket, não o histórico de mensagens. O atendimento nasce da conversa;
+ * a classificação dele é lida à parte, pelo objeto de ticket, desde que o
+ * escopo foi concedido em 19/10/2026.
  */
 
 /** Alto o bastante para a conversa caber num pedido, e o teto da API é 100. */

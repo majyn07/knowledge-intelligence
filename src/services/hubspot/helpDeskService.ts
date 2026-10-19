@@ -24,9 +24,10 @@ import {
 /**
  * A caixa do suporte, lida em pedaços.
  *
- * É a porta que não depende do escopo bloqueado: o objeto de ticket está
- * fechado, mas a conversa que o gerou não. E a conversa é o que o arquivo
- * exportado nunca traz.
+ * Nasceu como a porta que não dependia do escopo de tickets, fechado até
+ * 19/10/2026. Continua sendo o caminho do atendimento, porque a conversa é o
+ * que nem o arquivo exportado nem o objeto de ticket trazem; a classificação
+ * entra à parte, por `/api/hubspot/classificacao`.
  *
  * Cada função aqui faz **um** pedaço: uma página da listagem, um lote de
  * leitura. Quem conduz o laço é a tela, como na varredura do portal, e por

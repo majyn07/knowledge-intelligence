@@ -25,7 +25,7 @@ de uma sprint parte da anterior, e o `main` só muda quando alguém integra.
 | 5 | O artigo resolveu? | — | — | **Medido e adiado**: não há dado (ver a seção) |
 | 4 | Conferir IA contra casos reais | — | — | Espera a escolha dos casos |
 | 8, 9, 10 | Discussões | — | — | Esperam decisão |
-| 12 | Classificação da HubSpot no produto | — | — | **Proposto em 19/10**, escopo concedido; espera aval |
+| 12 | Classificação da HubSpot no produto | `sprint/classificacao-hubspot` | [#40](https://github.com/majyn07/knowledge-intelligence/pull/40) | Pronto. Migração `0032` **já aplicada**; falta clicar o botão em produção |
 | 11 | Segurança | — | — | Aguardando instruções |
 
 ---
@@ -463,6 +463,27 @@ produto em 463, causa raiz em 196. No produto, os sete campos estão vazios nos
   avaliação de cliente: decidir se entra e o que se guarda.
 - O freio de requisições vale também para este preenchimento: 11 pedidos é
   pouco, mas é o mesmo servidor.
+
+### Feito (sprint 12)
+
+- **Trava de só leitura no código** (`services/hubspot/readOnly`): o cliente recusa
+  todo POST que não seja busca ou leitura em lote. Os três que o produto usava
+  passam.
+- **Onze campos**, com a propriedade da HubSpot de cada um; os quatro novos do
+  Suporte em colunas próprias (migração `0032`).
+- **`/api/hubspot/classificacao`**: cem chamados por pedido, rótulo e não valor
+  interno, administrador e freio. Verificado contra a HubSpot real pela rota local.
+- **Botão nos Indicadores** para quem administra, com progresso, parada e
+  aplicação numa escrita só.
+- **Filtro de produto** prefere o "[Support] Produto" de quem atendeu.
+- **Adaptação à chave nova:** `/api/hubspot/tickets` passou a exigir
+  administrador e freio (com o escopo ela funciona, e lista até 500); textos da
+  tela de Integrações, do filtro e dos comentários deixam de dizer que o escopo
+  falta.
+- **Não feito:** clicar o botão em produção (cabe a quem administra, para o
+  histórico registrar quem); as pesquisas de satisfação; e conferir se o token
+  da HubSpot existe nas pré-visualizações da Vercel (a CLI está com o login
+  expirado).
 
 ---
 

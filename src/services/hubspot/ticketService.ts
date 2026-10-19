@@ -21,11 +21,9 @@ import {
 /**
  * Os atendimentos, trazidos da HubSpot.
  *
- * Escrito antes de a credencial poder chamá-lo. Hoje toda chamada aqui volta
- * como `sem-permissao`, porque o escopo `tickets` não está no app privado, e
- * isso está registrado em `docs/hubspot-pendencias.md`. No dia em que o escopo
- * entrar, este arquivo funciona sem alteração: quem muda é o mapa de
- * propriedades, se os nomes da conta não forem os padrão.
+ * Escrito antes de a credencial poder chamá-lo, e funcionando desde 19/10/2026,
+ * quando o escopo de leitura de tickets foi concedido. Só leitura: GET e
+ * `batch/read`, com a trava do cliente recusando qualquer outro POST.
  *
  * O atendimento continua entrando por arquivo enquanto isso, e as duas portas
  * casam pelo mesmo `source.externalId`. Reimportar por um caminho não duplica

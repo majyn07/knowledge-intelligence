@@ -11,10 +11,9 @@ import { hubspotTicketService } from "@/services/hubspot/ticketService";
 /**
  * Os atendimentos da HubSpot.
  *
- * Escrita antes de a credencial poder chamá-la: hoje toda chamada volta 502
- * com `sem-permissao`, porque o escopo `tickets` não está no app privado. A
- * rota existe assim mesmo porque o que falta é permissão de terceiro, e o
- * código que depende dela é conferível por teste desde já.
+ * Escrita antes de a credencial poder chamá-la, e funcionando desde 19/10/2026,
+ * quando o escopo de leitura de tickets foi concedido. Nenhuma tela a usa hoje:
+ * o atendimento nasce da conversa, e a classificação tem rota própria.
  *
  * O mesmo mapa de falha da conversa, e de propósito: escritos em separado, os
  * dois divergem.
