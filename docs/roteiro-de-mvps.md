@@ -21,8 +21,10 @@ de uma sprint parte da anterior, e o `main` só muda quando alguém integra.
 | 3 | Fila "levar ao portal" | `sprint/levar-ao-portal` | [#35](https://github.com/majyn07/knowledge-intelligence/pull/35) | Pronto. Migração `0030` **já aplicada** |
 | 7 | Avisos lidos por pessoa | `sprint/avisos-por-pessoa` | [#36](https://github.com/majyn07/knowledge-intelligence/pull/36) | Pronto. Migração `0031` **já aplicada** |
 | Extra | UX e UI: quebras e acabamento | `sprint/ux-ui` | [#37](https://github.com/majyn07/knowledge-intelligence/pull/37) | Pronto, medido; falta conferência visual |
-| 6 | Artigos citados pelo suporte | `sprint/artigos-citados` | a abrir | Pronto, sem migração |
-| 4, 5, 8, 9, 10 | — | — | — | Por fazer |
+| 6 | Artigos citados pelo suporte | `sprint/artigos-citados` | [#38](https://github.com/majyn07/knowledge-intelligence/pull/38) | Pronto, sem migração |
+| 5 | O artigo resolveu? | — | — | **Medido e adiado**: não há dado (ver a seção) |
+| 4 | Conferir IA contra casos reais | — | — | Espera a escolha dos casos |
+| 8, 9, 10 | Discussões | — | — | Esperam decisão |
 | 11 | Segurança | — | — | Aguardando instruções |
 
 ---
@@ -228,6 +230,22 @@ artigo", com o número de antes e depois.
 - O agrupamento por vocabulário muda quando o acervo muda; o "mesmo grupo"
   antes e depois precisa ser estável. Talvez fixar os termos do grupo no
   momento da publicação.
+
+### Medido e adiado (19/10/2026)
+
+Contado no banco: **nenhum** dos 1.831 artigos publicados tem atendimento de
+origem registrado (`source`), e o histórico tem **uma** publicação com destino.
+Os artigos são do portal, importados; o ciclo atendimento → artigo ainda não
+publicou nada pelo produto. Construir agora daria uma tela vazia, ou pior, uma
+correlação inventada com o `lastmod` do portal.
+
+**Pré-requisito, e é ele que vale fazer primeiro:** quando um artigo nasce da
+fila ("estes 24 atendimentos") ou dos marcados, gravar no artigo **quais**
+atendimentos e **quais termos** do grupo o originaram. Hoje `source` guarda um
+atendimento só, e a entrega do rascunho não guarda nenhum. Com isso, cada
+publicação pelo ciclo passa a ter o "antes" fixado, e o "depois" se mede
+sozinho com o tempo. É mudança de modelo e de fluxo, por isso fica para
+conversar.
 
 ---
 
