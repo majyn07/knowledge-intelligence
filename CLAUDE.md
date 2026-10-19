@@ -1348,6 +1348,44 @@ numa tabela, quem fechasse o navegador sem avisar ficaria "editando" para
 sempre. O aviso de presença cobre o antes; `useStaleRecordWarning` cobre o
 depois, quando alguém gravou enquanto você digitava.
 
+### Publicado aqui não é publicado para o cliente
+
+A HubSpot não tem API para publicar, e a última perna do ciclo é colar à mão
+no editor de lá. O produto preparava o artigo e parava, e nada dizia o que
+ficou sem colar: era o único trabalho do ciclo que nenhuma tela apontava.
+
+**A pendência é medida contra a versão do portal, não contra datas.** A
+importação guarda `portalBaseline`, a impressão de título, resumo e conteúdo
+como vieram de lá. Diferente do texto de hoje é "aguardando o portal". O
+`updatedAt` não serve: classificar ou atribuir também o move, e todo artigo
+classificado pareceria pendente.
+
+**Reimportar é o que fecha.** Quem cola o texto na HubSpot muda o `lastmod`, a
+varredura revisita, e o artigo volta a ser igual ao portal. Não há botão de
+"marcar como levado": a confirmação é o portal dizer que mudou.
+
+**Os importados antes do campo não têm impressão, e ausente é desconhecido.** O
+histórico decide: sem edição registrada, nada mudou aqui desde a importação.
+Com edição, fica **a conferir**, e não "aguardando", porque o evento diz
+"conteúdo ou classificação" e não sabe qual dos dois. Medido no banco em
+19/10/2026: dois dos 1.831.
+
+**Artigo nascido aqui precisa ser ligado à página que alguém criou lá.** A
+importação casa por `portalArticleId`, e ele não tem um; sem a ligação, o
+artigo criado no portal entraria como outro, duplicando o acervo. Casar pelo
+título seria inventar vínculo. Quem criou cola o endereço, o produto confere o
+host do acervo e recusa a página que já é de outro artigo, dizendo qual — o
+banco recusaria do mesmo jeito, só que sem dizer.
+
+**O que se copia é o conteúdo guardado**, e não o que a tela mostra: âncora,
+caixa de aviso e cor removida são apresentação daqui. Markdown vira HTML pelas
+mesmas regras da leitura (`markdownParaHtml`), e sem classe nenhuma: as do
+Tailwind entrariam no artigo do cliente como enfeite sem efeito.
+
+O filtro "portal" da Biblioteca vive na URL, para o achado do Levantamento
+apontar direto para a fila, e **não** entra na visão salva: é lista que esvazia
+sozinha conforme se cola, e guardá-la pediria coluna nova para nada.
+
 ## Atendimentos
 
 **A tela é um help desk, e a conversa fica no meio.** Três colunas: a lista à
@@ -2317,7 +2355,7 @@ colunas e os planos de importação de artigo e de atendimento, a recuperação 
 de taxonomia com a migração da
 classificação antiga, a contagem da classificação com o vocabulário dos dois pipelines e a leitura da escolha que o cliente fez no bot, os normalizadores de artigo, plano e atendimento, o motor
 e o desenho dos painéis, a trilha de navegação, o recorte por equipe, as
-menções, o que se acompanha, a lixeira, a tabela com suas visões salvas, o rascunho do artigo e a tradução
+menções, o que se acompanha, a lixeira, a tabela com suas visões salvas, o rascunho do artigo, o que falta levar ao portal com a ligação de quem nasceu aqui e o HTML que se cola lá e a tradução
 do erro de acesso.
 Ao mexer em qualquer uma delas, o teste vem junto.
 

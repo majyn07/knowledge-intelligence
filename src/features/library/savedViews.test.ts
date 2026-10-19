@@ -16,7 +16,7 @@ describe("normalizeSavedView", () => {
     expect(view).toEqual({
       id: "v1",
       name: "Elétrica pendente",
-      filters: { search: "", status: "all", categoryId: "all" },
+      filters: { search: "", status: "all", categoryId: "all", portal: "all" },
       sort: { column: "updatedAt", direction: "desc" },
       columns: defaultColumns,
       order: 0,
@@ -77,7 +77,7 @@ describe("linha do banco", () => {
     const view = normalizeSavedView({
       id: "v1",
       name: "Sem responsável",
-      filters: { search: "erro", status: "review", categoryId: "cat-builder" },
+      filters: { search: "erro", status: "review", categoryId: "cat-builder", portal: "all" },
       sort: { column: "author", direction: "asc" },
       columns: ["title", "author"],
       order: 3,
@@ -90,7 +90,7 @@ describe("linha do banco", () => {
 describe("matchesView", () => {
   const view = normalizeSavedView({
     id: "v",
-    filters: { search: "erro", status: "review", categoryId: "all" },
+    filters: { search: "erro", status: "review", categoryId: "all", portal: "all" },
     sort: { column: "title", direction: "asc" },
   });
 
@@ -98,7 +98,7 @@ describe("matchesView", () => {
     expect(
       matchesView(
         view,
-        { search: "erro", status: "review", categoryId: "all" },
+        { search: "erro", status: "review", categoryId: "all", portal: "all" },
         { column: "title", direction: "asc" }
       )
     ).toBe(true);
@@ -110,7 +110,7 @@ describe("matchesView", () => {
     expect(
       matchesView(
         view,
-        { search: "  erro ", status: "review", categoryId: "all" },
+        { search: "  erro ", status: "review", categoryId: "all", portal: "all" },
         { column: "title", direction: "asc" }
       )
     ).toBe(true);
@@ -120,7 +120,7 @@ describe("matchesView", () => {
     expect(
       matchesView(
         view,
-        { search: "erro", status: "review", categoryId: "all" },
+        { search: "erro", status: "review", categoryId: "all", portal: "all" },
         { column: "title", direction: "desc" }
       )
     ).toBe(false);

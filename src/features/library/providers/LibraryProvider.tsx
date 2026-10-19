@@ -23,6 +23,7 @@ import type { PlanWorkspaceItem } from "@/features/plans/types/PlanWorkspace";
 
 import { articleService } from "@/features/library/services/articleService";
 import { discardDraft, draftChanges, draftFieldLabel, publishDraft } from "@/features/library/draft";
+import { impressaoDoPortal } from "@/features/library/portalSync";
 import { parseArticles } from "@/features/library/normalizeArticle";
 import { STORAGE_KEYS } from "@/lib/storage";
 import { concordar, contar } from "@/lib/plural";
@@ -45,6 +46,8 @@ interface LibraryContextValue {
   saveDraft: (id: string, draft: { title: string; summary: string; content: string }) => void;
   publishArticleDraft: (id: string) => void;
   discardArticleDraft: (id: string) => void;
+  /** Liga o artigo nascido aqui à página que alguém criou no portal. */
+  linkToPortal: (id: string, portalArticleId: string, url: string) => void;
   /** Ações em lote sobre a seleção da tabela. */
   changeStatusMany: (ids: string[], status: ArticleStatus) => void;
   assignMany: (ids: string[], author: string) => void;
@@ -429,6 +432,40 @@ export function LibraryProvider({ children }: { children: ReactNode }) {
     [setItems]
   );
 
+  /**
+   * O artigo nasceu aqui, alguém o criou no portal e colou o endereço.
+   *
+   * A impressão guardada é a do texto daqui, que é o que a pessoa acabou de
+   * colar lá: é a declaração dela, e vai para o histórico com quem fez. A
+   * próxima importação confere de verdade, porque a página nova tem `lastmod`
+   * posterior e é revisitada, trazendo o texto como o portal o guardou.
+   */
+  const linkToPortal = useCallback(
+    (id: string, portalArticleId: string, url: string) => {
+      const article = items.find((item) => item.id === id);
+      if (!article) return;
+
+      setItems((previous) =>
+        previous.map((item) =>
+          item.id === id
+            ? { ...item, portalArticleId, url, portalBaseline: impressaoDoPortal(item) }
+            : item
+        )
+      );
+
+      record({
+        type: "article_updated",
+        projectId: article.projectId,
+        actor: currentPerson,
+        subject: { kind: "article", id, label: article.title },
+        detail: `Ligado à página do portal ${url}.`,
+      });
+
+      toast.success("Artigo ligado ao portal. A próxima importação confere o texto de lá.");
+    },
+    [currentPerson, items, record, setItems]
+  );
+
   const restoreItem = useCallback(
     (id: string) => {
       setItems((previous) =>
@@ -542,6 +579,7 @@ export function LibraryProvider({ children }: { children: ReactNode }) {
       saveDraft,
       publishArticleDraft,
       discardArticleDraft,
+      linkToPortal,
       changeStatusMany,
       assignMany,
       classifyMany,
@@ -550,7 +588,7 @@ export function LibraryProvider({ children }: { children: ReactNode }) {
       deleteMany,
       createItemFromPlan,
     }),
-    [assignMany, changeStatus, classifyMany, changeStatusMany, discardArticleDraft, publishArticleDraft, saveDraft, createItem, createItemFromPlan, deleteItem, deleteMany, deletedItems, importArticles, isHydrated, items, purgeItem, restoreItem, updateItem]
+    [assignMany, changeStatus, classifyMany, changeStatusMany, discardArticleDraft, linkToPortal, publishArticleDraft, saveDraft, createItem, createItemFromPlan, deleteItem, deleteMany, deletedItems, importArticles, isHydrated, items, purgeItem, restoreItem, updateItem]
   );
 
   return <LibraryContext.Provider value={value}>{children}</LibraryContext.Provider>;

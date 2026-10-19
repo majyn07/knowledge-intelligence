@@ -3,6 +3,8 @@ import { describe, expect, it } from "vitest";
 import type { KnowledgeArticle } from "@/models/KnowledgeArticle";
 import type { Taxonomy } from "@/models/Taxonomy";
 
+import { estadoNoPortal, impressaoDoPortal } from "../../portalSync";
+
 import {
   articleBodyOf,
   breadcrumbOf,
@@ -280,6 +282,18 @@ describe("buildPortalImportPlan", () => {
     expect(plan.update).toHaveLength(1);
     expect(plan.create).toHaveLength(1);
     expect(plan.update[0].id).toBe("art-1");
+  });
+
+  /*
+    A importação é o que guarda a versão do portal, e o que fecha a pendência:
+    reimportado, o artigo volta a ser igual ao que o cliente lê.
+  */
+  it("guarda a impressão do portal, e o artigo importado começa igual a ele", () => {
+    const plan = buildPortalImportPlan([pagina()], taxonomy, [existente()], { now: AGORA });
+    const importado = plan.update[0];
+
+    expect(importado.portalBaseline).toBe(impressaoDoPortal(importado));
+    expect(estadoNoPortal(importado, new Set([importado.id]))).toBe("em-dia");
   });
 
   it("classifica pela trilha, desempatando pela categoria", () => {

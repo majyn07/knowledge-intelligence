@@ -2,6 +2,7 @@ import { ARTICLE_STATUSES, type ArticleStatus } from "@/models/KnowledgeArticle"
 import type { Taxonomy } from "@/models/Taxonomy";
 import { oneOf, pageNumber, type ParamValues } from "@/lib/urlState";
 
+import { PORTAL_STATES, type PortalState } from "./portalSync";
 import { ARTICLE_COLUMNS, type ArticleColumn, type Sort } from "./tableView";
 import type { LibraryFilters } from "./types/LibraryFilters";
 
@@ -21,6 +22,7 @@ export const LIBRARY_URL_DEFAULTS: ParamValues = {
   busca: "",
   estagio: "all",
   categoria: "all",
+  portal: "all",
   ordem: "updatedAt",
   sentido: "desc",
   pagina: "1",
@@ -30,6 +32,7 @@ export const defaultLibraryFilters: LibraryFilters = {
   search: "",
   status: "all",
   categoryId: "all",
+  portal: "all",
 };
 
 export const defaultLibrarySort: Sort = { column: "updatedAt", direction: "desc" };
@@ -39,6 +42,7 @@ export function toParams(filters: LibraryFilters, sort: Sort, page: number): Par
     busca: filters.search.trim(),
     estagio: filters.status,
     categoria: filters.categoryId,
+    portal: filters.portal,
     ordem: sort.column,
     sentido: sort.direction,
     pagina: String(page),
@@ -78,6 +82,7 @@ export function fromParams(
         "all"
       ),
       categoryId: categoriaValida ? categoryId : "all",
+      portal: oneOf<PortalState | "all">(params.portal, ["all", ...PORTAL_STATES], "all"),
     },
     sort: {
       column: oneOf<ArticleColumn>(params.ordem, ARTICLE_COLUMNS, "updatedAt"),

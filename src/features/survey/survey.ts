@@ -4,6 +4,7 @@ import type { Ticket } from "@/models/Ticket";
 import { findSection, sectionPath, type Taxonomy } from "@/models/Taxonomy";
 
 import { triageTickets } from "@/features/analysis/triage";
+import { resumoDoPortal, type PortalState } from "@/features/library/portalSync";
 
 import { findDuplicates, findOverlaps } from "./overlap";
 import { concordar, contar } from "@/lib/plural";
@@ -34,6 +35,7 @@ export const FINDING_KINDS = [
   "atendimento-sem-cobertura",
   "sobreposicao",
   "duplicado",
+  "levar-ao-portal",
 ] as const;
 
 export type FindingKind = (typeof FINDING_KINDS)[number];
@@ -79,6 +81,15 @@ export interface SurveyInput {
    * empobrece o agrupamento sem torná-lo errado.
    */
   conversations?: SupportConversation[];
+
+  /**
+   * Os artigos que o histórico diz terem sido editados aqui.
+   *
+   * Só decide sobre os importados antes de o produto guardar a versão do
+   * portal. Sem ele, o que é do portal e não tem impressão fica de fora da
+   * conta, em vez de ser afirmado como em dia ou como pendente.
+   */
+  editadosAqui?: Set<string>;
 }
 
 /**
@@ -526,7 +537,110 @@ export function buildSurvey(input: SurveyInput): Finding[] {
     });
   }
 
+  achados.push(...achadosDoPortal(articles, input.editadosAqui));
+
   return achados.sort((a, b) => severityOrder[a.severity] - severityOrder[b.severity]);
+}
+
+/**
+ * O que foi publicado aqui e o cliente ainda não lê.
+ *
+ * A última perna do ciclo é colar à mão na HubSpot, que não tem API para
+ * publicar. Um artigo "publicado" aqui e desatualizado lá parecia pronto, e era
+ * o único trabalho do ciclo que nenhuma tela apontava.
+ */
+function achadosDoPortal(articles: KnowledgeArticle[], editados?: Set<string>): Finding[] {
+  /*
+    Sem o histórico em mãos, quem não tem impressão do portal fica fora da
+    conta: o conjunto vazio diria "em dia" sobre o que não se sabe.
+  */
+  const alvos = editados
+    ? articles
+    : articles.filter((article) => !article.portalArticleId || article.portalBaseline);
+
+  const { aguardando, foraDoPortal, aConferir } = resumoDoPortal(alvos, editados ?? new Set());
+  const achados: Finding[] = [];
+
+  const grupo = (
+    lista: KnowledgeArticle[],
+    chave: PortalState,
+    severity: FindingSeverity,
+    individual: (article: KnowledgeArticle) => Pick<Finding, "action" | "why">,
+    lote: Pick<Finding, "action" | "subject" | "why">
+  ) => {
+    if (lista.length === 0) return;
+
+    if (lista.length > INDIVIDUAL_ATE) {
+      achados.push({
+        id: `levar-ao-portal:${chave}`,
+        kind: "levar-ao-portal",
+        origin: "calculado",
+        severity,
+        ...lote,
+        href: `/library?portal=${chave}`,
+      });
+      return;
+    }
+
+    for (const article of lista) {
+      achados.push({
+        id: `levar-ao-portal:${chave}:${article.id}`,
+        kind: "levar-ao-portal",
+        origin: "calculado",
+        severity,
+        subject: article.title,
+        ...individual(article),
+        href: `/library/${article.id}`,
+      });
+    }
+  };
+
+  grupo(
+    aguardando,
+    "aguardando",
+    "alta",
+    () => ({
+      action: "Levar a nova versão ao portal",
+      why: "O texto daqui mudou desde a última importação, e o portal continua com o anterior: é o que o cliente lê.",
+    }),
+    {
+      action: `Levar ${contar(aguardando.length, "artigo")} ao portal`,
+      subject: "Publicados aqui, desatualizados no portal",
+      why: "O texto daqui mudou desde a última importação. A próxima importação do portal fecha cada um depois de colado.",
+    }
+  );
+
+  grupo(
+    foraDoPortal,
+    "fora-do-portal",
+    "media",
+    () => ({
+      action: "Criar no portal",
+      why: "Está publicado aqui e não tem página no portal: o cliente não o encontra.",
+    }),
+    {
+      action: `Criar ${contar(foraDoPortal.length, "artigo")} no portal`,
+      subject: "Publicados aqui, ausentes do portal",
+      why: "Nasceram neste produto e não têm página no portal: o cliente não os encontra.",
+    }
+  );
+
+  grupo(
+    aConferir,
+    "a-conferir",
+    "baixa",
+    () => ({
+      action: "Conferir com o portal",
+      why: "Foi editado aqui antes de o produto guardar a versão do portal. O histórico não diz se a mudança foi no texto ou só na classificação.",
+    }),
+    {
+      action: `Conferir ${contar(aConferir.length, "artigo")} com o portal`,
+      subject: "Editados antes de a versão do portal ser guardada",
+      why: "O histórico registra edição, mas não diz se foi no texto ou só na classificação.",
+    }
+  );
+
+  return achados;
 }
 
 /** Quantos de cada tipo: o cabeçalho da tela, e nada além do que foi achado. */
@@ -548,4 +662,5 @@ export const findingKindLabel: Record<FindingKind, string> = {
   "atendimento-sem-cobertura": "Atendimento sem artigo",
   sobreposicao: "Artigos que se sobrepõem",
   duplicado: "Artigo publicado mais de uma vez",
+  "levar-ao-portal": "Levar ao portal",
 };

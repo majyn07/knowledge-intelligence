@@ -14,6 +14,8 @@ import { useLibrary } from "@/features/library/providers/LibraryProvider";
 import { useKnowledgeLifecycle } from "@/features/analysis/providers/KnowledgeLifecycleProvider";
 import { useTickets } from "@/features/analysis/providers/TicketsProvider";
 import { useTaxonomy } from "@/features/taxonomy/providers/TaxonomyProvider";
+import { useActivity } from "@/features/activities/providers/ActivityProvider";
+import { editadosAqui } from "@/features/library/portalSync";
 
 import {
   buildSurvey,
@@ -56,6 +58,17 @@ export function SurveyWorkspace() {
   const { taxonomy } = useTaxonomy();
   const { analyses } = useKnowledgeLifecycle();
   const now = useNow();
+  const { events, isHydrated: historicoPronto } = useActivity();
+
+  /*
+    Só depois de o histórico chegar: antes disso o conjunto vazio diria "nada
+    foi editado aqui" sobre o acervo inteiro, e o achado de conferir sumiria
+    por alguns segundos para reaparecer depois.
+  */
+  const editados = useMemo(
+    () => (historicoPronto ? editadosAqui(events) : undefined),
+    [events, historicoPronto]
+  );
 
   const [kind, setKind] = useState<FindingKind | "todos">("todos");
   const [varrendo, setVarrendo] = useState(false);
@@ -82,8 +95,19 @@ export function SurveyWorkspace() {
   );
 
   const findings = useMemo(
-    () => (now ? buildSurvey({ articles, tickets, taxonomy, now, analisados, conversations }) : []),
-    [analisados, articles, conversations, tickets, taxonomy, now]
+    () =>
+      now
+        ? buildSurvey({
+            articles,
+            tickets,
+            taxonomy,
+            now,
+            analisados,
+            conversations,
+            editadosAqui: editados,
+          })
+        : [],
+    [analisados, articles, conversations, editados, tickets, taxonomy, now]
   );
 
   const summary = surveySummary(findings);

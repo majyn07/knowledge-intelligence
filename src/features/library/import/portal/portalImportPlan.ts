@@ -1,6 +1,7 @@
 import type { KnowledgeArticle } from "@/models/KnowledgeArticle";
 import type { Taxonomy } from "@/models/Taxonomy";
 
+import { impressaoDoPortal } from "../../portalSync";
 import { resolveSection } from "../importPlan";
 import type { PortalArticle } from "./portalArticlePage";
 
@@ -117,6 +118,17 @@ export function buildPortalImportPlan(
       status: "published",
       sectionId,
       portalArticleId: pagina.portalArticleId,
+      /*
+        A versão do portal, guardada para saber depois o que mudou aqui e ainda
+        não foi para lá. Reimportar é o que fecha a pendência: quem colou o
+        texto na HubSpot muda o `lastmod`, a varredura revisita, e o artigo
+        volta a ser igual ao que o portal tem.
+      */
+      portalBaseline: impressaoDoPortal({
+        title: pagina.title,
+        summary: pagina.summary,
+        content: pagina.contentHtml,
+      }),
       tags: existente?.tags ?? [],
       keywords: existente?.keywords ?? [],
       author: existente?.author ?? "",

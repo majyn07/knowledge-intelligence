@@ -7,6 +7,9 @@ import { foldText } from "../content/articleExcerpt";
 import type { KnowledgeArticle } from "@/models/KnowledgeArticle";
 import { findSection, sectionPath } from "@/models/Taxonomy";
 import { useTaxonomy } from "@/features/taxonomy/providers/TaxonomyProvider";
+import { useActivity } from "@/features/activities/providers/ActivityProvider";
+
+import { editadosAqui, estadoNoPortal, type PortalState } from "../portalSync";
 
 import type { LibraryFilters } from "../types/LibraryFilters";
 
@@ -14,6 +17,7 @@ const defaultFilters: LibraryFilters = {
   search: "",
   status: "all",
   categoryId: "all",
+  portal: "all",
 };
 
 /**
@@ -26,6 +30,23 @@ const defaultFilters: LibraryFilters = {
 export function useLibraryFilters(items: KnowledgeArticle[]) {
   const [filters, setFilters] = useState<LibraryFilters>(defaultFilters);
   const { taxonomy } = useTaxonomy();
+  const { events } = useActivity();
+
+  /*
+    O estado de cada artigo em relação ao portal, calculado uma vez por acervo e
+    por histórico, e não a cada filtro: são 1.822 impressões de texto.
+  */
+  const noPortal = useMemo(() => {
+    const editados = editadosAqui(events);
+    const mapa = new Map<string, PortalState>();
+
+    for (const item of items) {
+      const estado = estadoNoPortal(item, editados);
+      if (estado) mapa.set(item.id, estado);
+    }
+
+    return mapa;
+  }, [items, events]);
 
   const buscando = filters.search.trim() !== "";
 
@@ -126,9 +147,11 @@ export function useLibraryFilters(items: KnowledgeArticle[]) {
           ? section === undefined
           : section?.categoryId === filters.categoryId);
 
-      return matchesSearch && matchesStatus && matchesCategory;
+      const matchesPortal = filters.portal === "all" || noPortal.get(item.id) === filters.portal;
+
+      return matchesSearch && matchesStatus && matchesCategory && matchesPortal;
     });
-  }, [items, filters, taxonomy, searchIndex]);
+  }, [items, filters, taxonomy, searchIndex, noPortal]);
 
   /** Quantos artigos ficaram sem seção: o filtro só aparece se houver algum. */
   const unclassifiedCount = useMemo(
@@ -136,10 +159,25 @@ export function useLibraryFilters(items: KnowledgeArticle[]) {
     [items, taxonomy]
   );
 
+  /**
+   * Quantos em cada situação que pede alguém. Zero esconde a opção: filtro que
+   * só devolve vazio é botão que não faz nada.
+   */
+  const portalCounts = useMemo(() => {
+    const contagem: Partial<Record<PortalState, number>> = {};
+
+    for (const estado of noPortal.values()) {
+      if (estado !== "em-dia") contagem[estado] = (contagem[estado] ?? 0) + 1;
+    }
+
+    return contagem;
+  }, [noPortal]);
+
   return {
     filters,
     setFilters,
     filteredItems,
     unclassifiedCount,
+    portalCounts,
   };
 }
