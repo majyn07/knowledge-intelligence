@@ -36,6 +36,9 @@ Tudo abaixo foi verificado contra os dados reais, não em ambiente de teste.
 - **Avaliar antes de escrever.** A IA varre o acervo e diz se o assunto já está
   coberto. Quando não está, escreve o rascunho. Quando está em parte, devolve
   **o artigo existente já atualizado**, com a lista do que mudou.
+- **O que o suporte cita.** Desde 19/10, cada artigo mostra em quantos
+  atendimentos o suporte respondeu com ele, contado nos links das respostas e
+  sem o rodapé do e-mail: 256 artigos citados em 383 atendimentos.
 - **Assistente em toda tela.** Responde do que a tela mediu e do que a busca
   acha no acervo sobre a pergunta — "isto já existe?" tem resposta.
 

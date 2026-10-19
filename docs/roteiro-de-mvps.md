@@ -20,8 +20,9 @@ de uma sprint parte da anterior, e o `main` só muda quando alguém integra.
 | 2 | Veredito de IA guardado | `sprint/veredito-guardado` | [#34](https://github.com/majyn07/knowledge-intelligence/pull/34) | Pronto. Migração `0029` **já aplicada** no banco compartilhado |
 | 3 | Fila "levar ao portal" | `sprint/levar-ao-portal` | [#35](https://github.com/majyn07/knowledge-intelligence/pull/35) | Pronto. Migração `0030` **já aplicada** |
 | 7 | Avisos lidos por pessoa | `sprint/avisos-por-pessoa` | [#36](https://github.com/majyn07/knowledge-intelligence/pull/36) | Pronto. Migração `0031` **já aplicada** |
-| Extra | UX e UI: quebras e acabamento | `sprint/ux-ui` | a abrir | Pronto, medido; falta conferência visual |
-| 4, 5, 6, 8, 9, 10 | — | — | — | Por fazer |
+| Extra | UX e UI: quebras e acabamento | `sprint/ux-ui` | [#37](https://github.com/majyn07/knowledge-intelligence/pull/37) | Pronto, medido; falta conferência visual |
+| 6 | Artigos citados pelo suporte | `sprint/artigos-citados` | a abrir | Pronto, sem migração |
+| 4, 5, 8, 9, 10 | — | — | — | Por fazer |
 | 11 | Segurança | — | — | Aguardando instruções |
 
 ---
@@ -252,6 +253,22 @@ existe para a leitura) e mostrar:
 **Discutir.** É dado do suporte sobre o acervo, sem custo de IA nem de
 HubSpot (as mensagens já estão aqui). Combina com o MVP 5: artigo citado é
 artigo que está resolvendo.
+
+### Feito (sprint 6)
+
+- **Medido antes de construir** (só contagens, nas 975 conversas): 620
+  mensagens do suporte com link do portal, **256 artigos** citados em **383
+  atendimentos**; 3 links para artigo fora do acervo.
+- **Achado na medição:** o primeiro lugar, "Como funciona o Suporte AltoQi?"
+  (180 atendimentos), era o link do **rodapé** do e-mail. A contagem usa o mesmo
+  corte de texto repetido de `lib/repeatedText` e só a fala do suporte.
+- **Telas:** cartão no artigo ("o suporte respondeu N atendimentos com este
+  artigo", com os atendimentos) e coluna "Citado pelo suporte" na tabela,
+  ordenável por número.
+- **Ficou de fora:** o achado "nunca citados" no Levantamento. Seriam ~1.570
+  artigos, um achado sem ação; e a evidência na análise do atendimento, que
+  pede mexer no prompt e merece conversa.
+- **Verificado** no modo navegador com conversas sintéticas.
 
 ---
 

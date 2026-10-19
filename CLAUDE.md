@@ -1992,6 +1992,25 @@ pergunta de quem vai decidir, **o que este tem que aquele não tem?**. Ela não
 funde nada; unir, arquivar ou deixar como está continua sendo decisão de quem
 revisa.
 
+**O artigo que o suporte usa para responder é medido, não estimado.** Toda
+cobertura do produto parte de vocabulário; o link que o suporte manda na
+resposta é o artigo resolvendo caso de verdade, e ninguém o lia. Medido em
+19/10/2026 nas 975 conversas: 620 mensagens do suporte com link para o portal,
+256 artigos e 383 atendimentos. O artigo mostra quantos e quais, e a tabela
+ganha a coluna "Citado pelo suporte", ordenável.
+
+**O rodapé não é citação.** O primeiro lugar da contagem crua, "Como funciona o
+Suporte AltoQi?" com 180 atendimentos, era o link da assinatura: 184 das
+ocorrências estão em parágrafos repetidos pelo acervo. O corte é o de
+`lib/repeatedText`, o mesmo da triagem e do transcrito, e só conta a fala do
+**suporte**: link que o cliente manda é ele dizendo o que leu, não a resposta.
+Perde-se junto a resposta pronta com link, que é o lado certo do erro.
+
+Sem as conversas carregadas a contagem é **vazia, e não zero**: "nenhuma
+citação" seria afirmar que ninguém usa o artigo antes de saber. E artigo
+publicado sem citação é candidato a revisão, não a exclusão: o portal é aberto,
+e quem lê sem passar pelo suporte não aparece aqui.
+
 **Paginação, não rolagem infinita.** Com 1.800 linhas a rolagem esconde onde a
 pessoa está e impede voltar ao mesmo ponto, e página não exige biblioteca
 nova no projeto, que virtualizar exigiria. Página fora do intervalo é
@@ -2400,7 +2419,7 @@ colunas e os planos de importação de artigo e de atendimento, a recuperação 
 de taxonomia com a migração da
 classificação antiga, a contagem da classificação com o vocabulário dos dois pipelines e a leitura da escolha que o cliente fez no bot, os normalizadores de artigo, plano e atendimento, o motor
 e o desenho dos painéis, a trilha de navegação, o recorte por equipe, as
-menções, o que se acompanha, a lixeira, a tabela com suas visões salvas, o rascunho do artigo, o que falta levar ao portal com a ligação de quem nasceu aqui e o HTML que se cola lá e a tradução
+menções, o que se acompanha, a lixeira, a tabela com suas visões salvas, o rascunho do artigo, o que falta levar ao portal com a ligação de quem nasceu aqui e o HTML que se cola lá, os artigos que o suporte cita sem contar o rodapé e a tradução
 do erro de acesso.
 Ao mexer em qualquer uma delas, o teste vem junto.
 

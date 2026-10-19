@@ -16,6 +16,7 @@ import {
   type ArticleColumn,
   type Sort,
 } from "../tableView";
+import { useCitacoes } from "./useCitacoes";
 
 const PAGE_SIZE = 25;
 
@@ -51,7 +52,16 @@ export function useLibraryTable(articles: KnowledgeArticle[]) {
     mas não para a exportação, e as duas precisam do mesmo contexto para não
     divergirem.
   */
-  const context = useMemo(() => ({ taxonomy, nameOf }), [nameOf, taxonomy]);
+  const citacoes = useCitacoes();
+
+  const context = useMemo(
+    () => ({
+      taxonomy,
+      nameOf,
+      citacoesDe: (id: string) => (citacoes ? (citacoes.porArtigo.get(id)?.length ?? 0) : null),
+    }),
+    [citacoes, nameOf, taxonomy]
+  );
 
   const sorted = useMemo(
     () => sortArticles(articles, sort, context),
