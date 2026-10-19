@@ -25,6 +25,7 @@ de uma sprint parte da anterior, e o `main` só muda quando alguém integra.
 | 5 | O artigo resolveu? | — | — | **Medido e adiado**: não há dado (ver a seção) |
 | 4 | Conferir IA contra casos reais | — | — | Espera a escolha dos casos |
 | 8, 9, 10 | Discussões | — | — | Esperam decisão |
+| 12 | Classificação da HubSpot no produto | — | — | **Proposto em 19/10**, escopo concedido; espera aval |
 | 11 | Segurança | — | — | Aguardando instruções |
 
 ---
@@ -430,6 +431,38 @@ de permissões barrou, e o arquivo foi apagado.
   empurra o conteúdo para baixo. Proposta: o porquê recolhido atrás de "Por
   quê?", aberto na primeira visita.
 - **Teclado e foco:** não auditados nesta sprint.
+
+---
+
+## MVP 12 — Classificação da HubSpot no produto
+
+**Origem.** Em 19/10/2026 a chave ganhou `crm.objects.tickets.read`. Medido só
+lendo (nada foi alterado na HubSpot): dos nossos 1.020 atendimentos, a HubSpot
+devolve motivo do fechamento em 610, quem abriu em 627, categoria em 461,
+produto em 463, causa raiz em 196. No produto, os sete campos estão vazios nos
+1.025. Detalhe em `estado-do-produto.md` §3.2.
+
+**Entrega mínima.**
+
+1. Rever o vocabulário (`models/TicketClassification`) contra os catorze
+   campos de hoje: a HubSpot ganhou "[Support] Causa", "[Support] Produto" e
+   "[Support] Especialidade técnica" desde agosto. Migração para as colunas que
+   faltarem.
+2. Preencher os 1.025 por `batch/read` (cerca de 11 pedidos de 100), atrás da
+   porta de administrador e do freio, como a varredura. Só **leitura** na
+   HubSpot; quem grava é o nosso banco.
+3. A varredura e a busca por número passam a trazer a classificação junto.
+4. **"[Support] Produto" substitui a dedução pelo texto** no recorte por
+   produto, com a dedução como recurso onde o campo está vazio — e a tela diz
+   qual dos dois.
+
+**Discutir.**
+
+- **Pesquisas de satisfação** (42.091, associáveis ao ticket): dariam "assunto
+  com satisfação baixa", que é um sinal forte para a fila. Mas é dado de
+  avaliação de cliente: decidir se entra e o que se guarda.
+- O freio de requisições vale também para este preenchimento: 11 pedidos é
+  pouco, mas é o mesmo servidor.
 
 ---
 
