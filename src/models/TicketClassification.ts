@@ -26,7 +26,11 @@ export type TicketClassificationField =
   | "tipoDeProblema"
   | "fechamento"
   | "quemAbriu"
-  | "protecaoTecnologica";
+  | "protecaoTecnologica"
+  | "suporteSintoma"
+  | "suporteCausa"
+  | "produto"
+  | "especialidade";
 
 export interface TicketClassificationSpec {
   key: TicketClassificationField;
@@ -43,11 +47,20 @@ export interface TicketClassificationSpec {
    * "causa" e "causa raiz" disputarem colunas diferentes do mesmo arquivo.
    */
   headers: string[];
+  /**
+   * A propriedade do ticket na HubSpot de onde o campo vem.
+   *
+   * Nome interno, lido da conta em 19/10/2026 (`GET /crm/v3/properties/tickets`),
+   * e não o rótulo: o rótulo é texto que alguém renomeia no painel. Junto do
+   * cabeçalho do arquivo, porque são duas portas para o mesmo campo.
+   */
+  hubspot: string;
 }
 
 export const TICKET_CLASSIFICATIONS: readonly TicketClassificationSpec[] = [
   {
     key: "categoria",
+    hubspot: "categoria___suporte_tecnico",
     label: "Motivo principal do contato",
     pergunta: "Por que o cliente procurou o suporte.",
     pipeline: "suporte",
@@ -61,7 +74,8 @@ export const TICKET_CLASSIFICATIONS: readonly TicketClassificationSpec[] = [
   },
   {
     key: "sintoma",
-    label: "Motivo detalhado do contato",
+    hubspot: "setup_motivo_do_contato",
+    label: "Motivo detalhado (Setup)",
     pergunta: "Por que o cliente procurou, no vocabulário do Setup.",
     pipeline: "setup",
     headers: [
@@ -73,8 +87,9 @@ export const TICKET_CLASSIFICATIONS: readonly TicketClassificationSpec[] = [
   },
   {
     key: "causa",
-    label: "Causa raiz",
-    pergunta: "O que gerou o problema.",
+    hubspot: "setup__causa",
+    label: "Causa raiz (Setup)",
+    pergunta: "O que gerou o problema, no vocabulário do Setup.",
     pipeline: "setup",
     headers: [
       "[setup] causa | qual a causa raiz que gerou o problema?",
@@ -86,6 +101,7 @@ export const TICKET_CLASSIFICATIONS: readonly TicketClassificationSpec[] = [
   },
   {
     key: "tipoDeProblema",
+    hubspot: "setup_tipo",
     label: "Tipo de problema",
     pergunta: "De que natureza é o problema.",
     pipeline: "setup",
@@ -93,6 +109,7 @@ export const TICKET_CLASSIFICATIONS: readonly TicketClassificationSpec[] = [
   },
   {
     key: "fechamento",
+    hubspot: "cc__motivo_do_fechamento",
     label: "Motivo do encerramento",
     pergunta: "Como o atendimento terminou.",
     pipeline: "setup",
@@ -104,6 +121,7 @@ export const TICKET_CLASSIFICATIONS: readonly TicketClassificationSpec[] = [
   },
   {
     key: "quemAbriu",
+    hubspot: "origem",
     label: "Quem abriu",
     pergunta: "De que lado veio o chamado.",
     pipeline: "setup",
@@ -111,10 +129,52 @@ export const TICKET_CLASSIFICATIONS: readonly TicketClassificationSpec[] = [
   },
   {
     key: "protecaoTecnologica",
+    hubspot: "drill_down___licencas",
     label: "Proteção tecnológica",
     pergunta: "Em que modalidade a licença roda.",
     pipeline: "setup",
     headers: ["protecao tecnologica"],
+  },
+  /*
+    Os quatro abaixo surgiram na HubSpot depois de agosto, quando o pipeline de
+    Suporte passou a perguntar sintoma, causa, produto e especialidade. O Suporte
+    deixou de ter "só a categoria": agora os dois pipelines têm sintoma e causa,
+    cada um com sua lista de opções, e por isso continuam campos separados.
+  */
+  {
+    key: "suporteSintoma",
+    hubspot: "suporte_motivo_do_contato",
+    label: "Motivo detalhado (Suporte)",
+    pergunta: "Por que o cliente procurou, no vocabulário do Suporte.",
+    pipeline: "suporte",
+    headers: ["[support] sintoma | motivo detalhado do contato", "[support] sintoma"],
+  },
+  {
+    key: "suporteCausa",
+    hubspot: "cc__causa_do_contato",
+    label: "Causa raiz (Suporte)",
+    pergunta: "O que gerou o problema, no vocabulário do Suporte.",
+    pipeline: "suporte",
+    headers: ["[support] causa | qual a causa raiz que gerou o problema?", "[support] causa"],
+  },
+  {
+    key: "produto",
+    hubspot: "produto",
+    label: "Produto",
+    pergunta: "Sobre qual produto foi o atendimento, segundo quem atendeu.",
+    pipeline: "suporte",
+    headers: ["[support] produto"],
+  },
+  {
+    key: "especialidade",
+    hubspot: "linha_do_produto",
+    label: "Especialidade técnica",
+    pergunta: "De qual disciplina era a dúvida.",
+    pipeline: "suporte",
+    headers: [
+      "[support] especialidade tecnica | solicitacao sobre funcionalidades de alguma disciplina?",
+      "[support] especialidade tecnica",
+    ],
   },
 ];
 

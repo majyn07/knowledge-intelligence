@@ -108,9 +108,10 @@ na HubSpot: dos nossos 1.020 atendimentos com número, a HubSpot devolve
 | [Support] Causa raiz | 196 |
 | [Setup] Causa raiz | 126 |
 
-**Ainda vazio no produto**: falta trazer. Os sete campos que o produto tem
-precisam ser revistos contra estes catorze, porque a HubSpot ganhou campos
-("[Support] Causa", "Especialidade técnica", "Produto") desde agosto.
+**Como entra no produto:** quem administra clica em "Trazer classificação da
+HubSpot", nos Indicadores (onze pedidos de leitura para o acervo). O produto
+passou de sete para onze campos, com "[Support] Sintoma", "Causa", "Produto" e
+"Especialidade técnica". Enquanto ninguém clicar, continua zero aqui.
 
 Também liberado: as **pesquisas de satisfação** (42.091, associáveis ao
 ticket). Continuam fechados: site search (403), webhooks do app (403) e a API

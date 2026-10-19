@@ -39,9 +39,9 @@ async function buildIntegrations(): Promise<{ integrations: Integration[]; cavea
 
   /*
     Pergunta à HubSpot em vez de afirmar. Um pedido, um registro, e o que
-    interessa é a resposta: enquanto o escopo `tickets` não estiver no app
-    privado, ela volta 403, e a tela mostra o motivo em vez de repetir uma
-    frase escrita há semanas. No dia da liberação o texto vira sozinho.
+    interessa é a resposta: se o escopo de tickets sair do app privado, ela
+    volta 403 e a tela mostra o motivo em vez de repetir uma frase escrita há
+    semanas. Foi assim que o texto virou sozinho no dia da liberação, 19/10/2026.
   */
   const alcance = await hubspotTicketService.alcance();
 
@@ -83,7 +83,7 @@ async function buildIntegrations(): Promise<{ integrations: Integration[]; cavea
       name: "HubSpot · Atendimentos",
       purpose: "Origem dos atendimentos",
       detail: alcance.alcanca
-        ? "Conversa e atendimento vindos por REST, só leitura. A importação por arquivo continua valendo, e as duas casam pelo número do chamado."
+        ? "Conversa, atendimento e a classificação do suporte por REST, só leitura: o produto não escreve na HubSpot. A classificação entra pelo botão de quem administra, nos Indicadores. A importação por arquivo continua valendo, e as portas casam pelo número do chamado."
         : `Só a conversa vem por REST. O ticket em si não: ${alcance.motivo} Enquanto isso, o cadastro entra por arquivo.`,
       state: "connected",
     },

@@ -1,5 +1,7 @@
 import "server-only";
 
+import { postDeLeitura } from "./readOnly";
+
 /**
  * A fronteira de rede com a HubSpot.
  *
@@ -122,10 +124,22 @@ async function chamar(caminho: string, init?: RequestInit): Promise<unknown> {
   }
 }
 
+/*
+  O que não for busca nem leitura em lote é recusado antes de sair
+  (`postDeLeitura`). PUT, PATCH e DELETE nem existem neste cliente.
+*/
 export const hubspot = {
   get: (caminho: string) => chamar(caminho),
-  post: (caminho: string, corpo: unknown) =>
-    chamar(caminho, { method: "POST", body: JSON.stringify(corpo) }),
+  post: (caminho: string, corpo: unknown) => {
+    if (!postDeLeitura(caminho)) {
+      throw new HubSpotFailure(
+        "falha",
+        `Recusado antes de sair: ${caminho} não é leitura, e este produto não escreve na HubSpot.`
+      );
+    }
+
+    return chamar(caminho, { method: "POST", body: JSON.stringify(corpo) });
+  },
 };
 
 /** Se dá para sequer tentar. A tela usa isto para não oferecer um botão morto. */

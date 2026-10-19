@@ -1,6 +1,6 @@
 import { formatDay } from "@/lib/dates";
 import { searchTerms } from "@/lib/vocabulary";
-import { produtosNoTexto } from "@/services/hubspot/produtoDoAtendimento";
+import { produtosDaClassificacao, produtosNoTexto } from "@/services/hubspot/produtoDoAtendimento";
 import type { Ticket } from "@/models/Ticket";
 
 /**
@@ -61,6 +61,15 @@ export function chamadoDo(ticket: Ticket): string {
  * Builder.
  */
 export function produtosDoTicket(ticket: Ticket, textoExtra = ""): string[] {
+  /*
+    A escolha de quem atendeu vem primeiro. Desde 19/10/2026 a HubSpot devolve
+    o "[Support] Produto" de cada chamado (463 dos 1.020 na primeira leitura), e
+    decisão de quem teve o caso em mãos vale mais que palpite sobre o texto.
+  */
+  const classificados = produtosDaClassificacao(ticket.produto ?? "");
+
+  if (classificados.length > 0) return classificados;
+
   const gravados = Array.isArray(ticket.raw?.produtos)
     ? (ticket.raw.produtos as unknown[]).map(String).filter(Boolean)
     : [];

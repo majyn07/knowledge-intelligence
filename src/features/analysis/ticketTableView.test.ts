@@ -194,6 +194,17 @@ describe("a busca do atendimento", () => {
 });
 
 describe("produtosDoTicket", () => {
+  /* A escolha de quem atendeu vence o que veio da conversa e o texto. */
+  it("prefere o [Support] Produto da classificação", () => {
+    const ticket = atendimento({
+      title: "Erro no Builder",
+      produto: "AltoQi Eberick |  Assinatura e suporte 2026, 2025, 2024",
+      raw: { produtos: ["AltoQi Visus"] },
+    });
+
+    expect(produtosDoTicket(ticket)).toEqual(["AltoQi Eberick"]);
+  });
+
   /* Gravado vence dedução: veio da HubSpot e não se adivinha por cima. */
   it("prefere o que veio gravado", () => {
     const ticket = atendimento({ title: "Erro no Builder", raw: { produtos: ["Eberick"] } });

@@ -5,6 +5,7 @@ import { useMemo } from "react";
 
 import { ListSkeleton } from "@/components/common/page/LoadingSkeleton";
 import { indexarRespostas } from "@/features/analysis/chatbotAnswers";
+import { ClassificationSyncButton } from "@/features/analysis/components/ClassificationSyncButton";
 import { useTickets } from "@/features/analysis/providers/TicketsProvider";
 import type { Ticket } from "@/models/Ticket";
 import {
@@ -53,11 +54,10 @@ const DO_CLIENTE = [
 /**
  * O que mais chega, pelo vocabulário de quem atendeu.
  *
- * Uma lista por campo, agrupadas por pipeline, e elas não se somam: o de Setup
- * pergunta a causa raiz e chama o motivo de "sintoma", o de Suporte tem só a
- * categoria. Um chamado passa por um dos dois, então cada lista cobre uma parte
- * do acervo — somá-las misturaria dois vocabulários sem que quem lê tivesse
- * como saber.
+ * Uma lista por campo, agrupadas por pipeline, e elas não se somam: os dois
+ * pipelines perguntam sintoma e causa, cada um com sua própria lista de opções.
+ * Um chamado passa por um dos dois, então cada lista cobre uma parte do acervo
+ * — somá-las misturaria dois vocabulários sem que quem lê tivesse como saber.
  *
  * Ao lado do agrupamento calculado, e não no lugar dele: este conta o que
  * **alguém decidiu** com o caso em mãos, aquele mede o que o acervo cobre.
@@ -102,15 +102,21 @@ export function SupportClassification({ tickets }: { tickets: Ticket[] }) {
   */
   if (comDado.length === 0) {
     return (
-      <p className="rounded-xl border border-dashed px-5 py-8 text-center text-sm leading-6 text-muted-foreground">
-        Nenhum dos {tickets.length} atendimentos traz classificação. A do suporte é preenchida na
-        HubSpot e entra por{" "}
-        <Link href="/analysis" className="underline underline-offset-2">
-          importação do relatório
-        </Link>
-        ; a do cliente sai da conversa, e só existe nos chamados que passaram pelo atendimento
-        digital.
-      </p>
+      <div className="space-y-3 rounded-xl border border-dashed px-5 py-8 text-center">
+        <p className="text-sm leading-6 text-muted-foreground">
+          Nenhum dos {tickets.length} atendimentos traz classificação. A do suporte é preenchida na
+          HubSpot e entra lendo de lá, por quem administra, ou por{" "}
+          <Link href="/analysis" className="underline underline-offset-2">
+            importação do relatório
+          </Link>
+          ; a do cliente sai da conversa, e só existe nos chamados que passaram pelo atendimento
+          digital.
+        </p>
+
+        <div className="flex justify-center">
+          <ClassificationSyncButton />
+        </div>
+      </div>
     );
   }
 
@@ -123,6 +129,9 @@ export function SupportClassification({ tickets }: { tickets: Ticket[] }) {
 
   return (
     <div className="space-y-5">
+      {/* Reler da HubSpot é como a classificação se atualiza: ela muda depois do fechamento. */}
+      <ClassificationSyncButton />
+
       {porPipeline.map((grupo) => (
         <section key={grupo.pipeline}>
           <h4 className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">

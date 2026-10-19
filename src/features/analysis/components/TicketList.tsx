@@ -200,9 +200,8 @@ export function TicketList({
 
           Cliente vem antes de empresa porque é por ele que se procura: só um em
           cada dez atendimentos traz empresa preenchida, e quem atendeu lembra
-          do nome de quem ligou. Produto é deduzido do texto, e o rótulo diz
-          isso: a classificação que o suporte faz na HubSpot está atrás de um
-          escopo que a credencial não alcança.
+          do nome de quem ligou. Produto é o que quem atendeu escolheu na HubSpot
+          e, onde falta, o citado no texto; o título do seletor diz as duas origens.
         */}
         <div className="mt-3 flex flex-wrap items-center gap-2">
           <select
@@ -227,7 +226,8 @@ export function TicketList({
             onChange={(event) =>
               recorte.setFilters({ ...recorte.filters, product: event.target.value })
             }
-            aria-label="Filtrar por produto citado"
+            aria-label="Filtrar por produto"
+            title="O produto que quem atendeu escolheu na HubSpot; onde falta, o citado no texto"
           >
             <option value="all">Qualquer produto</option>
             {recorte.produtos.map((produto) => (

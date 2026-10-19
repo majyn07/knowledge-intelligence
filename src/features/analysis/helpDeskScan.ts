@@ -173,13 +173,13 @@ function trazidosDe(atendimentos: Record<string, never>[], projectId: string): T
 
           /*
 
-            Vazia, e não é omissão: a classificação vive em propriedades do
+            Vazia na varredura, e não é omissão: o chamado recém-atendido
 
-            ticket, e o escopo `tickets` não está na credencial. Ela entra pelo
+            costuma ainda não estar classificado. Desde 19/10/2026 a classificação
 
-            relatório exportado do suporte, que é a mesma porta por onde o
+            entra pela leitura dela na HubSpot (botão de quem administra, nos
 
-            atendimento já entra por arquivo.
+            Indicadores), que pode ser repetida depois do fechamento.
 
           */
 

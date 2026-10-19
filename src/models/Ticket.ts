@@ -16,9 +16,9 @@ export interface Ticket extends Trashable {
    * dos dois. O vocabulário inteiro vive em `TicketClassification`, num lugar
    * só, porque a importação, a contagem e a tela precisam concordar.
    *
-   * Vem do arquivo, e não da API: o escopo `tickets` não está na credencial, e
-   * a decisão de concedê-lo não é nossa. Vazio é estado legítimo — o
-   * atendimento que entrou pela conversa não traz nenhuma, e a tela conta
+   * Vem da HubSpot desde 19/10/2026, quando o escopo de leitura de tickets foi
+   * concedido, e continua podendo vir do arquivo. Vazio é estado legítimo: o
+   * atendimento ainda não classificado lá não traz nenhuma, e a tela conta
    * quantos faltam em vez de fingir classificação.
    */
   categoria: string;
@@ -28,6 +28,11 @@ export interface Ticket extends Trashable {
   fechamento: string;
   quemAbriu: string;
   protecaoTecnologica: string;
+  /** Os quatro que o pipeline de Suporte ganhou depois de agosto. */
+  suporteSintoma: string;
+  suporteCausa: string;
+  produto: string;
+  especialidade: string;
   source?: SupportRecordSource;
   /**
    * O registro como a origem devolveu, sem redução.

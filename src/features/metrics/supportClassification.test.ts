@@ -73,9 +73,9 @@ describe("tallyClassification", () => {
 
   /*
     Vazio não é uma categoria chamada "vazio": é atendimento que ninguém
-    classificou, e some do ranking para ser contado à parte. Os 1.025 que
-    entraram pela conversa estão todos aqui, porque o escopo `tickets` não está
-    na credencial.
+    classificou, e some do ranking para ser contado à parte. Na primeira leitura
+    da HubSpot, em 19/10/2026, eram cerca de metade dos 1.020: chamado que o
+    suporte fechou sem preencher a classificação.
   */
   it("o não classificado fica de fora da lista e é contado à parte", () => {
     const resultado = tallyField(

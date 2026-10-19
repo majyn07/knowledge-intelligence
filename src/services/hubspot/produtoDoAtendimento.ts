@@ -59,6 +59,27 @@ export function produtosNoTexto(texto: string): string[] {
 }
 
 /** Os rótulos existentes, para a tela oferecer o filtro sem inventar nomes. */
+/**
+ * O produto que **quem atendeu** escolheu na HubSpot ("[Support] Produto").
+ *
+ * Vence a dedução pelo texto quando existe: é decisão de alguém com o caso em
+ * mãos, e o texto só adivinha. O rótulo de lá traz sufixo ("AltoQi Builder |
+ * Assinatura e suporte 2026, 2025, 2024"), e a parte antes da barra é
+ * exatamente o nome que o filtro já usa, então os dois vocabulários se
+ * encontram sem tabela de tradução. O que não tem par aqui ("Produtos
+ * anteriores", "Dúvida não é sobre produto AltoQi") entra como veio.
+ */
+export function produtosDaClassificacao(produto: string): string[] {
+  return [
+    ...new Set(
+      produto
+        .split(";")
+        .map((valor) => valor.split("|")[0].trim())
+        .filter((valor) => valor !== "")
+    ),
+  ];
+}
+
 export function produtosConhecidos(): string[] {
   return PRODUTOS.map((produto) => produto.rotulo);
 }

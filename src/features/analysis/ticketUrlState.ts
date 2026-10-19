@@ -55,12 +55,11 @@ export interface TicketFilters {
   /** Quem abriu. Com mil na lista, é por aqui que a equipe procura. */
   client: string;
   /**
-   * O produto que o cliente citou: Builder, Eberick, Visus.
+   * O produto do atendimento: Builder, Eberick, Visus.
    *
-   * É **derivado** do texto, e não campo do registro: a classificação que o
-   * suporte faz na HubSpot está atrás do escopo `tickets`, que a credencial não
-   * alcança. A tela diz que foi deduzido, para ninguém tratar como o que o
-   * atendente escolheu.
+   * Vem do "[Support] Produto" que quem atendeu escolheu na HubSpot, lido desde
+   * 19/10/2026; onde ele falta, é **deduzido** do texto (`produtosDoTicket`).
+   * As duas origens caem no mesmo vocabulário, e a de quem atendeu vence.
    */
   product: string;
 }
