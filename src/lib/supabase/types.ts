@@ -20,6 +20,8 @@ export type ProfileRow = {
   is_active: boolean;
   is_admin: boolean;
   created_at: string;
+  /** Última vez que a pessoa fechou a central de avisos. Nulo é nunca. */
+  notices_seen_at: string | null;
 };
 
 export type DashboardPanelRow = {

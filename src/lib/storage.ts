@@ -101,8 +101,8 @@ export const STORAGE_KEYS = {
   libraryRecovery: "visus-library-recovery",
   /*
     Quando esta pessoa abriu a central de avisos pela última vez, **neste
-    navegador**. Limite conhecido: ler no computador não marca como lido no
-    celular. A versão certa é uma coluna por pessoa no banco.
+    navegador**. Com conta, o perfil guarda o mesmo (`notices_seen_at`), e vale
+    a mais recente das duas: é o que faz ler no computador marcar no celular.
   */
   noticesSeenAt: "visus-notices-seen-at",
   brandTheme: "visus-brand-theme",

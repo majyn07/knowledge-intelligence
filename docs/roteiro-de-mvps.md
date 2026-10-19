@@ -18,8 +18,10 @@ de uma sprint parte da anterior, e o `main` só muda quando alguém integra.
 | --- | --- | --- | --- | --- |
 | 1 | Higiene de engenharia | `sprint/higiene` | [#33](https://github.com/majyn07/knowledge-intelligence/pull/33) | Pronto, CI verde, aguardando integração |
 | 2 | Veredito de IA guardado | `sprint/veredito-guardado` | [#34](https://github.com/majyn07/knowledge-intelligence/pull/34) | Pronto. Migração `0029` **já aplicada** no banco compartilhado |
-| 3 | Fila "levar ao portal" | `sprint/levar-ao-portal` | a abrir | Pronto. Migração `0030` **já aplicada** |
-| 4–10 | — | — | — | Por fazer |
+| 3 | Fila "levar ao portal" | `sprint/levar-ao-portal` | [#35](https://github.com/majyn07/knowledge-intelligence/pull/35) | Pronto. Migração `0030` **já aplicada** |
+| 7 | Avisos lidos por pessoa | `sprint/avisos-por-pessoa` | a abrir | Pronto. Migração `0031` **já aplicada** |
+| Extra | UX e UI: quebras e acabamento | — | — | Próxima, pedido em 19/10 |
+| 4, 5, 6, 8, 9, 10 | — | — | — | Por fazer |
 | 11 | Segurança | — | — | Aguardando instruções |
 
 ---
@@ -262,6 +264,16 @@ avisos fica no navegador; ler no computador não marca no celular.
 escrita própria já cobre), com o navegador como recurso no modo local.
 
 **Pronto quando** abrir a central em duas máquinas dá o mesmo estado.
+
+### Feito (sprint 7)
+
+- `profiles.notices_seen_at` (migração `0031`), gravado ao fechar a central.
+- Vale a visita **mais recente** entre o navegador e o perfil: nada lido volta a
+  ser novo, e o modo sem servidor continua igual.
+- **Achado no caminho:** o Postgres devolve a data como `+00` e a central
+  compara texto com `Z`; sem converter na leitura, aviso novo sumiria sem ter
+  sido lido. Coberto por teste.
+- **Não verificado** na tela: exige entrar com duas sessões.
 
 **Discutir.** Nada além do óbvio; está aqui por ser barato e já reconhecido.
 

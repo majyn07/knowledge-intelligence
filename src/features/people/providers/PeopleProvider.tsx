@@ -22,6 +22,7 @@ import type { Person, Team } from "@/models/Assignment";
 import { seedTeams } from "../mock/teams";
 import {
   readPeopleAndTeams,
+  setNoticesSeenAt,
   setPersonActive,
   setTeamScope as writeTeamScope,
   updateProfile,
@@ -55,6 +56,9 @@ interface PeopleContextValue {
 
   /** Pessoas ativas de uma equipe. */
   peopleOfTeam: (teamId: string) => Person[];
+
+  /** Grava, no perfil de quem entrou, quando a central de avisos foi fechada. */
+  markNoticesSeen: (iso: string) => void;
 }
 
 const PeopleContext = createContext<PeopleContextValue | null>(null);
@@ -244,6 +248,27 @@ export function PeopleProvider({ children }: { children: ReactNode }) {
     [people]
   );
 
+  /*
+    A tela não espera o banco, e uma falha aqui não vira aviso: o navegador já
+    guardou a visita, e o pior que acontece é o mesmo aviso aparecer como novo
+    noutro aparelho. Interromper alguém com erro por isso, a cada vez que fecha
+    a central, seria o produto avisando demais — que é o que a central evita.
+  */
+  const markNoticesSeen = useCallback(
+    (iso: string) => {
+      if (!supabase || !me) return;
+
+      setPeople((anteriores) =>
+        anteriores.map((person) => (person.id === me.id ? { ...person, noticesSeenAt: iso } : person))
+      );
+
+      setNoticesSeenAt(supabase, me.id, iso).catch((error: unknown) => {
+        console.warn("NOTICES_SEEN_WRITE_ERROR", error);
+      });
+    },
+    [me, supabase]
+  );
+
   const value = useMemo(
     () => ({
       people,
@@ -267,12 +292,14 @@ export function PeopleProvider({ children }: { children: ReactNode }) {
       souAdministrador: isSharedWorkspace() ? (me?.isAdmin ?? false) : true,
       setTeamScope,
       peopleOfTeam,
+      markNoticesSeen,
     }),
     [
       currentPerson,
       currentPersonId,
       deactivate,
       isHydrated,
+      markNoticesSeen,
       me,
       people,
       peopleOfTeam,
