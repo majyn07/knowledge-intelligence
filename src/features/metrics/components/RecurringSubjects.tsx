@@ -92,7 +92,7 @@ export function RecurringSubjects({ tickets }: { tickets: Ticket[] }) {
                 href={`/analysis?ticket=${grupo.tickets[0].id}`}
                 className="flex flex-wrap items-center gap-x-5 gap-y-1 px-4 py-3 transition-colors hover:bg-muted/40"
               >
-                <span className="min-w-0 flex-1">
+                <span className="min-w-[min(100%,14rem)] flex-1">
                   <span className="block truncate text-sm font-medium">{grupo.subject}</span>
 
                   <span className="mt-0.5 block truncate text-xs text-muted-foreground">

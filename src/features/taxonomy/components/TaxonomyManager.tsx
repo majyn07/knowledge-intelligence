@@ -58,7 +58,7 @@ function InlineRename({
   if (!editing) {
     return (
       <>
-        <span className={`min-w-0 flex-1 truncate ${size === "md" ? "text-sm font-medium" : ""}`}>
+        <span className={`min-w-[8rem] flex-1 truncate ${size === "md" ? "text-sm font-medium" : ""}`}>
           {name}
         </span>
 
@@ -156,7 +156,7 @@ function EntryListEditor({
           return (
             <li
               key={entry.id}
-              className="flex items-center gap-2 rounded-lg border border-border/60 px-3 py-2 text-sm"
+              className="flex flex-wrap items-center gap-2 rounded-lg border border-border/60 px-3 py-2 text-sm"
             >
               <InlineRename
                 key={entry.name}
@@ -184,7 +184,7 @@ function EntryListEditor({
         })}
       </ul>
 
-      <div className="mt-3 flex gap-2">
+      <div className="mt-3 flex flex-wrap gap-2">
         <Input
           value={name}
           placeholder="Novo item"
@@ -231,7 +231,7 @@ function CategoryRow({ categoryId }: { categoryId: string }) {
 
   return (
     <li className="rounded-lg border border-border/60">
-      <div className="flex items-center gap-2 px-3 py-2">
+      <div className="flex flex-wrap items-center gap-2 px-3 py-2">
         <Button
           size="icon"
           variant="ghost"
@@ -281,7 +281,7 @@ function CategoryRow({ categoryId }: { categoryId: string }) {
               {sections.map((section) => (
                 <li
                   key={section.id}
-                  className="flex items-center gap-2 rounded px-2 py-1.5 text-sm hover:bg-muted/60"
+                  className="flex flex-wrap items-center gap-2 rounded px-2 py-1.5 text-sm hover:bg-muted/60"
                 >
                   <InlineRename
                     key={section.name}
@@ -305,7 +305,7 @@ function CategoryRow({ categoryId }: { categoryId: string }) {
             </ul>
           )}
 
-          <div className="mt-3 flex gap-2">
+          <div className="mt-3 flex flex-wrap gap-2">
             <Input
               value={name}
               placeholder="Nova seção"
@@ -423,7 +423,7 @@ export function TaxonomyManager() {
           </div>
         </div>
 
-        <div className="grid gap-4 md:grid-cols-2">
+        <div className="grid gap-4 xl:grid-cols-2">
           <EntryListEditor
             list="genres"
             title="Gêneros de artigo"

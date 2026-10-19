@@ -7,7 +7,6 @@ import { Info } from "lucide-react";
 import { ListSkeleton } from "@/components/common/page/LoadingSkeleton";
 import { PageSection } from "@/components/common/page/PageSection";
 import { Button } from "@/components/ui/button";
-import { StatusBadge } from "@/components/common/status/StatusBadge";
 import { RelativeDate } from "@/components/common/RelativeDate";
 import { eventsInScope } from "@/features/activities/eventScope";
 import { useActivity } from "@/features/activities/providers/ActivityProvider";
@@ -211,9 +210,10 @@ export function CycleFunnel({ days: inicial = 30 }: { days?: number }) {
         )}
 
         {coverage.total === 0 && (
-          <StatusBadge variant="default">
-            Ainda não houve mudança de estágio neste recorte
-          </StatusBadge>
+          /* Frase não é etiqueta: dentro de uma, ela não quebra e passava da tela no celular. */
+          <p className="text-xs text-muted-foreground">
+            Ainda não houve mudança de estágio neste recorte.
+          </p>
         )}
       </div>
     </PageSection>

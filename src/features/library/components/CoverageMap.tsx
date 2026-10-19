@@ -79,7 +79,7 @@ export function CoverageMap() {
 
             return (
               <li key={category.id} className="rounded-lg border border-border/60">
-                <div className="flex items-center gap-2 px-3 py-2">
+                <div className="flex flex-wrap items-center gap-2 px-3 py-2">
                   <Button
                     size="icon"
                     variant="ghost"
@@ -94,7 +94,12 @@ export function CoverageMap() {
                     )}
                   </Button>
 
-                  <span className="min-w-0 flex-1 truncate text-sm font-medium">
+                  {/*
+                    Largura mínima real, e a linha quebra: com base zero o nome
+                    cedia tudo para a contagem e a etiqueta, e no celular
+                    "AltoQi Builder" ficava em quarenta pixels.
+                  */}
+                  <span className="min-w-[9rem] flex-1 truncate text-sm font-medium">
                     {category.name}
                   </span>
 

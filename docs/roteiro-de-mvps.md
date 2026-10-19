@@ -19,8 +19,8 @@ de uma sprint parte da anterior, e o `main` só muda quando alguém integra.
 | 1 | Higiene de engenharia | `sprint/higiene` | [#33](https://github.com/majyn07/knowledge-intelligence/pull/33) | Pronto, CI verde, aguardando integração |
 | 2 | Veredito de IA guardado | `sprint/veredito-guardado` | [#34](https://github.com/majyn07/knowledge-intelligence/pull/34) | Pronto. Migração `0029` **já aplicada** no banco compartilhado |
 | 3 | Fila "levar ao portal" | `sprint/levar-ao-portal` | [#35](https://github.com/majyn07/knowledge-intelligence/pull/35) | Pronto. Migração `0030` **já aplicada** |
-| 7 | Avisos lidos por pessoa | `sprint/avisos-por-pessoa` | a abrir | Pronto. Migração `0031` **já aplicada** |
-| Extra | UX e UI: quebras e acabamento | — | — | Próxima, pedido em 19/10 |
+| 7 | Avisos lidos por pessoa | `sprint/avisos-por-pessoa` | [#36](https://github.com/majyn07/knowledge-intelligence/pull/36) | Pronto. Migração `0031` **já aplicada** |
+| Extra | UX e UI: quebras e acabamento | `sprint/ux-ui` | a abrir | Pronto, medido; falta conferência visual |
 | 4, 5, 6, 8, 9, 10 | — | — | — | Por fazer |
 | 11 | Segurança | — | — | Aguardando instruções |
 
@@ -343,6 +343,58 @@ em comum — sem isso, quebra a regra de "o que se mostra se confere".
 
 **Discutir.** O `CLAUDE.md` é seu estilo de documentação; a divisão muda como
 ele é lido. Só faço com seu aval e com o formato que você preferir.
+
+---
+
+## MVP extra — UX e UI
+
+**Pedido em 19/10/2026**, com o print da lista de atendimentos cortando filtros,
+busca e botão.
+
+**Como foi auditado.** O site em produção fica atrás da proteção de deploy da
+Vercel, e o painel do app estava escondido (sem desenhar, sem print). A auditoria
+foi por **medição**: cada tela carregada num iframe em 1280, 1440, 768 e 375 px,
+com dados **sintéticos** no formato real (mil atendimentos, títulos "Ticket AltoQi
+nº…", nomes compostos, conversas longas, 300 artigos). Um script aponta texto
+que transborda sem reticências, elemento que sai do pai ou da tela, reticências
+em menos de 110 px e texto de ajuda que não cabe. Dado real de cliente não foi
+usado: a primeira tentativa o pôs num arquivo servido pelo `public/`, o controle
+de permissões barrou, e o arquivo foi apagado.
+
+| Onde | Defeito | Medido antes | Correção |
+| --- | --- | --- | --- |
+| Atendimentos, lista | Título espremido pela etiqueta de etapa ao lado | ~100 px a 1280 | Etapa na linha do número; título com 187 px |
+| Atendimentos, lista | Filtros cortando "Todos os clien", "Qualquer prod" | 108 px cada | Largura mínima; descem de linha |
+| Atendimentos, lista | Barra de marcados sem quebra | botão saindo da caixa | `flex-wrap` |
+| Atendimentos, vazio | "registrado **em este** projeto" | — | "neste projeto" |
+| Atendimentos, análise | Passos com 75 px a 768 | "Atendimento" vazando | Colunas `auto-fit` |
+| Biblioteca e Projetos | Busca esmagada pelos filtros | **48 px** a 1280 e 1440 | Barra empilhada |
+| Biblioteca | Texto de ajuda não dizia que a busca alcança o texto | — | "Buscar no acervo" + `title` |
+| Configurações | Regras de permissão espremidas | 67 px a 375 | Largura mínima real |
+| Configurações | Nome da categoria | **3 px** a 375 | Largura mínima e quebra |
+| Configurações | Cadastros em duas colunas com o menu aberto | campo com 37 px a 768 | Duas colunas só em `xl` |
+| Indicadores | Painéis mais largos que a tela | 413 px em 375 | `min-w-0` no cartão |
+| Indicadores | Mapa de cobertura e assuntos | 40–58 px | Largura mínima e quebra |
+| Indicadores | Frase longa dentro de etiqueta | passava da tela | Parágrafo |
+| Comparar artigos | Valores espremidos ao lado dos rótulos | 47 px a 375 | Rótulo menor no celular, valor quebra |
+| Todas | Título do cabeçalho no celular | "Configurações" passava da tela | Ícone some abaixo de `sm`, título 24 px |
+| Todas | Rótulos de acessibilidade em inglês | "Toggle Sidebar", "Close", "More" | Em português |
+| Projetos | "Novo Projeto" × "Novo artigo" | — | Mesma caixa |
+
+**Pendente e por quê:**
+
+- **Conferência visual.** Tudo acima foi medido, não visto: com o app
+  escondido o painel não desenha. Vale abrir as quatro telas no navegador antes
+  de integrar.
+- **A lista de atendimentos a 1280 continua estreita** (a coluna tem o mínimo de
+  16rem). Ficou legível, mas a solução estrutural é a lateral de contexto
+  recolher abaixo de 1536 px, como a lista já recolhe. Mexe na regra de altura
+  das três colunas, que tem medição própria no `CLAUDE.md`: fica para conversar.
+- **Densidade de texto.** Várias telas explicam a própria regra em parágrafos
+  longos (Configurações, Indicadores). É coerente com o produto, mas no celular
+  empurra o conteúdo para baixo. Proposta: o porquê recolhido atrás de "Por
+  quê?", aberto na primeira visita.
+- **Teclado e foco:** não auditados nesta sprint.
 
 ---
 
