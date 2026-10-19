@@ -1,0 +1,49 @@
+# A verificação que o CLAUDE.md pede, rodando no PR e não só na máquina de
+# quem edita. O hook do Claude Code roda em segundo plano e só onde ele está
+# instalado; sem isto, o que protege o `main` é alguém lembrar.
+#
+# Sem segredo nenhum: o build sobe no modo navegador, que é o que o produto faz
+# quando `NEXT_PUBLIC_SHARED_WORKSPACE` não está ligada. Credencial no CI seria
+# uma cópia a mais de chave para alguém esquecer de rotacionar.
+
+name: Verificação
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verificar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      # `npm test` não faz typecheck: erro de tipo em arquivo de teste só
+      # aparece aqui.
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Testes
+        run: npm test
+
+      - name: Build
+        run: npm run build
+        env:
+          NEXT_TELEMETRY_DISABLED: 1
