@@ -11,7 +11,7 @@ import { parseMentions } from "@/features/plans/mentions";
 
 import { useFollows } from "../providers/FollowsProvider";
 import { usePeople } from "../providers/PeopleProvider";
-import { buildNotices, unreadCount, type MentionHit } from "../notices";
+import { buildNotices, ultimaVisita, unreadCount, type MentionHit } from "../notices";
 
 /**
  * A central de avisos, montada a partir do que já está em memória.
@@ -20,25 +20,26 @@ import { buildNotices, unreadCount, type MentionHit } from "../notices";
  * nos providers, e a central é uma leitura deles. Pela mesma razão de o painel
  * não custar consulta.
  *
- * **A última visita fica no navegador**, e isso é um limite conhecido: quem ler
- * um aviso no computador vai encontrá-lo como novo no celular. A alternativa é
- * uma coluna por pessoa no banco, que é a versão certa e é outra peça. Guardar
- * aqui responde "o que mudou desde a última vez que eu olhei **nesta
- * máquina**", que é verdade, e é melhor que não avisar nada.
+ * **A última visita fica no perfil, e também no navegador.** No perfil é o que
+ * faz ler no computador marcar como lido no celular. No navegador é o que existe
+ * no modo sem servidor e o que já estava guardado antes da coluna. Vale a mais
+ * recente das duas (`ultimaVisita`).
  */
 export function useNotices() {
   const { events } = useActivity();
   const { plans } = usePlans();
   const { items: articles } = useLibrary();
   const { myFollows } = useFollows();
-  const { currentPerson, me } = usePeople();
+  const { currentPerson, me, markNoticesSeen } = usePeople();
 
   const currentPersonId = me?.id ?? "";
 
-  const [since, setSince] = usePersistedState<string>({
+  const [vistoAqui, setVistoAqui] = usePersistedState<string>({
     key: STORAGE_KEYS.noticesSeenAt,
     fallback: "",
   });
+
+  const since = ultimaVisita(vistoAqui, me?.noticesSeenAt);
 
   /*
     A menção guarda identificador; quem lê resolve. Aqui a comparação é com o
@@ -100,8 +101,11 @@ export function useNotices() {
     do aviso deixaria o novo marcado como já visto.
   */
   const markSeen = useCallback(() => {
-    setSince(new Date().toISOString());
-  }, [setSince]);
+    const agora = new Date().toISOString();
+
+    setVistoAqui(agora);
+    markNoticesSeen(agora);
+  }, [markNoticesSeen, setVistoAqui]);
 
   return { notices, unread: unreadCount(notices), markSeen };
 }

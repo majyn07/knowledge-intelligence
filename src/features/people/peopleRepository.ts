@@ -31,7 +31,36 @@ export function toPerson(raw: unknown): Person {
     isActive: row.is_active === undefined ? true : flag(row.is_active),
     // Ausente é "não": administrador se concede, nunca se presume.
     isAdmin: flag(row.is_admin),
+    ...noticesSeenAt(row.notices_seen_at),
   };
+}
+
+/**
+ * A última visita aos avisos, no mesmo formato do resto.
+ *
+ * O Postgres devolve `2026-10-19 12:00:00+00` e o produto grava `…Z`, e a
+ * central compara **texto**: sem converter, um evento das 12h01 pareceria mais
+ * antigo que uma visita às 12h00, porque `+` vem antes de `Z` na tabela de
+ * caracteres. Data ilegível é como nunca ter visto: melhor um aviso a mais que
+ * um a menos.
+ */
+function noticesSeenAt(valor: unknown): { noticesSeenAt?: string } {
+  const instante = new Date(text(valor));
+
+  return Number.isNaN(instante.getTime()) || text(valor) === ""
+    ? {}
+    : { noticesSeenAt: instante.toISOString() };
+}
+
+/**
+ * Grava quando a pessoa fechou a central.
+ *
+ * Coluna própria, e não `updateProfile`: aquela avisa "perfil atualizado" a
+ * cada gravação, e fechar a central não é editar o perfil.
+ */
+export async function setNoticesSeenAt(client: Client, id: string, iso: string): Promise<void> {
+  const { error } = await client.from("profiles").update({ notices_seen_at: iso }).eq("id", id);
+  if (error) throw new Error(error.message);
 }
 
 export function toTeam(raw: unknown): Team {
