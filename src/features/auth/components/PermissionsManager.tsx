@@ -56,7 +56,8 @@ export function PermissionsManager() {
 
               return (
                 <li key={acao.key} className="flex flex-wrap items-start gap-x-4 gap-y-2 px-4 py-3">
-                  <div className="min-w-0 flex-1">
+                  {/* Largura mínima real: com base zero ela nunca forçava a quebra, e a 375 px o texto ficava com 67 px ao lado do seletor. */}
+                  <div className="min-w-[min(100%,16rem)] flex-1">
                     <p className="flex flex-wrap items-center gap-2 text-sm font-medium">
                       {acao.label}
 

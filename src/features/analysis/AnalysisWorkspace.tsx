@@ -318,8 +318,11 @@ export function AnalysisWorkspace() {
         />
 
         <div className="flex min-h-72 items-center justify-center rounded-xl border border-dashed px-6 py-12 text-center text-sm leading-6 text-muted-foreground">
-          Nenhum atendimento registrado em {activeProject?.name ?? "este projeto"}. Registre o
-          primeiro para começar o ciclo de conhecimento.
+          {/* "em este" é erro de português: sem nome, a contração é a frase. */}
+          {activeProject
+            ? `Nenhum atendimento registrado em ${activeProject.name}.`
+            : "Nenhum atendimento registrado neste projeto."}{" "}
+          Registre o primeiro para começar o ciclo de conhecimento.
         </div>
 
         {dialogs}

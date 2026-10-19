@@ -811,6 +811,43 @@ AltoQi `#00CC78` puro dá 2,4:1 com branco, e o laranja Builder dá 2,8:1.
 Cor nova passa por medição de contraste antes de entrar. Estimar a olho já
 produziu dois valores reprovados nesta mesma sprint.
 
+### Layout que não quebra
+
+Auditado em 19/10/2026 medindo cada tela em 1280, 1440, 768 e 375 px, com
+volume e textos de verdade (títulos "Ticket AltoQi nº…", nomes compostos, mil
+atendimentos). A tela vazia da semente não mostra nenhum destes defeitos. Quatro
+regras saíram de lá, e cada uma tinha mais de uma ocorrência:
+
+**`flex-1 min-w-0` dentro de `flex-wrap` nunca quebra a linha.** Com base zero,
+o item encolhe em vez de descer, e é o texto dele que paga: as regras de
+permissão ficavam com 67 px no celular, e o nome da categoria com **três**. Quem
+precisa ler ganha largura mínima de verdade (`min-w-[8rem]`,
+`min-w-[min(100%,16rem)]`), e é isso que obriga o vizinho a ir para a linha de
+baixo.
+
+**Busca e filtros não dividem a linha.** O grupo de filtros entra com a largura
+de todo o seu conteúdo e só cede o que sobra; a busca da Biblioteca chegou a
+**48 px** a 1280. O `PageToolbar` empilha: a busca em cima, com a largura que
+pediu, e os filtros embaixo, quebrando quando precisam.
+
+**O breakpoint mede a janela, não o espaço.** Com o menu lateral aberto, `md`
+(768 px) sobram uns quinhentos, e uma grade de cinco colunas dá 75 px a cada
+passo. Grade dentro do conteúdo usa `auto-fit` com largura mínima, ou um
+breakpoint acima. É a mesma lição da lateral do atendimento, que já estava
+anotada.
+
+**Frase não é etiqueta.** `StatusBadge` não quebra linha, e frase longa dentro
+dele passava da tela no celular. Etiqueta é para estado curto; explicação é
+parágrafo.
+
+Na lista de atendimentos, a etapa saiu da coluna ao lado do título e foi para a
+linha do número e da data: ao lado, ela comia oitenta dos duzentos e cinquenta
+pixels da coluna, e o título ficava com cem. Agora fica com 187.
+
+Texto de ajuda de busca é curto e o detalhe vai no `title`. O da Biblioteca,
+além de não caber, prometia "título, resumo, módulo, tag" e não dizia **texto**,
+que é justamente o que a busca alcança desde a importação do portal.
+
 ## IA
 
 Gemini é o provider atual (`services/ai/server/geminiService.ts`), isolado atrás

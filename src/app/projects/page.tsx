@@ -84,7 +84,7 @@ export default function ProjectsPage() {
           description="Iniciativas de melhoria, com os atendimentos que as alimentam."
           actions={
             <Button onClick={openCreateDialog}>
-              Novo Projeto
+              Novo projeto
             </Button>
           }
         />
@@ -114,7 +114,7 @@ export default function ProjectsPage() {
           title={
             selectedProject
               ? "Editar Projeto"
-              : "Novo Projeto"
+              : "Novo projeto"
           }
           description={
             selectedProject

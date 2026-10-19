@@ -162,7 +162,7 @@ export function ArticleCompareWorkspace() {
       />
 
       <div className="rounded-xl border border-border/70 bg-card">
-        <div className="grid grid-cols-[minmax(0,9rem)_minmax(0,1fr)_minmax(0,1fr)] gap-x-4 border-b border-border/70 px-5 py-2.5 text-xs font-medium text-muted-foreground">
+        <div className="grid grid-cols-[minmax(0,5.5rem)_minmax(0,1fr)_minmax(0,1fr)] gap-x-3 sm:grid-cols-[minmax(0,9rem)_minmax(0,1fr)_minmax(0,1fr)] sm:gap-x-4 border-b border-border/70 px-3 py-2.5 text-xs font-medium sm:px-5 text-muted-foreground">
           <span>Atributo</span>
           <span className="truncate">{a.title}</span>
           <span className="truncate">{b.title}</span>
@@ -171,7 +171,7 @@ export function ArticleCompareWorkspace() {
         {campos.map((campo) => (
           <div
             key={campo.label}
-            className="grid grid-cols-[minmax(0,9rem)_minmax(0,1fr)_minmax(0,1fr)] gap-x-4 border-b border-border/40 px-5 py-2.5 text-sm last:border-b-0"
+            className="grid grid-cols-[minmax(0,5.5rem)_minmax(0,1fr)_minmax(0,1fr)] gap-x-3 sm:grid-cols-[minmax(0,9rem)_minmax(0,1fr)_minmax(0,1fr)] sm:gap-x-4 border-b border-border/40 px-3 py-2.5 text-xs last:border-b-0 sm:px-5 sm:text-sm"
           >
             <span className="text-muted-foreground">{campo.label}</span>
 
@@ -179,10 +179,10 @@ export function ArticleCompareWorkspace() {
               Só o que difere ganha destaque. Marcar tudo faria o olho procurar a
               diferença do mesmo jeito, que é o trabalho que a tela devia poupar.
             */}
-            <span className={campo.same ? "text-muted-foreground" : "font-medium"}>
+            <span className={`break-words ${campo.same ? "text-muted-foreground" : "font-medium"}`}>
               {campo.a}
             </span>
-            <span className={campo.same ? "text-muted-foreground" : "font-medium"}>
+            <span className={`break-words ${campo.same ? "text-muted-foreground" : "font-medium"}`}>
               {campo.b}
             </span>
           </div>
