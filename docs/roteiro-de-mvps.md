@@ -1,0 +1,295 @@
+# Roteiro de MVPs — revisão de 19/10/2026
+
+Revisão feita contra o `main` em `4f1aef1`. Lint, typecheck e os **1.408 testes
+(122 arquivos)** passam. Nada abaixo é defeito de compilação: são lacunas de
+produto, de operação e de manutenção, ordenadas pelo que destrava mais.
+
+Cada MVP traz: o problema, a evidência que o sustenta, a entrega mínima, o que
+conta como pronto e o que precisa ser **discutido** antes de começar.
+
+---
+
+## Visão geral
+
+| # | MVP | Natureza | Tamanho |
+| --- | --- | --- | --- |
+| 1 | Higiene de engenharia (CI, README, docs) | Manutenção | P |
+| 2 | Veredito de IA que fica guardado | Produto | M |
+| 3 | Fila "levar ao portal" | Produto | M |
+| 4 | Fechar a verificação das quatro funções de IA | Qualidade | P |
+| 5 | O artigo resolveu? (impacto pós-publicação) | Produto | M |
+| 6 | Artigos que o suporte já usa para responder | Produto | P–M |
+| 7 | Avisos lidos por pessoa, no banco | Produto | P |
+| 8 | Sincronização sem aba aberta | Infra / discussão | M–G |
+| 9 | Busca semântica para cobertura | Discussão | G |
+| 10 | Manutenção do código e do `CLAUDE.md` | Manutenção | M |
+| 11 | **Segurança** | **A definir por você** | — |
+
+---
+
+## MVP 1 — Higiene de engenharia
+
+**Problema.** O que protege o `main` hoje é disciplina, não processo.
+
+**Evidência.**
+- Não existe `.github/workflows`: os PRs são integrados sem lint, typecheck,
+  teste ou build automáticos. O hook do Claude Code só roda na máquina de quem
+  edita, e em segundo plano.
+- O `README.md` diz "Não há backend nem autenticação" e "Os dados vivem no
+  `localStorage`". Está duas fundações atrasado.
+- `docs/hubspot-pendencias.md` está com o Markdown escapado (`\*\*`, `` \` ``,
+  `\>`): renderiza como texto cru.
+- `AGENTS.md` está vazio, e o `CLAUDE.md` o importa.
+- Doze branches remotas já integradas (`fix/*`, `feat/*`) e a worktree
+  `claude/practical-kare-bc8ffa` continuam existindo.
+
+**Entrega mínima.**
+1. Workflow de CI no PR: `lint`, `typecheck`, `test`, `build`.
+2. README reescrito: os dois modos, `dev:local`, variáveis declaradas,
+   `db:migrate`, link para `estado-do-produto.md`.
+3. `hubspot-pendencias.md` desescapado.
+4. Limpeza das branches integradas (com sua confirmação, uma lista antes).
+
+**Pronto quando** um PR com teste quebrado não fica verde.
+
+**Discutir.** Proteção de branch no `main` (exigir CI verde) é configuração do
+GitHub, fora do código: quer ligar?
+
+---
+
+## MVP 2 — Veredito de IA que fica guardado
+
+**Problema.** Três varreduras caras produzem resultado que **some ao fechar o
+diálogo**: sobreposições (`OverlapSweepDialog`), cobertura dos marcados
+(`BatchCoverageDialog`) e sugestão de seção (`SuggestSectionDialog`). Nenhuma
+persiste o que leu.
+
+**Evidência.**
+- 20 pares de sobreposição levam ~11 minutos e cota do provedor. Fechar a aba
+  joga isso fora.
+- `estado-do-produto.md` §5: "Varredura das 137 sobreposições — nunca terminou
+  até o fim". Sem guardar, ela **não pode** terminar em mais de uma sessão.
+- O veredito é visto por quem rodou, e só. Outro colega roda de novo o mesmo
+  par, pagando de novo.
+
+**Entrega mínima.** Uma coleção `ai_verdicts` (tipo, chave do assunto — par de
+artigos, atendimento, artigo —, resposta validada, provedor, quando, quem, e o
+`synced_at`/`updatedAt` dos registros lidos). A varredura **pula o que já tem
+veredito válido** e retoma de onde parou. O Levantamento passa a mostrar
+"complementares / mesmo assunto / diferentes" ao lado do par.
+
+**Pronto quando** a varredura das 137 termina em duas ou três sessões sem
+repetir pedido, e o resultado aparece para a equipe inteira.
+
+**Discutir.**
+- Quando um veredito **vence**? Proposta: quando qualquer dos artigos lidos
+  muda de conteúdo depois dele (comparação por carimbo). Prazo fixo seria
+  arbitrário.
+- O mapa de tabelas tipadas está cheio (16 entradas). Ou esta tabela vai por
+  rota própria, como o `CLAUDE.md` já prescreve, ou é hora de resolver o limite
+  (ver MVP 10).
+- Rotular como **proposta**, nunca como achado calculado — regra do Levantamento.
+
+---
+
+## MVP 3 — Fila "levar ao portal"
+
+**Problema.** A última perna do ciclo é manual (não há API de Base de
+Conhecimento na HubSpot) e **ninguém sabe o que está pendente dela**. O KI
+prepara o artigo, alguém cola na HubSpot... ou não.
+
+**Evidência.** Não há estado, campo nem tela que diga "editado aqui, ainda não
+está no portal". `updatedAt` é o `lastmod` do portal; quando o KI grava, o
+artigo passa a divergir do portal em silêncio. A próxima importação até
+resolve sozinha quando alguém colou — mas se ninguém colou, nada aponta.
+
+**Entrega mínima.**
+- Derivar, sem campo novo se possível: artigo com `portalArticleId` cujo
+  conteúdo gravado aqui é posterior ao `lastmod` do portal → "aguardando
+  portal". Artigo novo, publicado aqui e sem `portalArticleId` → "não existe no
+  portal".
+- Um achado no Levantamento e um filtro na Biblioteca.
+- Botão **"Copiar HTML para a HubSpot"** no artigo (o HTML preservado, sem a
+  camada de apresentação), e o link direto para o editor do artigo no portal
+  quando houver id.
+- A próxima importação que trouxer `lastmod` posterior **fecha** a pendência e
+  registra evento.
+
+**Pronto quando** dá para responder "o que publicamos aqui e o cliente ainda
+não vê?" com um número e uma lista.
+
+**Discutir.** Precisa de um carimbo "gravado aqui em" separado de `updatedAt`
+(que é do portal) e de `synced_at` (que é do gatilho). Um terceiro carimbo é a
+saída honesta, mas é coluna nova: decidir o nome e o dono.
+
+---
+
+## MVP 4 — Fechar a verificação das quatro funções de IA
+
+**Problema.** `estado-do-produto.md` §5 lista quatro funções com contrato
+testado e **resposta do modelo nunca conferida contra caso real**: fila →
+artigo, varredura de sobreposição, atualizar artigo com material, avaliar
+atendimentos marcados.
+
+**Entrega mínima.** Para cada uma, dois casos reais escolhidos com você, a
+resposta registrada, e o defeito que aparecer corrigido. Um script em
+`scripts/` (como `hubspot:conferir`) que roda os casos e salva as respostas,
+para a próxima troca de modelo ou de prompt ter com o que comparar.
+
+**Pronto quando** o §5 do estado do produto perde essa linha.
+
+**Discutir.** Quais atendimentos e artigos servem de caso? Prefiro que venham
+de quem usa, não de mim.
+
+---
+
+## MVP 5 — O artigo resolveu?
+
+**Problema.** O produto mede o caminho até publicar (funil, tempo do ciclo) e
+**para ali**. A pergunta que justifica o hub — "publicar diminuiu o que chega?"
+— não tem resposta.
+
+**Evidência.** O tempo do ciclo termina no evento de publicação. Nenhum
+indicador olha atendimentos **depois** dela. A triagem já agrupa por assunto e
+já sabe que grupo um artigo cobre.
+
+**Entrega mínima.** Para cada artigo publicado a partir de um atendimento (ou
+de um grupo da fila), contar atendimentos do mesmo grupo nas N semanas antes e
+depois da publicação. Exibir no artigo e num painel, **calculado e rotulado
+como tal**, com a ressalva de que correlação não é causa.
+
+**Pronto quando** a página de Métricas tem "assuntos que diminuíram depois do
+artigo", com o número de antes e depois.
+
+**Discutir.**
+- Janela (4? 8 semanas?) e o mínimo de volume para mostrar — abaixo de um
+  punhado o número é ruído.
+- O agrupamento por vocabulário muda quando o acervo muda; o "mesmo grupo"
+  antes e depois precisa ser estável. Talvez fixar os termos do grupo no
+  momento da publicação.
+
+---
+
+## MVP 6 — Artigos que o suporte já usa para responder
+
+**Problema.** Cobertura hoje é estimada por vocabulário. Existe um sinal
+**medido** e ignorado: as respostas do suporte trazem links para
+`suporte.altoqi.com.br`.
+
+**Evidência.** Nenhum código lê esses links nas conversas (só um teste da
+triagem menciona o domínio, para descartá-lo como ruído).
+
+**Entrega mínima.** Extrair dos 974 fios os links do portal nas mensagens do
+suporte, resolver para o artigo do acervo (o resolvedor de link interno já
+existe para a leitura) e mostrar:
+- no artigo: "citado em N atendimentos" — os artigos que mais trabalham;
+- no Levantamento: artigos **nunca** citados há 12 meses (candidatos a revisão,
+  não a exclusão);
+- na análise: "o suporte respondeu este caso com o artigo X" como evidência.
+
+**Pronto quando** a Biblioteca ordena por "mais citados".
+
+**Discutir.** É dado do suporte sobre o acervo, sem custo de IA nem de
+HubSpot (as mensagens já estão aqui). Combina com o MVP 5: artigo citado é
+artigo que está resolvendo.
+
+---
+
+## MVP 7 — Avisos lidos por pessoa, no banco
+
+**Problema.** Limite já anotado no `CLAUDE.md`: a última visita à central de
+avisos fica no navegador; ler no computador não marca no celular.
+
+**Entrega mínima.** Coluna `notices_seen_at` em `profiles` (a política de
+escrita própria já cobre), com o navegador como recurso no modo local.
+
+**Pronto quando** abrir a central em duas máquinas dá o mesmo estado.
+
+**Discutir.** Nada além do óbvio; está aqui por ser barato e já reconhecido.
+
+---
+
+## MVP 8 — Sincronização sem aba aberta
+
+**Problema.** A busca automática na HubSpot só roda com alguém com o produto
+aberto e a aba **em primeiro plano** (20 conversas em 25 min com a aba atrás).
+De madrugada e no fim de semana nada entra, e a retomada cobre o vão depois.
+
+**Por que não foi feito.** Cron no servidor não tem sessão, e as políticas
+exigem sessão; a chave que ignora RLS foi removida de propósito.
+
+**Caminhos para discutir** (nenhum é código ainda):
+1. **Função no banco com escopo mínimo**: um papel Postgres que só escreve em
+   `tickets` e `support_conversations` e só via função `security definer`
+   chamada por um job (`pg_cron` + `pg_net` ou Edge Function). Não devolve a
+   service role ao ambiente.
+2. **Conta de serviço comum**: um perfil `@altoqi.com.br` dedicado, cuja
+   sessão o job usa. Mais simples, mas é uma credencial longa guardada em
+   algum lugar.
+3. **Manter como está** e só mover a varredura para um Web Worker, que sofre
+   menos estrangulamento em segundo plano. Mitiga, não resolve.
+
+**Discutir.** Isso toca a decisão de segurança da chave privilegiada — talvez
+pertença ao MVP 11.
+
+---
+
+## MVP 9 — Busca semântica para cobertura (discussão)
+
+**Problema.** Cobertura, relacionados e "isto já existe?" começam por busca
+léxica. Já foi muito melhorada (limiar medido no acervo, corte do e-mail), mas
+"modelo IFC deslocado" e "IFC fora da posição" continuam sem se encontrar.
+
+**Opção.** `pgvector` no Supabase e embeddings do Gemini para os 1.824 artigos
+(custo único pequeno; reprocessa só o que muda, pelo `synced_at`). A busca
+léxica continua como primeira camada e como explicação legível; a semântica
+amplia os candidatos que o modelo julga.
+
+**Discutir.** Custo e cota; onde roda o cálculo (servidor, com sessão); como
+explicar ao usuário **por que** um artigo é relacionado quando não há palavra
+em comum — sem isso, quebra a regra de "o que se mostra se confere".
+
+---
+
+## MVP 10 — Manutenção do código e do `CLAUDE.md`
+
+**Problema.** Três pontos de atrito acumulando:
+
+- **O mapa de tabelas tipadas da Supabase está cheio** (16). Toda tabela nova
+  vira rota própria. Vale medir se gerar tipos com `supabase gen types` e
+  dividir o `Database` por esquema, ou tipar `from()` por tabela, resolve o
+  colapso para `never`.
+- **Componentes de 500–850 linhas**: `HelpDeskDialog` (853), `useSharedCollection`
+  (759), `LibraryForm` (629), `TicketForm` (593), `LibraryProvider` (563),
+  `TicketList` (529). O `useSharedCollection` concentra cache, releitura
+  incremental, lotes e eco do tempo real — os três defeitos silenciosos
+  registrados no `CLAUDE.md` nasceram ali. Separar em peças testáveis
+  (plano de escrita, plano de releitura, cache) reduz o risco do próximo.
+- **O `CLAUDE.md` passou de mil linhas.** É o registro de decisões mais valioso
+  do projeto, e é carregado inteiro em toda sessão de agente. Proposta: manter
+  ali as regras (curtas, imperativas) e mover a narrativa de cada decisão para
+  `docs/decisoes/*.md`, com link. A lista de "o que os testes cobrem" virou um
+  parágrafo de uma frase só, que ninguém confere.
+
+**Discutir.** O `CLAUDE.md` é seu estilo de documentação; a divisão muda como
+ele é lido. Só faço com seu aval e com o formato que você preferir.
+
+---
+
+## MVP 11 — Segurança
+
+**Reservado. Você define o escopo e a ordem.**
+
+Para informar a decisão, registro o que encontrei na revisão, **sem ter
+alterado nada**:
+
+| Achado | Onde | Gravidade |
+| --- | --- | --- |
+| Qualquer membro pode se tornar administrador: a política `profiles_escrita_propria` permite `update` da própria linha sem restringir colunas, e nada protege `is_admin`. Um `update profiles set is_admin = true where id = auth.uid()` pela API com a chave pública e a sessão própria passa | `supabase/migrations/0020_administrador.sql:73` | **Alta** — anula a única trava de servidor (HubSpot, freio, configurações) |
+| O histórico é "acrescentado, nunca editado" só por convenção: a política genérica de `0001` dá `update` e `delete` em `activity_events` a todo membro. A auditoria pode ser reescrita | `supabase/migrations/0001_fundacao.sql:236-270` | Média |
+| Cinco das seis ações guardadas são só escondidas na tela (a própria tela diz isso). Esvaziar lixeira e importar em massa poderiam ser conferidos em política ou função no banco | `settings/permissions` | Média — decisão de produto já registrada |
+| Rotas de IA sem teto por pessoa: qualquer membro pode consumir a cota diária do provedor num laço | `src/app/api/*` | Baixa–média |
+| `src/proxy.ts` só cobre `/` e não renova a sessão da Supabase como o padrão do `@supabase/ssr` sugere; hoje funciona porque o cliente do navegador renova o cookie | `src/proxy.ts` | Baixa — conferir |
+| Balde `article-images` público na leitura (decisão registrada) | `0023_imagens_do_artigo.sql` | Informativo |
+
+Aguardo suas instruções para este bloco.
