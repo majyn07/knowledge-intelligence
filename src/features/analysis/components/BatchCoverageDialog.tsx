@@ -23,7 +23,12 @@ import { semCorrespondencia } from "@/lib/vocabulary";
 import type { KnowledgeArticle } from "@/models/KnowledgeArticle";
 import type { SupportConversation } from "@/models/SupportConversation";
 import type { Ticket } from "@/models/Ticket";
-import type { CoverageResult, NivelDeCobertura } from "@/services/ai/library/coverage";
+import {
+  oQueFalta,
+  valeAtualizar,
+  type CoverageResult,
+  type NivelDeCobertura,
+} from "@/services/ai/library/coverage";
 import {
   ARTIGO_NO_PEDIDO,
   MATERIAL_NO_PEDIDO,
@@ -288,26 +293,28 @@ export function BatchCoverageDialog({
                         return (
                           <li key={artigo.id} className="text-sm">
                             <span className="font-medium">{encontrado.title}</span>
-                            {artigo.falta && (
+                            {oQueFalta(artigo.falta) && (
                               <p className="text-xs leading-5 text-muted-foreground">
-                                Falta: {artigo.falta}
+                                Falta: {oQueFalta(artigo.falta)}
                               </p>
                             )}
-                            <Button
-                              type="button"
-                              size="sm"
-                              variant="outline"
-                              className="mt-1.5 h-7 text-xs"
-                              disabled={atualizando !== null}
-                              onClick={() => atualizar(item, encontrado)}
-                            >
-                              {atualizando === chave ? (
-                                <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
-                              ) : (
-                                <RefreshCw className="mr-1.5 h-3.5 w-3.5" />
-                              )}
-                              Atualizar este artigo
-                            </Button>
+                            {valeAtualizar(item.resultado.cobertura, artigo.falta) && (
+                              <Button
+                                type="button"
+                                size="sm"
+                                variant="outline"
+                                className="mt-1.5 h-7 text-xs"
+                                disabled={atualizando !== null}
+                                onClick={() => atualizar(item, encontrado)}
+                              >
+                                {atualizando === chave ? (
+                                  <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
+                                ) : (
+                                  <RefreshCw className="mr-1.5 h-3.5 w-3.5" />
+                                )}
+                                Atualizar este artigo
+                              </Button>
+                            )}
                           </li>
                         );
                       })}

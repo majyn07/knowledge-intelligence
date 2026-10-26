@@ -47,6 +47,7 @@ const SYSTEM = [
   "  identificador. O identificador vai no campo próprio, e a tela mostra o título.",
   "- Prefira atualizar a criar. Com 'parcial', diga com precisão o que falta no artigo",
   "  existente — é isso que decide entre editar aquele e escrever outro.",
+  "- Quando nada falta num artigo, deixe 'falta' vazio, sem escrever 'nenhuma'.",
   "- Semelhança de palavras não é cobertura. Dois textos podem citar 'licença' e",
   "  responder dúvidas diferentes; o que conta é se a pessoa resolveria o caso lendo",
   "  o artigo existente.",

@@ -22,7 +22,12 @@ import {
   montarPedidoDeCobertura,
 } from "@/features/library/search/coverageRequest";
 import type { KnowledgeArticle } from "@/models/KnowledgeArticle";
-import type { CoverageResult, NivelDeCobertura } from "@/services/ai/library/coverage";
+import {
+  oQueFalta,
+  valeAtualizar,
+  type CoverageResult,
+  type NivelDeCobertura,
+} from "@/services/ai/library/coverage";
 import {
   ARTIGO_NO_PEDIDO,
   MATERIAL_NO_PEDIDO,
@@ -271,17 +276,20 @@ export function CoveragePanel({
                       artigo costuma valer mais que escrever outro, e o produto
                       inteiro prefere atualizar.
                     */}
-                    {artigo.falta && (
+                    {oQueFalta(artigo.falta) && (
                       <p className="mt-0.5 text-xs leading-5">
-                        <span className="font-medium">Falta:</span> {artigo.falta}
+                        <span className="font-medium">Falta:</span> {oQueFalta(artigo.falta)}
                       </p>
                     )}
 
                     {/*
                       Só para artigo que existe aqui e não é o que está sendo
                       editado: atualizar um artigo consigo mesmo não faz sentido.
+                      E não para o que já responde sem faltar nada.
                     */}
-                    {encontrado && encontrado.id !== excludeId && (
+                    {encontrado &&
+                      encontrado.id !== excludeId &&
+                      valeAtualizar(resultado.cobertura, artigo.falta) && (
                       <Button
                         type="button"
                         size="sm"
