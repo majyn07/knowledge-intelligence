@@ -1,6 +1,12 @@
 import { describe, expect, it } from "vitest";
 
-import { getCoverageJsonSchema, parseCoverage, type CoverageRequest } from "./coverage";
+import {
+  getCoverageJsonSchema,
+  oQueFalta,
+  parseCoverage,
+  valeAtualizar,
+  type CoverageRequest,
+} from "./coverage";
 import { paraGemini } from "../server/geminiSchema";
 
 const pedido = (extra: Partial<CoverageRequest> = {}): CoverageRequest => ({
@@ -86,6 +92,33 @@ describe("parseCoverage", () => {
   it("resposta fora do contrato devolve nulo, e não um resultado vazio", () => {
     expect(parseCoverage("desculpe, não consegui avaliar", pedido())).toBe(null);
     expect(parseCoverage(JSON.stringify({ cobertura: "talvez" }), pedido())).toBe(null);
+  });
+});
+
+/*
+  Medido em produção: com "já coberto", o modelo escreveu "Nenhuma com relação ao
+  erro técnico citado", e a tela oferecia atualizar o artigo que responde.
+*/
+describe("valeAtualizar", () => {
+  it("já coberto sem nada faltando não oferece atualizar", () => {
+    expect(valeAtualizar("coberta", "")).toBe(false);
+    expect(valeAtualizar("coberta", "Nenhuma com relação ao erro técnico citado.")).toBe(false);
+    expect(valeAtualizar("coberta", "nada")).toBe(false);
+  });
+
+  it("já coberto com lacuna de verdade oferece", () => {
+    expect(valeAtualizar("coberta", "O print da versão 2026.")).toBe(true);
+  });
+
+  /* "Nenhuma" no meio da frase é conteúdo, e não a resposta vazia. */
+  it("só a abertura da frase conta", () => {
+    expect(oQueFalta("Explicar por que nenhuma opção aparece")).toBe(
+      "Explicar por que nenhuma opção aparece"
+    );
+  });
+
+  it("parcial sempre oferece, porque o veredito já é a lacuna", () => {
+    expect(valeAtualizar("parcial", "")).toBe(true);
   });
 });
 

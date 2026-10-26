@@ -174,3 +174,29 @@ export function parseCoverage(raw: unknown, request: CoverageRequest): CoverageR
   */
   return { ...lido.data, cobertura, artigos: cobertura === "ausente" ? [] : artigos };
 }
+
+/**
+ * O que o modelo disse que falta, ou nada.
+ *
+ * O prompt pede `falta` vazio quando nada falta, e o modelo nem sempre obedece:
+ * em produção, em 26/10/2026, voltou "Nenhuma com relação ao erro técnico
+ * citado". Lido como texto, isso aparecia como "Falta: Nenhuma…", que é uma
+ * lacuna anunciada sobre lacuna nenhuma.
+ */
+export function oQueFalta(falta: string): string {
+  const texto = falta.trim();
+
+  return /^(nenhum|nenhuma|nada)\b/iu.test(texto) ? "" : texto;
+}
+
+/**
+ * Se vale oferecer "Atualizar este artigo".
+ *
+ * Com "já coberto" e nada faltando, atualizar seria pedir ao modelo que mexa num
+ * artigo que ele acabou de dizer que responde: no melhor caso nada muda, no pior
+ * ele reescreve o que já foi conferido. Com "parcial" o botão fica sempre, porque
+ * o veredito em si já é a lacuna.
+ */
+export function valeAtualizar(cobertura: NivelDeCobertura, falta: string): boolean {
+  return cobertura !== "coberta" || oQueFalta(falta) !== "";
+}
