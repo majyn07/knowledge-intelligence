@@ -917,9 +917,12 @@ leitura, e o modelo julga.
 correspondência** (`consulta`), e o modelo continua lendo o material inteiro.
 Exercitado em produção em 26/10/2026: um erro de pórtico espacial recebeu como
 candidatos cinco artigos sobre como funciona o atendimento, casados pelo e-mail
-do suporte. O veredito saiu certo ("não existe"), mas a tela oferecia atualizar
-cada um deles. Por isso **"ausente" não traz artigo**: nenhum dos lidos responde,
-e artigo lido e descartado não é ação.
+do suporte, e a tela oferecia atualizar cada um deles. O veredito ("não existe")
+**parecia** certo e estava errado: com a consulta limpa, o mesmo caso voltou
+"já coberto" pelo artigo do pórtico, que a busca suja nem entregava ao modelo.
+Candidato errado não produz só botão errado, produz veredito errado com cara de
+certo. E **"ausente" não traz artigo**: nenhum dos lidos responde, e artigo lido
+e descartado não é ação.
 
 **Preferir atualizar é regra, e vai escrita no prompt.** Um acervo de 1.822 piora
 mais por dobrar assunto do que por ter um artigo a menos: quem procura acha um
