@@ -136,6 +136,7 @@ export function normalizeArticle(raw: unknown, taxonomy: Taxonomy): KnowledgeArt
     ...(text(value.portalArticleId)
       ? { portalArticleId: text(value.portalArticleId) }
       : {}),
+    ...(text(value.portalBaseline) ? { portalBaseline: text(value.portalBaseline) } : {}),
     ...(text(value.url) ? { url: text(value.url) } : {}),
     ...(text(source.planId)
       ? {

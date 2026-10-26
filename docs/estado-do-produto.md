@@ -82,7 +82,7 @@ tem endpoint atrás dele**. Ver o escopo marcado não significa que existe API.
 | --- | --- |
 | Trazer os artigos | Pelo site público. O `sitemap.xml` lista todos, e a página traz título, resumo, corpo e a seção |
 | Editar | Dentro do KI, com editor próprio que preserva o HTML do portal |
-| Publicar no portal | **À mão.** Alguém abre o editor da HubSpot e cola |
+| Publicar no portal | **À mão.** Alguém abre o editor da HubSpot e cola. Desde 19/10 o produto aponta o que falta colar (Levantamento e filtro "portal" da Biblioteca), entrega o HTML pronto e liga o artigo nascido aqui à página criada lá |
 
 O KI prepara o artigo pronto. A última etapa é manual, e vai continuar sendo
 até a HubSpot oferecer a API.

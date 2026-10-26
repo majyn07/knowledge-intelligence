@@ -17,7 +17,12 @@ const taxonomy: Taxonomy = {
 };
 
 const recorte = {
-  filters: { search: "viga", status: "published" as const, categoryId: "cat-builder" },
+  filters: {
+    search: "viga",
+    status: "published" as const,
+    categoryId: "cat-builder",
+    portal: "aguardando" as const,
+  },
   sort: { column: "title" as const, direction: "asc" as const },
   page: 3,
 };
@@ -28,6 +33,7 @@ describe("toParams", () => {
       busca: "viga",
       estagio: "published",
       categoria: "cat-builder",
+      portal: "aguardando",
       ordem: "title",
       sentido: "asc",
       pagina: "3",
@@ -82,9 +88,24 @@ describe("fromParams", () => {
   it("URL vazia devolve o padrão", () => {
     const resultado = fromParams(LIBRARY_URL_DEFAULTS, taxonomy, 1);
 
-    expect(resultado.filters).toEqual({ search: "", status: "all", categoryId: "all" });
+    expect(resultado.filters).toEqual({
+      search: "",
+      status: "all",
+      categoryId: "all",
+      portal: "all",
+    });
     expect(resultado.sort).toEqual({ column: "updatedAt", direction: "desc" });
     expect(resultado.page).toBe(1);
+  });
+
+  /* O achado do Levantamento aponta para cá; link velho com valor estranho cai no padrão. */
+  it("lê a situação no portal, e recusa a que não existe", () => {
+    const com = (portal: string) =>
+      fromParams({ ...LIBRARY_URL_DEFAULTS, portal }, taxonomy, 1).filters.portal;
+
+    expect(com("aguardando")).toBe("aguardando");
+    expect(com("fora-do-portal")).toBe("fora-do-portal");
+    expect(com("publicado-ontem")).toBe("all");
   });
 });
 

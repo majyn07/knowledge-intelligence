@@ -41,6 +41,7 @@ export function toArticle(raw: unknown): KnowledgeArticle {
     ...(text(row.portal_article_id)
       ? { portalArticleId: text(row.portal_article_id) }
       : {}),
+    ...(text(row.portal_baseline) ? { portalBaseline: text(row.portal_baseline) } : {}),
     ...(text(row.url) ? { url: text(row.url) } : {}),
     ...(text(source.planId)
       ? {
@@ -85,6 +86,7 @@ export function fromArticle(article: KnowledgeArticle): ArticleRow {
     section_id: article.sectionId || null,
     genre_id: article.genreId || null,
     portal_article_id: article.portalArticleId ?? null,
+    portal_baseline: article.portalBaseline ?? null,
     url: article.url ?? null,
     tags: article.tags,
     keywords: article.keywords,

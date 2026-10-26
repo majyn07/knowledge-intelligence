@@ -5,6 +5,8 @@ import type { Ticket } from "@/models/Ticket";
 import { emptyClassification } from "@/models/TicketClassification";
 import type { Taxonomy } from "@/models/Taxonomy";
 
+import { impressaoDoPortal } from "@/features/library/portalSync";
+
 import { buildSurvey, surveySummary, type Finding } from "./survey";
 
 const now = new Date("2026-08-21T12:00:00.000Z");
@@ -322,7 +324,13 @@ describe("a lista inteira", () => {
       Um levantamento que inventa trabalho custa mais que nenhum: quem segue a
       lista uma vez e encontra tarefa inexistente para de seguir a lista.
     */
-    const saudavel = [artigo({}), artigo({ id: "a2", sectionId: "sec-spda" })];
+    /* Saudável é espelhado do portal: tem página lá e o texto é o de lá. */
+    const doPortal = (over: Partial<KnowledgeArticle>) => {
+      const base = artigo(over);
+      return { ...base, portalArticleId: `p-${base.id}`, portalBaseline: impressaoDoPortal(base) };
+    };
+
+    const saudavel = [doPortal({}), doPortal({ id: "a2", sectionId: "sec-spda" })];
 
     expect(survey(saudavel, [])).toEqual([]);
   });
@@ -377,5 +385,61 @@ describe("título repetido", () => {
 
     expect(item?.action).toContain("Decidir qual");
     expect(item?.why).not.toContain("portal");
+  });
+});
+
+/*
+  Publicado aqui não é publicado para o cliente: a última perna é colar à mão na
+  HubSpot, e era o único trabalho do ciclo que nenhuma tela apontava.
+*/
+describe("levar ao portal", () => {
+  const doPortal = (over: Partial<KnowledgeArticle>) => {
+    const base = artigo(over);
+    return { ...base, portalArticleId: `p-${base.id}`, portalBaseline: impressaoDoPortal(base) };
+  };
+
+  /* Importado do portal e depois mexido aqui. */
+  const mudadoAqui = (over: Partial<KnowledgeArticle>, mudanca: Partial<KnowledgeArticle>) => ({
+    ...doPortal(over),
+    ...mudanca,
+  });
+
+  const portal = (findings: Finding[]) => findings.filter((f) => f.kind === "levar-ao-portal");
+
+  it("aponta o que mudou aqui e o que nunca foi para lá", () => {
+    const achados = portal(
+      survey([
+        doPortal({ id: "igual" }),
+        mudadoAqui({ id: "mudou" }, { content: "Reescrito aqui." }),
+        artigo({ id: "daqui" }),
+      ])
+    );
+
+    expect(achados.map((f) => f.id)).toEqual([
+      "levar-ao-portal:aguardando:mudou",
+      "levar-ao-portal:fora-do-portal:daqui",
+    ]);
+    expect(achados[0].severity).toBe("alta");
+  });
+
+  it("acima do punhado vira um achado só, que leva ao filtro da Biblioteca", () => {
+    const muitos = Array.from({ length: 6 }, (_, i) =>
+      mudadoAqui({ id: `m${i}` }, { content: "Reescrito." })
+    );
+    const achados = portal(survey(muitos));
+
+    expect(achados).toHaveLength(1);
+    expect(achados[0].href).toBe("/library?portal=aguardando");
+    expect(achados[0].action).toContain("6 artigos");
+  });
+
+  it("sem o histórico, o importado sem impressão fica fora da conta", () => {
+    const antigo = { ...artigo({ id: "antigo" }), portalArticleId: "p-antigo" };
+
+    expect(portal(survey([antigo]))).toEqual([]);
+    expect(
+      portal(buildSurvey({ articles: [antigo], tickets: [], taxonomy, now, editadosAqui: new Set(["antigo"]) }))
+        .map((f) => f.id)
+    ).toEqual(["levar-ao-portal:a-conferir:antigo"]);
   });
 });

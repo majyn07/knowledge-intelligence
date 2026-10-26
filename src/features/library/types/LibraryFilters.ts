@@ -1,5 +1,7 @@
 import type { ArticleStatus } from "@/models/KnowledgeArticle";
 
+import type { PortalState } from "../portalSync";
+
 export interface LibraryFilters {
   search: string;
   status: ArticleStatus | "all";
@@ -8,4 +10,9 @@ export interface LibraryFilters {
    * seção: os que a migração não conseguiu encaixar e os recém-criados.
    */
   categoryId: string | "all" | "unset";
+  /**
+   * Em relação ao portal: o que falta levar para lá. É fila de trabalho, e vive
+   * na URL para o achado do Levantamento apontar direto para ela.
+   */
+  portal: PortalState | "all";
 }

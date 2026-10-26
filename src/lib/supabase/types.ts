@@ -163,6 +163,8 @@ export type ArticleRow = {
   section_id: string | null;
   genre_id: string | null;
   portal_article_id: string | null;
+  /** A impressão do texto do portal na última importação. Ver `portalSync`. */
+  portal_baseline: string | null;
   url: string | null;
   tags: string[];
   keywords: string[];
