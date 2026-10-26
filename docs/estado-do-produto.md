@@ -47,7 +47,9 @@ Tudo abaixo foi verificado contra os dados reais, não em ambiente de teste.
 - **Entrada pela HubSpot.** 1.025 atendimentos e 974 conversas vieram da API.
   Dois modos: por período, ou **pelo número do chamado** — traz só aqueles, sem
   varrer. Funciona em produção desde 17/09/2026.
-- **Marcar vários e avaliar.** Marca cinco atendimentos na lista, e a IA diz,
+- **Marcar vários e avaliar.** *Correção em 26/10/2026: o botão não abria nada
+  em produção desde 17/09, porque o diálogo só existia na vista da fila. Corrigido
+  no PR #43.* Marca cinco atendimentos na lista, e a IA diz,
   para cada um, se já existe artigo, se existe em parte ou se falta — com o
   botão de criar ou de atualizar em cada linha.
 - **Busca e recortes** por cliente, empresa e produto.

@@ -47,6 +47,20 @@ describe("findOverlaps", () => {
     expect(pairs[0].shared.length).toBeGreaterThan(0);
   });
 
+  /*
+    Mesmo título na mesma seção é duplicata, e já tem achado próprio. Na
+    varredura real, os três primeiros pares eram isso, e cada um custou um
+    pedido de IA para confirmar o óbvio.
+  */
+  it("não manda para a IA o mesmo artigo duas vezes", () => {
+    const { pairs } = findOverlaps([
+      artigo({ title: "Verificação de flechas", content: SOBRE_FLECHA_A }),
+      artigo({ title: "  verificação de FLECHAS ", content: SOBRE_FLECHA_A }),
+    ]);
+
+    expect(pairs).toEqual([]);
+  });
+
   it("não aponta artigos de assuntos diferentes", () => {
     const { pairs } = findOverlaps([
       artigo({ title: "Flechas em vigas", content: SOBRE_FLECHA_A }),

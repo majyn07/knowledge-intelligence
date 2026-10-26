@@ -10,10 +10,9 @@ import { isSharedWorkspace } from "@/lib/supabase/mode";
  * A tela poderia falar com o banco direto, e não fala por dois motivos que
  * vieram da prática.
  *
- * `app_settings` não cabe no mapa de tabelas tipadas: ela seria a décima sexta,
- * e o genérico da Supabase estoura o limite de inferência do TypeScript ali,
- * derrubando as outras quinze para `never`. Fora do mapa, `from()` compila com
- * um disfarce e não dispara requisição nenhuma.
+ * Eram dois, e o primeiro era diagnóstico errado: "`app_settings` não cabe no
+ * mapa tipado". Cabia; a linha dela é que era `interface`, e não `type` (ver
+ * `AppSettingRow` em `types`). Desde 26/10/2026 ela está no mapa.
  *
  * E no navegador `auth.getSession()` ficava pendurado, sem erro e sem rede, o
  * que deixava a tela esperando para sempre por um estado que não vinha. Aqui a
@@ -46,7 +45,7 @@ export async function GET() {
   if (!user) return NextResponse.json({ message: "Entre para ver isto." }, { status: 401 });
 
   const { data, error } = await supabase
-    .from("app_settings" as never)
+    .from("app_settings")
     .select("value")
     .eq("key", CHAVE)
     .maybeSingle();
@@ -88,8 +87,8 @@ export async function PUT(request: Request) {
   }
 
   const { error } = await supabase
-    .from("app_settings" as never)
-    .upsert({ key: CHAVE, value: corpo, updated_at: new Date().toISOString() } as never);
+    .from("app_settings")
+    .upsert({ key: CHAVE, value: corpo, updated_at: new Date().toISOString() });
 
   if (error) {
     console.error("AUTO_SYNC_WRITE_ERROR", error);

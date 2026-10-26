@@ -362,13 +362,6 @@ export function AnalysisWorkspace() {
           />
 
           {dialogs}
-
-          <BatchCoverageDialog
-            tickets={ticketsMarcados}
-            conversas={conversations}
-            aberto={avaliandoMarcados}
-            aoFechar={() => setAvaliandoMarcados(false)}
-          />
         </>
       ) : (
         <>
@@ -469,6 +462,20 @@ export function AnalysisWorkspace() {
           {dialogs}
         </>
       )}
+
+      {/*
+        Fora dos dois ramos, e de propósito. Ficava só no da fila de triagem,
+        enquanto a marcação e o botão "Avaliar no acervo" vivem no de atender:
+        de 17/09 a 26/10/2026 o botão não fez nada em produção, sem erro
+        nenhum. Achado ao exercitar a função contra caso real, que é o que ela
+        nunca tinha sido.
+      */}
+      <BatchCoverageDialog
+        tickets={ticketsMarcados}
+        conversas={conversations}
+        aberto={avaliandoMarcados}
+        aoFechar={() => setAvaliandoMarcados(false)}
+      />
     </div>
   );
 }

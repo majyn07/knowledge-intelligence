@@ -602,13 +602,19 @@ quais linhas aparecem depois que a tabela é alcançável, não se ela é
 alcançável. E precisa de `notify pgrst, 'reload schema'`: o PostgREST guarda o
 schema em cache, e sem o aviso ele responde como se a tabela não existisse.
 
-**O mapa de tabelas tipadas está cheio.** A décima sexta entrada estoura o
-limite de inferência do TypeScript no genérico da Supabase, e o efeito não é um
-erro na tabela nova: **as outras quinze colapsam para `never`**, e a queixa
-aparece longe, em `profiles`, como se `is_admin` não existisse. Quem fica de
-fora do mapa não pode usar `from()`: ele compila com um disfarce e não dispara
-requisição nenhuma, sem erro e sem rede. O caminho é uma rota nossa, com o
-cliente de servidor, que é onde a sessão vem do cookie.
+**Linha do mapa tipado é `type`, nunca `interface`.** Durante semanas este
+documento disse que o mapa estava "cheio": a décima sexta tabela derrubava as
+outras quinze para `never`, com a queixa aparecendo longe, em `profiles`, como
+se `is_admin` não existisse. Medido em 26/10/2026, **não era a contagem**: a
+décima sexta calhou de ter a linha declarada como `interface`. O genérico da
+Supabase exige `Record<string, unknown>`, e `interface` não tem a assinatura de
+índice implícita que um `type` tem; uma tabela fora do formato reprova o
+esquema inteiro. Com `type`, o mapa tem dezessete e compila.
+
+`TODAS_AS_LINHAS_SAO_TYPE`, em `types.ts`, é a trava: uma linha `interface`
+falha **ali**, nomeando a tabela. Fora do mapa, `from()` compila com um
+disfarce e não dispara requisição nenhuma, sem erro e sem rede — e é por isso
+que nenhuma tabela deve ficar fora dele.
 
 ### Como o dado chega às telas
 
@@ -968,6 +974,17 @@ listou seis procedimentos que sumiriam numa união descuidada.
 
 Ela não une nada, e a tela não oferece botão para o contrário.
 
+**E duplicata não vai para a varredura.** Rodando contra o acervo real em
+26/10/2026, os três primeiros pares eram o mesmo artigo duas vezes — título
+idêntico, 100% do vocabulário — e cada um custou um pedido e quase um minuto
+para o modelo dizer "mesma dúvida". Mesmo título na mesma seção já é achado
+próprio, calculado sem ler nada. As duas buscas usam a mesma chave de título
+(`tituloDe`), para não discordarem sobre o que é "o mesmo".
+
+Os três vereditos estavam certos, e ficaram guardados. O Gemini respondeu 503
+("high demand") em boa parte da tarde: a varredura esperou, tentou de novo e
+parou dizendo onde, que é o que ela devia fazer.
+
 **E ela varre as sobreposições em lote.** O Levantamento aponta **137 pares** no
 acervo real, e ler um par por vez é o trabalho manual que este produto existe
 para deixar de ser manual — a mesma lição da sugestão de seção, que saiu de
@@ -1010,8 +1027,8 @@ não some: a tela diz que existiu e que o texto mudou, e o par volta para a fila
 Continua sendo **proposta**, com quem pediu e quando ao lado. Guardar não é
 promover a achado calculado.
 
-A tabela fica fora do mapa tipado, que está cheio, e passa por
-`/api/library/verdicts`. A leitura é **sob demanda**, num hook e não num
+A tabela passa por `/api/library/verdicts` porque no navegador
+`auth.getSession()` ficava pendurado; desde 26/10/2026 ela está no mapa tipado. A leitura é **sob demanda**, num hook e não num
 provider do layout: só duas telas a usam, e as duas só existem quando alguém vai
 olhar um par. No modo navegador vai para o `lib/storage`.
 

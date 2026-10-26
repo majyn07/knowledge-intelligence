@@ -287,6 +287,18 @@ export interface Database {
         Update: Partial<DashboardPanelRow>;
         Relationships: [];
       };
+      app_settings: {
+        Row: AppSettingRow;
+        Insert: Partial<AppSettingRow> & { key: string };
+        Update: Partial<AppSettingRow>;
+        Relationships: [];
+      };
+      ai_verdicts: {
+        Row: AiVerdictRow;
+        Insert: Partial<AiVerdictRow> & Pick<AiVerdictRow, "kind" | "subject" | "fingerprint" | "payload">;
+        Update: Partial<AiVerdictRow>;
+        Relationships: [];
+      };
       support_conversations: {
         Row: SupportConversationRow;
         Insert: SupportConversationRow;
@@ -308,14 +320,16 @@ export interface Database {
  * ali. Isto é o contrário: decide se o produto fala com o servidor do suporte, e
  * essa decisão é uma só para catorze pessoas.
  *
- * **Fica fora do mapa `Tables` de propósito.** Declará-la ali é a décima sexta
- * tabela, e o genérico da Supabase estoura o limite de inferência do
- * TypeScript: todas as outras colapsam para `never`, e o erro aparece longe
- * daqui, em `profiles`, como se `is_admin` não existisse. Quem lê e escreve
- * esta tabela converte na mão, que é o mesmo caminho que `useSharedCollection`
- * já usa pelo mesmo motivo.
+ * **Ficou fora do mapa `Tables` por um diagnóstico errado**, corrigido em
+ * 26/10/2026. Declará-la ali derrubava as outras quinze para `never`, e a
+ * conclusão foi "a décima sexta estoura o limite de inferência". Não era a
+ * contagem: era esta linha ser `interface`. O genérico da Supabase exige que
+ * cada linha satisfaça `Record<string, unknown>`, e `interface` não tem a
+ * assinatura de índice implícita que um `type` tem. Uma tabela fora do formato
+ * reprova o esquema inteiro, e o erro aparece longe, em `profiles`. Como
+ * `type`, ela entra, e entram quantas forem precisas.
  */
-export interface AppSettingRow {
+export type AppSettingRow = {
   key: string;
   /*
     O conteúdo, em `jsonb`. `unknown` e não um tipo por chave: cada
@@ -324,8 +338,36 @@ export interface AppSettingRow {
   */
   value: unknown;
   updated_at: string;
-  updated_by: string;
-}
+  updated_by: string | null;
+};
+
+/** O veredito da IA guardado para a equipe. Ver `compare/savedVerdict`. */
+export type AiVerdictRow = {
+  kind: string;
+  subject: string;
+  fingerprint: string;
+  payload: unknown;
+  actor_id: string | null;
+  actor_label: string;
+  at: string;
+};
+
+/*
+  A trava que teria evitado o diagnóstico errado: toda linha do mapa precisa ser
+  um `type` com assinatura de índice. Se alguém declarar uma `interface`, o erro
+  aparece **aqui**, nomeando a tabela, e não em `profiles` como `never`.
+*/
+type LinhaForaDoFormato = {
+  [Tabela in keyof Database["public"]["Tables"]]: Database["public"]["Tables"][Tabela]["Row"] extends Record<
+    string,
+    unknown
+  >
+    ? never
+    : Tabela;
+}[keyof Database["public"]["Tables"]];
+
+export const TODAS_AS_LINHAS_SAO_TYPE: [LinhaForaDoFormato] extends [never] ? true : LinhaForaDoFormato =
+  true;
 
 /** Nomes de tabela que o tempo real acompanha. */
 export const REALTIME_TABLES = [

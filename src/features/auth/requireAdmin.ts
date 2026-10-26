@@ -88,7 +88,7 @@ export async function requireAdmin(): Promise<Autorizacao> {
     começar.
   */
   const { data: config } = await supabase
-    .from("app_settings" as never)
+    .from("app_settings")
     .select("value")
     .eq("key", "hubspot_auto_sync")
     .maybeSingle();
@@ -162,7 +162,7 @@ export async function requireHubSpotRead(): Promise<Autorizacao> {
   }
 
   const { data: config } = await supabase
-    .from("app_settings" as never)
+    .from("app_settings")
     .select("value")
     .eq("key", "hubspot_auto_sync")
     .maybeSingle();

@@ -8,11 +8,10 @@ import { isSharedWorkspace } from "@/lib/supabase/mode";
 /**
  * Quem pode fazer o quê, lido e gravado pelo servidor.
  *
- * Mesmo caminho do interruptor da busca automática, e pelos mesmos dois motivos
- * medidos: `app_settings` não cabe no mapa de tabelas tipadas — seria a décima
- * sexta, e ali o genérico da Supabase estoura o limite de inferência e derruba
- * as outras quinze para `never`; e no navegador `auth.getSession()` ficava
- * pendurado, sem erro e sem rede.
+ * Mesmo caminho do interruptor da busca automática: no navegador
+ * `auth.getSession()` ficava pendurado, sem erro e sem rede. (O outro motivo
+ * registrado aqui, "a tabela não cabe no mapa tipado", era diagnóstico errado:
+ * ver `AppSettingRow` em `types`.)
  */
 
 const CHAVE = "permissoes";
@@ -38,7 +37,7 @@ export async function GET() {
   if (!user) return NextResponse.json({ message: "Entre para ver isto." }, { status: 401 });
 
   const { data, error } = await supabase
-    .from("app_settings" as never)
+    .from("app_settings")
     .select("value")
     .eq("key", CHAVE)
     .maybeSingle();
@@ -88,8 +87,8 @@ export async function PUT(request: Request) {
   }
 
   const { error } = await supabase
-    .from("app_settings" as never)
-    .upsert({ key: CHAVE, value: guards, updated_at: new Date().toISOString() } as never);
+    .from("app_settings")
+    .upsert({ key: CHAVE, value: guards, updated_at: new Date().toISOString() });
 
   if (error) {
     console.error("PERMISSOES_WRITE_ERROR", error);
