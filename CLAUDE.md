@@ -913,6 +913,14 @@ Os dois convivem: o aviso léxico é instantâneo e roda a cada tecla; a avalia�
 o passo seguinte, pedido por quem escreve. A busca escolhe os cinco que valem uma
 leitura, e o modelo julga.
 
+**Quando o material vem de atendimento, a busca usa a versão sem
+correspondência** (`consulta`), e o modelo continua lendo o material inteiro.
+Exercitado em produção em 26/10/2026: um erro de pórtico espacial recebeu como
+candidatos cinco artigos sobre como funciona o atendimento, casados pelo e-mail
+do suporte. O veredito saiu certo ("não existe"), mas a tela oferecia atualizar
+cada um deles. Por isso **"ausente" não traz artigo**: nenhum dos lidos responde,
+e artigo lido e descartado não é ação.
+
 **Preferir atualizar é regra, e vai escrita no prompt.** Um acervo de 1.822 piora
 mais por dobrar assunto do que por ter um artigo a menos: quem procura acha um
 dos dois e não sabe do outro. Por isso "parcial" aponta **o que falta** no artigo

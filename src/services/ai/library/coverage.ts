@@ -165,5 +165,12 @@ export function parseCoverage(raw: unknown, request: CoverageRequest): CoverageR
   const cobertura =
     lido.data.cobertura !== "ausente" && artigos.length === 0 ? "ausente" : lido.data.cobertura;
 
-  return { ...lido.data, cobertura, artigos };
+  /*
+    "Ausente" é "nenhum destes responde", e então nenhum deles é para atualizar.
+    O modelo devolvia os candidatos lidos mesmo assim, com um "falta: tudo", e a
+    tela oferecia "Atualizar este artigo" em cada um: em produção, em 26/10/2026,
+    sugeriu pôr os passos de um erro de pórtico espacial dentro de "Como
+    funciona o Suporte AltoQi?". Artigo lido e descartado não é ação.
+  */
+  return { ...lido.data, cobertura, artigos: cobertura === "ausente" ? [] : artigos };
 }

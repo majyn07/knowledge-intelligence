@@ -65,6 +65,17 @@ describe("parseCoverage", () => {
     expect(lido?.rascunho?.title).toBe("T");
   });
 
+  /*
+    Medido em produção: com "ausente", o modelo devolveu os candidatos lidos e a
+    tela ofereceu atualizá-los — pôr um erro de pórtico em "Como funciona o
+    Suporte". Nenhum responde, então nenhum é para atualizar.
+  */
+  it("ausente não traz artigo para atualizar, mesmo que o modelo liste", () => {
+    const lido = parseCoverage(resposta({ cobertura: "ausente" }), pedido());
+
+    expect(lido).toMatchObject({ cobertura: "ausente", artigos: [] });
+  });
+
   /* A cerca de crase que o modelo às vezes acrescenta não derruba a resposta. */
   it("tolera a cerca de crase", () => {
     expect(parseCoverage("```json\n" + resposta() + "\n```", pedido())).toMatchObject({

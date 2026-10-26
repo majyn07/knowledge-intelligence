@@ -19,6 +19,7 @@ import { useLibrary } from "@/features/library/providers/LibraryProvider";
 import { montarPedidoDeCobertura } from "@/features/library/search/coverageRequest";
 import { contar } from "@/lib/plural";
 import { semPontoFinal } from "@/lib/frase";
+import { semCorrespondencia } from "@/lib/vocabulary";
 import type { KnowledgeArticle } from "@/models/KnowledgeArticle";
 import type { SupportConversation } from "@/models/SupportConversation";
 import type { Ticket } from "@/models/Ticket";
@@ -103,7 +104,12 @@ export function BatchCoverageDialog({
 
   async function avaliarUm(ticket: Ticket): Promise<Avaliado> {
     const material = materialDe(ticket);
-    const pedido = montarPedidoDeCobertura({ articles, material, sectionId: "" });
+    const pedido = montarPedidoDeCobertura({
+      articles,
+      material,
+      sectionId: "",
+      consulta: semCorrespondencia(material),
+    });
 
     const resposta = await fetch("/api/library/coverage", {
       method: "POST",
