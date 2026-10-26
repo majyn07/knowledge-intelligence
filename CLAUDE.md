@@ -859,6 +859,14 @@ Na lista de atendimentos, a etapa saiu da coluna ao lado do título e foi para a
 linha do número e da data: ao lado, ela comia oitenta dos duzentos e cinquenta
 pixels da coluna, e o título ficava com cem. Agora fica com 187.
 
+**E a auditoria precisa ser repetida com o dado real.** Em 26/10/2026, refeita
+em produção depois de a classificação da HubSpot entrar, ela achou o que os
+dados sintéticos não mostravam porque aquelas listas estavam vazias: as listas
+de classificação com rótulos de 65 px a 768 e cartões de 450 px numa tela de
+375, o seletor de equipe do perfil saindo da caixa e as ações de pessoa fora da
+tela. Os quatro eram as mesmas regras de cima, em lugares que só ganharam
+conteúdo depois.
+
 Texto de ajuda de busca é curto e o detalhe vai no `title`. O da Biblioteca,
 além de não caber, prometia "título, resumo, módulo, tag" e não dizia **texto**,
 que é justamente o que a busca alcança desde a importação do portal.
@@ -2404,9 +2412,15 @@ lembrar de desfazer, e esquecer o desfazer deixa a equipe inteira sem banco.
 Um hook `PostToolUse` em `.claude/settings.json` roda `typecheck` e `test` em
 segundo plano após edições em `.ts`/`.tsx`, avisando só quando algo quebra.
 
-As CLIs da Vercel e da Supabase estão instaladas e autenticadas, então dá para
-conferir deploy, ambiente e configuração sem abrir painel. No PowerShell chame
-`vercel.cmd`: a política de execução recusa o `.ps1`.
+A CLI da Vercel **não está instalada**: roda por `npx.cmd -y vercel@latest`, e no
+PowerShell tem de ser `npx.cmd`, porque a política de execução recusa o `npx.ps1`.
+O login expira; renovado em 26/10/2026 com `vercel login`. Dá para conferir
+deploy, ambiente e configuração sem abrir painel.
+
+**As pré-visualizações não têm HubSpot nem modo compartilhado.**
+`HUBSPOT_ACCESS_TOKEN` e `NEXT_PUBLIC_SHARED_WORKSPACE` existem só em Production:
+o deploy de um PR roda no modo navegador, sem login e sem os dados da equipe.
+Teste com dado real é em produção.
 
 Data na tela é `RelativeDate`: relativo no texto, instante exato no título.
 O valor relativo entra depois da montagem. Servidor e cliente têm relógios

@@ -82,7 +82,7 @@ export function PeopleManager() {
               />
             </div>
 
-            <div className="mt-5 grid gap-4 md:grid-cols-3">
+            <div className="mt-5 grid gap-4 xl:grid-cols-3">
               <div className="space-y-2">
                 <Label htmlFor="me-name">Nome</Label>
 
@@ -227,7 +227,8 @@ export function PeopleManager() {
                     </span>
                   </span>
 
-                  <span className="flex shrink-0 items-center gap-2">
+                  {/* Quebra de linha: shrink-0 empurrava as ações para fora da tela no celular. */}
+                  <span className="flex flex-wrap items-center gap-2">
                     {person.isAdmin && (
                       <StatusBadge variant="default">Administra</StatusBadge>
                     )}

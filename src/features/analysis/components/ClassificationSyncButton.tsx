@@ -110,6 +110,7 @@ export function ClassificationSyncButton() {
           type="button"
           size="sm"
           variant="outline"
+          className="h-auto min-h-8 max-w-full whitespace-normal text-left"
           onClick={trazer}
           title="Só leitura na HubSpot. Os onze campos de cada atendimento passam a ser os de lá."
         >
