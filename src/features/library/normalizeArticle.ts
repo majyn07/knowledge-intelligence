@@ -4,6 +4,7 @@ import type { KnowledgeArticle } from "@/models/KnowledgeArticle";
 import type { Taxonomy } from "@/models/Taxonomy";
 
 import type { ArticleDraft } from "./draft";
+import { normalizarOrigem } from "./articleOrigin";
 
 const STATUSES = ARTICLE_STATUSES;
 
@@ -137,6 +138,9 @@ export function normalizeArticle(raw: unknown, taxonomy: Taxonomy): KnowledgeArt
       ? { portalArticleId: text(value.portalArticleId) }
       : {}),
     ...(text(value.portalBaseline) ? { portalBaseline: text(value.portalBaseline) } : {}),
+    ...(normalizarOrigem(value.origemAtendimentos)
+      ? { origemAtendimentos: normalizarOrigem(value.origemAtendimentos) }
+      : {}),
     ...(text(value.url) ? { url: text(value.url) } : {}),
     ...(text(source.planId)
       ? {

@@ -5,6 +5,7 @@ import { articleText } from "../content/articleText";
 import { Sparkles } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { semPontoFinal } from "@/lib/frase";
 import { StatusBadge } from "@/components/common/status/StatusBadge";
 import { useTaxonomy } from "@/features/taxonomy/providers/TaxonomyProvider";
 import { sectionPath } from "@/models/Taxonomy";
@@ -152,7 +153,7 @@ export function SuggestSectionDialog({
         acumuladas.push(...(await pedirLote(bloco)));
       } catch (failure) {
         setError(
-          `${failure instanceof Error ? failure.message : "Falha ao consultar"}, parou no lote ${
+          `${semPontoFinal(failure instanceof Error ? failure.message : "Falha ao consultar")}. Parou no lote ${
             i + 1
           } de ${lotes}. As ${acumuladas.length} sugestões já recebidas continuam abaixo.`
         );

@@ -126,3 +126,20 @@ describe("entrega de atualização", () => {
     expect(r?.contentFormat).toBeUndefined();
   });
 });
+
+/* A origem é o "antes" do MVP 5: o artigo precisa saber de onde nasceu. */
+describe("origem nos atendimentos", () => {
+  it("leva os atendimentos e os termos do grupo", () => {
+    const r = normalizarRascunho({ title: "T", content: "C", atendimentos: ["t1", "", 3, "t2"], termos: ["laje"] });
+
+    expect(r?.atendimentos).toEqual(["t1", "t2"]);
+    expect(r?.termos).toEqual(["laje"]);
+  });
+
+  it("sem atendimento não há origem, nem termos soltos", () => {
+    const r = normalizarRascunho({ title: "T", content: "C", termos: ["laje"] });
+
+    expect(r?.atendimentos).toBeUndefined();
+    expect(r?.termos).toBeUndefined();
+  });
+});

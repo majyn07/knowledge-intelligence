@@ -97,12 +97,15 @@ export function GroupToArticleDialog({
               produto evita — quem escreve decide no formulário.
             */
             sectionId=""
+            origem={{ atendimentos: grupo.tickets.map((t) => t.id), termos: grupo.terms }}
             onApply={(rascunho) => {
               setEntregando(true);
 
               guardarRascunho({
                 ...rascunho,
                 origem: `${contar(grupo.tickets.length, "atendimento")} sobre "${grupo.subject}"`,
+                atendimentos: grupo.tickets.map((t) => t.id),
+                termos: grupo.terms,
               });
 
               router.push("/library");

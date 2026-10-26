@@ -1,3 +1,4 @@
+import type { OrigemNosAtendimentos } from "@/features/library/articleOrigin";
 import type { ArticleDraft } from "@/features/library/draft";
 
 import type { Trashable } from "./Trash";
@@ -116,6 +117,12 @@ export interface KnowledgeArticle extends Trashable {
   url?: string;
 
   source?: KnowledgeContentSource;
+
+  /**
+   * De quais atendimentos o artigo nasceu, quando veio da fila ou dos marcados.
+   * Ver `features/library/articleOrigin`.
+   */
+  origemAtendimentos?: OrigemNosAtendimentos;
 
   createdAt: Date;
   updatedAt: Date;

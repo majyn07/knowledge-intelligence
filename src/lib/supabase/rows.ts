@@ -4,6 +4,7 @@ import type { ArticleStatus, KnowledgeArticle } from "@/models/KnowledgeArticle"
 import type { Taxonomy } from "@/models/Taxonomy";
 
 import type { ArticleRow, TaxonomyCategoryRow, TaxonomyEntryRow, TaxonomySectionRow } from "./types";
+import { normalizarOrigem } from "@/features/library/articleOrigin";
 
 /**
  * Tradução entre linha do banco e modelo do domínio.
@@ -42,6 +43,9 @@ export function toArticle(raw: unknown): KnowledgeArticle {
       ? { portalArticleId: text(row.portal_article_id) }
       : {}),
     ...(text(row.portal_baseline) ? { portalBaseline: text(row.portal_baseline) } : {}),
+    ...(normalizarOrigem(row.origem_atendimentos)
+      ? { origemAtendimentos: normalizarOrigem(row.origem_atendimentos) }
+      : {}),
     ...(text(row.url) ? { url: text(row.url) } : {}),
     ...(text(source.planId)
       ? {
@@ -87,6 +91,7 @@ export function fromArticle(article: KnowledgeArticle): ArticleRow {
     genre_id: article.genreId || null,
     portal_article_id: article.portalArticleId ?? null,
     portal_baseline: article.portalBaseline ?? null,
+    origem_atendimentos: article.origemAtendimentos ?? null,
     url: article.url ?? null,
     tags: article.tags,
     keywords: article.keywords,

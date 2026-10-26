@@ -1203,6 +1203,16 @@ mais recentes, dita como amostra: um assunto que chega ha dois anos mudou de
 forma no caminho, e o artigo tem de responder ao que chega hoje. O material fica
 visivel antes do clique, como o plano de importacao.
 
+**E o artigo guarda de quais atendimentos nasceu** (`origemAtendimentos`). A
+entrega leva os atendimentos e os termos do grupo, e eles entram no artigo na
+**gravação**, não antes: até ali a pessoa pode desistir. Atualizar um artigo
+existente **soma** os atendimentos novos aos de antes, e a data fica a da
+primeira origem. É o "antes" de que o "o artigo resolveu?" precisa: medido em
+19/10/2026, nenhum dos 1.831 publicados tinha origem, e sem ela comparar o que
+chega depois da publicação seria inventar. Os termos vão junto porque a
+triagem reagrupa quando o acervo muda, e o assunto medido depois tem de ser o de
+quando o artigo nasceu.
+
 O rascunho chega ao formulario por **entrega**, nao por estado: a chave some na
 leitura, senao abrir o formulario na semana seguinte traria de volta um rascunho
 que a pessoa ja decidiu nao usar. Fica no navegador pela mesma razao da
@@ -2460,7 +2470,7 @@ para na página vazia, o mapeamento de mensagens do provedor, a consulta da IA
 sobre o artigo, o rótulo da iniciativa, motor de busca e busca
 transversal, transições de artigo e de plano, métricas por projeto e por
 período, o tempo do ciclo com as ressalvas dele e a planilha da página, parsing da resposta da IA com a redução do contrato ao que o provedor lê e o preparo do transcrito, a escolha do provedor com a classificação
-das falhas dele e a decisão de tentar de novo, a leitura da sugestão de seção, a avaliação de cobertura do acervo, o material que um grupo da fila leva ao artigo com a entrega do rascunho, a leitura de dois artigos que se
+das falhas dele e a decisão de tentar de novo, a leitura da sugestão de seção, a avaliação de cobertura do acervo, o material que um grupo da fila leva ao artigo com a entrega do rascunho e a origem que ele guarda, a leitura de dois artigos que se
 sobrepõem com o veredito guardado e a impressão que o vence, o retrato que a
 tela dá ao assistente com o encaixe do painel na janela, a leitura do preenchimento de
 formulário com a seleção do que aplicar e a classificação do arquivo

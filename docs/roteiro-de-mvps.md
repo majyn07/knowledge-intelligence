@@ -22,7 +22,7 @@ de uma sprint parte da anterior, e o `main` só muda quando alguém integra.
 | 7 | Avisos lidos por pessoa | `sprint/avisos-por-pessoa` | [#36](https://github.com/majyn07/knowledge-intelligence/pull/36) | Integrado |
 | Extra | UX e UI: quebras e acabamento | `sprint/ux-ui` | [#37](https://github.com/majyn07/knowledge-intelligence/pull/37) | Integrado; conferido em produção em 26/10 |
 | 6 | Artigos citados pelo suporte | `sprint/artigos-citados` | [#38](https://github.com/majyn07/knowledge-intelligence/pull/38) | Integrado; conferido em produção (39 citações no artigo mais usado) |
-| 5 | O artigo resolveu? | — | — | **Medido e adiado**: não há dado (ver a seção) |
+| 5 | O artigo resolveu? | `sprint/origem-do-artigo` | a abrir | **Pré-requisito feito** (o artigo guarda a origem, migração `0033` aplicada); a medição em si espera artigos publicados pelo ciclo |
 | 4 | Conferir IA contra casos reais | — | — | Espera a escolha dos casos |
 | 8, 9, 10 | Discussões | — | — | Esperam decisão |
 | 12 | Classificação da HubSpot no produto | `sprint/classificacao-hubspot` | [#40](https://github.com/majyn07/knowledge-intelligence/pull/40) | **Integrado e em produção.** Classificação trazida em 26/10: 1.022 atendimentos |
@@ -247,6 +247,18 @@ atendimento só, e a entrega do rascunho não guarda nenhum. Com isso, cada
 publicação pelo ciclo passa a ter o "antes" fixado, e o "depois" se mede
 sozinho com o tempo. É mudança de modelo e de fluxo, por isso fica para
 conversar.
+
+### Pré-requisito feito (26/10/2026)
+
+- O artigo passou a guardar `origemAtendimentos`: os atendimentos e os termos
+  do grupo de onde nasceu, e quando (migração `0033`, já aplicada).
+- Preenchida pela fila (criar e atualizar) e pelos atendimentos marcados
+  (criar e atualizar), na gravação do artigo. Atualizar soma, não troca.
+- O artigo mostra "Escrito a partir de N atendimentos", com o assunto de quando
+  nasceu.
+- **A medição antes e depois continua por fazer**, e por um motivo honesto: só
+  existe a partir do primeiro artigo publicado por esse caminho. Quando houver
+  alguns com semanas de publicação, ela passa a ter dado.
 
 ---
 
