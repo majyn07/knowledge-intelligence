@@ -19,10 +19,10 @@ import {
  * **A leitura passa por uma rota nossa, e isso custou uma tarde para descobrir
  * por quê.** Duas coisas conspiram contra falar com o banco daqui:
  *
- * `app_settings` não cabe no mapa de tabelas tipadas. Ela seria a décima sexta,
- * e o genérico da Supabase estoura o limite de inferência do TypeScript ali,
- * derrubando as outras quinze para `never`. Fora do mapa, `from()` compila com
- * um disfarce e **não dispara requisição nenhuma**.
+ * Achou-se que `app_settings` não cabia no mapa tipado, e que fora dele `from()`
+ * compilava com um disfarce sem disparar requisição. O disfarce era real; a
+ * causa não: a linha era `interface` (ver `AppSettingRow` em `types`). Desde
+ * 26/10/2026 a tabela está no mapa.
  *
  * E `auth.getSession()` no navegador ficava **pendurado**: sem erro, sem rede,
  * sem aviso. A tela esperava para sempre por um estado que não vinha, e não

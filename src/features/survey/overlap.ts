@@ -102,6 +102,15 @@ export function findOverlaps(
 
     for (let i = 0; i < lista.length; i += 1) {
       for (let j = i + 1; j < lista.length; j += 1) {
+        /*
+          Mesmo título na mesma seção é **duplicata**, e já tem achado próprio
+          (`findDuplicates`), que não precisa ler nada para saber. Aqui ele
+          só gastava IA: rodando a varredura em produção em 26/10/2026, os três
+          primeiros pares eram o mesmo artigo duas vezes, 100% do vocabulário,
+          e cada um custou um pedido para o modelo confirmar "mesma dúvida".
+        */
+        if (tituloDe(lista[i]) === tituloDe(lista[j])) continue;
+
         const score = jaccard(vocabularios[i], vocabularios[j]);
         if (score < limiar) continue;
 
@@ -117,6 +126,11 @@ export function findOverlaps(
   pairs.sort((x, y) => y.score - x.score);
 
   return { pairs, skippedSections };
+}
+
+/** A mesma chave das duas buscas: duplicata e sobreposição não podem discordar sobre o que é "mesmo título". */
+function tituloDe(article: KnowledgeArticle): string {
+  return article.title.trim().toLowerCase();
 }
 
 export interface DuplicateGroup {
@@ -146,7 +160,7 @@ export function findDuplicates(articles: KnowledgeArticle[]): DuplicateGroup[] {
   for (const article of articles) {
     if (article.status !== "published") continue;
 
-    const titulo = article.title.trim().toLowerCase();
+    const titulo = tituloDe(article);
     if (titulo === "") continue;
 
     /*

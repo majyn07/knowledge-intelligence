@@ -13,9 +13,9 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 /**
  * Os vereditos da IA guardados para a equipe.
  *
- * Pela rota, e não direto do navegador, pelo motivo do interruptor:
- * `ai_verdicts` não cabe no mapa de tabelas tipadas, que está cheio, e fora
- * dele `from()` no navegador compila sem disparar requisição nenhuma.
+ * Pela rota, e não direto do navegador, pelo motivo do interruptor: no
+ * navegador `auth.getSession()` ficava pendurado. A tabela está no mapa tipado
+ * desde 26/10/2026 — ele nunca esteve cheio (ver `AppSettingRow` em `types`).
  *
  * Sem espaço compartilhado esta rota não é chamada: o navegador guarda os
  * vereditos no próprio armazenamento, como guarda todo o resto.
@@ -54,7 +54,7 @@ export async function GET(request: Request) {
   if (!supabase) return NextResponse.json({ vereditos: [] });
 
   const { data, error } = await supabase
-    .from("ai_verdicts" as never)
+    .from("ai_verdicts")
     .select("kind, subject, fingerprint, payload, actor_id, actor_label, at")
     .eq("kind", kind as VerdictKind)
     /* Ordem declarada: paginar sem ordem no Postgres é indefinido. */
@@ -117,7 +117,7 @@ export async function PUT(request: Request) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const { error } = await supabase.from("ai_verdicts" as never).upsert(
+  const { error } = await supabase.from("ai_verdicts").upsert(
     {
       kind: veredito.kind,
       subject: veredito.subject,
@@ -127,7 +127,7 @@ export async function PUT(request: Request) {
       actor_id: user?.id ?? null,
       actor_label: veredito.actorLabel,
       at: new Date().toISOString(),
-    } as never,
+    },
     { onConflict: "kind,subject" }
   );
 

@@ -23,8 +23,9 @@ de uma sprint parte da anterior, e o `main` só muda quando alguém integra.
 | Extra | UX e UI: quebras e acabamento | `sprint/ux-ui` | [#37](https://github.com/majyn07/knowledge-intelligence/pull/37) | Integrado; conferido em produção em 26/10 |
 | 6 | Artigos citados pelo suporte | `sprint/artigos-citados` | [#38](https://github.com/majyn07/knowledge-intelligence/pull/38) | Integrado; conferido em produção (39 citações no artigo mais usado) |
 | 5 | O artigo resolveu? | `sprint/origem-do-artigo` | a abrir | **Pré-requisito feito** (o artigo guarda a origem, migração `0033` aplicada); a medição em si espera artigos publicados pelo ciclo |
-| 4 | Conferir IA contra casos reais | — | — | Espera a escolha dos casos |
-| 8, 9, 10 | Discussões | — | — | Esperam decisão |
+| 4 | Conferir IA contra casos reais | — | — | **Em curso.** Sobreposição conferida (3 pares, vereditos certos); as outras três esperam o Gemini sair da sobrecarga |
+| 10 | Manutenção | `sprint/manutencao` | a abrir | Mapa tipado destravado (a causa era `interface`, não a contagem) |
+| 8, 9 | Discussões | — | — | Esperam decisão |
 | 12 | Classificação da HubSpot no produto | `sprint/classificacao-hubspot` | [#40](https://github.com/majyn07/knowledge-intelligence/pull/40) | **Integrado e em produção.** Classificação trazida em 26/10: 1.022 atendimentos |
 | 11 | Segurança | — | — | Aguardando instruções |
 
@@ -204,6 +205,18 @@ para a próxima troca de modelo ou de prompt ter com o que comparar.
 
 **Discutir.** Quais atendimentos e artigos servem de caso? Prefiro que venham
 de quem usa, não de mim.
+
+### Em curso (26/10/2026)
+
+- **Varredura de sobreposição**, em produção: 3 pares avaliados e guardados,
+  todos "mesma dúvida" e certos. Mas eram o **mesmo artigo duas vezes** —
+  título idêntico, 100% do vocabulário —, o que já é achado de duplicata sem
+  IA. Corrigido: duplicata sai da fila da varredura.
+- O Gemini respondeu **503 "high demand"** na maior parte das tentativas. A
+  varredura esperou, tentou de novo e parou dizendo onde. A frase de parada
+  saía com ".," e foi corrigida.
+- **Faltam:** avaliar atendimentos marcados, fila vira artigo e atualizar
+  artigo com material. Ficam para quando o modelo sair da sobrecarga.
 
 ---
 
@@ -391,6 +404,20 @@ em comum — sem isso, quebra a regra de "o que se mostra se confere".
 
 **Discutir.** O `CLAUDE.md` é seu estilo de documentação; a divisão muda como
 ele é lido. Só faço com seu aval e com o formato que você preferir.
+
+### Feito (sprint 10, 26/10/2026)
+
+- **O mapa tipado nunca esteve cheio.** Medido: com 16 tabelas e a linha como
+  `type`, compila; volta a `interface`, e os onze erros de `never` reaparecem
+  exatamente como o `CLAUDE.md` descrevia. A causa era o genérico da Supabase
+  exigir `Record<string, unknown>`, que `interface` não satisfaz.
+- `app_settings` e `ai_verdicts` entraram no mapa (17 tabelas), e os oito
+  `as never` das rotas saíram. Uma trava de compilação
+  (`TODAS_AS_LINHAS_SAO_TYPE`) aponta a tabela culpada se alguém declarar
+  `interface` de novo — conferido, o erro nomeia `ai_verdicts`.
+- **Ficou de fora:** quebrar os componentes de 500 a 850 linhas, que pede
+  sessão própria e medição antes, e dividir o `CLAUDE.md`, que espera o seu
+  aval.
 
 ---
 
