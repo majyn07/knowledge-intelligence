@@ -46,7 +46,8 @@ export function LibraryToolbar({
 
           <Input
             className="pl-9"
-            placeholder="Buscar por título, resumo, módulo, tag ou palavra-chave..."
+            placeholder="Buscar no acervo"
+            title="Busca no título, no resumo, no texto, na seção e nas tags"
             value={filters.search}
             onChange={(event) => onFiltersChange({ ...filters, search: event.target.value })}
           />
@@ -138,7 +139,9 @@ export function LibraryToolbar({
             </>
           )}
 
-          <Button onClick={onNewItem}>Novo artigo</Button>
+          <Button className="ml-auto" onClick={onNewItem}>
+            Novo artigo
+          </Button>
         </div>
       }
     />

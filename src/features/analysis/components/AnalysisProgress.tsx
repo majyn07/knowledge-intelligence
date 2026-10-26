@@ -17,7 +17,7 @@ export function AnalysisProgress({ analysis }: AnalysisProgressProps) {
   ];
 
   return (
-    <ol className="grid gap-3 rounded-xl border border-border/70 bg-card p-4 sm:grid-cols-5">
+    <ol className="grid gap-3 rounded-xl border border-border/70 bg-card p-4 sm:grid-cols-[repeat(auto-fit,minmax(6.5rem,1fr))]">
       {steps.map(({ label, icon: Icon, state }) => (
         <li key={label} className="flex min-w-0 items-center gap-3 sm:flex-col sm:items-start">
           <span className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full ${state === "complete" ? "bg-emerald-500 text-white" : state === "current" ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"}`}>

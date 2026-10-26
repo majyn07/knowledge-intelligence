@@ -165,7 +165,7 @@ export function PanelCard({
   const vazio = result.total === 0;
 
   return (
-    <article className="flex flex-col rounded-xl border border-border/70 bg-card p-5">
+    <article className="flex min-w-0 flex-col rounded-xl border border-border/70 bg-card p-5">
       <header className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <h3 className="truncate text-sm font-semibold tracking-tight">{spec.title}</h3>

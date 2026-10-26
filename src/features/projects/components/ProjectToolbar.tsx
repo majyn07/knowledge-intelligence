@@ -39,7 +39,8 @@ export function ProjectToolbar({
 
           <Input
             className="pl-9"
-            placeholder="Buscar por nome, cliente, módulo ou responsável..."
+            placeholder="Buscar projeto"
+            title="Busca no nome, no cliente, no módulo e no responsável"
             value={filters.search}
             onChange={(event) =>
               onFiltersChange({ ...filters, search: event.target.value })
@@ -85,7 +86,9 @@ export function ProjectToolbar({
             ))}
           </div>
 
-          <Button onClick={onNewProject}>Novo Projeto</Button>
+          <Button className="ml-auto" onClick={onNewProject}>
+            Novo projeto
+          </Button>
         </div>
       }
     />

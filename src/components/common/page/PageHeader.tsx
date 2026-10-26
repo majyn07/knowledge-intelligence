@@ -38,7 +38,7 @@ export function PageHeader({
       <ProductAccent />
       <div className="relative z-10 flex min-w-0 items-start gap-5">
         {icon && (
-          <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border border-border/70 bg-primary/8 text-primary shadow-sm">
+          <div className="hidden h-14 w-14 shrink-0 items-center justify-center rounded-2xl border border-border/70 bg-primary/8 text-primary shadow-sm sm:flex">
             {icon}
           </div>
         )}
@@ -56,7 +56,12 @@ export function PageHeader({
             </p>
           )}
 
-          <h1 className="mt-1 text-3xl font-semibold tracking-tight text-foreground">
+          {/*
+            Menor no celular, e quebrando palavra se preciso: a 375 px, ícone e
+            título em 30 px não cabiam juntos, e "Configurações" sozinho passava
+            da tela.
+          */}
+          <h1 className="mt-1 break-words text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
             {title}
           </h1>
 

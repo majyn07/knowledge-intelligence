@@ -165,7 +165,8 @@ export function TicketList({
           <Search className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
           <Input
             className="h-8 rounded-lg bg-muted/45 pl-8 text-xs"
-            placeholder="Assunto, cliente, empresa ou nº do chamado..."
+            placeholder="Buscar atendimento"
+            title="Busca no assunto, no cliente, na empresa, na conversa e no número do chamado"
             value={recorte.filters.search}
             onChange={(event) =>
               recorte.setFilters({ ...recorte.filters, search: event.target.value })
@@ -205,7 +206,7 @@ export function TicketList({
         */}
         <div className="mt-3 flex flex-wrap items-center gap-2">
           <select
-            className="h-7 min-w-0 flex-1 rounded-lg border border-border/70 bg-muted/45 px-2 text-[11px]"
+            className="h-7 min-w-[8rem] flex-1 rounded-lg border border-border/70 bg-muted/45 px-2 text-[11px]"
             value={recorte.filters.client}
             onChange={(event) =>
               recorte.setFilters({ ...recorte.filters, client: event.target.value })
@@ -221,7 +222,7 @@ export function TicketList({
           </select>
 
           <select
-            className="h-7 min-w-0 flex-1 rounded-lg border border-border/70 bg-muted/45 px-2 text-[11px]"
+            className="h-7 min-w-[8rem] flex-1 rounded-lg border border-border/70 bg-muted/45 px-2 text-[11px]"
             value={recorte.filters.product}
             onChange={(event) =>
               recorte.setFilters({ ...recorte.filters, product: event.target.value })
@@ -239,7 +240,7 @@ export function TicketList({
 
         <div className="mt-2 flex flex-wrap items-center gap-2">
           <select
-            className="h-7 min-w-0 flex-1 rounded-lg border border-border/70 bg-muted/45 px-2 text-[11px]"
+            className="h-7 min-w-[8rem] flex-1 rounded-lg border border-border/70 bg-muted/45 px-2 text-[11px]"
             value={recorte.filters.company}
             onChange={(event) =>
               recorte.setFilters({ ...recorte.filters, company: event.target.value })
@@ -255,7 +256,7 @@ export function TicketList({
           </select>
 
           <select
-            className="h-7 rounded-lg border border-border/70 bg-muted/45 px-2 text-[11px]"
+            className="h-7 min-w-[8rem] flex-1 rounded-lg border border-border/70 bg-muted/45 px-2 text-[11px]"
             value={recorte.sort}
             onChange={(event) =>
               recorte.setSort(event.target.value as TicketRecorteResult["sort"])
@@ -272,7 +273,7 @@ export function TicketList({
       </header>
 
       {marcados.size > 0 && (
-        <div className="flex items-center justify-between gap-2 border-b border-border/70 bg-primary/8 px-4 py-2">
+        <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border/70 bg-primary/8 px-4 py-2">
           <span className="text-xs font-medium">{contar(marcados.size, "marcado")}</span>
 
           <div className="flex gap-1.5">
@@ -442,85 +443,90 @@ function TicketRow({
       aria-current={selected}
       className="min-w-0 flex-1 py-4 pr-4 text-left"
     >
-      <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0">
-          <h3
-            className={`line-clamp-2 text-sm leading-5 ${selected ? "font-semibold" : "font-medium"}`}
-          >
-            {ticket.title}
-          </h3>
+      {/*
+        A etapa vai na linha de baixo, junto do número e da data, e não numa
+        coluna ao lado do título. Ao lado, ela tirava oitenta pixels de uma
+        coluna de duzentos e cinquenta: medido a 1280 px, o título ficava com
+        cem, e "Ticket AltoQi nº…" cortava antes do assunto.
+      */}
+      <div className="min-w-0">
+        <h3
+          className={`line-clamp-2 text-sm leading-5 ${selected ? "font-semibold" : "font-medium"}`}
+        >
+          {ticket.title}
+        </h3>
 
+        {/*
+          Quem abriu, e o número que funciona na busca do CRM.
+
+          Com mil na lista, o assunto sozinho não identifica: metade começa
+          com "Ticket AltoQi nº". O nome de quem ligou é o que a equipe
+          reconhece, e o número é o que ela cola na HubSpot.
+        */}
+        <div className="mt-3 space-y-1.5 text-xs text-muted-foreground">
           {/*
-            Quem abriu, e o número que funciona na busca do CRM.
+            "Não identificado" em vez de linha ausente.
 
-            Com mil na lista, o assunto sozinho não identifica: metade começa
-            com "Ticket AltoQi nº". O nome de quem ligou é o que a equipe
-            reconhece, e o número é o que ela cola na HubSpot.
+            A linha sumia quando não havia nome, e some igual para quem não
+            tem contato associado e para quem a busca do contato falhou. Quem
+            percorre a fila lia a ausência como "esta é a coluna vazia", e não
+            como "aqui não se sabe quem é".
           */}
-          <div className="mt-3 space-y-1.5 text-xs text-muted-foreground">
-            {/*
-              "Não identificado" em vez de linha ausente.
+          <div className="flex items-center gap-1.5">
+            <User className="h-3.5 w-3.5" />
 
-              A linha sumia quando não havia nome, e some igual para quem não
-              tem contato associado e para quem a busca do contato falhou. Quem
-              percorre a fila lia a ausência como "esta é a coluna vazia", e não
-              como "aqui não se sabe quem é".
-            */}
+            {cliente !== "" ? (
+              <span className="truncate">{cliente}</span>
+            ) : (
+              <span className="truncate italic opacity-70">Não identificado</span>
+            )}
+          </div>
+
+          {ticket.company.trim() !== "" && (
             <div className="flex items-center gap-1.5">
-              <User className="h-3.5 w-3.5" />
-
-              {cliente !== "" ? (
-                <span className="truncate">{cliente}</span>
-              ) : (
-                <span className="truncate italic opacity-70">Não identificado</span>
-              )}
+              <Building2 className="h-3.5 w-3.5" />
+              <span className="truncate">{ticket.company}</span>
             </div>
+          )}
 
-            {ticket.company.trim() !== "" && (
-              <div className="flex items-center gap-1.5">
-                <Building2 className="h-3.5 w-3.5" />
-                <span className="truncate">{ticket.company}</span>
-              </div>
+          <div className="flex flex-wrap items-center gap-2">
+            {chamado !== "" && (
+              <span className="rounded bg-muted px-1.5 py-0.5 font-mono text-[10px]">
+                #{chamado}
+              </span>
             )}
 
-            <div className="flex flex-wrap items-center gap-2">
-              {chamado !== "" && (
-                <span className="rounded bg-muted px-1.5 py-0.5 font-mono text-[10px]">
-                  #{chamado}
-                </span>
-              )}
+            {/*
+              Onde há evidência, sem ninguém abrir chamado por chamado.
 
-              {/*
-                Onde há evidência, sem ninguém abrir chamado por chamado.
+              O número vem da varredura, que contou com as mensagens já em
+              mãos. Só aparece quando é maior que zero: "0 anexos" ocuparia
+              espaço em quase toda linha para dizer o normal.
+            */}
+            {anexos > 0 && (
+              <span
+                className="flex items-center gap-0.5"
+                title={`${anexos} ${anexos === 1 ? "arquivo" : "arquivos"} do cliente`}
+              >
+                <Paperclip className="h-3 w-3" aria-hidden />
+                {anexos}
+              </span>
+            )}
 
-                O número vem da varredura, que contou com as mensagens já em
-                mãos. Só aparece quando é maior que zero: "0 anexos" ocuparia
-                espaço em quase toda linha para dizer o normal.
-              */}
-              {anexos > 0 && (
-                <span
-                  className="flex items-center gap-0.5"
-                  title={`${anexos} ${anexos === 1 ? "arquivo" : "arquivos"} do cliente`}
-                >
-                  <Paperclip className="h-3 w-3" aria-hidden />
-                  {anexos}
-                </span>
-              )}
+            {/*
+              Quando a conversa se moveu pela última vez, e não a data do
+              atendimento: um chamado aberto na semana passada e respondido
+              hoje é trabalho de hoje.
+            */}
+            {atividade !== "" && <RelativeDate value={atividade} />}
 
-              {/*
-                Quando a conversa se moveu pela última vez, e não a data do
-                atendimento: um chamado aberto na semana passada e respondido
-                hoje é trabalho de hoje.
-              */}
-              {atividade !== "" && <RelativeDate value={atividade} />}
-            </div>
+            <Badge
+              variant={etapa === "publicado" ? "default" : "outline"}
+              className="ml-auto text-[10px]"
+            >
+              {ticketStageLabel[etapa]}
+            </Badge>
           </div>
-        </div>
-
-        <div className="flex shrink-0 flex-col items-end gap-2">
-          <Badge variant={etapa === "publicado" ? "default" : "outline"} className="text-[10px]">
-            {ticketStageLabel[etapa]}
-          </Badge>
         </div>
       </div>
     </button>
