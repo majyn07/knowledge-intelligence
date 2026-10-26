@@ -125,6 +125,37 @@ describe("sortArticles", () => {
   });
 });
 
+/*
+  O artigo que o suporte mais usa para responder. Ordena por número, e o que
+  ainda não se sabe (conversas não chegaram) vai para o fim, e não para o zero.
+*/
+describe("citações do suporte", () => {
+  const comCitacoes: ColumnContext = {
+    ...context,
+    citacoesDe: (id) => ({ a: 2, b: 30, c: 0 })[id] ?? 0,
+  };
+
+  it("é o número de atendimentos, como texto, para exibir e exportar igual", () => {
+    expect(cellValue(artigo({ id: "b" }), "citations", comCitacoes)).toBe("30");
+    expect(cellValue(artigo({ id: "c" }), "citations", comCitacoes)).toBe("0");
+  });
+
+  it("sem conversas ainda é vazio, e não zero", () => {
+    expect(cellValue(artigo({}), "citations", { ...context, citacoesDe: () => null })).toBe("");
+    expect(cellValue(artigo({}), "citations", context)).toBe("");
+  });
+
+  it("ordena pelo número, e não pelo texto: 30 vem antes de 2", () => {
+    const ordem = sortArticles(
+      [artigo({ id: "a" }), artigo({ id: "b" }), artigo({ id: "c" })],
+      { column: "citations", direction: "desc" },
+      comCitacoes
+    ).map((item) => item.id);
+
+    expect(ordem).toEqual(["b", "a", "c"]);
+  });
+});
+
 describe("paginate", () => {
   const itens = Array.from({ length: 25 }, (_, i) => i + 1);
 
