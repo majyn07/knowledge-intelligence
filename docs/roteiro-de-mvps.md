@@ -218,12 +218,21 @@ de quem usa, não de mim.
 - **Avaliar atendimentos marcados estava quebrado em produção** desde 17/09:
   o diálogo só era montado na vista da fila, e a marcação vive na de atender. O
   botão não fazia nada, sem erro. Achado ao exercitar a função; corrigido.
-- **Marcados, depois do conserto, em produção:** "erro ao processar pórtico
-  espacial" voltou "não existe", que está certo. Mas os candidatos eram cinco
-  artigos sobre o atendimento, casados pelo e-mail do suporte, e a tela oferecia
-  atualizar cada um. Corrigido: a busca usa a consulta sem correspondência, e
-  "ausente" não traz artigo para atualizar. O segundo caso (DWG/DXF) parou na
-  sobrecarga do Gemini.
+- **Marcados, depois do conserto do botão, em produção:** "erro ao processar
+  pórtico espacial" voltou "não existe". Parecia certo e não era: os candidatos
+  eram cinco artigos sobre o atendimento, casados pelo e-mail do suporte, e a
+  tela oferecia atualizar cada um. Corrigido no PR #44: a busca usa a consulta
+  sem correspondência, e "ausente" não traz artigo para atualizar.
+- **Reteste depois do #44, em produção (26/10/2026):** o pórtico voltou
+  **"já coberto"**, apontando "Erro no processamento do pórtico espacial", o
+  artigo que existia e que a busca anterior nem entregava ao modelo. O
+  "não existe" de antes estava errado. O DWG/DXF voltou **"coberto em parte"**,
+  com "Como importar uma arquitetura no Eberick?" e a lacuna exata: o artigo não
+  explica por que o comando fica cinza fora da janela Desenho. Os dois oferecem
+  atualizar e, no parcial, criar com o rascunho.
+- **Arestas que ficaram:** com "já coberto", a tela ainda oferece "Atualizar
+  este artigo" em artigo com "Falta: nenhuma", e listou "Nossos Canais de
+  Atendimento" porque o cliente perguntou como falar com alguém.
 - **Faltam:** fila vira artigo e atualizar artigo com material.
 
 ---
