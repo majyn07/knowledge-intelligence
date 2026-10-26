@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { requireMember } from "@/features/auth/requireAdmin";
+import { requireAdmin } from "@/features/auth/requireAdmin";
 
 import {
   HubSpotFailure,
@@ -11,10 +11,9 @@ import { hubspotTicketService } from "@/services/hubspot/ticketService";
 /**
  * Os atendimentos da HubSpot.
  *
- * Escrita antes de a credencial poder chamá-la: hoje toda chamada volta 502
- * com `sem-permissao`, porque o escopo `tickets` não está no app privado. A
- * rota existe assim mesmo porque o que falta é permissão de terceiro, e o
- * código que depende dela é conferível por teste desde já.
+ * Escrita antes de a credencial poder chamá-la, e funcionando desde 19/10/2026,
+ * quando o escopo de leitura de tickets foi concedido. Nenhuma tela a usa hoje:
+ * o atendimento nasce da conversa, e a classificação tem rota própria.
  *
  * O mesmo mapa de falha da conversa, e de propósito: escritos em separado, os
  * dois divergem.
@@ -57,7 +56,13 @@ export async function GET(request: Request) {
     endereco. A porta e o servidor, nao a tela: esconder o botao impede o clique
     e nao impede quem conhece o caminho.
   */
-  const sessao = await requireMember();
+  /*
+    Administrador e freio, e não só sessão. Com o escopo de tickets concedido
+    em 19/10/2026 esta rota passou a funcionar, e listar quinhentos chamados por
+    chamada é leitura em volume contra o servidor do suporte: a mesma regra da
+    varredura. Com `requireMember` ela furava a porta e o interruptor.
+  */
+  const sessao = await requireAdmin();
 
   if (!sessao.ok) {
     return NextResponse.json({ message: sessao.message }, { status: sessao.status });

@@ -748,9 +748,9 @@ os artigos já apontam para seções do portal, e trocar o cadastro deixaria tod
 em "Sem seção". Que é exatamente a classificação inventada que o resto deste
 documento evita. O "Responde por" da equipe lê o portal.
 
-A classificação da HubSpot entraria com os atendimentos remotos, como
-vocabulário do atendimento e não por cima deste. **Eles não entraram**: o escopo
-está ausente, e a decisão não é nossa.
+A classificação da HubSpot entra como vocabulário do **atendimento**, e não por
+cima deste. Ela não entrava porque o escopo estava ausente; desde 19/10/2026 é
+lida de lá (ver "A classificação que o suporte fez", em Indicadores).
 
 **Nada de classificação é fixo no código.** Categoria, seção, gênero e tipo de
 oportunidade são cadastro, editável em Configurações. A semente é a estrutura
@@ -1478,9 +1478,11 @@ preenchida — cem dos mil e vinte e cinco.
 
 Três recortes, e cada um responde uma pergunta: **cliente** ("o que este me
 pediu"), **empresa** ("o que esta conta abriu") e **produto** ("quanto disto é
-Eberick"). O produto é **deduzido do texto** e o rótulo diz isso: a
-classificação que o suporte faz na HubSpot está atrás do escopo `tickets`, que a
-credencial não alcança.
+Eberick"). O produto é o "[Support] Produto" que **quem atendeu** escolheu na
+HubSpot, e onde ele falta, o **deduzido do texto**; o seletor diz as duas
+origens. O rótulo de lá traz sufixo ("AltoQi Builder | Assinatura e suporte…"),
+e a parte antes da barra é o mesmo nome do filtro: os dois vocabulários se
+encontram sem tabela de tradução.
 
 A dedução é **uma só**, compartilhada com a tela de detalhe. Duas divergem, e a
 divergência apareceria como o filtro escondendo um atendimento que o detalhe
@@ -2222,16 +2224,20 @@ motivo: sem atendimento de origem, sem data que dê para situar no tempo, ou
 publicado antes da data do atendimento.
 
 **São dois pipelines com vocabulários próprios, e os campos não se fundem.** O
-de Setup pergunta a causa raiz e chama o motivo de "sintoma"; o de Suporte tem
-só a categoria, e não tem causa nenhuma. Um chamado passa por um dos dois, então
+de Setup pergunta a causa raiz e chama o motivo de "sintoma"; o de Suporte, que
+em agosto tinha só a categoria, ganhou sintoma, causa, produto e especialidade
+técnica, cada um com sua lista de opções. Um chamado passa por um dos dois, então
 cada lista cobre uma parte do acervo — somar Sintoma com Categoria num ranking
 só misturaria dois vocabulários sem que quem lê tivesse como saber.
 
-São sete campos, e os nomes saíram do ticket real: `[Setup] Causa | Qual a causa
+Eram sete campos, e os nomes saíram do ticket real: `[Setup] Causa | Qual a causa
 raiz que gerou o problema?`, `[Setup] Sintoma | Motivo detalhado do contato`,
 `[Setup] Tipo de Problema`, `[Support] Categoria | Motivo principal do contato`,
 `Fechamento | Qual o motivo do encerramento do ticket?`, `Quem abriu?` e
-`Proteção tecnológica`.
+`Proteção tecnológica`. Desde 19/10/2026 são onze: entram `[Support] Sintoma`,
+`[Support] Causa`, `[Support] Produto` e `[Support] Especialidade técnica`, e
+cada campo declara a propriedade interna da HubSpot de onde vem (`hubspot` no
+vocabulário), lida da conta e não do rótulo, que alguém renomeia no painel.
 
 **O vocabulário vive num lugar só**, `models/TicketClassification`: a importação
 reconhece o cabeçalho, a contagem agrupa e a tela desenha, e as três precisam
@@ -2242,10 +2248,28 @@ preenche. Cabeçalho repetido entre dois campos é recusado por teste: o
 mapeamento escolhe a primeira coluna que casa, e a coluna cairia num campo por
 acidente.
 
-**As sete estão vazias, e vão continuar.** Elas entram pelo relatório
-exportado, não pela API: o escopo `tickets` não está na credencial, e a
-exportação em CSV não está disponível para a equipe. Nenhuma das duas portas é
-decisão nossa.
+**A classificação que o suporte fez é lida da HubSpot desde 19/10/2026.** Ficou
+vazia de agosto até lá porque o escopo de tickets não estava na credencial. Com
+ele, quem administra clica em "Trazer classificação da HubSpot" nos Indicadores:
+`/api/hubspot/classificacao` lê cem chamados por pedido (onze para o acervo), com
+a mesma porta e o mesmo freio da varredura, e a tela grava numa escrita e num
+evento. A HubSpot **manda** nos onze campos, inclusive vazia, porque é a origem.
+
+**Valor interno não é rótulo.** A API devolve `erro_de_modelagem`, e o que
+quem atendeu leu foi "Erro de modelagem". O servidor traduz pelo vocabulário da
+propriedade, que vem num `batch/read` das onze, e não no `GET` das 790. Opção
+que saiu do vocabulário aparece como veio, e não some.
+
+Na primeira leitura, dos 1.020 com número: motivo do fechamento em 610, quem
+abriu em 627, categoria em 461, produto em 463, causa raiz em 196. O resto é
+chamado fechado sem classificação, e a tela conta à parte como antes.
+
+**A HubSpot é só leitura, e isso é código.** `services/hubspot/readOnly` recusa,
+antes de sair, todo POST que não seja `/search` ou `/batch/read`, e o cliente não
+tem PUT, PATCH nem DELETE. Alterar registro de cliente na HubSpot é decisão
+humana, fora do produto. E `/api/hubspot/tickets`, que passou a funcionar com o
+escopo, deixou de pedir só sessão: listar quinhentos é leitura em volume, e vale
+a porta de administrador e o freio.
 
 **O que sobrou é o próprio cliente.** O bot pergunta antes de abrir o chamado, e
 pergunta e resposta são mensagens da conversa, que já temos. Não é dedução: é a
@@ -2265,8 +2289,7 @@ ranking como se uma pessoa a tivesse escolhido. Nenhuma das dezesseis opções
 reais tem pontuação de fim. "Voltar ao menu anterior" também sai: é navegação, e
 quem voltou respondeu depois.
 
-Vazio é o estado de todos os 1.025 nas sete do suporte, e a tela diz isso **uma
-vez**, com o caminho junto — sete caixas idênticas seriam sete vezes a mesma
+Quando nenhuma lista tem dado, a tela diz isso **uma vez**, com o caminho junto — sete caixas idênticas seriam sete vezes a mesma
 frase.
 
 A fatia é sobre os **classificados**, não sobre o total: dividir pelo total
@@ -2432,7 +2455,7 @@ o texto que concorda em número, fronteira de armazenamento com a divisão em lo
 gravação compartilhada e o plano da releitura incremental, a leitura de arquivo delimitado com o mapeamento de
 colunas e os planos de importação de artigo e de atendimento, a recuperação de texto não salvo, o cadastro
 de taxonomia com a migração da
-classificação antiga, a contagem da classificação com o vocabulário dos dois pipelines e a leitura da escolha que o cliente fez no bot, os normalizadores de artigo, plano e atendimento, o motor
+classificação antiga, a contagem da classificação com o vocabulário dos dois pipelines e a leitura da escolha que o cliente fez no bot, a classificação lida da HubSpot em rótulo com o lote que a pede e a trava que só deixa sair leitura, os normalizadores de artigo, plano e atendimento, o motor
 e o desenho dos painéis, a trilha de navegação, o recorte por equipe, as
 menções, o que se acompanha, a lixeira, a tabela com suas visões salvas, o rascunho do artigo, o que falta levar ao portal com a ligação de quem nasceu aqui e o HTML que se cola lá, os artigos que o suporte cita sem contar o rodapé e a tradução
 do erro de acesso.

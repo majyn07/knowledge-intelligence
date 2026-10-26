@@ -19,6 +19,7 @@ import { useActivity } from "@/features/activities/providers/ActivityProvider";
 import { usePeople } from "@/features/people/providers/PeopleProvider";
 import type { SupportConversation } from "@/models/SupportConversation";
 import type { Ticket } from "@/models/Ticket";
+import type { TicketClassificationField } from "@/models/TicketClassification";
 
 import { parseConversations, parseTickets } from "../normalizeSupport";
 import { ticketRepository } from "../repositories/ticketRepository";
@@ -39,6 +40,8 @@ interface TicketsContextValue {
   createTicket: (data: TicketFormData) => Ticket;
   /** Grava uma importação inteira: novos e atualizados numa passada. */
   importTickets: (create: Ticket[], update: Ticket[]) => void;
+  /** A classificação lida da HubSpot, aplicada numa escrita e num evento. */
+  applyClassification: (porTicket: Map<string, Record<TicketClassificationField, string>>) => void;
   /** O que veio da caixa do suporte: atendimento e conversa juntos. */
   importFromHelpDesk: (
     novos: { ticket: Ticket; conversation: SupportConversation }[],
@@ -215,6 +218,49 @@ export function TicketsProvider({ children }: { children: ReactNode }) {
     [currentPerson, record, setTickets]
   );
 
+  /**
+   * A classificação que o suporte fez na HubSpot, aplicada de uma vez.
+   *
+   * Uma escrita, um evento e um aviso, como a importação: aplicar atendimento
+   * por atendimento seriam mil idas ao servidor e mil linhas iguais no
+   * histórico. A HubSpot manda nos onze campos, inclusive vazia: ela é a origem
+   * da classificação, e um campo que alguém limpou lá não deve sobreviver aqui.
+   * O resto do registro (conversa, `raw`, iniciativa) não é tocado.
+   */
+  const applyClassification = useCallback(
+    (porTicket: Map<string, Record<TicketClassificationField, string>>) => {
+      if (porTicket.size === 0) return;
+
+      setTickets((current) =>
+        current.map((item) => {
+          const classificacao = porTicket.get(item.id);
+          return classificacao ? { ...item, ...classificacao } : item;
+        })
+      );
+
+      const classificados = [...porTicket.values()].filter((c) =>
+        Object.values(c).some((valor) => valor !== "")
+      ).length;
+
+      record({
+        type: "ticket_updated",
+        projectId: tickets.find((item) => porTicket.has(item.id))?.projectId ?? "",
+        actor: currentPerson,
+        subject: {
+          kind: "ticket",
+          id: "classificacao",
+          label: `Classificação de ${contar(porTicket.size, "atendimento")} lida da HubSpot`,
+        },
+        detail: `${classificados} com classificação, ${porTicket.size - classificados} ainda sem nenhuma lá.`,
+      });
+
+      toast.success(
+        `Classificação lida da HubSpot: ${contar(classificados, "atendimento")} com classificação.`
+      );
+    },
+    [currentPerson, record, setTickets, tickets]
+  );
+
   const createTicket = useCallback(
     (data: TicketFormData) => {
       const { ticket, conversation } = ticketService.create(data, tickets, new Date());
@@ -327,13 +373,14 @@ export function TicketsProvider({ children }: { children: ReactNode }) {
       createTicket,
       importFromHelpDesk,
       importTickets,
+      applyClassification,
       updateTicket,
       deleteTicket,
       deletedTickets,
       restoreTicket,
       purgeTicket,
     }),
-    [conversationOf, conversations, createTicket, deleteTicket, deletedTickets, importFromHelpDesk, importTickets, isHydrated, purgeTicket, restoreTicket, ticketsOf, tickets, updateTicket]
+    [applyClassification, conversationOf, conversations, createTicket, deleteTicket, deletedTickets, importFromHelpDesk, importTickets, isHydrated, purgeTicket, restoreTicket, ticketsOf, tickets, updateTicket]
   );
 
   return <TicketsContext.Provider value={value}>{children}</TicketsContext.Provider>;

@@ -416,8 +416,8 @@ vinte em vinte e cinco minutos com ela atrás.
 fim de semana ninguém tem a aba aberta, e nada entra. Por isso a retomada cobre o
 intervalo perdido, e não só a última hora.
 
-**Sete campos de classificação do suporte estão vazios**, e vão continuar: eles
-vêm do relatório exportado da HubSpot, e nem o escopo da API nem a exportação em
-CSV estão disponíveis para a equipe. Nenhuma das duas portas é decisão nossa. O
-que sobrou é a escolha que o próprio cliente fez no bot, que fica ao lado e
-rotulada pelo que é.
+**A classificação do suporte vem da HubSpot desde 19/10/2026**, lida por quem
+administra no botão "Trazer classificação da HubSpot", nos Indicadores. São
+onze campos, e cerca de metade dos atendimentos foi fechada sem classificação
+lá: esses ficam contados à parte. A escolha que o próprio cliente fez no bot
+continua ao lado, rotulada pelo que é. O produto não escreve nada na HubSpot.
