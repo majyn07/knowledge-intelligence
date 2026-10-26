@@ -68,6 +68,13 @@ export interface Person {
    * ser genérica.
    */
   isAdmin: boolean;
+  /**
+   * Quando esta pessoa fechou a central de avisos pela última vez, em ISO.
+   *
+   * No banco, e não só no navegador: ler no computador precisa marcar como lido
+   * no celular. Ausente em quem nunca abriu e no modo navegador.
+   */
+  noticesSeenAt?: string;
 }
 
 /** Referência guardada nos campos de atribuição. Vazio é "sem responsável". */

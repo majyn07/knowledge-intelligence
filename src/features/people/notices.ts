@@ -129,6 +129,18 @@ export function buildNotices(input: NoticeInput): Notice[] {
   return avisos.sort((a, b) => b.at.localeCompare(a.at)).slice(0, limit);
 }
 
+/**
+ * A última visita que vale: a mais recente entre este navegador e a conta.
+ *
+ * As duas convivem. A conta é o que faz ler no computador marcar como lido no
+ * celular; o navegador é o que existe no modo sem servidor, e o que já estava
+ * guardado antes da coluna existir. Ficar com a mais recente é o que impede um
+ * aviso já lido de voltar a parecer novo só porque um dos dois lados atrasou.
+ */
+export function ultimaVisita(...visitas: (string | undefined)[]): string {
+  return visitas.reduce<string>((maior, visita) => (visita && visita > maior ? visita : maior), "");
+}
+
 /** Quantos ainda não foram vistos. É o número no sino. */
 export function unreadCount(notices: Notice[]): number {
   return notices.filter((notice) => notice.unread).length;

@@ -362,8 +362,8 @@ que avisa demais é um produto cujos avisos ninguém lê.
 O que **você** fez não é notícia para você. O já visto continua na lista, marcado
 como lido, e marcar acontece ao **fechar**: quem abre ainda não leu.
 
-*Limite conhecido:* a última visita fica neste navegador, então ler no computador
-não marca como lido no celular.
+A última visita fica no seu perfil: ler no computador marca como lido no
+celular também.
 
 ### Buscar e navegar
 

@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import type { ActivityEvent } from "@/models/ActivityEvent";
 
 import type { Follow } from "./follows";
-import { buildNotices, unreadCount, type MentionHit } from "./notices";
+import { buildNotices, ultimaVisita, unreadCount, type MentionHit } from "./notices";
 
 const evento = (over: Partial<ActivityEvent>): ActivityEvent => ({
   id: "e1",
@@ -174,5 +174,23 @@ describe("buildNotices", () => {
     });
 
     expect(resultado[0].href).toBe("");
+  });
+});
+
+/* Ler no computador precisa marcar como lido no celular, e nada já lido volta a ser novo. */
+describe("ultimaVisita", () => {
+  it("fica com a mais recente entre o navegador e a conta", () => {
+    expect(ultimaVisita("2026-10-18T10:00:00.000Z", "2026-10-19T09:00:00.000Z")).toBe(
+      "2026-10-19T09:00:00.000Z"
+    );
+    expect(ultimaVisita("2026-10-19T09:00:00.000Z", "2026-10-18T10:00:00.000Z")).toBe(
+      "2026-10-19T09:00:00.000Z"
+    );
+  });
+
+  it("um lado ausente não apaga o outro", () => {
+    expect(ultimaVisita("", "2026-10-19T09:00:00.000Z")).toBe("2026-10-19T09:00:00.000Z");
+    expect(ultimaVisita("2026-10-19T09:00:00.000Z", undefined)).toBe("2026-10-19T09:00:00.000Z");
+    expect(ultimaVisita("", undefined)).toBe("");
   });
 });

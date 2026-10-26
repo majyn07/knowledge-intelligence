@@ -323,11 +323,19 @@ vazia na segunda abertura, e quem quer reencontrar o que leu ontem não teria
 onde procurar. Marcar como visto acontece ao **fechar**: quem abre ainda não
 leu, e marcar antes apagaria o destaque do que a pessoa está olhando.
 
-**Limite conhecido:** a última visita fica no navegador, então ler no
-computador não marca como lido no celular. A versão certa é uma coluna por
-pessoa no banco, e é outra peça. Guardar aqui responde "o que mudou desde a
-última vez que eu olhei nesta máquina", que é verdade, e é melhor que não
-avisar nada.
+**A última visita fica no perfil, e também no navegador.** Era só no
+navegador, e ler no computador não marcava como lido no celular. Agora
+`profiles.notices_seen_at` guarda o mesmo instante, e vale **a mais recente**
+das duas (`ultimaVisita`): o navegador continua sendo o que existe sem
+servidor, e ficar com a mais recente impede um aviso lido de voltar a parecer
+novo porque um dos lados atrasou.
+
+A data é convertida na leitura do perfil. A central compara **texto**, o
+Postgres devolve `+00` e o produto grava `Z`; sem converter, um evento posterior
+à visita pareceria anterior e o aviso sumiria sem ter sido lido.
+
+Gravar falhando não vira aviso: o navegador já guardou, e interromper alguém a
+cada fechamento da central por isso seria o produto avisando demais.
 
 **Menção guarda identificador, como a atribuição.** O comentário grava
 `@[Nome](id)`; quem exibe resolve o id e mostra o nome de hoje. O rótulo vai
@@ -2348,7 +2356,7 @@ das falhas dele e a decisão de tentar de novo, a leitura da sugestão de seçã
 sobrepõem com o veredito guardado e a impressão que o vence, o retrato que a
 tela dá ao assistente com o encaixe do painel na janela, a leitura do preenchimento de
 formulário com a seleção do que aplicar e a classificação do arquivo
-anexado, o recorte na URL, a central de avisos, o catálogo de ações guardadas e a auditoria do histórico, o levantamento, índice do artigo, critérios de publicação,
+anexado, o recorte na URL, a central de avisos com a última visita que vale entre o navegador e o perfil, o catálogo de ações guardadas e a auditoria do histórico, o levantamento, índice do artigo, critérios de publicação,
 o texto que concorda em número, fronteira de armazenamento com a divisão em lotes da
 gravação compartilhada e o plano da releitura incremental, a leitura de arquivo delimitado com o mapeamento de
 colunas e os planos de importação de artigo e de atendimento, a recuperação de texto não salvo, o cadastro
