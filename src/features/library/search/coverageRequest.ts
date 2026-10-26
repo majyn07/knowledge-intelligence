@@ -26,11 +26,21 @@ export function montarPedidoDeCobertura({
   material,
   sectionId,
   excludeId,
+  consulta = material,
 }: {
   articles: KnowledgeArticle[];
   material: string;
   sectionId: string;
   excludeId?: string;
+  /**
+   * O texto que escolhe os candidatos, quando ele não deve ser o material.
+   *
+   * Material de atendimento traz o e-mail do suporte inteiro, e buscar por ele
+   * casava pela correspondência: em produção, um erro de pórtico espacial teve
+   * como candidatos cinco artigos sobre como funciona o atendimento. O material
+   * continua indo inteiro ao modelo; só a busca usa a versão limpa.
+   */
+  consulta?: string;
 }): CoverageRequest {
   /*
     Só publicado.
@@ -52,7 +62,7 @@ export function montarPedidoDeCobertura({
   */
   const candidatos = findSimilarArticles({
     articles: publicados,
-    text: material,
+    text: consulta,
     excludeId,
     limit: CANDIDATOS_NO_PEDIDO,
   })

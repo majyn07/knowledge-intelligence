@@ -218,9 +218,13 @@ de quem usa, não de mim.
 - **Avaliar atendimentos marcados estava quebrado em produção** desde 17/09:
   o diálogo só era montado na vista da fila, e a marcação vive na de atender. O
   botão não fazia nada, sem erro. Achado ao exercitar a função; corrigido.
-- **Faltam:** a resposta do modelo nos marcados (depois do merge), fila vira
-  artigo e atualizar artigo com material. Ficam para quando o modelo sair da
-  sobrecarga.
+- **Marcados, depois do conserto, em produção:** "erro ao processar pórtico
+  espacial" voltou "não existe", que está certo. Mas os candidatos eram cinco
+  artigos sobre o atendimento, casados pelo e-mail do suporte, e a tela oferecia
+  atualizar cada um. Corrigido: a busca usa a consulta sem correspondência, e
+  "ausente" não traz artigo para atualizar. O segundo caso (DWG/DXF) parou na
+  sobrecarga do Gemini.
+- **Faltam:** fila vira artigo e atualizar artigo com material.
 
 ---
 

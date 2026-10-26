@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { semCorrespondencia } from "@/lib/vocabulary";
 import { articleText } from "@/features/library/content/articleText";
 import { guardarRascunho } from "@/features/library/draftHandoff";
 import {
@@ -160,7 +161,18 @@ export function CoveragePanel({
     setErro("");
     setResultado(null);
 
-    const pedido = montarPedidoDeCobertura({ articles, material, sectionId, excludeId });
+    /*
+      Material que vem de atendimentos traz o e-mail do suporte, e a busca dos
+      candidatos casaria pela correspondência. Texto escrito no formulário não
+      tem esse problema, e o corte ali tiraria palavra legítima.
+    */
+    const pedido = montarPedidoDeCobertura({
+      articles,
+      material,
+      sectionId,
+      excludeId,
+      ...(origem ? { consulta: semCorrespondencia(material) } : {}),
+    });
 
     try {
       const resposta = await fetch("/api/library/coverage", {

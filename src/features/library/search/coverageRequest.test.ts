@@ -173,3 +173,40 @@ describe("montarPedidoDeCobertura", () => {
     expect(pedido).toMatchObject({ candidatos: [], modelos: [] });
   });
 });
+
+/*
+  O caso de produção, 26/10/2026: o material de um atendimento traz o e-mail do
+  suporte inteiro, e a busca pelos candidatos casava pela correspondência — um
+  erro de pórtico espacial recebeu cinco artigos sobre como funciona o
+  atendimento. A consulta limpa escolhe os candidatos; o material vai inteiro.
+*/
+describe("consulta separada do material", () => {
+  const suporte = artigo({
+    title: "Como funciona o Suporte AltoQi?",
+    summary: "Canais de atendimento do suporte",
+    content: "O atendimento do suporte AltoQi funciona por chat e e-mail. Agradecemos o contato e a solicitação.",
+    sectionId: "sec-suporte",
+  });
+  const portico = artigo({
+    title: "Erro ao processar pórtico espacial",
+    summary: "Precisão numérica no processamento",
+    content: "Quando o pórtico espacial não processa, ajuste a precisão numérica nas configurações.",
+    sectionId: "sec-estruturas",
+  });
+  const doAtendimento =
+    "Prezado, agradecemos o contato com o atendimento do suporte AltoQi. Sobre a sua solicitação: " +
+    "o pórtico espacial não processa. Ajuste a precisão numérica. Atenciosamente, atendimento suporte.";
+
+  it("a consulta limpa põe o artigo do assunto em primeiro", async () => {
+    const { semCorrespondencia } = await import("@/lib/vocabulary");
+    const pedido = montarPedidoDeCobertura({
+      articles: [suporte, portico],
+      material: doAtendimento,
+      sectionId: "",
+      consulta: semCorrespondencia(doAtendimento),
+    });
+
+    expect(pedido.candidatos[0]?.id).toBe(portico.id);
+    expect(pedido.material).toBe(doAtendimento);
+  });
+});
