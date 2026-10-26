@@ -39,6 +39,12 @@ export interface RascunhoEntregue {
   contentFormat?: "markdown" | "html";
   /** O que mudou, item a item. Quem revisa lê isto antes do texto. */
   mudancas?: string[];
+  /**
+   * Os atendimentos que originaram o rascunho, e os termos do grupo. Viram a
+   * `origemAtendimentos` do artigo quando ele é salvo: é o "antes" do MVP 5.
+   */
+  atendimentos?: string[];
+  termos?: string[];
 }
 
 export function guardarRascunho(rascunho: RascunhoEntregue): void {
@@ -63,8 +69,11 @@ export function retirarRascunho(): RascunhoEntregue | null {
 export function normalizarRascunho(bruto: unknown): RascunhoEntregue | null {
   if (typeof bruto !== "object" || bruto === null) return null;
 
-  const { title, summary, content, origem, articleId, contentFormat, mudancas } =
+  const { title, summary, content, origem, articleId, contentFormat, mudancas, atendimentos, termos } =
     bruto as Record<string, unknown>;
+
+  const lista = (valor: unknown) =>
+    Array.isArray(valor) ? valor.filter((v): v is string => typeof v === "string" && v !== "") : [];
 
   const texto = (valor: unknown) => (typeof valor === "string" ? valor : "");
 
@@ -83,6 +92,9 @@ export function normalizarRascunho(bruto: unknown): RascunhoEntregue | null {
     ...(contentFormat === "html" || contentFormat === "markdown" ? { contentFormat } : {}),
     ...(Array.isArray(mudancas)
       ? { mudancas: mudancas.filter((m): m is string => typeof m === "string" && m !== "") }
+      : {}),
+    ...(lista(atendimentos).length > 0
+      ? { atendimentos: lista(atendimentos), termos: lista(termos) }
       : {}),
   };
 }

@@ -24,6 +24,7 @@ import type { PlanWorkspaceItem } from "@/features/plans/types/PlanWorkspace";
 import { articleService } from "@/features/library/services/articleService";
 import { discardDraft, draftChanges, draftFieldLabel, publishDraft } from "@/features/library/draft";
 import { impressaoDoPortal } from "@/features/library/portalSync";
+import { juntarOrigem, type OrigemNosAtendimentos } from "@/features/library/articleOrigin";
 import { parseArticles } from "@/features/library/normalizeArticle";
 import { STORAGE_KEYS } from "@/lib/storage";
 import { concordar, contar } from "@/lib/plural";
@@ -39,8 +40,9 @@ interface LibraryContextValue {
   /** Falso até o conteúdo guardado ser lido, após a montagem. */
   isHydrated: boolean;
   totalItems: number;
-  createItem: (data: LibraryFormData) => void;
-  updateItem: (id: string, data: LibraryFormData) => void;
+  /** `origem`: os atendimentos de que o artigo nasceu, quando veio da fila ou dos marcados. */
+  createItem: (data: LibraryFormData, origem?: OrigemNosAtendimentos) => void;
+  updateItem: (id: string, data: LibraryFormData, origem?: OrigemNosAtendimentos) => void;
   changeStatus: (id: string, status: ArticleStatus) => void;
   /** A próxima versão, preparada sem tirar a atual do ar. */
   saveDraft: (id: string, draft: { title: string; summary: string; content: string }) => void;
@@ -101,8 +103,9 @@ export function LibraryProvider({ children }: { children: ReactNode }) {
   const deletedItems = useMemo(() => trashed(allItems), [allItems]);
 
   const createItem = useCallback(
-    (data: LibraryFormData) => {
-      const newItem = articleService.create(data);
+    (data: LibraryFormData, origem?: OrigemNosAtendimentos) => {
+      const criado = articleService.create(data);
+      const newItem = origem ? { ...criado, origemAtendimentos: origem } : criado;
       setItems((previous) => [newItem, ...previous]);
       record({
         type: "article_created",
@@ -129,7 +132,7 @@ export function LibraryProvider({ children }: { children: ReactNode }) {
   );
 
   const updateItem = useCallback(
-    (id: string, data: LibraryFormData) => {
+    (id: string, data: LibraryFormData, origem?: OrigemNosAtendimentos) => {
       const currentItem = items.find((item) => item.id === id);
       if (!currentItem) return;
 
@@ -140,7 +143,10 @@ export function LibraryProvider({ children }: { children: ReactNode }) {
         return;
       }
 
-      const updatedItem = articleService.update(currentItem, data);
+      const atualizado = articleService.update(currentItem, data);
+      /* A atualização soma os atendimentos novos aos de antes, e não os troca. */
+      const juntos = juntarOrigem(currentItem.origemAtendimentos, origem);
+      const updatedItem = juntos ? { ...atualizado, origemAtendimentos: juntos } : atualizado;
       setItems((previous) =>
         previous.map((item) => (item.id === id ? updatedItem : item))
       );

@@ -25,6 +25,7 @@ import { useSavedVerdicts } from "@/features/library/compare/useSavedVerdicts";
 import { usePeople } from "@/features/people/providers/PeopleProvider";
 import type { OverlapPair } from "@/features/survey/overlap";
 import { contar } from "@/lib/plural";
+import { semPontoFinal } from "@/lib/frase";
 import type { MergeAdvice, MergeRequest, Relacao } from "@/services/ai/library/mergeAdvice";
 
 /**
@@ -242,7 +243,7 @@ export function OverlapSweepDialog({
           e a próxima varredura começa do primeiro que ficou faltando.
         */
         setErro(
-          `${falha instanceof Error ? falha.message : "Falha ao avaliar"}, parou no par ${
+          `${semPontoFinal(falha instanceof Error ? falha.message : "Falha ao avaliar")}. Parou no par ${
             i + 1
           } de ${fila.length}.${
             /*

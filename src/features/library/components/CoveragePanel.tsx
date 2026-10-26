@@ -76,6 +76,8 @@ interface CoveragePanelProps {
   /** Não se compara um artigo consigo mesmo. */
   excludeId?: string;
   onApply: (rascunho: { title: string; summary: string; content: string }) => void;
+  /** Quando o material vem de atendimentos: vai junto para o artigo guardar a origem. */
+  origem?: { atendimentos: string[]; termos: string[] };
 }
 
 export function CoveragePanel({
@@ -84,6 +86,7 @@ export function CoveragePanel({
   sectionId,
   excludeId,
   onApply,
+  origem,
 }: CoveragePanelProps) {
   const router = useRouter();
   const [resultado, setResultado] = useState<CoverageResult | null>(null);
@@ -139,6 +142,7 @@ export function CoveragePanel({
         articleId: alvo.id,
         contentFormat: alvo.contentFormat,
         mudancas: dados.updated.mudancas,
+        ...origem,
       });
 
       router.push("/library");

@@ -167,6 +167,8 @@ export type ArticleRow = {
   portal_article_id: string | null;
   /** A impressão do texto do portal na última importação. Ver `portalSync`. */
   portal_baseline: string | null;
+  /** De quais atendimentos o artigo nasceu. Ver `articleOrigin`. */
+  origem_atendimentos: unknown;
   url: string | null;
   tags: string[];
   keywords: string[];

@@ -237,11 +237,22 @@ export default function LibraryPage() {
   const publishedCount = filteredItems.filter((item) => item.status === "published").length;
 
   function handleSubmit(data: LibraryFormData) {
+    /*
+      O rascunho que veio da fila ou dos marcados traz os atendimentos de origem,
+      e é na gravação que eles entram no artigo: antes disso a pessoa ainda pode
+      desistir, e a origem de um artigo que não existe não serve a ninguém.
+    */
+    const origem = entregue?.atendimentos?.length
+      ? { ticketIds: entregue.atendimentos, termos: entregue.termos ?? [], em: new Date().toISOString() }
+      : undefined;
+
     if (selectedItem) {
-      updateItem(selectedItem.id, data);
+      updateItem(selectedItem.id, data, origem);
     } else {
-      createItem(data);
+      createItem(data, origem);
     }
+
+    if (origem) setEntregue(null);
 
     closeDialog();
   }
