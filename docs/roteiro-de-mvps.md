@@ -215,8 +215,12 @@ de quem usa, não de mim.
 - O Gemini respondeu **503 "high demand"** na maior parte das tentativas. A
   varredura esperou, tentou de novo e parou dizendo onde. A frase de parada
   saía com ".," e foi corrigida.
-- **Faltam:** avaliar atendimentos marcados, fila vira artigo e atualizar
-  artigo com material. Ficam para quando o modelo sair da sobrecarga.
+- **Avaliar atendimentos marcados estava quebrado em produção** desde 17/09:
+  o diálogo só era montado na vista da fila, e a marcação vive na de atender. O
+  botão não fazia nada, sem erro. Achado ao exercitar a função; corrigido.
+- **Faltam:** a resposta do modelo nos marcados (depois do merge), fila vira
+  artigo e atualizar artigo com material. Ficam para quando o modelo sair da
+  sobrecarga.
 
 ---
 
