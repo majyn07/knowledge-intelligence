@@ -130,7 +130,7 @@ Detalhamento em [hubspot-o-que-precisamos.md](hubspot-o-que-precisamos.md).
 | O quê | Situação |
 | --- | --- |
 | Quatro funções de IA sem verificação contra o modelo | Fila→artigo, varredura de sobreposição, atualizar artigo com material, avaliar atendimentos marcados. Código e contrato testados; resposta do modelo depende de teste com caso real |
-| Varredura das 137 sobreposições | Nunca terminou até o fim |
+| Varredura das 137 sobreposições | Nunca terminou até o fim. Desde 19/10 o veredito fica guardado e a varredura retoma de onde parou, então ela já pode ser feita em várias sessões. Falta rodar |
 | 4 artigos sem seção | O modelo se recusou a classificar, e a recusa está correta (política institucional, artigo que atravessa produtos). Podem ficar assim |
 | Entrar com conta Google | Depende da TI criar a credencial. Não bloqueia: o link por e-mail funciona |
 

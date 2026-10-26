@@ -924,6 +924,29 @@ minutos. Os vereditos que pedem decisão vêm primeiro — "assuntos diferentes"
 mais comum e o que menos rende olhar, e no topo faria alguém desistir da lista
 antes de chegar ao que importa.
 
+**E o que ela leu fica guardado para a equipe.** O veredito vivia só no diálogo:
+fechar a aba jogava fora a varredura, e por isso os 137 pares nunca foram
+avaliados até o fim — não cabiam numa sessão, e não havia como continuar na
+seguinte. O colega que abrisse o mesmo par pagava o mesmo pedido de novo.
+
+Agora cada veredito é gravado assim que chega, em `ai_verdicts`, e a varredura
+pula o que já tem resposta válida. A comparação lado a lado lê da mesma tabela e
+grava nela: é o mesmo pedido, então é a mesma resposta.
+
+**O veredito vence pela impressão do que foi lido, não por prazo.** Um de seis
+meses sobre dois artigos que ninguém tocou continua certo; um de ontem sobre um
+artigo reescrito hoje não. A impressão é do **pedido** — o texto já cortado no
+teto —, porque acréscimo depois do corte não muda o que o modelo leria. Vencido
+não some: a tela diz que existiu e que o texto mudou, e o par volta para a fila.
+
+Continua sendo **proposta**, com quem pediu e quando ao lado. Guardar não é
+promover a achado calculado.
+
+A tabela fica fora do mapa tipado, que está cheio, e passa por
+`/api/library/verdicts`. A leitura é **sob demanda**, num hook e não num
+provider do layout: só duas telas a usam, e as duas só existem quando alguém vai
+olhar um par. No modo navegador vai para o `lib/storage`.
+
 **O vocabulário do artigo passou a ser guardado por artigo**, num `WeakMap` como
 o índice da busca. Ele limpa o HTML e tokeniza o corpo inteiro, e agora dois
 caminhos o pedem sobre o mesmo acervo: o achado de sobreposição e a varredura
@@ -2284,7 +2307,7 @@ sobre o artigo, o rótulo da iniciativa, motor de busca e busca
 transversal, transições de artigo e de plano, métricas por projeto e por
 período, o tempo do ciclo com as ressalvas dele e a planilha da página, parsing da resposta da IA com a redução do contrato ao que o provedor lê e o preparo do transcrito, a escolha do provedor com a classificação
 das falhas dele e a decisão de tentar de novo, a leitura da sugestão de seção, a avaliação de cobertura do acervo, o material que um grupo da fila leva ao artigo com a entrega do rascunho, a leitura de dois artigos que se
-sobrepõem, o retrato que a
+sobrepõem com o veredito guardado e a impressão que o vence, o retrato que a
 tela dá ao assistente com o encaixe do painel na janela, a leitura do preenchimento de
 formulário com a seleção do que aplicar e a classificação do arquivo
 anexado, o recorte na URL, a central de avisos, o catálogo de ações guardadas e a auditoria do histórico, o levantamento, índice do artigo, critérios de publicação,
