@@ -1,5 +1,13 @@
 # HubSpot: o que está bloqueado, e de quem é cada coisa
 
+> **Atualizado em 19/10/2026: o pedido foi atendido.** O token ganhou
+> `crm.objects.tickets.read`, `crm.schemas.tickets.read` e
+> `crm.objects.feedback_submissions.read` (35 escopos, todos de leitura). Lista,
+> propriedades, pipelines e busca de tickets respondem 200. Continuam fechados o
+> site search (403), os webhooks do app (403) e a API de Base de Conhecimento
+> (404, não existe). Os números estão em `estado-do-produto.md` §3.2. O que segue
+> é a apuração de agosto.
+>
 > **Atualizado em 29/08.** Sobrou **um** pedido, e é o do escopo `tickets`:
 > sem ele o produto não lê a classificação que o suporte faz, e a exportação em
 > CSV — que seria a saída por arquivo — não está disponível para a equipe. O
