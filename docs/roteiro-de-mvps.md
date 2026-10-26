@@ -16,16 +16,16 @@ de uma sprint parte da anterior, e o `main` só muda quando alguém integra.
 
 | # | Sprint | Branch | PR | Estado |
 | --- | --- | --- | --- | --- |
-| 1 | Higiene de engenharia | `sprint/higiene` | [#33](https://github.com/majyn07/knowledge-intelligence/pull/33) | Pronto, CI verde, aguardando integração |
-| 2 | Veredito de IA guardado | `sprint/veredito-guardado` | [#34](https://github.com/majyn07/knowledge-intelligence/pull/34) | Pronto. Migração `0029` **já aplicada** no banco compartilhado |
-| 3 | Fila "levar ao portal" | `sprint/levar-ao-portal` | [#35](https://github.com/majyn07/knowledge-intelligence/pull/35) | Pronto. Migração `0030` **já aplicada** |
-| 7 | Avisos lidos por pessoa | `sprint/avisos-por-pessoa` | [#36](https://github.com/majyn07/knowledge-intelligence/pull/36) | Pronto. Migração `0031` **já aplicada** |
-| Extra | UX e UI: quebras e acabamento | `sprint/ux-ui` | [#37](https://github.com/majyn07/knowledge-intelligence/pull/37) | Pronto, medido; falta conferência visual |
-| 6 | Artigos citados pelo suporte | `sprint/artigos-citados` | [#38](https://github.com/majyn07/knowledge-intelligence/pull/38) | Pronto, sem migração |
+| 1 | Higiene de engenharia | `sprint/higiene` | [#33](https://github.com/majyn07/knowledge-intelligence/pull/33) | Integrado |
+| 2 | Veredito de IA guardado | `sprint/veredito-guardado` | [#34](https://github.com/majyn07/knowledge-intelligence/pull/34) | Integrado |
+| 3 | Fila "levar ao portal" | `sprint/levar-ao-portal` | [#35](https://github.com/majyn07/knowledge-intelligence/pull/35) | Integrado |
+| 7 | Avisos lidos por pessoa | `sprint/avisos-por-pessoa` | [#36](https://github.com/majyn07/knowledge-intelligence/pull/36) | Integrado |
+| Extra | UX e UI: quebras e acabamento | `sprint/ux-ui` | [#37](https://github.com/majyn07/knowledge-intelligence/pull/37) | Integrado; conferido em produção em 26/10 |
+| 6 | Artigos citados pelo suporte | `sprint/artigos-citados` | [#38](https://github.com/majyn07/knowledge-intelligence/pull/38) | Integrado; conferido em produção (39 citações no artigo mais usado) |
 | 5 | O artigo resolveu? | — | — | **Medido e adiado**: não há dado (ver a seção) |
 | 4 | Conferir IA contra casos reais | — | — | Espera a escolha dos casos |
 | 8, 9, 10 | Discussões | — | — | Esperam decisão |
-| 12 | Classificação da HubSpot no produto | `sprint/classificacao-hubspot` | [#40](https://github.com/majyn07/knowledge-intelligence/pull/40) | Pronto. Migração `0032` **já aplicada**; falta clicar o botão em produção |
+| 12 | Classificação da HubSpot no produto | `sprint/classificacao-hubspot` | [#40](https://github.com/majyn07/knowledge-intelligence/pull/40) | **Integrado e em produção.** Classificação trazida em 26/10: 1.022 atendimentos |
 | 11 | Segurança | — | — | Aguardando instruções |
 
 ---
@@ -431,6 +431,13 @@ de permissões barrou, e o arquivo foi apagado.
   empurra o conteúdo para baixo. Proposta: o porquê recolhido atrás de "Por
   quê?", aberto na primeira visita.
 - **Teclado e foco:** não auditados nesta sprint.
+
+**Repetida em produção em 26/10/2026**, com os dados reais e a classificação da
+HubSpot já trazida (1.022 atendimentos). Achou quatro quebras que o dado
+sintético não mostrava, todas das mesmas regras: listas de classificação em duas
+colunas a 768 px, cartões de 450 px em 375, o seletor de equipe do perfil e as
+ações de pessoa. Corrigidas em `fix/layout-dados-reais`. A tabela de auditoria
+passa da tela de propósito: ela tem rolagem horizontal própria.
 
 ---
 

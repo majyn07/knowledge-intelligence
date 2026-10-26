@@ -138,7 +138,11 @@ export function SupportClassification({ tickets }: { tickets: Ticket[] }) {
             {ORIGEM_LABEL[grupo.pipeline]}
           </h4>
 
-          <div className="grid gap-4 md:grid-cols-2">
+          {/*
+            Duas colunas só em xl: a 768 px, com o menu aberto, cada lista ficava
+            com rótulos de 65 a 86 px, medido com a classificação real.
+          */}
+          <div className="grid gap-4 xl:grid-cols-2">
             {grupo.itens.map((item) => (
               <Lista key={item.spec.key} spec={item.spec} tally={item.tally} />
             ))}
@@ -173,7 +177,7 @@ function Lista({
   tally: ClassificationTally;
 }) {
   return (
-    <section className="rounded-xl border border-border/70">
+    <section className="min-w-0 rounded-xl border border-border/70">
       <header className="border-b border-border/60 px-4 py-3">
         <h3 className="text-sm font-semibold">{spec.label}</h3>
         <p className="mt-0.5 text-xs leading-5 text-muted-foreground">{spec.pergunta}</p>
